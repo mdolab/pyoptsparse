@@ -40,7 +40,7 @@ To Do:
 # =============================================================================
 # Standard Python modules
 # =============================================================================
-import os, sys
+import os, sys, time
 from collections import OrderedDict
 
 # =============================================================================
@@ -116,11 +116,7 @@ class Optimization(object):
         # Flag to determine if adding variables is legal. 
         self.ableToAddVariables = True
 
-        # Add a default variable set:
-        #Qself.addVarSet('default')
-
         return
-
 
     def _checkOkToAddVariables(self):
         if not self.ableToAddVariables:
@@ -148,6 +144,7 @@ All variables must be added before constraints can be added.'
             self.dvOffset[dvSet]['n'][1] = dvCounter
         # end for
         self.ndvs = dvCounter
+        self.ableToAddVariables = False
 
         return
 
@@ -241,13 +238,26 @@ has already been used.'%(name)
             sys.exit(1)
         # end if
 
+        # ------ Process the scale argument
+        scale = numpy.atleast_1d(kwargs.pop('scale', numpy.ones(nvars)))
+        if len(scale) == 1:
+            scale = scale[0]*numpy.ones(nvars)
+        elif len(scale) == nvars:
+            pass
+        else:
+            print 'Error: The length of the \'scale\' argument to \
+ addVarGroup is %d, but the number of variables in nvars is %d.'%(len(scale), nvars)
+            sys.exit(1)
+        # end if
+
         # Now create all the variable objects
         self.variables[varSet][name] = []
         for iVar in xrange(nvars):
             varName = name + '_%d'%(iVar)
             self.variables[varSet][name].append(
-                Variable(varName, type=type, value=value[iVar], 
-                         lower=lower[iVar], upper=upper[iVar]))
+                Variable(varName, type=type, value=value[iVar]*scale[iVar], 
+                         lower=lower[iVar]*scale[iVar], upper=upper[iVar]*scale[iVar]))
+            self.variables[varSet][name][-1].scale = scale[iVar]
         # end for
                                                 
     def addObj(self, name, *args, **kwargs):
@@ -308,24 +318,27 @@ has already been used.'%(name)
 
           the jacobian (jac) must have shape of (25, 15). It is
           expected the first 10 columns correspond to the derivates
-          wrt to variables 'A' and the last 5 columes wrt variables
+          wrt to variables 'A' and the last 5 columns wrt variables
           'B'. If wrt was given as wrt=['B','A'] the opposite order
-          would be used. Note that the wrt order MUST be used in all
-          subequent returns of the jacobian. 
+          would be used. Note that the 'wrt' order MUST be used in all
+          subequent returns of the jacobian.
 
           jac -> scipy.sparse matrix: The sparse matrix jacobian. For
           nonlinear constriants, the value of the entries are not
-          important; only the structure is used at this point. However
-          for linear constraints, both the structure and values are
-          important. The value of the linear constraints are set here
-          and remain fixed for the remainder of the optimization. 
+          important; only the nonzero structure is used at this
+          point. However for linear constraints, both the structure
+          and values are important. The value of the linear
+          constraints are set here and remain fixed for the remainder
+          of the optimization.
 
           lower -> value, iteratable: The lower bounds for the constraints
           upper -> value, iteratable: The upper bounds for the constraints
-        
+
         Documentation last updated:  Feb. 07, 2011 - Peter W. Jansen
         '''
 
+        # If this is the first constraint, finalize the variables to
+        # ensure no more variables can be added. 
         if self.ableToAddVariables:
             self._finalizeDesignVariables()
 
@@ -360,7 +373,6 @@ has already been used.'%(name)
             sys.exit(1)
         # end if
 
-
         # We need to do some checking if the constraint is sparse:
         if not dense:
             # First check that 'wrt' and 'jac' is given:
@@ -393,7 +405,7 @@ constriant group is sparse.'
                 pass
             else:
                 try:
-                    jac = sparse.lil_matrix(jac)
+                    jac = sparse.csr_matrix(jac)
                 except:
                     print 'Erorr: \'jac\' is not a sparse matrix nor \
 can be converted to one.'
@@ -425,40 +437,296 @@ was not found.'%(dvSet)
 the number variables defined by the sets in dvSet = %s'%(wrt)
                 sys.exit(0)
             # end if
-
-            # We now know the jac is the right size we now want to
-            # section it according to the dvSets given
-
-            iStart = 0
-            cs = [] # Column start in full jacobian
-            ce = [] # Column end in full jacobian
-            jcs = [] # Column start in this constraint jacobian
-            jce = [] # Column end in this constraint jacobian
-            for dvSet in wrt:
-                cs.append(self.dvOffset[dvSet]['n'][0] )
-                ce.append(self.dvOffset[dvSet]['n'][1])
-
-                jcs.append(iStart)
-                iEnd = iStart + (ce[-1] - cs[-1])
-                jce.append(iEnd)
-
-                iStart = iEnd
-            # end if
         else:
             # Create dummy values for this jacobian --- assumed
             # nonlinear so the values do not matter. 
-            jac = numpy.ones((ncons, self.ndvs))
-            cs = [0]
-            ce = [self.ndvs]
-            jcs = [0]
-            jce = [self.ndvs]
+            jac = sparse.csr_matrix(numpy.ones((ncons, self.ndvs)))
+            wrt = self.variables.keys()
         # end if
 
+        # Ensure the jacobian is CSR since the code below uses that
+        # fact.
+        jac = jac.tocsr()
+
+        # For every non zero entry in jac, (ie an array of
+        # len(jac.data)) then we want to know the COLUMN in the full
+        # jacobain it corresonds to.
+        
+        jacColIndex = numpy.zeros_like(jac.indices)
+        dvOffset = 0
+        for dvSet in wrt:
+            dvLow = self.dvOffset[dvSet]['n'][0] 
+            dvHigh= self.dvOffset[dvSet]['n'][1]
+            dvRange = dvHigh - dvLow
+
+            # Loop over rows in constraint jacobian:
+            for iRow in xrange(ncons):
+                # Loop over the number of nonzero entries in this row:
+                for ii in xrange(jac.indptr[iRow], jac.indptr[iRow+1]):
+                    # ii is the index into the indices/data arrays
+                    column = jac.indices[ii]
+                    
+                    # We only examine dvOffet + dvRange of the
+                    # constriant jacobian, the remainder will be in a
+                    # separate dvSet
+                    if column >= dvOffset and column < dvOffset + dvRange:
+                        jacColIndex[ii] = dvLow + column - dvOffset
+                    # end if
+                # end for
+            # end for
+
+            dvOffset += (dvHigh - dvLow)
+        # end for
+
         self.constraints[name] = Constraint(name, dense, linear, wrt, jac, 
-                                            cs, ce, jcs, jce, lower, upper)
+                                            jacColIndex, lower, upper)
 
         return 
         
+    def reorderConstraintJacobian(self, reorder=['nonLinear','linear']):
+        '''
+        Here we possibly reorder the constriants to put the nonLinear
+        ones first, the linear ones first or the keep the natural
+        order the constraints were added. This function MUST be called
+        regarless, since the con.rs and con.re values are
+        computed in the function. 
+        '''
+
+        # Determine the total number of linear and nonlinear constraints:
+        nlcon = 0 # Linear 
+        nncon = 0 # nonlinear
+
+        for iCon in self.constraints:
+            if self.constraints[iCon].linear:
+                nlcon += self.constraints[iCon].ncon
+            else:
+                nncon += self.constraints[iCon].ncon
+            # end if
+        # end for
+        
+        # Store number of linear and nonlinear constriants:
+        self.nnCon = nncon
+        self.nlCon = nlcon
+        self.nCon = nncon + nlcon
+        
+        # Loop over the constraints assigning the column start (cs)
+        # and column end (ce) values. The actual ordering depends on
+        # if constraints are reordered or not. 
+        rowCounter = 0 
+        if reorder == ['nonLinear','linear']:
+            for iCon in self.constraints:
+                con = self.constraints[iCon]
+                if not con.linear:
+                    con.rs = rowCounter
+                    rowCounter += con.ncon
+                    con.re = rowCounter
+
+            for iCon in self.constraints:
+                con = self.constraints[iCon]
+                if con.linear:
+                    con.rs = rowCounter
+                    rowCounter += con.ncon
+                    con.re = rowCounter
+        elif reorder == ['linear','nonLinear']:
+            for iCon in self.constraints:
+                con = self.constraints[iCon]
+                if con.linear:
+                    con.rs = rowCounter
+                    rowCounter += con.ncon
+                    con.re = rowCounter
+
+            for iCon in self.constraints:
+                con = self.constraints[iCon]
+                if not con.linear:
+                    con.rs = rowCounter
+                    rowCounter += con.ncon
+                    con.re = rowCounter
+        else: # No re-ordering
+            for iCon in self.constraints:
+                con = self.constraints[iCon]
+                con.rs = rowCounter
+                rowCounter += con.ncon
+                con.re = rowCounter 
+            # end for
+        # end if
+
+        scale = []
+        for dvSet in self.variables.keys():
+            for dvGroup in self.variables[dvSet]:
+                for var in self.variables[dvSet][dvGroup]:
+                    scale.append(var.scale)
+        self.scale = numpy.array(scale)
+
+        return
+
+    def processDerivatives(self, gobj_in, gcon_in, linearConstraints=False, 
+                           nonlinearConstraints=True):
+        '''
+        This generic function is used to assemble the objective
+        gradient and the constraint jacobian. The two input flags are
+        used to determine which if linear/nonlinear or both are
+        included. Note that all cases the size of the jacobian is
+        still (ncon x ndvs), ie the full size. However, only the
+        requested entries (linear/nonlinear) are included. Also note
+        that this function performs the pyOpt controlled scaling that
+        is transparent to the user. 
+        '''
+        
+        # Assume gobj is already ok
+        gobj = numpy.atleast_2d(gobj_in)
+        gobj /= self.scale
+
+        # Data for storing the values in COOrdinate format
+        data = []
+        row  = []
+        col  = []
+
+        # Loop over all constraints:
+        for iCon in self.constraints:
+            con = self.constraints[iCon]
+            if ((linearConstraints and con.linear) or
+                (nonlinearConstraints and not con.linear)):
+                if not con.name in gcon_in:
+                    print 'Error: the jacobian for the constraint \'%s\' was \
+    not found in the returned dictionary.'%con.name
+                    sys.exit(1)
+                # end if
+                if con.dense:
+                    tmp = numpy.atleast_2d(gcon_in[iCon])
+                    tmp[numpy.where(tmp==0)] = 1e-50
+                    tmp = sparse.csr_matrix(tmp)
+                else:
+                    tmp = sparse.csr_matrix(gcon_in[iCon])
+                # end if
+
+                if tmp.shape <> con.jac.shape:
+                    print 'Error: The jacobian for constraint group \'%s\' \
+was not the correct size. The supplied jacobian has shape %s, but must be \
+shape %s.'%(con.name, gcon_in[iCon].shape, con.jac.shape)
+                    sys.exit(1)
+                # end if
+
+                if tmp.nnz <> con.jac.nnz:
+                    print 'Error: The number of nonzero elements for \
+ constraint group \'%s\' was not the correct size. The supplied jacobian has \
+%d nonzero entries, but must contain %d nonzero entries.'%(
+                        con.name, tmp.nnz, con.jac.nnz)
+                    sys.exit(1)
+                # end if
+                
+                # Loop over rows in constraint jacobian:
+                for iRow in xrange(con.ncon):
+                    # Loop over the number of nonzero entries in this row:
+                    for ii in xrange(con.jac.indptr[iRow], con.jac.indptr[iRow+1]):
+                        row.append(con.rs + iRow)
+                        col.append(con.jacColIndex[ii])
+                        data.append(tmp.data[ii]/self.scale[con.jacColIndex[ii]])
+                    # end for
+                # end for
+            # end if (nonlinear)
+        # end for
+
+        gcon = sparse.coo_matrix((data, (row, col)),(self.nCon, self.ndvs))
+
+        return gobj, gcon
+
+    def processConstraints(self, tmp, linearConstraints=False, 
+                           nonlinearConstraints=True):
+        '''
+        Assemble the constraint vector from the returned dictionary
+        '''
+
+        # We will actually be a little leniant here; the user CAN
+        # return an iterable of the correct length and we will accept
+        # that. Otherwise we will use the dictionary formulation
+        error = False
+
+        if not isinstance(tmp, dict):
+            fcon = numpy.atleast_1d(tmp)
+            if len(fcon) == self.nnCon:
+                return fcon
+            else:
+                print 'Error: The constraint array was the incorrect size. \
+It must contain %d elements (nonlinear constraints only), but an arrary of \
+size %d was given.'%(self.nnCon, len(fcon))
+                error = True
+            # end if
+        else:
+            # Process as a dictionary:
+            # Loop over (nonlinear) constraints and extract as required:
+            fcon = []
+            for iCon in self.constraints:
+                if not self.constraints[iCon].linear:
+                    if iCon in tmp:
+                        # Make sure it is at least 1dimension:
+                        c = numpy.atleast_1d(tmp[iCon])
+                        
+                        # Make sure it is the correct size:
+                        if len(c) == self.constraints[iCon].ncon:
+                            fcon.extend(c)
+                        else:
+                            print 'Error: %d constraint values were returned \
+    %s, but expected %d.'%(len(tmp[iCon]), iCon, self.variables[iCon].ncon)
+                            error = True
+                        # end if
+                    else:
+                        print 'Error: No constraint values were found for the \
+constraint %s.'%(iCon)
+                        error = True
+                    # end if
+                # end if
+            # end for
+            # Finally convert to array:
+            fcon = numpy.array(fcon)
+        # end if
+ 
+        if error:
+            sys.exit(1)
+
+        return fcon
+
+    def convertToDense(self):
+        '''
+        Take a sparse optimization problem definition and convert to a
+        dense representation for use in the rest of pyOpt
+        '''
+
+        # Variables are the same except the stupid underscore
+        self._variables = {}
+        ii = 0
+        for dvSet in self.variables.keys():
+            for dvGroup in self.variables[dvSet]:
+                for i in xrange(len(self.variables[dvSet][dvGroup])):
+                    self._variables[ii] = self.variables[dvSet][dvGroup][i]
+                    ii += 1
+                # end for
+            # end for
+        # end for
+        
+        from pyOpt import Constraint as pyOptConstraint
+
+        # Constraints have to be done individually
+        self._constraints = {}
+        ii = 0
+        for iCon in self.constraints:
+            con = self.constraints[iCon]
+            for i in xrange(con.ncon):
+                self._constraints[ii] = pyOptConstraint(
+                    con.name+'_%d'%(i), type=con.type, lower=con.lower[i],
+                    upper=con.upper[i])
+                ii += 1
+            # end for
+        # end for
+        
+        self._objectives = {}
+        ii = 0
+        for obj in self.objectives:
+            self._objectives[ii] = self.objectives[obj]
+
+        self.assembleFullConstraintJacobian(reorder=None)
+
+        return
+              
     def __str__(self):
         
         '''
@@ -488,7 +756,7 @@ the number variables defined by the sets in dvSet = %s'%(wrt)
             # end for
         # end for
 
-            print '	    Name        Type'+' '*25+'Bound\n'+'	 '
+        print '	    Name        Type'+' '*25+'Bound\n'+'	 '
         if len(self.constraints) > 0:
             text += '''\n	Constraints (i - inequality, e - equality):
         Name    Type                    Bounds\n'''
@@ -498,8 +766,7 @@ the number variables defined by the sets in dvSet = %s'%(wrt)
         # end if
         
         return text
-  
-    
+ 
     def printSparsity(self):
         '''
         This function prints an (ascii) visualization of the jacobian

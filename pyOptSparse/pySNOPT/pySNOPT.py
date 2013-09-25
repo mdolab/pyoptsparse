@@ -263,7 +263,7 @@ class SNOPT(Optimizer):
         # The state of the variables and the slacks
         self.hs = None
         self.x_previous = None
-        
+
     def __solve__(self, opt_prob, gobj_con, store_sol=True, disp_opts=False, 
               store_hst=False, hot_start=False, *args, **kwargs):
         
@@ -297,13 +297,16 @@ class SNOPT(Optimizer):
             blx = []
             bux = []
             xs = []
+            scale = []
             for dvSet in opt_prob.variables.keys():
                 for dvGroup in opt_prob.variables[dvSet]:
                     for var in opt_prob.variables[dvSet][dvGroup]:
                         if var.type == 'c':
+                            scale.append(var.scale)
                             blx.append(var.lower)
                             bux.append(var.upper)
                             xs.append(var.value)
+
                         elif (opt_prob._variables[key].type == 'i'):
                             raise IOError('SNOPT cannot handle integer design variables')
                         elif (opt_prob._variables[key].type == 'd'):
@@ -315,6 +318,7 @@ class SNOPT(Optimizer):
             blx = numpy.array(blx)
             bux = numpy.array(bux)
             xs = numpy.array(xs)
+            scale = numpy.array(scale)
 
             # Constraints Handling -- make sure nonlinear constraints go first!
             blc = []
@@ -400,8 +404,31 @@ use the same upper/lower bounds for equality constraints'
                     raise IOError('Failed to properly open %s, ierror = %3d'%
                                   (SummFile,ierror))
     
-            Acol, indA, locA = self._assembleFullConstraintJacobian(ncon)
-            self._assembleNonlinearConstraintJacobianInit()
+            self.opt_prob.reorderConstraintJacobian(reorder=['nonLinear','linear'])
+
+            # We will also assemble just the nonlinear jacobain to
+            # determine the number nonzero entries. This must remain
+            # fixed in subsequent iterations
+            gcon = {}
+            for iCon in self.opt_prob.constraints:
+                con = self.opt_prob.constraints[iCon]
+                if con.dense:
+                    gcon[iCon] = con.jac.todense()
+                else:
+                    gcon[iCon] = con.jac
+            # end for
+            gobj = numpy.zeros(opt_prob.ndvs)
+
+            gobj, fullJacobian = self.opt_prob.processDerivatives(
+                gobj, gcon, linearConstraints=True, nonlinearConstraints=True)
+            
+            fullJacobian = fullJacobian.tocsc()
+            Acol = fullJacobian.data
+            indA = fullJacobian.indices + 1
+            locA = fullJacobian.indptr + 1
+            
+            self.nnCon = self.opt_prob.nnCon
+
             # Calculate the length of the work arrays
             # --------------------------------------
             nvar = opt_prob.ndvs
@@ -543,6 +570,8 @@ use the same upper/lower bounds for equality constraints'
             # Broadcast the type of call (0 means regular call)
             MPI.COMM_WORLD.bcast(0, root=0)
 
+            x = x/self.opt_prob.scale
+
             # Broadcast the requried arguments
             MPI.COMM_WORLD.bcast([mode, nnJac, x, fobj, gobj, fcon, gcon])
 
@@ -575,7 +604,7 @@ use the same upper/lower bounds for equality constraints'
         # Evaluate the function
         if mode == 0 or mode == 2:
             fobj, fcon, fail = self.opt_prob.obj_fun(x)
-            fcon = self._processConstraints(fcon)
+            fcon = self.opt_prob.processConstraints(fcon)
 
             if fail:
                 mode = -1
@@ -598,14 +627,18 @@ use the same upper/lower bounds for equality constraints'
                 mode = -1
                 return mode
 
-            gobj = numpy.array(gobj)
-            gcon = self._assembleNonlinearConstraintJacobian(gcon)
+            if rank == 0:
+                gobj, gcon = self.opt_prob.processDerivatives(
+                    gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
+                gcon = gcon.tocsc().data
+            # end if
+
         elif mode == 1:
             # mode == 1: only gradient is required, but the
             # previously evaluated point is different. Evaluate the
             # objective then the gradient
             fobj, fcon, fail = self.opt_prob.obj_fun(x)
-            fcon = self._processConstraints(fcon)
+            fcon = self.opt_prob.processConstraints(fcon)
             
             if fail:
                 mode = -1
@@ -618,8 +651,11 @@ use the same upper/lower bounds for equality constraints'
                 mode = -1
                 return mode
 
-            gobj = numpy.array(gobj)
-            gcon = self._assembleNonlinearConstraintJacobian(gcon)
+            if rank == 0:
+                gobj, gcon = self.opt_prob.processDerivatives(
+                    gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
+                gcon = gcon.tocsc().data
+            # end if
         # end if
 
         if self.x_previous is None:
@@ -679,232 +715,7 @@ use the same upper/lower bounds for equality constraints'
 
         return
 
-    def _assembleFullConstraintJacobian(self, ncon):
-        '''
-        We must assemble the full (sparse) constraint jacobian, with
-        the nonlinear variables ordered first. Then it must be
-        converted to a CSC format and the sparsity pattern passed to snopt. 
-        '''
-
-        ndv = self.opt_prob.ndvs
-
-        # Loop over the constraints assigning the column start (cs)
-        # and column end (ce) values. Note that nonlinear ones are done first:
-        colCounter = 0
-        for iCon in self.opt_prob.constraints:
-            con = self.opt_prob.constraints[iCon]
-            if not con.linear:
-                n = con.ncon
-                con.rs = colCounter
-                con.re = colCounter + n
-                colCounter += n
-            # end if
-        # end for
-
-        # This the number of nonlinear constraints (Number Nonlinear CONstraints)
-        self.nnCon = colCounter
-
-        # And now the linear ones:
-        for iCon in self.opt_prob.constraints:
-            con = self.opt_prob.constraints[iCon]
-            if con.linear:
-                n = con.ncon
-                con.rs = colCounter
-                con.re = colCounter + n
-                colCounter += n
-            # end if
-        # end for
-        
-        # Full constraint jacobian:
-        Jac = sparse.lil_matrix((ncon, ndv))
-        # Loop over the constraints adding the nonlinear ones:
-        for iCon in self.opt_prob.constraints:
-            con = self.opt_prob.constraints[iCon]
-            for i in xrange(len(con.cs)):
-                Jac[con.rs:con.re, con.cs[i]:con.ce[i]] = con.jac[:, con.jcs[i]:con.jce[i]]
-        # end for
-
-        Jac = Jac.tocsc()
-  
-        Acol = Jac.data
-        # Convert to fortran ordering here!
-        indA = Jac.indices + 1
-        locA = Jac.indptr + 1
-
-        return Acol, indA, locA
-
-    def _assembleNonlinearConstraintJacobianInit(self):
-        '''
-        This function assembles the nonlinear part of the constraint
-        jacobian using the supplied values in the constraint
-        object. The purpose is to evaluate the structure to ensure
-        that in successive iterations the structurely is EXACTLY the
-        same if not, we have to kill the optimization.'''
-        if rank == 0:
-            ndv = self.opt_prob.ndvs
-
-            # Only the nonlinear constraint jacobian
-            Jac = sparse.lil_matrix((self.nnCon, ndv))
-
-            # Loop over nonlinear constraints and for each constraint we
-            # should be able to find the required key in gcon_dict,
-            # otherwise we stop on an error
-            colCounter = 0
-            for iCon in self.opt_prob.constraints:
-                con = self.opt_prob.constraints[iCon]
-                if not con.linear:
-                    if con.dense:
-                        tmp = numpy.atleast_2d(con.jac)
-                        tmp[numpy.where(tmp==0)] = 1e-50
-                    else:
-                        tmp = con.jac
-                    # end if
-
-                    for i in xrange(len(con.cs)):
-                        Jac[con.rs:con.re, con.cs[i]:con.ce[i]] = tmp[:, con.jcs[i]:con.jce[i]]
-                    # end for
-                # end if
-            # end for
-
-            # Convert to csc
-            Jac = Jac.tocsc()
-
-            # Store the number of nonzeros:
-            self.nonLinearJacNNZ = Jac.nnz
-        # end if
-
-        return
-
-    def _assembleNonlinearConstraintJacobian(self, gcon_dict):
-        '''
-        This function takes the dictionary returned from the user,
-        assembles the nonlinear part of the jacobian, converts it to a
-        csc matrix and provides the exact 'gcon' 1D array to give to
-        snopt. Checks are done here to ensure that the user has not
-        forgotten to return a constraint jacobian. 
-        '''
-        if rank == 0:
-            ndv = self.opt_prob.ndvs
-
-            # Only the nonlinear constraint jacobian
-            Jac = sparse.lil_matrix((self.nnCon, ndv))
-
-            # Loop over nonlinear constraints and for each constraint we
-            # should be able to find the required key in gcon_dict,
-            # otherwise we stop on an error
-            colCounter = 0
-            for iCon in self.opt_prob.constraints:
-                con = self.opt_prob.constraints[iCon]
-                if not con.linear:
-                    if not con.name in gcon_dict:
-                        print 'Error: the jacobian for the constraint \'%s\' was \
-    not found in the returned dictionary.'%con.name
-                        sys.exit(1)
-                    else:
-                        # Now make sure that the returned jacobian is
-                        # EXACTLY the same size as the 'prototype' in
-                        # the constraint object.
-                        if con.dense:
-                            tmp = numpy.atleast_2d(gcon_dict[iCon])
-                        else:
-                            tmp = gcon_dict[iCon]
-                        # end if
-
-                        if tmp.shape <> con.jac.shape:
-                            print 'Error: The jacobian for constraint group \'%s\' \
-was not the correct size. The supplied jacobian has shape %s, but must be \
-shape %s.'%(con.name, gcon_dict[iCon].shape, con.jac.shape)
-                            sys.exit(0)
-                        else:
-                            if con.dense:
-                                # Replace any exact zeros with something small:
-                                tmp[numpy.where(tmp==0)] = 1e-50
-                            # end if
-
-                            # We can set because the shape is ok. 
-                            for i in xrange(len(con.cs)):
-
-                                Jac[con.rs:con.re, con.cs[i]:con.ce[i]] = tmp[:, con.jcs[i]:con.jce[i]]
-                            # end for
-                        # end if
-                    # end if
-                # end if
-            # end for
-
-            # Convert to csc
-            Jac = Jac.tocsc()
-
-            # If the nnz don't match we're screwed
-            if Jac.nnz <> self.nonLinearJacNNZ:
-                print 'The constraint jacobian has the wrong number of entries and \
-the optimization cannot continue. Original had %d, now it has %d.'%(self.nonLinearJacNNZ, Jac.nnz)
-                sys.exit(1)
-            # end if
-            
-
-            # Extract data
-            gcon = Jac.data
-
-
-        else:
-            gcon = None
-
-        return gcon
-
-    def _processConstraints(self, tmp):
-        '''
-        Assemble the constraint jacobian from the returned dictionary
-        '''
-
-        # We will actually be a little leniant here; the user CAN
-        # return an iterable of the correct length and we will accept
-        # that. Otherwise we will use the dictionary formulation
-        error = False
-        if rank == 0:
-            if not isinstance(tmp, dict):
-                fcon = numpy.atleast_1d(tmp)
-                if len(fcon) == self.nnCon:
-                    return fcon
-                else:
-                    print 'Error: The constraint array was the incorrect size. \
-It must contain %d elements (nonlinear constraints only), but an arrary of \
-size %d was given.'%(self.nnCon, len(fcon))
-                    error = True
-                # end if
-            else:
-                # Process as a dictionary:
-                # Loop over (nonlinear) constraints and extract as required:
-                fcon = []
-                for iCon in self.opt_prob.constraints:
-                    if not self.opt_prob.constraints[iCon].linear:
-                        if iCon in tmp:
-                            # Make sure it is at least 1dimension:
-                            c = numpy.atleast_1d(tmp[iCon])
-
-                            # Make sure it is the correct size:
-                            if len(c) == self.opt_prob.constraints[iCon].ncon:
-                                fcon.extend(c)
-                            else:
-                                print 'Error: %d constraint values were returned \
-    %s, but expected %d.'%(len(tmp[iCon]), iCon, self.opt_prob.variables[iCon].ncon)
-                                error = True
-                            # end if
-                        else:
-                            print 'Error: No constraint values were found for the \
-constraint %s.'%(iCon)
-                            error = True
-                        # end if
-                    # end if
-                # end for
-                # Finally convert to array:
-                fcon = numpy.array(fcon)
-            # end try
-            if error:
-                sys.exit(1)
-            return fcon
-
     def _on_setOption(self, name, value):
-        
         '''
         Set Optimizer Option Value (Optimizer Specific Routine)
         
@@ -916,7 +727,6 @@ constraint %s.'%(iCon)
         
         
     def _on_getOption(self, name):
-        
         '''
         Get Optimizer Option Value (Optimizer Specific Routine)
         
@@ -925,9 +735,7 @@ constraint %s.'%(iCon)
         
         pass
         
-        
     def _on_getInform(self, infocode):
-        
         '''
         Get Optimizer Result Information (Optimizer Specific Routine)
         
@@ -949,9 +757,7 @@ constraint %s.'%(iCon)
         
         return inform_text
         
-        
     def _on_flushFiles(self):
-        
         '''
         Flush the Output Files (Optimizer Specific Routine)
         
@@ -978,4 +784,4 @@ if __name__ == '__main__':
     print 'Testing ...'
     snopt = SNOPT()
     print snopt
-    snopt.ListAttributes()
+

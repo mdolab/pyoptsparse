@@ -28,7 +28,7 @@ import os, sys
 # External Python modules
 # =============================================================================
 import numpy
-
+from scipy import sparse
 # =============================================================================
 # Extension modules
 # =============================================================================
@@ -48,7 +48,7 @@ class Constraint(object):
     Optimization Constraint Class
     '''
     
-    def __init__(self, name, dense, linear, wrt, jac, cs, ce, jcs, jce, 
+    def __init__(self, name, dense, linear, wrt, jac, jacColIndex,
                  lower, upper):
         
         '''
@@ -67,15 +67,12 @@ class Constraint(object):
         self.dense = dense
         self.type = 'i'
         self.wrt = wrt
-        self.jac = jac 
+        self.jac = jac
         self.lower = lower
         self.upper = upper
         self.value = numpy.zeros_like(lower)
         self.ncon = len(upper)
-        self.cs = cs
-        self.ce = ce
-        self.jcs = jcs
-        self.jce = jce
+        self.jacColIndex = jacColIndex
         self.rs = None
         self.re = None
 
