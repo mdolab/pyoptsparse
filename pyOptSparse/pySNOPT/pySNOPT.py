@@ -264,7 +264,7 @@ class SNOPT(Optimizer):
         self.hs = None
         self.x_previous = None
 
-    def __solve__(self, opt_prob, gobj_con, store_sol=True, disp_opts=False, 
+    def __solve__(self, opt_prob, gobj_con=None, store_sol=True, disp_opts=False, 
               store_hst=False, hot_start=False, *args, **kwargs):
         
         '''
@@ -283,6 +283,11 @@ class SNOPT(Optimizer):
         
         Documentation last updated:  Feb. 2, 2011 - Peter W. Jansen
         '''
+
+        # Check that gobj_con is not None if Derivative level is non zero:
+        if self.getOption('Derivative level') <> 0 and gobj_con is None:
+            print 'Erorr: Derivative level is not 0 and gradient function not supplied'
+            sys.exit(0)
         
         self.opt_prob = opt_prob
         self.gobj_con = gobj_con
@@ -468,6 +473,7 @@ use the same upper/lower bounds for equality constraints'
                 self._set_snopt_options(iPrint, iSumm, cw, iw, rw)  
             # end if
 
+
             # Setup argument list values
             start = numpy.array(self.options['Start'][1])
             nName = numpy.array([1], numpy.intc)
@@ -612,55 +618,58 @@ use the same upper/lower bounds for equality constraints'
 
         self.x_previous[:] = x[:]
 
-        # Evaluate the gradient
-        if mode == 2 or (mode == 1 and diff == 0.0):
-            # mode == 2: Evaluate the gradient
-            # or
-            # mode == 1: Only the gradient is required and the previously
-            # evaluated point is the same as this point. Evaluate only
-            # the gradient                
+            
+        if self.getOption('Derivative level') <> 0:
+            # Evaluate the gradient
+            if mode == 2 or (mode == 1 and diff == 0.0):
+                # mode == 2: Evaluate the gradient
+                # or
+                # mode == 1: Only the gradient is required and the previously
+                # evaluated point is the same as this point. Evaluate only
+                # the gradient                
 
-            gobj, gcon, fail = self.gobj_con(xn, fobj, fcon)
-            if rank <> 0:
-                return
+                gobj, gcon, fail = self.gobj_con(xn, fobj, fcon)
+                if rank <> 0:
+                    return
 
-            if fail:
-                mode = -1
-                return mode
+                if fail:
+                    mode = -1
+                    return mode
 
-            if rank == 0:
-                gobj, gcon = self.opt_prob.processDerivatives(
-                    gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
-                gcon = gcon.tocsc().data
-            else:
-                return
+                if rank == 0:
+                    gobj, gcon = self.opt_prob.processDerivatives(
+                        gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
+                    gcon = gcon.tocsc().data
+                else:
+                    return
+                # end if
+
+            elif mode == 1:
+                # mode == 1: only gradient is required, but the
+                # previously evaluated point is different. Evaluate the
+                # objective then the gradient
+
+                fobj, fcon, fail = self.opt_prob.obj_fun(xn)
+
+                if fail:
+                    mode = -1
+                    return mode
+
+                gobj, gcon, fail = self.gobj_con(x, fobj, fcon)
+                if rank <> 0:
+                    return 
+
+                if fail:
+                    mode = -1
+                    return mode
+
+                if rank == 0:
+                    gobj, gcon = self.opt_prob.processDerivatives(
+                        gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
+                    gcon = gcon.tocsc().data
+                else:
+                    return
             # end if
-
-        elif mode == 1:
-            # mode == 1: only gradient is required, but the
-            # previously evaluated point is different. Evaluate the
-            # objective then the gradient
-
-            fobj, fcon, fail = self.opt_prob.obj_fun(xn)
-          
-            if fail:
-                mode = -1
-                return mode
-
-            gobj, gcon, fail = self.gobj_con(x, fobj, fcon)
-            if rank <> 0:
-                return 
-
-            if fail:
-                mode = -1
-                return mode
-
-            if rank == 0:
-                gobj, gcon = self.opt_prob.processDerivatives(
-                    gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
-                gcon = gcon.tocsc().data
-            else:
-                return
         # end if
 
         if rank <> 0:
