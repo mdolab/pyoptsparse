@@ -357,18 +357,7 @@ use the same upper/lower bounds for equality constraints'
             blc = numpy.array(blc)
             buc = numpy.array(buc)
 
-            # # Variables Groups Handling
-            # group_ids = {}
-            # if opt_problem.use_groups:
-            #     k = 0
-            #     for key in opt_problem._vargroups.keys():
-            #         group_len = len(opt_problem._vargroups[key]['ids'])
-            #         group_ids[opt_problem._vargroups[key]['name']] = [k,k+group_len]
-            #         k += group_len
-            #     #end
-            # #end
            # Objective Handling
-
             objfunc = opt_prob.obj_fun
             nobj = len(opt_prob.objectives.keys())
             ff = []
@@ -403,7 +392,7 @@ use the same upper/lower bounds for equality constraints'
                 if ierror != 0:
                     raise IOError('Failed to properly open %s, ierror = %3d'%
                                   (SummFile,ierror))
-    
+
             self.opt_prob.reorderConstraintJacobian(reorder=['nonLinear','linear'])
 
             # We will also assemble just the nonlinear jacobain to
@@ -594,6 +583,8 @@ use the same upper/lower bounds for equality constraints'
         gcon = gradient of the constraints
         '''
 
+        xn = self.opt_prob.processX(x)
+
         # Flush the files to the buffer for all the people who like to 
         # monitor the residual           
         if self.options['iPrint'][1] != 0:
@@ -603,25 +594,35 @@ use the same upper/lower bounds for equality constraints'
             
         # Evaluate the function
         if mode == 0 or mode == 2:
-            fobj, fcon, fail = self.opt_prob.obj_fun(x)
-            fcon = self.opt_prob.processConstraints(fcon)
-
+            fobj, fcon, fail = self.opt_prob.obj_fun(xn)
+         
             if fail:
                 mode = -1
                 return mode
 
-        # Evaluate the gradient
+        # Check if last point is *actually* what we evaluated for
+        # mode=1
         diff = 1.0
         if not (self.x_previous is None):
             diff = numpy.dot(x-self.x_previous, x-self.x_previous)
             
+        if self.x_previous is None:
+            self.x_previous = numpy.zeros(x.size)
+        # end if
+
+        self.x_previous[:] = x[:]
+
+        # Evaluate the gradient
         if mode == 2 or (mode == 1 and diff == 0.0):
             # mode == 2: Evaluate the gradient
             # or
             # mode == 1: Only the gradient is required and the previously
             # evaluated point is the same as this point. Evaluate only
             # the gradient                
-            gobj, gcon, fail = self.gobj_con(x, fobj, fcon)
+
+            gobj, gcon, fail = self.gobj_con(xn, fobj, fcon)
+            if rank <> 0:
+                return
 
             if fail:
                 mode = -1
@@ -631,21 +632,24 @@ use the same upper/lower bounds for equality constraints'
                 gobj, gcon = self.opt_prob.processDerivatives(
                     gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
                 gcon = gcon.tocsc().data
+            else:
+                return
             # end if
 
         elif mode == 1:
             # mode == 1: only gradient is required, but the
             # previously evaluated point is different. Evaluate the
             # objective then the gradient
-            fobj, fcon, fail = self.opt_prob.obj_fun(x)
-            fcon = self.opt_prob.processConstraints(fcon)
-            
+
+            fobj, fcon, fail = self.opt_prob.obj_fun(xn)
+          
             if fail:
                 mode = -1
                 return mode
 
             gobj, gcon, fail = self.gobj_con(x, fobj, fcon)
-                
+            if rank <> 0:
+                return 
 
             if fail:
                 mode = -1
@@ -655,14 +659,15 @@ use the same upper/lower bounds for equality constraints'
                 gobj, gcon = self.opt_prob.processDerivatives(
                     gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
                 gcon = gcon.tocsc().data
-            # end if
+            else:
+                return
         # end if
 
-        if self.x_previous is None:
-            self.x_previous = numpy.zeros(x.size)
-        # end if
+        if rank <> 0:
+            return 
 
-        self.x_previous[:] = x[:]
+        # Process fcon
+        fcon = self.opt_prob.processConstraints(fcon)
 
         return mode, fobj, gobj, fcon, gcon        
 

@@ -199,9 +199,14 @@ has already been used.'%(name)
             print 'Error: The supplied name \'%s\' for a variable group \
 has already been used.'%(name)
             return
+        else:
+            self.allNames.add(name)
         # end if
-        self.allNames.add(name)
 
+        if not varSet in self.variables:
+            self.addVarSet(varSet)
+        # end if
+            
         # ------ Process the value arguement
         value = numpy.atleast_1d(value)
         if len(value) == 1:
@@ -581,6 +586,34 @@ the number variables defined by the sets in dvSet = %s'%(wrt)
         row  = []
         col  = []
 
+        # There is also a possibility that the user has actually
+        # provided jacobian that is *exactly* the correct size and
+        # sparsity pattern. This will happen with pyOptSparse is used
+        # in "dense" mode, ie with other pyOpt like problems. 
+
+        allDense = True
+        for iCon in self.constraints:
+            if not self.constraints[iCon].dense:
+                allDense = False
+            # end if
+        # end ofr
+
+        # If we have all dense constraints, AND gcon_in is an array
+        # AND it is the right size, we will interpret this is the
+        # actual constriant jacobian and use. 
+        if allDense and isinstance(gcon_in, numpy.ndarray):
+            if gcon_in.shape == (self.nCon, self.ndvs):
+                gcon_in[numpy.where(gcon_in==0)] = 1e-50
+                # Don't forget to scale:
+                for i in xrange(self.ndvs):
+                    gcon_in[:,i] /= self.scale[i]
+
+                gcon = sparse.coo_matrix(gcon_in)
+
+            return gobj, gcon
+        # end if
+
+        # Otherwise, process constraints in the dictionary form. 
         # Loop over all constraints:
         for iCon in self.constraints:
             con = self.constraints[iCon]
@@ -726,7 +759,25 @@ constraint %s.'%(iCon)
         self.assembleFullConstraintJacobian(reorder=None)
 
         return
-              
+
+    def processX(self, x):
+        '''
+        Take the flattened array of design variables and return a dict
+        '''
+        if self.use_groups:
+            xg = {}
+            for dvSet in self.variables.keys():
+                for dvGroup in self.variables[dvSet]:
+                    istart = self.dvOffset[dvSet][dvGroup][0]
+                    iend   = self.dvOffset[dvSet][dvGroup][1]
+                    xg[dvGroup] = x[istart:iend]
+                # end for
+            # end for
+            return xg 
+        else:
+            return x
+        # end if
+
     def __str__(self):
         
         '''
