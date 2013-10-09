@@ -108,10 +108,11 @@ class Optimization(object):
         self.linearSparseConstraints = OrderedDict()
 
 
-        # A set to keep track of user-supplied names -- don't let the
-        # user reuse names for design varible sets, design variable
-        # groups, or constraint groups
-        self.allNames = set()
+        # A set to keep track of user-supplied names --- Keep track of
+        # varSets, varGroup and constraint names independencely
+        self.varSetNames = set()
+        self.varGroupNames = set()
+        self.conGroupNames = set()
 
         # Flag to determine if adding variables is legal. 
         self.ableToAddVariables = True
@@ -156,12 +157,12 @@ All variables must be added before constraints can be added.'
 
         self._checkOkToAddVariables()
         
-        if name in self.allNames:
+        if name in self.varSetNames:
             print 'Error: The supplied name \'%s\' for a variable set \
 has already been used.'%(name)
             return
         # end if
-        self.allNames.add(name)
+        self.varSetNames.add(name)
         self.variables[name]=OrderedDict()
 
         return
@@ -195,12 +196,12 @@ has already been used.'%(name)
 
         self._checkOkToAddVariables()
 
-        if name in self.allNames:
+        if name in self.varGroupNames:
             print 'Error: The supplied name \'%s\' for a variable group \
 has already been used.'%(name)
             return
         else:
-            self.allNames.add(name)
+            self.varGroupNames.add(name)
         # end if
 
         if not varSet in self.variables:
@@ -347,12 +348,12 @@ has already been used.'%(name)
         if self.ableToAddVariables:
             self._finalizeDesignVariables()
 
-        if name in self.allNames:
+        if name in self.conGroupNames:
             print 'Error: The supplied name \'%s\' for a constraint group \
 has already been used.'%(name)
             return
         # end if
-        self.allNames.add(name)
+        self.conGroupNames.add(name)
 
         # ------ Process the lower bound argument
         lower = numpy.atleast_1d(kwargs.pop('lower', -inf*numpy.ones(ncons)))

@@ -667,7 +667,6 @@ use the same upper/lower bounds for equality constraints'
 
             # Broadcast the requried arguments
             MPI.COMM_WORLD.bcast([mode, nnJac, x, fobj, gobj, fcon, gcon])
-
         # end if
 
         # Call userfg and return result
