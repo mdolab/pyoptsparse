@@ -51,8 +51,8 @@ from scipy import sparse
 # =============================================================================
 # Extension modules
 # =============================================================================
-from pyOpt import Variable
-from pyOpt import Objective
+from pyOptSparse import Variable
+from pyOptSparse import Objective
 from pyOptSparse import Constraint
 
 # =============================================================================

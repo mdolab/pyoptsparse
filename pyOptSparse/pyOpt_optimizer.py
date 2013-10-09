@@ -48,8 +48,8 @@ import pdb
 # =============================================================================
 # Extension modules
 # =============================================================================
-from pyOpt import Optimization
-from pyOpt import History
+from pyOptSparse import Optimization
+from pyOptSparse import History
 
 # =============================================================================
 # Misc Definitions
