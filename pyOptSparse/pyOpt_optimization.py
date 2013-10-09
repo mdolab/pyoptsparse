@@ -28,13 +28,8 @@ __version__ = '$Revision: $'
 
 '''
 To Do:
-    - add variable group error when groups have the same name
-    - add method for addVar2Group
-    - pickle wrapping ?!
-    - save class __str__ info to file (text/TeX) ?
-    - warm start from other opts?
-    - class for core sensitivity?
-    - class for history?
+
+
 '''
 
 # =============================================================================
@@ -107,7 +102,6 @@ class Optimization(object):
         self.sparseConstraints = OrderedDict()
         self.linearSparseConstraints = OrderedDict()
 
-
         # A set to keep track of user-supplied names --- Keep track of
         # varSets, varGroup and constraint names independencely
         self.varSetNames = set()
@@ -140,7 +134,7 @@ All variables must be added before constraints can be added.'
             self.dvOffset[dvSet]['n'] = [dvCounter, -1]
             for dvGroup in self.variables[dvSet]:
                 n = len(self.variables[dvSet][dvGroup])
-                self.dvOffset[dvSet][dvGroup] = [dvCounter, dvCounter + n]
+                self.dvOffset[dvSet][dvGroup] = [dvCounter, dvCounter + n, self.variables[dvSet][dvGroup][0].scalar]
                 dvCounter += n
             self.dvOffset[dvSet]['n'][1] = dvCounter
         # end for
@@ -172,11 +166,11 @@ has already been used.'%(name)
         convenience function. See addVarGroup for more information
         '''
 
-        self.addVarGroup(name, 1, *args, **kwargs)
+        self.addVarGroup(name, 1, *args, scalar=True, **kwargs)
 
         return 
 
-    def addVarGroup(self, name, nvars, type='c', value=0.0, varSet='default', **kwargs):
+    def addVarGroup(self, name, nvars, type='c', value=0.0, varSet='default', scalar=False, **kwargs):
         
         '''
         Add a Group of Variables into Variables Set
@@ -264,6 +258,7 @@ has already been used.'%(name)
                 Variable(varName, type=type, value=value[iVar]*scale[iVar], 
                          lower=lower[iVar]*scale[iVar], upper=upper[iVar]*scale[iVar]))
             self.variables[varSet][name][-1].scale = scale[iVar]
+            self.variables[varSet][name][-1].scalar = scalar
         # end for
                                                 
     def addObj(self, name, *args, **kwargs):
@@ -771,7 +766,10 @@ constraint %s.'%(iCon)
                 for dvGroup in self.variables[dvSet]:
                     istart = self.dvOffset[dvSet][dvGroup][0]
                     iend   = self.dvOffset[dvSet][dvGroup][1]
+                    scalar = self.dvOffset[dvSet][dvGroup][2]
                     xg[dvGroup] = x[istart:iend]
+                    if scalar:
+                        xg[dvGroup] = x[istart]
                 # end for
             # end for
             return xg 
