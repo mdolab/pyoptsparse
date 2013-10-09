@@ -28,13 +28,8 @@ __version__ = '$Revision: $'
 
 '''
 To Do:
-    - add variable group error when groups have the same name
-    - add method for addVar2Group
-    - pickle wrapping ?!
-    - save class __str__ info to file (text/TeX) ?
-    - warm start from other opts?
-    - class for core sensitivity?
-    - class for history?
+
+
 '''
 
 # =============================================================================
@@ -51,8 +46,8 @@ from scipy import sparse
 # =============================================================================
 # Extension modules
 # =============================================================================
-from pyOpt import Variable
-from pyOpt import Objective
+from pyOptSparse import Variable
+from pyOptSparse import Objective
 from pyOptSparse import Constraint
 
 # =============================================================================
@@ -107,11 +102,11 @@ class Optimization(object):
         self.sparseConstraints = OrderedDict()
         self.linearSparseConstraints = OrderedDict()
 
-
-        # A set to keep track of user-supplied names -- don't let the
-        # user reuse names for design varible sets, design variable
-        # groups, or constraint groups
-        self.allNames = set()
+        # A set to keep track of user-supplied names --- Keep track of
+        # varSets, varGroup and constraint names independencely
+        self.varSetNames = set()
+        self.varGroupNames = set()
+        self.conGroupNames = set()
 
         # Flag to determine if adding variables is legal. 
         self.ableToAddVariables = True
@@ -139,7 +134,7 @@ All variables must be added before constraints can be added.'
             self.dvOffset[dvSet]['n'] = [dvCounter, -1]
             for dvGroup in self.variables[dvSet]:
                 n = len(self.variables[dvSet][dvGroup])
-                self.dvOffset[dvSet][dvGroup] = [dvCounter, dvCounter + n]
+                self.dvOffset[dvSet][dvGroup] = [dvCounter, dvCounter + n, self.variables[dvSet][dvGroup][0].scalar]
                 dvCounter += n
             self.dvOffset[dvSet]['n'][1] = dvCounter
         # end for
@@ -156,12 +151,12 @@ All variables must be added before constraints can be added.'
 
         self._checkOkToAddVariables()
         
-        if name in self.allNames:
+        if name in self.varSetNames:
             print 'Error: The supplied name \'%s\' for a variable set \
 has already been used.'%(name)
             return
         # end if
-        self.allNames.add(name)
+        self.varSetNames.add(name)
         self.variables[name]=OrderedDict()
 
         return
@@ -171,11 +166,11 @@ has already been used.'%(name)
         convenience function. See addVarGroup for more information
         '''
 
-        self.addVarGroup(name, 1, *args, **kwargs)
+        self.addVarGroup(name, 1, *args, scalar=True, **kwargs)
 
         return 
 
-    def addVarGroup(self, name, nvars, type='c', value=0.0, varSet='default', **kwargs):
+    def addVarGroup(self, name, nvars, type='c', value=0.0, varSet='default', scalar=False, **kwargs):
         
         '''
         Add a Group of Variables into Variables Set
@@ -195,13 +190,18 @@ has already been used.'%(name)
 
         self._checkOkToAddVariables()
 
-        if name in self.allNames:
+        if name in self.varGroupNames:
             print 'Error: The supplied name \'%s\' for a variable group \
 has already been used.'%(name)
             return
+        else:
+            self.varGroupNames.add(name)
         # end if
-        self.allNames.add(name)
 
+        if not varSet in self.variables:
+            self.addVarSet(varSet)
+        # end if
+            
         # ------ Process the value arguement
         value = numpy.atleast_1d(value)
         if len(value) == 1:
@@ -258,6 +258,7 @@ has already been used.'%(name)
                 Variable(varName, type=type, value=value[iVar]*scale[iVar], 
                          lower=lower[iVar]*scale[iVar], upper=upper[iVar]*scale[iVar]))
             self.variables[varSet][name][-1].scale = scale[iVar]
+            self.variables[varSet][name][-1].scalar = scalar
         # end for
                                                 
     def addObj(self, name, *args, **kwargs):
@@ -342,12 +343,12 @@ has already been used.'%(name)
         if self.ableToAddVariables:
             self._finalizeDesignVariables()
 
-        if name in self.allNames:
+        if name in self.conGroupNames:
             print 'Error: The supplied name \'%s\' for a constraint group \
 has already been used.'%(name)
             return
         # end if
-        self.allNames.add(name)
+        self.conGroupNames.add(name)
 
         # ------ Process the lower bound argument
         lower = numpy.atleast_1d(kwargs.pop('lower', -inf*numpy.ones(ncons)))
@@ -581,6 +582,34 @@ the number variables defined by the sets in dvSet = %s'%(wrt)
         row  = []
         col  = []
 
+        # There is also a possibility that the user has actually
+        # provided jacobian that is *exactly* the correct size and
+        # sparsity pattern. This will happen with pyOptSparse is used
+        # in "dense" mode, ie with other pyOpt like problems. 
+
+        allDense = True
+        for iCon in self.constraints:
+            if not self.constraints[iCon].dense:
+                allDense = False
+            # end if
+        # end ofr
+
+        # If we have all dense constraints, AND gcon_in is an array
+        # AND it is the right size, we will interpret this is the
+        # actual constriant jacobian and use. 
+        if allDense and isinstance(gcon_in, numpy.ndarray):
+            if gcon_in.shape == (self.nCon, self.ndvs):
+                gcon_in[numpy.where(gcon_in==0)] = 1e-50
+                # Don't forget to scale:
+                for i in xrange(self.ndvs):
+                    gcon_in[:,i] /= self.scale[i]
+
+                gcon = sparse.coo_matrix(gcon_in)
+
+            return gobj, gcon
+        # end if
+
+        # Otherwise, process constraints in the dictionary form. 
         # Loop over all constraints:
         for iCon in self.constraints:
             con = self.constraints[iCon]
@@ -726,7 +755,28 @@ constraint %s.'%(iCon)
         self.assembleFullConstraintJacobian(reorder=None)
 
         return
-              
+
+    def processX(self, x):
+        '''
+        Take the flattened array of design variables and return a dict
+        '''
+        if self.use_groups:
+            xg = {}
+            for dvSet in self.variables.keys():
+                for dvGroup in self.variables[dvSet]:
+                    istart = self.dvOffset[dvSet][dvGroup][0]
+                    iend   = self.dvOffset[dvSet][dvGroup][1]
+                    scalar = self.dvOffset[dvSet][dvGroup][2]
+                    xg[dvGroup] = x[istart:iend]
+                    if scalar:
+                        xg[dvGroup] = x[istart]
+                # end for
+            # end for
+            return xg 
+        else:
+            return x
+        # end if
+
     def __str__(self):
         
         '''

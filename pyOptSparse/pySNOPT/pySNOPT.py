@@ -36,21 +36,23 @@ except:
 # =============================================================================
 # Standard Python modules
 # =============================================================================
-import os, sys
-import copy, time
+import os
+import sys
+import copy
+import time
 
 # =============================================================================
 # External Python modules
 # =============================================================================
 import numpy
 from scipy import sparse 
+import shelve
 
 # =============================================================================
 # Extension modules
 # =============================================================================
 from pyOptSparse import Optimizer
-#from pyOpt import Gradient
-
+from pyOptSparse import History
 # =============================================================================
 # Misc Definitions
 # =============================================================================
@@ -65,7 +67,7 @@ except:
     MPI = None
 # end try
 
-
+eps = numpy.finfo(1.0).eps
 # =============================================================================
 # SNOPT Optimizer Class
 # =============================================================================
@@ -263,9 +265,10 @@ class SNOPT(Optimizer):
         # The state of the variables and the slacks
         self.hs = None
         self.x_previous = None
+        self.callCounter = 0
 
-    def __solve__(self, opt_prob, gobj_con, store_sol=True, disp_opts=False, 
-              store_hst=False, hot_start=False, *args, **kwargs):
+    def __solve__(self, opt_prob, gobj_con=None, store_sol=True, disp_opts=False, 
+              store_hst=None, hot_start=None, cold_start=None, *args, **kwargs):
         
         '''
         Run Optimizer (Optimize Routine)
@@ -276,20 +279,27 @@ class SNOPT(Optimizer):
         
         - store_sol -> BOOL: Store solution in Optimization class flag, *Default* = True 
         - disp_opts -> BOOL: Flag to display options in solution text, *Default* = False
-        - store_hst -> BOOL/STR: Flag/filename to store optimization history, *Default* = False
-        - hot_start -> BOOL/STR: Flag/filename to read optimization history, *Default* = False
-        
-        Additional arguments and keyword arguments are passed to the objective function call.
+        - store_hst -> STR: Filename to store optimization history, *Default* = None (don't store)
+        - hot_start -> STR: Filename to read optimization history and hot start a previous
+                            optimization. *Default* = None, don't hot start
+        - cold_start -> STR: Filename to read optimization history and do a cold start from a prevous
+                            optimization. *Default* = None, don't cold start
         
         Documentation last updated:  Feb. 2, 2011 - Peter W. Jansen
         '''
+
+        # Check that gobj_con is not None if Derivative level is non zero:
+        if self.getOption('Derivative level') <> 0 and gobj_con is None:
+            print 'Erorr: Derivative level is not 0 and gradient function not supplied'
+            sys.exit(0)
         
+        # Save the optimization problem and the gradient function
         self.opt_prob = opt_prob
         self.gobj_con = gobj_con
 
             # We make a split here: If the rank is zero we setup the
         # problem and run SNOPT, otherwise we go to the waiting loop:
-        
+
         if rank == 0:
 
             # Get the variable names and variable bounds
@@ -298,18 +308,18 @@ class SNOPT(Optimizer):
             bux = []
             xs = []
             scale = []
-            for dvSet in opt_prob.variables.keys():
-                for dvGroup in opt_prob.variables[dvSet]:
-                    for var in opt_prob.variables[dvSet][dvGroup]:
+            for dvSet in self.opt_prob.variables.keys():
+                for dvGroup in self.opt_prob.variables[dvSet]:
+                    for var in self.opt_prob.variables[dvSet][dvGroup]:
                         if var.type == 'c':
                             scale.append(var.scale)
                             blx.append(var.lower)
                             bux.append(var.upper)
                             xs.append(var.value)
 
-                        elif (opt_prob._variables[key].type == 'i'):
+                        elif (self.opt_prob._variables[key].type == 'i'):
                             raise IOError('SNOPT cannot handle integer design variables')
-                        elif (opt_prob._variables[key].type == 'd'):
+                        elif (self.opt_prob._variables[key].type == 'd'):
                             raise IOError('SNOPT cannot handle discrete design variables')
                         # end if
                     # end for
@@ -320,15 +330,34 @@ class SNOPT(Optimizer):
             xs = numpy.array(xs)
             scale = numpy.array(scale)
 
+            # Check for cold start 
+            # ------------------------------------------
+            if cold_start is not None:
+                if os.path.exists(cold_start):
+                    cold_file = shelve.open(cold_start)
+                    last_key = cold_file['last']
+                    x = cold_file[last_key]['x_array'].copy()*scale
+                    cold_file.close()
+                    if len(x) == len(xs):
+                        xs = x.copy()
+                    else:
+                        print 'The number of variable in cold_start file do not \
+match the number in the current optimization. Ignorning cold_start file'
+                    # end if
+                else:
+                    print 'Cold file not found. Continuing without cold restart'
+                # end if
+            # end if
+
             # Constraints Handling -- make sure nonlinear constraints go first!
             blc = []
             buc = []
-            if len(opt_prob.constraints) > 0: 
-                for key in opt_prob.constraints.keys():
-                    if not opt_prob.constraints[key].linear:
-                        if (opt_prob.constraints[key].type == 'i'):
-                            blc.extend(opt_prob.constraints[key].lower)
-                            buc.extend(opt_prob.constraints[key].upper)
+            if len(self.opt_prob.constraints) > 0: 
+                for key in self.opt_prob.constraints.keys():
+                    if not self.opt_prob.constraints[key].linear:
+                        if (self.opt_prob.constraints[key].type == 'i'):
+                            blc.extend(self.opt_prob.constraints[key].lower)
+                            buc.extend(self.opt_prob.constraints[key].upper)
                         else:
                             print 'Error: only inequality constraints allowed; \
 use the same upper/lower bounds for equality constraints'
@@ -337,11 +366,11 @@ use the same upper/lower bounds for equality constraints'
                     # end if
                 # end for
 
-                for key in opt_prob.constraints.keys():
-                    if opt_prob.constraints[key].linear:
-                        if (opt_prob.constraints[key].type == 'i'):
-                            blc.extend(opt_prob.constraints[key].lower)
-                            buc.extend(opt_prob.constraints[key].upper)
+                for key in self.opt_prob.constraints.keys():
+                    if self.opt_prob.constraints[key].linear:
+                        if (self.opt_prob.constraints[key].type == 'i'):
+                            blc.extend(self.opt_prob.constraints[key].lower)
+                            buc.extend(self.opt_prob.constraints[key].upper)
                         else:
                             print 'Error: only inequality constraints allowed; \
 use the same upper/lower bounds for equality constraints'
@@ -357,23 +386,12 @@ use the same upper/lower bounds for equality constraints'
             blc = numpy.array(blc)
             buc = numpy.array(buc)
 
-            # # Variables Groups Handling
-            # group_ids = {}
-            # if opt_problem.use_groups:
-            #     k = 0
-            #     for key in opt_problem._vargroups.keys():
-            #         group_len = len(opt_problem._vargroups[key]['ids'])
-            #         group_ids[opt_problem._vargroups[key]['name']] = [k,k+group_len]
-            #         k += group_len
-            #     #end
-            # #end
            # Objective Handling
-
-            objfunc = opt_prob.obj_fun
-            nobj = len(opt_prob.objectives.keys())
+            objfunc = self.opt_prob.obj_fun
+            nobj = len(self.opt_prob.objectives.keys())
             ff = []
-            for key in opt_prob.objectives.keys():
-                ff.append(opt_prob.objectives[key].value)
+            for key in self.opt_prob.objectives.keys():
+                ff.append(self.opt_prob.objectives[key].value)
             #end
             ff = numpy.array(ff)
 
@@ -403,7 +421,7 @@ use the same upper/lower bounds for equality constraints'
                 if ierror != 0:
                     raise IOError('Failed to properly open %s, ierror = %3d'%
                                   (SummFile,ierror))
-    
+
             self.opt_prob.reorderConstraintJacobian(reorder=['nonLinear','linear'])
 
             # We will also assemble just the nonlinear jacobain to
@@ -417,7 +435,7 @@ use the same upper/lower bounds for equality constraints'
                 else:
                     gcon[iCon] = con.jac
             # end for
-            gobj = numpy.zeros(opt_prob.ndvs)
+            gobj = numpy.zeros(self.opt_prob.ndvs)
 
             gobj, fullJacobian = self.opt_prob.processDerivatives(
                 gobj, gcon, linearConstraints=True, nonlinearConstraints=True)
@@ -431,7 +449,7 @@ use the same upper/lower bounds for equality constraints'
 
             # Calculate the length of the work arrays
             # --------------------------------------
-            nvar = opt_prob.ndvs
+            nvar = self.opt_prob.ndvs
             lencw = 500
             leniw = 500 + 100*(ncon+nvar)
             lenrw = 500 + 200*(ncon+nvar)
@@ -479,11 +497,12 @@ use the same upper/lower bounds for equality constraints'
                 self._set_snopt_options(iPrint, iSumm, cw, iw, rw)  
             # end if
 
+
             # Setup argument list values
             start = numpy.array(self.options['Start'][1])
             nName = numpy.array([1], numpy.intc)
             ObjAdd = numpy.array([0.], numpy.float)
-            ProbNm = numpy.array(opt_prob.name)        
+            ProbNm = numpy.array(self.opt_prob.name)        
             xs = numpy.concatenate((xs, numpy.zeros(ncon,numpy.float)))
             bl = numpy.concatenate((blx, blc))
             bu = numpy.concatenate((bux, buc))
@@ -508,11 +527,36 @@ use the same upper/lower bounds for equality constraints'
             ninf = numpy.array([0], numpy.intc)
             sinf = numpy.array([0.], numpy.float)
 
+            # Open history file if required:
+            self.store_hst = False
+            if store_hst:
+                self.hist = History(store_hst)
+                self.store_hst = True
+            # end if
+
+            self.hot_start = None
+            # Determine if we want to do a hot start:
+            if hot_start is not None:
+                # Now, if if the hot start file and the history are
+                # the SAME, we don't allow that. We will create a copy
+                # of the hot_start file and use *that* instead. 
+                import tempfile, shutil
+                if store_hst:
+                    fname = tempfile.mktemp()
+                    shutil.copyfile(store_hst, fname)
+                    self.hot_start = History(fname, temp=True)
+                # end if
+            # end if
+
             # The snopt c interface
             snopt.snoptc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
                          self.userfg_wrap, Acol, indA, locA, bl, bu, 
                          Names, self.hs, xs, pi, rc, inform, mincw, miniw, minrw, 
                          nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
+
+            if self.store_hst:
+                self.hist.close()
+
             if MPI:
                 # Broadcast a -1 to indcate SNOPT has finished
                 MPI.COMM_WORLD.bcast(-1, root=0)
@@ -563,8 +607,57 @@ use the same upper/lower bounds for equality constraints'
         '''
         The snopt user function. This is what is actually called from snopt.
         
-        It is only called on the root processor actually running snopt. 
+        It is only called on the root processor actually running
+        snopt. History processing is also performed here. The reason
+        for this is that the re-runnign on history is serial so it
+        makes sense to only read on processor that actually requires
+        the data.
         '''
+
+        # ------------------ Hot Start Processing ------------------
+        if self.hot_start:
+            if self.hot_start.validPoint(self.callCounter, x):
+                data = self.hot_start.read(self.callCounter)
+                xn = data['x']
+                x_array = data['x_array']
+                fobj = data['fobj']
+                fcon = data['fcon']
+                fail = data['fail']
+                if fail: 
+                    mode = -1
+
+                fcon_return = self.opt_prob.processConstraints(fcon)
+
+                # Just pass gobj and gcon back if no gradient evaluated
+                gobj_return = gobj
+                gcon_return = gcon
+                gradEvaled = False
+                if data.has_key('gobj'):
+                    gradEvaled = True
+                    gobj = data['gobj']
+                    gcon = data['gcon']
+                    gobj_return, gcon_return = self.opt_prob.processDerivatives(
+                        gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
+                    gcon_return = gcon_return.tocsc().data
+                # end if
+
+                # Write Data to history (if required):
+                if self.store_hst:
+                    self.hist.write(self.callCounter, fobj, fcon, fail, xn, 
+                                        x_array, gradEvaled, gobj, gcon)
+                # end if
+
+                self.callCounter += 1
+
+                return mode, fobj, gobj_return, fcon_return, gcon_return
+            # end if
+
+            # We have used up all the information in hot start
+            # so we can close the hot start file
+            self.hot_start.close()
+            self.hot_start = None
+        # end if
+        # ----------------------------------------------------------
 
         if MPI:
             # Broadcast the type of call (0 means regular call)
@@ -574,7 +667,6 @@ use the same upper/lower bounds for equality constraints'
 
             # Broadcast the requried arguments
             MPI.COMM_WORLD.bcast([mode, nnJac, x, fobj, gobj, fcon, gcon])
-
         # end if
 
         # Call userfg and return result
@@ -594,6 +686,13 @@ use the same upper/lower bounds for equality constraints'
         gcon = gradient of the constraints
         '''
 
+        xn = self.opt_prob.processX(x)
+        
+        # If the gradient isn't calculated, gobj and gcon pass back
+        # through
+        gobj_return = gobj
+        gcon_return = gcon
+
         # Flush the files to the buffer for all the people who like to 
         # monitor the residual           
         if self.options['iPrint'][1] != 0:
@@ -603,68 +702,82 @@ use the same upper/lower bounds for equality constraints'
             
         # Evaluate the function
         if mode == 0 or mode == 2:
-            fobj, fcon, fail = self.opt_prob.obj_fun(x)
-            fcon = self.opt_prob.processConstraints(fcon)
-
+            fobj, fcon, fail = self.opt_prob.obj_fun(xn)
             if fail:
                 mode = -1
-                return mode
-
-        # Evaluate the gradient
+            # end if
+        # end if
+     
+        # Check if last point is *actually* what we evaluated for
+        # mode=1
         diff = 1.0
         if not (self.x_previous is None):
             diff = numpy.dot(x-self.x_previous, x-self.x_previous)
-            
-        if mode == 2 or (mode == 1 and diff == 0.0):
-            # mode == 2: Evaluate the gradient
-            # or
-            # mode == 1: Only the gradient is required and the previously
-            # evaluated point is the same as this point. Evaluate only
-            # the gradient                
-            gobj, gcon, fail = self.gobj_con(x, fobj, fcon)
-
-            if fail:
-                mode = -1
-                return mode
-
-            if rank == 0:
-                gobj, gcon = self.opt_prob.processDerivatives(
-                    gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
-                gcon = gcon.tocsc().data
-            # end if
-
-        elif mode == 1:
-            # mode == 1: only gradient is required, but the
-            # previously evaluated point is different. Evaluate the
-            # objective then the gradient
-            fobj, fcon, fail = self.opt_prob.obj_fun(x)
-            fcon = self.opt_prob.processConstraints(fcon)
-            
-            if fail:
-                mode = -1
-                return mode
-
-            gobj, gcon, fail = self.gobj_con(x, fobj, fcon)
-                
-
-            if fail:
-                mode = -1
-                return mode
-
-            if rank == 0:
-                gobj, gcon = self.opt_prob.processDerivatives(
-                    gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
-                gcon = gcon.tocsc().data
-            # end if
-        # end if
 
         if self.x_previous is None:
             self.x_previous = numpy.zeros(x.size)
         # end if
 
         self.x_previous[:] = x[:]
+        gradEvaled = False
+        if self.getOption('Derivative level') <> 0:
+            # Evaluate the gradient
+            if mode == 2 or (mode == 1 and diff == 0.0):
+                # mode == 2: Evaluate the gradient
+                # or
+                # mode == 1: Only the gradient is required and the previously
+                # evaluated point is the same as this point. Evaluate only
+                # the gradient                
+                gradEvaled = True
+                gobj, gcon, fail = self.gobj_con(xn, fobj, fcon)
+                if rank <> 0:
+                    return
 
-        return mode, fobj, gobj, fcon, gcon        
+                if fail:
+                    mode = -1
+                # end if
+
+                gobj_return, gcon_return = self.opt_prob.processDerivatives(
+                    gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
+                gcon_return = gcon_return.tocsc().data
+
+            elif mode == 1:
+                # mode == 1: only gradient is required, but the
+                # previously evaluated point is different. Evaluate the
+                # objective then the gradient
+                gradEvaled = True
+                fobj, fcon, fail = self.opt_prob.obj_fun(xn)
+
+                if fail:
+                    mode = -1
+
+                gobj, gcon, fail = self.gobj_con(x, fobj, fcon)
+                if rank <> 0:
+                    return 
+
+                if fail:
+                    mode = -1
+
+                gobj_return, gcon_return = self.opt_prob.processDerivatives(
+                    gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
+                gcon_return = gcon_return.tocsc().data
+            # end if
+        # end if
+
+        # Non root rank return for objective evaluation only
+        if rank <> 0:
+            return 
+
+        # Process fcon
+        fcon_return = self.opt_prob.processConstraints(fcon)
+
+        # Write Data to history:
+        if self.store_hst:
+            self.hist.write(self.callCounter, fobj, fcon, fail, xn, x, gradEvaled, gobj, gcon)
+        # end if
+        self.callCounter += 1
+
+        return mode, fobj, gobj_return, fcon_return, gcon_return
 
     def _set_snopt_options(self, iPrint, iSumm, cw, iw, rw):
         '''
