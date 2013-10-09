@@ -613,9 +613,11 @@ use the same upper/lower bounds for equality constraints'
         makes sense to only read on processor that actually requires
         the data.
         '''
+        x = x/self.opt_prob.scale
 
         # ------------------ Hot Start Processing ------------------
         if self.hot_start:
+
             if self.hot_start.validPoint(self.callCounter, x):
                 data = self.hot_start.read(self.callCounter)
                 xn = data['x']
@@ -662,8 +664,6 @@ use the same upper/lower bounds for equality constraints'
         if MPI:
             # Broadcast the type of call (0 means regular call)
             MPI.COMM_WORLD.bcast(0, root=0)
-
-            x = x/self.opt_prob.scale
 
             # Broadcast the requried arguments
             MPI.COMM_WORLD.bcast([mode, nnJac, x, fobj, gobj, fcon, gcon])
@@ -751,7 +751,7 @@ use the same upper/lower bounds for equality constraints'
                 if fail:
                     mode = -1
 
-                gobj, gcon, fail = self.gobj_con(x, fobj, fcon)
+                gobj, gcon, fail = self.gobj_con(xn, fobj, fcon)
                 if rank <> 0:
                     return 
 

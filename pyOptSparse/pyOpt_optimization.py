@@ -574,7 +574,7 @@ the number variables defined by the sets in dvSet = %s'%(wrt)
         '''
         
         # Assume gobj is already ok
-        gobj = numpy.atleast_2d(gobj_in)
+        gobj = numpy.atleast_2d(gobj_in.copy())
         gobj /= self.scale
 
         # Data for storing the values in COOrdinate format
@@ -601,10 +601,11 @@ the number variables defined by the sets in dvSet = %s'%(wrt)
             if gcon_in.shape == (self.nCon, self.ndvs):
                 gcon_in[numpy.where(gcon_in==0)] = 1e-50
                 # Don't forget to scale:
+                tmp = gcon_in.copy()
                 for i in xrange(self.ndvs):
-                    gcon_in[:,i] /= self.scale[i]
+                    tmp[:,i] /= self.scale[i]
 
-                gcon = sparse.coo_matrix(gcon_in)
+                gcon = sparse.coo_matrix(tmp)
 
             return gobj, gcon
         # end if
@@ -621,11 +622,11 @@ the number variables defined by the sets in dvSet = %s'%(wrt)
                     sys.exit(1)
                 # end if
                 if con.dense:
-                    tmp = numpy.atleast_2d(gcon_in[iCon])
+                    tmp = numpy.atleast_2d(gcon_in[iCon].copy())
                     tmp[numpy.where(tmp==0)] = 1e-50
                     tmp = sparse.csr_matrix(tmp)
                 else:
-                    tmp = sparse.csr_matrix(gcon_in[iCon])
+                    tmp = sparse.csr_matrix(gcon_in[iCon].copy())
                 # end if
 
                 if tmp.shape <> con.jac.shape:
