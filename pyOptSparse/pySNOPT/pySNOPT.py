@@ -146,7 +146,7 @@ class SNOPT(Optimizer):
         'Penalty parameter':[float,0.0],                 # initial penalty parameter
         'Proximal point method':[int,1],                # (1 - satisfies linear constraints near x0)
         'Reduced Hessian dimension':[int,2000],            # (or Superbasics limit if that is less)
-        'Violation limit':[int,10.0],                     # (unscaled constraint violation limit)
+        'Violation limit':[float,10.0],                     # (unscaled constraint violation limit)
         'Unbounded step size':[float,1.0e+18],            # 
         'Unbounded objective':[float,1.0e+15],            # 
         # SNOPT Hessian approximation Options
