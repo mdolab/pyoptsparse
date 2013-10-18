@@ -1484,6 +1484,11 @@
       sgnObj    = minimz
       merit     = sgnObj*(ObjAdd + fmrt)
 
+      ru(1) = prInf
+      ru(2) = duInf
+      ru(3) = merit
+      iu(1) = Mjrs
+      iu(2) = Mnrs
       if ( Prnt1 ) then
 *        ------------------------------------------
 *        Terse line for the Print file.

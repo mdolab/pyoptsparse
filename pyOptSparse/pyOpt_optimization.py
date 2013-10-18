@@ -574,7 +574,8 @@ the number variables defined by the sets in dvSet = %s'%(wrt)
         '''
         
         # Assume gobj is already ok
-        gobj = numpy.atleast_2d(gobj_in.copy())
+
+        gobj = numpy.atleast_2d(gobj_in).copy()
         gobj /= self.scale
 
         # Data for storing the values in COOrdinate format

@@ -69,12 +69,19 @@ class History(object):
             os.remove(self.fileName)
         # end if
 
-    def write(self, callCounter, fobj, fcon, fail, xn, x_array, gradEvaled, gobj, gcon):
+    def write(self, callCounter, fobj, fcon, fail, xn, x_array, gradEvaled, gobj, gcon, **kwargs):
         data = {'fobj':fobj, 'fcon':fcon, 'fail':fail,'x':xn,'x_array':x_array}
         if gradEvaled:
             data['gobj'] = gobj
             data['gcon'] = gcon
+
+        # Add any extra keyword arguments that specific optimizers may
+        # want to save
+        data.update(kwargs)
+
+        # String key to database on disk
         key = '%d'%callCounter
+
         self.db[key] = data
         self.db['last'] = key
         self.db.sync()

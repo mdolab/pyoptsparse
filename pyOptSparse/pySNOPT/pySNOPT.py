@@ -506,12 +506,12 @@ use the same upper/lower bounds for equality constraints'
             xs = numpy.concatenate((xs, numpy.zeros(ncon,numpy.float)))
             bl = numpy.concatenate((blx, blc))
             bu = numpy.concatenate((bux, buc))
-            lencu = numpy.array([1], numpy.intc)
-            leniu = numpy.array([1], numpy.intc)
-            lenru = numpy.array([1], numpy.intc)
+            lencu = 1
+            leniu = 2
+            lenru = 3
             cu = numpy.array(["        "],'c')
-            iu = numpy.zeros([leniu[0]], numpy.intc)
-            ru = numpy.zeros([lenru[0]], numpy.float)
+            iu = numpy.zeros(leniu, numpy.intc)
+            ru = numpy.zeros(lenru, numpy.float)
 
             if self.hs == None:
                 self.hs = numpy.zeros(nvar+ncon, numpy.intc)
@@ -590,7 +590,7 @@ use the same upper/lower bounds for equality constraints'
                 # Call the internal function we should have called from
                 # SNOPT. We don't care about return values on these procs
 
-                self.userfg(info[0], info[1], info[2].copy(), info[3], info[4], info[5], info[6])
+                self.userfg(*info)
             # end while
 
             ff = None
@@ -601,9 +601,9 @@ use the same upper/lower bounds for equality constraints'
         # end if
 
         # return ff, xs[0:nvar], sol_inform
-        
 
-    def userfg_wrap(self, mode, nnJac, x, fobj, gobj, fcon, gcon):
+    def userfg_wrap(self, mode, nnJac, x, fObj, gObj, fCon, gCon, nState, cu, iu, ru):
+
         '''
         The snopt user function. This is what is actually called from snopt.
         
@@ -613,6 +613,8 @@ use the same upper/lower bounds for equality constraints'
         makes sense to only read on processor that actually requires
         the data.
         '''
+        print 'optimality:',ru, iu, mode
+
         x = x/self.opt_prob.scale
 
         # ------------------ Hot Start Processing ------------------
@@ -645,13 +647,13 @@ use the same upper/lower bounds for equality constraints'
 
                 # Write Data to history (if required):
                 if self.store_hst:
-                    self.hist.write(self.callCounter, fobj, fcon, fail, xn, 
-                                        x_array, gradEvaled, gobj, gcon)
+                    self.hist.write(self.callCounter, fObj, fCon, fail, xn, 
+                                        x_array, gradEvaled, gObj, gCon)
                 # end if
 
                 self.callCounter += 1
 
-                return mode, fobj, gobj_return, fcon_return, gcon_return
+                return mode, fObj, gobj_return, fcon_return, gcon_return
             # end if
 
             # We have used up all the information in hot start
@@ -661,18 +663,19 @@ use the same upper/lower bounds for equality constraints'
         # end if
         # ----------------------------------------------------------
 
+        userfg_args = [mode, nnJac, x, fObj, gObj, fCon, gCon, cu, iu, ru]
         if MPI:
             # Broadcast the type of call (0 means regular call)
             MPI.COMM_WORLD.bcast(0, root=0)
 
             # Broadcast the requried arguments
-            MPI.COMM_WORLD.bcast([mode, nnJac, x, fobj, gobj, fcon, gcon])
+            MPI.COMM_WORLD.bcast(userfg_args)
         # end if
 
         # Call userfg and return result
-        return self.userfg(mode, nnJac, x, fobj, gobj, fcon, gcon)
+        return self.userfg(*userfg_args)
 
-    def userfg(self, mode, nnJac, x, fobj, gobj, fcon, gcon):
+    def userfg(self, mode, nnJac, x, fobj, gobj, fcon, gcon, cu, iu, ru):
         '''
         The snopt user function. This is what would normally be called
         from snopt. This function is called on all processors. 
@@ -773,7 +776,9 @@ use the same upper/lower bounds for equality constraints'
 
         # Write Data to history:
         if self.store_hst:
-            self.hist.write(self.callCounter, fobj, fcon, fail, xn, x, gradEvaled, gobj, gcon)
+            self.hist.write(self.callCounter, fobj, fcon, fail, xn, x, gradEvaled, 
+                            gobj, gcon, mode=mode, feasibility=ru[0], optimality=ru[1],
+                            merit=ru[1], majorIt=iu[0])
         # end if
         self.callCounter += 1
 
