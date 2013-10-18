@@ -541,10 +541,12 @@ use the same upper/lower bounds for equality constraints'
                 # the SAME, we don't allow that. We will create a copy
                 # of the hot_start file and use *that* instead. 
                 import tempfile, shutil
-                if store_hst:
+                if store_hst == hot_start:
                     fname = tempfile.mktemp()
                     shutil.copyfile(store_hst, fname)
                     self.hot_start = History(fname, temp=True)
+                else:
+                    self.hot_start = History(hot_start, temp=False)
                 # end if
             # end if
 
