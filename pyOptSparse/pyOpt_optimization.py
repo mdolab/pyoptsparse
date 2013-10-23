@@ -608,7 +608,8 @@ the number variables defined by the sets in dvSet = %s'%(wrt)
 
                 gcon = sparse.coo_matrix(tmp)
 
-            return gobj, gcon
+                return gobj, gcon
+            # end if
         # end if
 
         # Otherwise, process constraints in the dictionary form. 

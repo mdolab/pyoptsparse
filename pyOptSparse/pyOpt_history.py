@@ -115,8 +115,6 @@ class History(object):
         key = '%d'%callCounter
         return self.db[key]
 
-    def __del__(self):
-        self.close()
 
 #==============================================================================
 # Optimizer History Test
