@@ -127,7 +127,7 @@ class SNOPT(Optimizer):
         'Elastic weight':[float,1.0e+4],                 # (used only during elastic mode)
         'Iterations limit':[int,10000],                 # (or 20*ncons if that is more)
         'Partial price':[int,1],                         # (10 for large LPs)
--        'Start':[str,'Cold'],                             # has precedence over argument start, ('Warm': alternative to a cold start)
+        'Start':[str,'Cold'],                             # has precedence over argument start, ('Warm': alternative to a cold start)
         # SNOPT SQP method Options
         'Major iterations limit':[int,1000],             # or ncons if that is more
         'Minor iterations limit':[int,500],             # or 3*ncons if that is more
@@ -298,9 +298,9 @@ class SNOPT(Optimizer):
             sys.exit(0)
         
         # Pull off starting time, if necessary
+        self.start_time = time.time()
         if time_limit is not None:
             self.time_limit = time_limit
-            self.start_time = time.time()
 
         # Save the optimization problem and the gradient function
         self.opt_prob = opt_prob
@@ -339,25 +339,7 @@ class SNOPT(Optimizer):
             xs = numpy.array(xs)
             scale = numpy.array(scale)
 
-            # Check for cold start 
-            # ------------------------------------------
-            if cold_start is not None:
-                if os.path.exists(cold_start):
-                    cold_file = shelve.open(cold_start)
-                    last_key = cold_file['last']
-                    x = cold_file[last_key]['x_array'].copy()*scale
-                    cold_file.close()
-                    if len(x) == len(xs):
-                        xs = x.copy()
-                    else:
-                        print 'The number of variable in cold_start file do not \
-match the number in the current optimization. Ignorning cold_start file'
-                    # end if
-                else:
-                    print 'Cold file not found. Continuing without cold restart'
-                # end if
-            # end if
-                
+               
 
             # Constraints Handling -- make sure nonlinear constraints go first!
             blc = []
@@ -481,30 +463,6 @@ use the same upper/lower bounds for equality constraints'
             neGcon = neA  # The nonlinear Jacobian and A are the same 
             iExit = 0
 
-            if warm_start is not None:
-                if os.path.exists(warm_start):
-                    hist = History(warm_start)
-                    xs_tmp = hist.readData('xs').copy()
-                    hs_tmp = hist.readData('hs').copy()
-                    warm_file.close()
-                    if xs_tmp is not None and hs_tmp is not None:
-                        if len(xs_tmp) == len(s) and len(hs_tmp) == len(hs):
-                            xs = xs_tmp.copy()
-                            hs = hs_tmp.copy()
-                            # Tell snopt to use this warm start information
-                            self.setOption('Start', 'Warm start')
-                        else:
-                            print 'The number of variable or constraints in warm_start file do not \
-match the number in the current optimization. Ignorning warm_start file'
-                        # end if
-                    else:
-                        print 'No warm start information in file. \'xs\' and \'hs\' must be\
- present in history file.'
-                else:
-                    print 'warm_file not found. Continuing without cold restart'
-                # end if
-            # end if
-
             # Set the options into the SNOPT instance
             self._set_snopt_options(iPrint, iSumm, cw, iw, rw)
 
@@ -566,6 +524,54 @@ match the number in the current optimization. Ignorning warm_start file'
                 self.store_hst = True
             # end if
 
+
+            # Check for warm start 
+            # ------------------------------------------
+            if warm_start is not None:
+                if os.path.exists(warm_start):
+                    hist = History(warm_start)
+                    xs_tmp = hist.readData('xs')
+                    hs_tmp = hist.readData('hs')
+                    hist.close()
+                    if xs_tmp is not None and hs_tmp is not None:
+                        if len(xs_tmp) == len(xs) and len(hs_tmp) == len(hs):
+                            xs = xs_tmp.copy()
+                            hs = hs_tmp.copy()
+                            # Tell snopt to use this warm start information
+                            self.setOption('Start', 'Warm start')
+                        else:
+                            print 'The number of variables or constraints in warm_start file do not \
+match the number in the current optimization. Ignorning warm_start file and trying cold start.'
+                            cold_start = warm_start
+                        # end if
+                    else:
+                        print 'No warm start information in file. \'xs\' and \'hs\' must be\
+ present in history file. Trying cold start.'
+                        cold_start = warm_start
+                else:
+                    print 'warm_file not found. Continuing without warm restart'
+                # end if
+            # end if
+
+            # Check for cold start 
+            # ------------------------------------------
+            if cold_start is not None:
+                if os.path.exists(cold_start):
+                    cold_file = shelve.open(cold_start)
+                    last_key = cold_file['last']
+                    x = cold_file[last_key]['x_array'].copy()*scale
+                    cold_file.close()
+                    if len(x) == nvar:
+                        xs[0:nvar] = x.copy()
+                    else:
+                        print 'The number of variable in cold_start file do not \
+match the number in the current optimization. Ignorning cold_start file'
+                    # end if
+                else:
+                    print 'Cold file not found. Continuing without cold restart'
+                # end if
+            # end if
+
             self.hot_start = None
             # Determine if we want to do a hot start:
             if hot_start is not None:
@@ -592,8 +598,8 @@ match the number in the current optimization. Ignorning warm_start file'
             if self.store_hst:
                 # Record the full state of variables, xs and hs such
                 # that we could perform a warm start. 
-                self.hist.writeData('xs') = xs
-                self.hist.writeData('hs') = hs
+                self.hist.writeData('xs', xs)
+                self.hist.writeData('hs', hs)
                 self.hist.close()
             # end if
 
