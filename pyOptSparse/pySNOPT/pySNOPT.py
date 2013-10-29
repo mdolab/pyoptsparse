@@ -574,9 +574,10 @@ match the number in the current optimization. Ignorning warm_start file'
                 # of the hot_start file and use *that* instead. 
                 import tempfile, shutil
                 if store_hst == hot_start:
-                    fname = tempfile.mktemp()
-                    shutil.copyfile(store_hst, fname)
-                    self.hot_start = History(fname, temp=True)
+                    if os.path.exists(hot_start):
+                        fname = tempfile.mktemp()
+                        shutil.copyfile(store_hst, fname)
+                        self.hot_start = History(fname, temp=True)
                 else:
                     self.hot_start = History(hot_start, temp=False)
                 # end if
@@ -675,36 +676,38 @@ match the number in the current optimization. Ignorning warm_start file'
 
         # ------------------ Hot Start Processing ------------------
         if self.hot_start:
-
             if self.hot_start.validPoint(self.callCounter, x):
                 data = self.hot_start.read(self.callCounter)
                 xn = data['x']
                 x_array = data['x_array']
-                fobj = data['fobj']
-                fcon = data['fcon']
+                fObj = data['fobj']
+                fCon = data['fcon']
                 fail = data['fail']
                 if fail: 
                     mode = -1
 
-                fcon_return = self.opt_prob.processConstraints(fcon)
+                fcon_return = self.opt_prob.processConstraints(fCon)
 
                 # Just pass gobj and gcon back if no gradient evaluated
-                gobj_return = gobj
-                gcon_return = gcon
+                gobj_return = gObj
+                gcon_return = gCon
                 gradEvaled = False
                 if data.has_key('gobj'):
                     gradEvaled = True
-                    gobj = data['gobj']
-                    gcon = data['gcon']
+                    gObj = data['gobj']
+                    gCon = data['gcon']
                     gobj_return, gcon_return = self.opt_prob.processDerivatives(
-                        gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
+                        gObj, gCon, linearConstraints=False, nonlinearConstraints=True)
                     gcon_return = gcon_return.tocsc().data
                 # end if
 
                 # Write Data to history (if required):
                 if self.store_hst:
-                    self.hist.write(self.callCounter, fObj, fCon, fail, xn, 
-                                        x_array, gradEvaled, gObj, gCon)
+                    self.hist.write(self.callCounter, fObj, fCon, fail, xn, x, gradEvaled, 
+                                    gObj, gCon, mode=mode, feasibility=ru[0], optimality=ru[1],
+                                    merit=ru[1], majorIt=iu[0])
+
+                    
                 # end if
 
                 self.callCounter += 1
