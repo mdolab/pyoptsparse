@@ -45,7 +45,6 @@ import time
 # External Python modules
 # =============================================================================
 import numpy
-from scipy import sparse 
 import shelve
 
 # =============================================================================
@@ -128,8 +127,8 @@ class SNOPT(Optimizer):
         'Elastic weight':[float,1.0e+4],                 # (used only during elastic mode)
         'Iterations limit':[int,10000],                 # (or 20*ncons if that is more)
         'Partial price':[int,1],                         # (10 for large LPs)
+-        'Start':[str,'Cold'],                             # has precedence over argument start, ('Warm': alternative to a cold start)
         # SNOPT SQP method Options
-        'Start':[str,'Cold'],                             # has precedence over argument start, ('Warm': alternative to a cold start)
         'Major iterations limit':[int,1000],             # or ncons if that is more
         'Minor iterations limit':[int,500],             # or 3*ncons if that is more
         'Major step limit':[float,2.0],                    # 
@@ -263,12 +262,14 @@ class SNOPT(Optimizer):
         Optimizer.__init__(self, name, category, def_opts, informs, *args, **kwargs)
 
         # The state of the variables and the slacks
-        self.hs = None
         self.x_previous = None
         self.callCounter = 0
+        self.start_time = None
+        self.time_limit = None
 
-    def __solve__(self, opt_prob, gobj_con=None, store_sol=True, disp_opts=False, 
-              store_hst=None, hot_start=None, cold_start=None, *args, **kwargs):
+    def __solve__(self, opt_prob, gobj_con=None, store_hst=None, 
+                  hot_start=None, warm_start=None, cold_start=None, 
+                  time_limit=None, *args, **kwargs):
         
         '''
         Run Optimizer (Optimize Routine)
@@ -284,7 +285,10 @@ class SNOPT(Optimizer):
                             optimization. *Default* = None, don't hot start
         - cold_start -> STR: Filename to read optimization history and do a cold start from a prevous
                             optimization. *Default* = None, don't cold start
-        
+        - warm_start -> File to read optimization history and do a warm start from a previous
+                            optimization. *Default* = None, don't warm start
+        - time_limit -> Number: The time limit in seconds for optimziation. A clean 
+                                terimination will be executed ater 'time_limit' seconds.
         Documentation last updated:  Feb. 2, 2011 - Peter W. Jansen
         '''
 
@@ -293,11 +297,16 @@ class SNOPT(Optimizer):
             print 'Erorr: Derivative level is not 0 and gradient function not supplied'
             sys.exit(0)
         
+        # Pull off starting time, if necessary
+        if time_limit is not None:
+            self.time_limit = time_limit
+            self.start_time = time.time()
+
         # Save the optimization problem and the gradient function
         self.opt_prob = opt_prob
         self.gobj_con = gobj_con
 
-            # We make a split here: If the rank is zero we setup the
+        # We make a split here: If the rank is zero we setup the
         # problem and run SNOPT, otherwise we go to the waiting loop:
 
         if rank == 0:
@@ -348,6 +357,7 @@ match the number in the current optimization. Ignorning cold_start file'
                     print 'Cold file not found. Continuing without cold restart'
                 # end if
             # end if
+                
 
             # Constraints Handling -- make sure nonlinear constraints go first!
             blc = []
@@ -471,12 +481,37 @@ use the same upper/lower bounds for equality constraints'
             neGcon = neA  # The nonlinear Jacobian and A are the same 
             iExit = 0
 
+            if warm_start is not None:
+                if os.path.exists(warm_start):
+                    hist = History(warm_start)
+                    xs_tmp = hist.readData('xs').copy()
+                    hs_tmp = hist.readData('hs').copy()
+                    warm_file.close()
+                    if xs_tmp is not None and hs_tmp is not None:
+                        if len(xs_tmp) == len(s) and len(hs_tmp) == len(hs):
+                            xs = xs_tmp.copy()
+                            hs = hs_tmp.copy()
+                            # Tell snopt to use this warm start information
+                            self.setOption('Start', 'Warm start')
+                        else:
+                            print 'The number of variable or constraints in warm_start file do not \
+match the number in the current optimization. Ignorning warm_start file'
+                        # end if
+                    else:
+                        print 'No warm start information in file. \'xs\' and \'hs\' must be\
+ present in history file.'
+                else:
+                    print 'warm_file not found. Continuing without cold restart'
+                # end if
+            # end if
+
             # Set the options into the SNOPT instance
             self._set_snopt_options(iPrint, iSumm, cw, iw, rw)
 
             mincw, miniw, minrw,cw = snopt.snmemb(iExit, ncon, nvar, 
                                                   neA, neGcon, 
                                                   nnCon, nnJac, nnObj, cw, iw, rw)
+
             if (minrw > lenrw) or (miniw > leniw) or (mincw > lencw):
                 print 'pySNOPT: Initial memory estimate for snopt insufficient'
                 if mincw > lencw:
@@ -497,7 +532,6 @@ use the same upper/lower bounds for equality constraints'
                 self._set_snopt_options(iPrint, iSumm, cw, iw, rw)  
             # end if
 
-
             # Setup argument list values
             start = numpy.array(self.options['Start'][1])
             nName = numpy.array([1], numpy.intc)
@@ -512,9 +546,7 @@ use the same upper/lower bounds for equality constraints'
             cu = numpy.array(["        "],'c')
             iu = numpy.zeros(leniu, numpy.intc)
             ru = numpy.zeros(lenru, numpy.float)
-
-            if self.hs == None:
-                self.hs = numpy.zeros(nvar+ncon, numpy.intc)
+            hs = numpy.zeros(nvar+ncon, numpy.intc)
 
             Names = numpy.array(["        "],'c')
             pi = numpy.zeros(ncon, numpy.float)
@@ -553,15 +585,21 @@ use the same upper/lower bounds for equality constraints'
             # The snopt c interface
             snopt.snoptc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
                          self.userfg_wrap, Acol, indA, locA, bl, bu, 
-                         Names, self.hs, xs, pi, rc, inform, mincw, miniw, minrw, 
+                         Names, hs, xs, pi, rc, inform, mincw, miniw, minrw, 
                          nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
 
             if self.store_hst:
+                # Record the full state of variables, xs and hs such
+                # that we could perform a warm start. 
+                self.hist.writeData('xs') = xs
+                self.hist.writeData('hs') = hs
                 self.hist.close()
+            # end if
 
             if MPI:
                 # Broadcast a -1 to indcate SNOPT has finished
                 MPI.COMM_WORLD.bcast(-1, root=0)
+            # end if
 
             if iPrint != 0:
                 snopt.closeunit(self.options['iPrint'][1])
@@ -602,7 +640,7 @@ use the same upper/lower bounds for equality constraints'
 
         # end if
 
-        # return ff, xs[0:nvar], sol_inform
+        return 
 
     def userfg_wrap(self, mode, nnJac, x, fObj, gObj, fCon, gCon, nState, cu, iu, ru):
 
@@ -615,9 +653,25 @@ use the same upper/lower bounds for equality constraints'
         makes sense to only read on processor that actually requires
         the data.
         '''
-        print 'optimality:',ru, iu, mode
-
+   
         x = x/self.opt_prob.scale
+
+        # Determine if we've exeeded the time limit:
+        if self.time_limit:
+            if time.time() - self.start_time > self.time_limit:
+
+                # Broadcast a -1 to indcate SNOPT has finished and
+                # make the remainder of the processors finish.
+                if MPI:
+                    MPI.COMM_WORLD.bcast(-1, root=0)
+                # end if
+                    
+                # Mode = -2 will tell SNOPT that we want to finish
+                # (immediately)
+                mode = -2
+                return mode 
+            # end if
+        # end if
 
         # ------------------ Hot Start Processing ------------------
         if self.hot_start:

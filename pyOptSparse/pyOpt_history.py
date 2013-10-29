@@ -88,6 +88,13 @@ class History(object):
         
         return
 
+    def writeData(self, key, data):
+        '''
+        Write arbitrary key:data value to db
+        '''
+        self.db[key] = data
+        self.db.sync()
+
     def validPoint(self, callCounter, x):
         '''
         Determine if callCounter is in the database AND that
@@ -114,7 +121,16 @@ class History(object):
         point should be verified by calling validPoint() first.'''
         key = '%d'%callCounter
         return self.db[key]
-
+    
+    def readData(self, key):
+        '''
+        Read data for generic key 'key'.
+        '''
+        try:
+            return self.db[key]
+        except KeyError:
+            return None
+    
     def __del__(self):
         self.close()
 
