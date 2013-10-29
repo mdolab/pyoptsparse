@@ -1,0 +1,23 @@
+pyOptSparse - PYthon OPTimization (Sparse) Framework
+=====================================
+Copyright (c) 2013-2013, Dr. Gaetan Kenway
+
+pyOptSparse is an extension to pyOpt that allows the specifiction of
+sparse optimization problems for optimizers that support it. Problem
+definitions specified with pyOptSparse can be "downcast" to dense
+problems for optimizers that only use dense constraint jacobians. 
+
+Currently, the optimizers that support pyOptSparse are:
+
+* pySNOPTSparse
+
+Licensing
+---------
+Distributed using the GNU Lesser General Public License (LGPL); see 
+the LICENSE file for details.
+
+Please cite pyOpt and the authors of the respective optimization
+algorithms in any publication for which you find it useful. 
+(This is not a legal requirement, just a polite request.)
+
+
