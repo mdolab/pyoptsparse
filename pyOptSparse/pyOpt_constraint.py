@@ -49,7 +49,7 @@ class Constraint(object):
     '''
     
     def __init__(self, name, dense, linear, wrt, jac, jacColIndex,
-                 lower, upper):
+                 lower, upper, scale):
         
         '''
         Constraint Class Initialization
@@ -75,6 +75,7 @@ class Constraint(object):
         self.jacColIndex = jacColIndex
         self.rs = None
         self.re = None
+        self.scale = scale
 
     def __str__(self):
         
