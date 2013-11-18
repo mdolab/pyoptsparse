@@ -45,7 +45,7 @@ class History(object):
     Abstract Class for Optimizer History Object
     '''
     
-    def __init__(self, fileName, temp=False):
+    def __init__(self, fileName, temp=False, flag=''):
         '''
         Optimizer History Class Initialization
         
@@ -56,7 +56,11 @@ class History(object):
         '''
         
         # 
-        self.db = shelve.open(fileName, protocol=2, writeback=True)
+        if flag == '':
+            self.db = shelve.open(fileName, protocol=2, writeback=True)
+        else:
+            self.db = shelve.open(fileName, protocol=2, flag=flag)
+        # end if
         self.temp = temp
         self.fileName = fileName
 
