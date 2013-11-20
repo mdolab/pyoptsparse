@@ -36,7 +36,13 @@ To Do:
 # Standard Python modules
 # =============================================================================
 import os, sys, time
-from collections import OrderedDict
+try:
+    from collections import OrderedDict
+except ImportError:
+    # python 2.6 or earlier, use backport
+    # get using "pip install ordereddict"
+    from ordereddict import OrderedDict
+    
 
 # =============================================================================
 # External Python modules
