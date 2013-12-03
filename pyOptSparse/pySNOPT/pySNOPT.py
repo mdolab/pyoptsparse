@@ -417,10 +417,7 @@ use the same upper/lower bounds for equality constraints'
             gcon = {}
             for iCon in self.opt_prob.constraints:
                 con = self.opt_prob.constraints[iCon]
-                if con.dense:
-                    gcon[iCon] = con.jac.todense()
-                else:
-                    gcon[iCon] = con.jac
+                gcon[iCon] = con.jac
             # end for
             gobj = numpy.zeros(self.opt_prob.ndvs)
 
@@ -431,7 +428,6 @@ use the same upper/lower bounds for equality constraints'
             Acol = fullJacobian.data
             indA = fullJacobian.indices + 1
             locA = fullJacobian.indptr + 1
-            
             self.nnCon = self.opt_prob.nnCon
 
             # Calculate the length of the work arrays
