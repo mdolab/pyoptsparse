@@ -48,8 +48,7 @@ class Constraint(object):
     Optimization Constraint Class
     '''
     
-    def __init__(self, name, dense, linear, wrt, jac, jacColIndex,
-                 lower, upper, scale):
+    def __init__(self, name, linear, wrt, jac, partialReturnOk, lower, upper, scale):
         
         '''
         Constraint Class Initialization
@@ -64,15 +63,14 @@ class Constraint(object):
         # 
         self.name = name
         self.linear = linear
-        self.dense = dense
         self.type = 'i'
         self.wrt = wrt
         self.jac = jac
+        self.partialReturnOk = partialReturnOk
         self.lower = lower
         self.upper = upper
         self.value = numpy.zeros_like(lower)
         self.ncon = len(upper)
-        self.jacColIndex = jacColIndex
         self.rs = None
         self.re = None
         self.scale = scale
