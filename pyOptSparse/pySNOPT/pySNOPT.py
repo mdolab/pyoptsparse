@@ -316,12 +316,10 @@ class SNOPT(Optimizer):
             blx = []
             bux = []
             xs = []
-            scale = []
             for dvSet in self.opt_prob.variables.keys():
                 for dvGroup in self.opt_prob.variables[dvSet]:
                     for var in self.opt_prob.variables[dvSet][dvGroup]:
                         if var.type == 'c':
-                            scale.append(var.scale)
                             blx.append(var.lower)
                             bux.append(var.upper)
                             xs.append(var.value)
@@ -337,9 +335,6 @@ class SNOPT(Optimizer):
             blx = numpy.array(blx)
             bux = numpy.array(bux)
             xs = numpy.array(xs)
-            scale = numpy.array(scale)
-
-               
 
             # Constraints Handling -- make sure nonlinear constraints go first!
             blc = []
@@ -422,10 +417,7 @@ use the same upper/lower bounds for equality constraints'
             gcon = {}
             for iCon in self.opt_prob.constraints:
                 con = self.opt_prob.constraints[iCon]
-                if con.dense:
-                    gcon[iCon] = con.jac.todense()
-                else:
-                    gcon[iCon] = con.jac
+                gcon[iCon] = con.jac
             # end for
             gobj = numpy.zeros(self.opt_prob.ndvs)
 
@@ -436,7 +428,6 @@ use the same upper/lower bounds for equality constraints'
             Acol = fullJacobian.data
             indA = fullJacobian.indices + 1
             locA = fullJacobian.indptr + 1
-            
             self.nnCon = self.opt_prob.nnCon
 
             # Calculate the length of the work arrays
@@ -529,7 +520,7 @@ use the same upper/lower bounds for equality constraints'
             # ------------------------------------------
             if warm_start is not None:
                 if os.path.exists(warm_start):
-                    hist = History(warm_start)
+                    hist = History(warm_start, flag='r')
                     xs_tmp = hist.readData('xs')
                     hs_tmp = hist.readData('hs')
                     hist.close()
@@ -557,9 +548,9 @@ match the number in the current optimization. Ignorning warm_start file and tryi
             # ------------------------------------------
             if cold_start is not None:
                 if os.path.exists(cold_start):
-                    cold_file = shelve.open(cold_start)
+                    cold_file = shelve.open(cold_start,flag='r')
                     last_key = cold_file['last']
-                    x = cold_file[last_key]['x_array'].copy()*scale
+                    x = cold_file[last_key]['x_array'].copy()*self.opt_prob.xscale
                     cold_file.close()
                     if len(x) == nvar:
                         xs[0:nvar] = x.copy()
@@ -583,9 +574,9 @@ match the number in the current optimization. Ignorning cold_start file'
                     if os.path.exists(hot_start):
                         fname = tempfile.mktemp()
                         shutil.copyfile(store_hst, fname)
-                        self.hot_start = History(fname, temp=True)
+                        self.hot_start = History(fname, temp=True, flag='r')
                 else:
-                    self.hot_start = History(hot_start, temp=False)
+                    self.hot_start = History(hot_start, temp=False, flag='r')
                 # end if
             # end if
 
@@ -661,7 +652,7 @@ match the number in the current optimization. Ignorning cold_start file'
         the data.
         '''
    
-        x = x/self.opt_prob.scale
+        x = x/self.opt_prob.xscale
 
         # Determine if we've exeeded the time limit:
         if self.time_limit:
@@ -755,7 +746,7 @@ match the number in the current optimization. Ignorning cold_start file'
         '''
 
         xn = self.opt_prob.processX(x)
-        
+
         # If the gradient isn't calculated, gobj and gcon pass back
         # through
         gobj_return = gobj
@@ -770,11 +761,24 @@ match the number in the current optimization. Ignorning cold_start file'
             
         # Evaluate the function
         if mode == 0 or mode == 2:
-            fobj, fcon, fail = self.opt_prob.obj_fun(xn)
-            if fail:
-                mode = -1
+            fargs = self.opt_prob.obj_fun(xn)
+            if rank == 0:
+                # Process fcon and fobj
+                fobj = fargs[0]
+                fcon = fargs[1]
+                fail = fargs[2]
+
+                fcon_return = self.opt_prob.processConstraints(fcon)
+                if fail:
+                    mode = -1
+                # end if
+            # end if
+        else:
+            if rank == 0:
+                fcon_return = fcon.copy()
             # end if
         # end if
+            
      
         # Check if last point is *actually* what we evaluated for
         # mode=1
@@ -797,14 +801,22 @@ match the number in the current optimization. Ignorning cold_start file'
                 # evaluated point is the same as this point. Evaluate only
                 # the gradient                
                 gradEvaled = True
-                gobj, gcon, fail = self.gobj_con(xn, fobj, fcon)
+                gargs = self.gobj_con(xn, fobj, fcon)
+
+                # Non root rank return for gradient evaluation
                 if rank <> 0:
                     return
+
+                # Extract returns
+                gobj = gargs[0]
+                gcon = gargs[1]
+                fail = gargs[2]
 
                 if fail:
                     mode = -1
                 # end if
 
+                # Run the standard process derivatives function
                 gobj_return, gcon_return = self.opt_prob.processDerivatives(
                     gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
                 gcon_return = gcon_return.tocsc().data
@@ -814,18 +826,22 @@ match the number in the current optimization. Ignorning cold_start file'
                 # previously evaluated point is different. Evaluate the
                 # objective then the gradient
                 gradEvaled = True
-                fobj, fcon, fail = self.opt_prob.obj_fun(xn)
+                fargs = self.opt_prob.obj_fun(xn)
+                gargs = self.gobj_con(xn, fobj, fcon)
 
-                if fail:
-                    mode = -1
-
-                gobj, gcon, fail = self.gobj_con(xn, fobj, fcon)
+                # Non root rank return for gradient evaluation
                 if rank <> 0:
                     return 
 
+                # Extract returns
+                gobj = gargs[0]
+                gcon = gargs[1]
+                fail = gargs[2]
+
                 if fail:
                     mode = -1
 
+                # Run the standard process derivatives function
                 gobj_return, gcon_return = self.opt_prob.processDerivatives(
                     gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
                 gcon_return = gcon_return.tocsc().data
@@ -835,9 +851,6 @@ match the number in the current optimization. Ignorning cold_start file'
         # Non root rank return for objective evaluation only
         if rank <> 0:
             return 
-
-        # Process fcon
-        fcon_return = self.opt_prob.processConstraints(fcon)
 
         # Write Data to history:
         if self.store_hst:
