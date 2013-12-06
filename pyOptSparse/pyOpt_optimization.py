@@ -35,14 +35,8 @@ To Do:
 # =============================================================================
 # Standard Python modules
 # =============================================================================
-import os, sys, time
-try:
-    from collections import OrderedDict
-except ImportError:
-    # python 2.6 or earlier, use backport
-    # get using "pip install ordereddict"
-    from ordereddict import OrderedDict
-    
+import os, sys, time, copy
+from collections import OrderedDict
 
 # =============================================================================
 # External Python modules
@@ -121,7 +115,7 @@ class Optimization(object):
 
     def _checkOkToAddVariables(self):
         if not self.ableToAddVariables:
-            print 'Error: No more variables can be added at this time. \
+            print 'pyOptSparse Error: No more variables can be added at this time. \
 All variables must be added before constraints can be added.'
             sys.exit(1)
         # end if
@@ -158,7 +152,7 @@ All variables must be added before constraints can be added.'
         self._checkOkToAddVariables()
         
         if name in self.varSetNames:
-            print 'Error: The supplied name \'%s\' for a variable set \
+            print 'pyOptSparse Error: The supplied name \'%s\' for a variable set \
 has already been used.'%(name)
             return
         # end if
@@ -197,7 +191,7 @@ has already been used.'%(name)
         self._checkOkToAddVariables()
 
         if name in self.varGroupNames:
-            print 'Error: The supplied name \'%s\' for a variable group \
+            print 'pyOptSparse Error: The supplied name \'%s\' for a variable group \
 has already been used.'%(name)
             return
         else:
@@ -215,7 +209,7 @@ has already been used.'%(name)
         elif len(value) == nvars:
             pass
         else:
-            print 'Error: The length of the \'value\' argument to \
+            print 'pyOptSparse Error: The length of the \'value\' argument to \
  addVarGroup is %d, but the number of variables in nvars is %d.'%(len(value), nvars)
             sys.exit(1)
         # end if
@@ -227,7 +221,7 @@ has already been used.'%(name)
         elif len(lower) == nvars:
             pass
         else:
-            print 'Error: The length of the \'lower\' argument to \
+            print 'pyOptSparse Error: The length of the \'lower\' argument to \
  addVarGroup is %d, but the number of variables in nvars is %d.'%(len(lower), nvars)
             sys.exit(1)
         # end if
@@ -239,7 +233,7 @@ has already been used.'%(name)
         elif len(upper) == nvars:
             pass
         else:
-            print 'Error: The length of the \'upper\' argument to \
+            print 'pyOptSparse Error: The length of the \'upper\' argument to \
  addVarGroup is %d, but the number of variables in nvars is %d.'%(len(upper), nvars)
             sys.exit(1)
         # end if
@@ -251,7 +245,7 @@ has already been used.'%(name)
         elif len(scale) == nvars:
             pass
         else:
-            print 'Error: The length of the \'scale\' argument to \
+            print 'pyOptSparse Error: The length of the \'scale\' argument to \
  addVarGroup is %d, but the number of variables in nvars is %d.'%(len(scale), nvars)
             sys.exit(1)
         # end if
@@ -281,14 +275,14 @@ has already been used.'%(name)
                 
     def addCon(self, name, *args, **kwargs):
         '''
-        convenience function. See addConGroup for more information
+        Convenience function. See addConGroup() for more information
         '''
         
         self.addConGroup(name, 1, *args, **kwargs)
 
         return
                 
-    def addConGroup(self, name, ncons, type='i', dense=True,
+    def addConGroup(self, name, ncons, type='i',
                     linear=False, wrt=None, jac=None, **kwargs):
         
         '''
@@ -301,8 +295,10 @@ has already been used.'%(name)
         
         **Keyword arguments:**
         
-        - type -> STR: Constraint type ('i'-inequality, 'e'-equality), *Default* = 'i'
-        - Only inequality constriants are supported 
+        - type -> STR: Constraint type ('i'-inequality, 'e'-equality),
+        - *Default* = 'i' Only inequality constriants are
+        - supported. Use the same lower and upper bound if you want
+        - equality constraints.
         
         - dense-> Boolean: Whether or not this constraint is taken to
           be dense or not. If the constraint it sparse the
@@ -315,31 +311,34 @@ has already been used.'%(name)
         - wrt -> iterable (list, set, OrderedDict, array etc): wrt
           stands for 'With Respect To'. This specifies for what dvSets
           have non zero jacobian values for this set of
-          constraints. The order is important. For example, lets
-          assume the user has defined dvSet 'A' and dvSet 'B'. 'A' has
-          10 variables and 'B' has 15 variables and ncons (in this
-          function) is 25. If the user calls:
+          constraints. The order is not important. 
 
-          optProb.addConGroup('aSetOfConstraints', 25, type='i', dense=False,
-          linear=False, wrt=['A','B'], jac=jac, lower=lower, upper=upper)
-
-          the jacobian (jac) must have shape of (25, 15). It is
-          expected the first 10 columns correspond to the derivates
-          wrt to variables 'A' and the last 5 columns wrt variables
-          'B'. If wrt was given as wrt=['B','A'] the opposite order
-          would be used. Note that the 'wrt' order MUST be used in all
-          subequent returns of the jacobian.
-
-          jac -> scipy.sparse matrix: The sparse matrix jacobian. For
-          nonlinear constriants, the value of the entries are not
-          important; only the nonzero structure is used at this
-          point. However for linear constraints, both the structure
-          and values are important. The value of the linear
-          constraints are set here and remain fixed for the remainder
-          of the optimization.
+          jac -> scipy.sparse matrix or numpy array. If constriant
+          block of this constraint with respect to the DVset given in
+          wrt is NOT dense, the sparsity structure of the jacobain
+          must be provided. For nonlinear constraints the values
+          themselves do not matter, but the structure does. For linear
+          constraints BOTH the values and the constraints are important. 
 
           lower -> value, iteratable: The lower bounds for the constraints
           upper -> value, iteratable: The upper bounds for the constraints
+          scale -> value, iterable:  Scale factor(s) for the constraint(s). 
+                          Default is 1.0. Note that the Lower and Upper bounds above are given 
+                          in UNSCALED form.
+
+          There is no explict distinction between 'sparse' and 'dense'
+          constraints; A constraint could have a single desnse block,
+          a single sparse block, multiple dense blocks, multiple
+          sparse blocks or any combination thereof. Even if the user
+          only supplies dense blocks the final jacobain *is* sparse
+          and will be assembled as such. If the 'wrt' argument is not
+          included, it will be assumed that there is a non-zero
+          component wrt all dvSets. Note that in this case, we *can't*
+          check that the user has forgotten to return a particular
+          chuck -- unsupplied chunks will be set to zero. Therefore it
+          is recommended that the 'wrt' argument is always given since
+          this provides and additional saveguard that jacobian is
+          assembled correctly.
 
         Documentation last updated:  Feb. 07, 2011 - Peter W. Jansen
         '''
@@ -350,9 +349,9 @@ has already been used.'%(name)
             self._finalizeDesignVariables()
 
         if name in self.conGroupNames:
-            print 'Error: The supplied name \'%s\' for a constraint group \
+            print 'pyOptSparse Error: The supplied name \'%s\' for a constraint group \
 has already been used.'%(name)
-            return
+            sys.exit(1)
         # end if
         self.conGroupNames.add(name)
 
@@ -363,8 +362,8 @@ has already been used.'%(name)
         elif len(lower) == ncons:
             pass
         else:
-            print 'Error: The length of the \'lower\' argument to \
- addVarGroup is %d, but the number of variables in ncons is %d.'%(len(lower), ncons)
+            print 'pyOptSparse pyOptSparse Error: The length of the \'lower\' argument to \
+ addConGroup is %d, but the number of constraints is %d.'%(len(lower), ncons)
             sys.exit(1)
         # end if
 
@@ -375,118 +374,155 @@ has already been used.'%(name)
         elif len(upper) == ncons:
             pass
         else:
-            print 'Error: The length of the \'upper\' argument to \
- addVarGroup is %d, but the number of variables in ncons is %d.'%(len(upper), ncons)
+            print 'pyOptSparse Error: The length of the \'upper\' argument to \
+ addConGroup is %d, but the number of constraints is %d.'%(len(upper), ncons)
             sys.exit(1)
         # end if
 
-        # We need to do some checking if the constraint is sparse:
-        if not dense:
-            # First check that 'wrt' and 'jac' is given:
-            if wrt is None or jac is None:
-                print 'Error: \'wrt\' and \'jac\' MUST be given if the \
-constriant group is sparse.'
-                sys.exit(1)
-            # end if
-
-            # A special check for 'wrt' it can be 'all'; a shortcut
-            # for all the variables:
-            try:
-                tmp = wrt.lower()
-                if wrt.lower() == 'all':
-                    wrt = self.variables.keys()
-                else:
-                    print 'Error: \'wrt\' must be a iterable list.'
-                    sys.exit(1)
-                # end if
-            except:
+        # ------ Process the scale argument
+        scale = numpy.atleast_1d(kwargs.pop('scale', numpy.ones(ncons)))
+        if len(scale) == 1:
+            scale = scale[0]*numpy.ones(ncons)
+        elif len(scale) == ncons:
+            pass
+        else:
+            print 'pyOptSparse Error: The length of the \'scale\' argument to \
+ addConGroup is %d, but the number of constraints is %d.'%(len(scale), nvars)
+            sys.exit(1)
+        # end if
+            
+        # First check if 'wrt' is supplied...if not we just take all
+        # the dvSet
+        if wrt is None:
+            wrt = self.variables.keys()
+        else:
+            # Sanitize the wrt input:
+            if isinstance(wrt, str):
+                wrt = [wrt.lower()]
+            else: 
                 try:
                     wrt = list(wrt)
                 except:
-                    print 'Error: \'wrt\' must be a iterable list'
-                # end try
-            # end try
-                    
-            # Check that jac is a scipy sparse matrix:
-            if sparse.issparse(jac):
-                pass
-            else:
-                try:
-                    jac = sparse.csr_matrix(jac)
-                except:
-                    print 'Erorr: \'jac\' is not a sparse matrix nor \
-can be converted to one.'
-                    sys.exit(1)
+                    print 'pyOptSparse Error: \'wrt\' must be a iterable list'
                 # end try
             # end if
                     
-            # Now we have to make sure the Jacobian is *actually* the
-            # right size; we have supplied ncon and the wrt varibles
-            # which define the size of the jacobian *should* be. 
-
-            if ncons <> jac.shape[0]:
-                print 'Error: The number of rows in \'jac\' does not equal \'ncons\''
-                sys.exit(0)
-
-            ndvs = 0
+            # Now, make sure that each dvSet the user supplied list
+            # *actually* are DVsets
             for dvSet in wrt:
-                if dvSet not in self.variables.keys():
-                    print 'Error: The supplied dvSet name \'%s\' in \'wrt\' \
-was not found.'%(dvSet)
+                if not dvSet in self.variables.keys():
+                    print 'pyOptSparse Error: The supplied dvSet \'%s\' in \'wrt\' for the %s constraint, \
+does not exist. It must be added with a call to addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'%(dvSet, name, dvSet)
                     sys.exit(1)
+                # end if
+            # end for
+        # end if
+
+        # Last thing for wrt is to reorder them such that dvsets are
+        # in order. This way when the jacobian is assembled in
+        # processDerivatives() the coorindate matrix will in the right
+        # order.
+        dvStart = []
+        for dvSet in wrt:
+            dvStart.append(self.dvOffset[dvSet]['n'][0])
+
+        # This sort wrt using the keys in dvOffset
+        wrt = [x for (y,x) in sorted(zip(dvStart, wrt))]
+
+
+        # Now we know which DVsets this constraint will have a
+        # derivative with respect to (i.e. what is in the wrt list)
+            
+        # Now, it is possible that jacobians were given for none, some
+        # or all the dvSets defined in wrt. 
+        if jac is None:
+
+            # If the constraint is linear we have to *Force* the user to
+            # supply a constraint jacobian for *each* of the values in
+            # wrt. Otherwise, a matrix of zeros isn't meaningful for the
+            # sparse constraints.
+
+            if linear:
+                print 'pyOptSparse Error: The \'jac\' keyword argument to addConGroup() must be supplied for a linear constraint'
+                sys.exit(1)
+
+            # without any additional information about the jacobian
+            # structure, we must assume they are all dense. 
+            jac = {}
+            for dvSet in wrt:
+                ss = self.dvOffset[dvSet]['n']                 
+                ndvs = ss[1]-ss[0]
+                jac[dvSet] = sparse.csr_matrix(numpy.ones((ncons, ndvs)))
+                jac[dvSet].data[:] = 0.0
+            # end for
+                
+            # Set a flag for the constraint object, that not returning them all is ok. 
+            partialReturnOk = True
+
+        else:
+            # First sanitize input:
+            if not isinstance(jac, dict):
+                print 'pyOptSparse Error: The \'jac\' keyword argument to addConGroup() must be a dictionary'
+                sys.exit(1)
+
+            # Now loop over the set we *know* we need and see if any
+            # are in jac. We will actually pop them out, and that way
+            # if there is anything left at the end, we can tell the
+            # user supplied information was unused. 
+            tmp = copy.deepcopy(jac)
+            jac = {}
+            for dvSet in wrt:
+                ss = self.dvOffset[dvSet]['n']                 
+                ndvs = ss[1]-ss[0]
+
+                try:
+                    jac[dvSet] = tmp.pop(dvSet)
+                    # Check that this user-supplied jacobian is in fact the right size
+                except:
+                    # No big deal, just make a dense component...and set to zero
+                    jac[dvSet] = sparse.csr_matrix(numpy.ones((ncons, ndvs)))
+                    jac[dvSet].data[:] = 0.0
+                # end try
+                    
+                if jac[dvSet].shape[0] <> ncons or jac[dvSet].shape[1] <> ndvs:
+                    print 'pyOptSparse Error: The supplied jacobian for dvSet \'%s\' in constraint %s, was the incorrect size. Expecting a jacobian\
+ of size (%d,%d) but received a jacobian of size (%d,%d).'%(dvSet, name, ncons, ndvs, jac[dvSet].shape[0], jac[dvSet].shape[1])
+                    sys.exit(1)
+                # end if
+
+                # Now check that the supplied jacobian is sparse of not:
+                if sparse.issparse(jac[dvSet]):
+                    # Excellent, the user supplied a sparse matrix or
+                    # we just created one above. Conver to csr format
+                    # if not already in that format.
+                    jac[dvSet] = jac[dvSet].tocsr()
                 else:
-                    ndvs += (self.dvOffset[dvSet]['n'][1] - self.dvOffset[dvSet]['n'][0])
+                    # Supplied jacobian is dense, replace any zero,
+                    # before converting to csr format
+                    jac[dvSet][numpy.where(jac[dvSet]==0)] = 1e-50
+                    jac[dvSet] = sparse.csr_matrix(jac[dvSet])
                 # end if
             # end for
 
-            if ndvs <> jac.shape[1]:
-                print 'Error: The number of columns in \'jac\' does not equal \
-the number variables defined by the sets in dvSet = %s'%(wrt)
-                sys.exit(0)
-            # end if
-        else:
-            # Create dummy values for this jacobian --- assumed
-            # nonlinear so the values do not matter. 
-            jac = sparse.csr_matrix(numpy.ones((ncons, self.ndvs)))
-            wrt = self.variables.keys()
-        # end if
-
-        # Ensure the jacobian is CSR since the code below uses that
-        # fact.
-        jac = jac.tocsr()
-
-        # For every non zero entry in jac, (ie an array of
-        # len(jac.data)) then we want to know the COLUMN in the full
-        # jacobain it corresonds to.
-        
-        jacColIndex = numpy.zeros_like(jac.indices)
-        dvOffset = 0
-        for dvSet in wrt:
-            dvLow = self.dvOffset[dvSet]['n'][0] 
-            dvHigh= self.dvOffset[dvSet]['n'][1]
-            dvRange = dvHigh - dvLow
-
-            # Loop over rows in constraint jacobian:
-            for iRow in xrange(ncons):
-                # Loop over the number of nonzero entries in this row:
-                for ii in xrange(jac.indptr[iRow], jac.indptr[iRow+1]):
-                    # ii is the index into the indices/data arrays
-                    column = jac.indices[ii]
-                    
-                    # We only examine dvOffet + dvRange of the
-                    # constriant jacobian, the remainder will be in a
-                    # separate dvSet
-                    if column >= dvOffset and column < dvOffset + dvRange:
-                        jacColIndex[ii] = dvLow + column - dvOffset
-                    # end if
-                # end for
+            # If there is anything left in jac print a warning:
+            for dvSet in tmp:
+                print 'pyOptSparse Warning: An unused jacobian with dvSet key of \'%s\'\
+ was unused. This will be ignored'%(dvSet)
             # end for
 
-            dvOffset += (dvHigh - dvLow)
-        # end for
+            # Finally partial returns NOT ok, since the user has
+            # supplied information about the sparsity:
+            partialReturnOk = False
 
-        self.constraints[name] = Constraint(name, dense, linear, wrt, jac, 
-                                            jacColIndex, lower, upper)
+        # end if
+
+        # Scale the rows of each jacobian part:
+        for dvSet in jac:
+            self._csrRowScale(jac[dvSet], scale)
+
+        # Finally! Create constraint object
+        self.constraints[name] = Constraint(name, linear, wrt, jac, partialReturnOk,
+                                            lower*scale, upper*scale, scale)
 
         return 
         
@@ -515,7 +551,10 @@ the number variables defined by the sets in dvSet = %s'%(wrt)
         self.nnCon = nncon
         self.nlCon = nlcon
         self.nCon = nncon + nlcon
-        
+
+        conScaleNonLinear = []
+        conScaleFull = []
+
         # Loop over the constraints assigning the column start (cs)
         # and column end (ce) values. The actual ordering depends on
         # if constraints are reordered or not. 
@@ -527,6 +566,8 @@ the number variables defined by the sets in dvSet = %s'%(wrt)
                     con.rs = rowCounter
                     rowCounter += con.ncon
                     con.re = rowCounter
+                    conScaleNonLinear.extend(con.scale)
+                    conScaleFull.extend(con.scale)
 
             for iCon in self.constraints:
                 con = self.constraints[iCon]
@@ -534,6 +575,7 @@ the number variables defined by the sets in dvSet = %s'%(wrt)
                     con.rs = rowCounter
                     rowCounter += con.ncon
                     con.re = rowCounter
+                    conScaleFull.extend(con.scale)
         elif reorder == ['linear','nonLinear']:
             for iCon in self.constraints:
                 con = self.constraints[iCon]
@@ -541,6 +583,7 @@ the number variables defined by the sets in dvSet = %s'%(wrt)
                     con.rs = rowCounter
                     rowCounter += con.ncon
                     con.re = rowCounter
+                    conScaleFull.extend(con.scale)
 
             for iCon in self.constraints:
                 con = self.constraints[iCon]
@@ -548,21 +591,32 @@ the number variables defined by the sets in dvSet = %s'%(wrt)
                     con.rs = rowCounter
                     rowCounter += con.ncon
                     con.re = rowCounter
+                    conScaleNonLinear.extend(con.scale)
+                    conScaleFull.extend(con.scale)
+
         else: # No re-ordering
             for iCon in self.constraints:
                 con = self.constraints[iCon]
                 con.rs = rowCounter
                 rowCounter += con.ncon
                 con.re = rowCounter 
+                if not con.linear:
+                    conScaleNonLinear.extend(con.scale)
+                conScaleFull.extend(con.scale)
             # end for
         # end if
 
-        scale = []
+        # Save constraint scaling arrays
+        self.conScaleFull = numpy.array(conScaleFull)
+        self.conScaleNonLinear = numpy.array(conScaleNonLinear)
+
+        # Assemble the design variable scaling
+        xscale = []
         for dvSet in self.variables.keys():
             for dvGroup in self.variables[dvSet]:
                 for var in self.variables[dvSet][dvGroup]:
-                    scale.append(var.scale)
-        self.scale = numpy.array(scale)
+                    xscale.append(var.scale)
+        self.xscale = numpy.array(xscale)
 
         return
 
@@ -578,45 +632,73 @@ the number variables defined by the sets in dvSet = %s'%(wrt)
         that this function performs the pyOpt controlled scaling that
         is transparent to the user. 
         '''
-        
-        # Assume gobj is already ok
+        timeA = time.time()
+        # Process the objective gradient. This may be vector or it may be
+        # given as a dictionary. 
+        dvSets = self.variables.keys()
+        if isinstance(gobj_in, dict):
+            gobj = numpy.zeros(self.ndvs)
+            for key in gobj_in:
+                # Check that the key matches something in dvSets
+                if key in dvSets:
+                    # Now check that the array is the correct length:
 
-        gobj = numpy.atleast_2d(gobj_in).copy()
-        gobj /= self.scale
+                    # ss = start/stop is a length 2 array of the
+                    # indices for dvSet given by key
+                    ss = self.dvOffset[key]['n'] 
+                    if len(gobj_in[key]) == ss[1]-ss[0]:
+                        # Everything checks out so set:
+                        gobj[ss[0]:ss[1]] = gobj_in[key]
+                    else:
+                        print 'pyOptSparse Error: The length of the objective deritative for dvSet %s\
+ is the incorrect length. Expecting a length of %d but received a length of %d.'%(dvSet, ss[1]-ss[0], len(gobj_in[key]))
+                        sys.exit(1)
+                    # end if
+                else:
+                    print 'Warning: The key \'%s\' in g_obj does not match any of the added DVsets. \
+This derivative will be ignored'%(key)
+                # end if
+            # end for
+        else:
+            # Otherwise we will assume it is a vector:
+            gobj = numpy.atleast_1d(gobj_in).copy()
+            if len(gobj) <> self.ndvs:
+                print 'Erorr: The length of the objective derivative for all design variables\
+ is not the correct size. Received size %d, should be size %d.'%(len(gobj), self.ndvs)
+                sys.exit(1)
+        # end if
+                
+        # Finally scale the objective gradient based on the scaling data.
+        gobj /= self.xscale
 
-        # Data for storing the values in COOrdinate format
-        data = []
-        row  = []
-        col  = []
-
-        # There is also a possibility that the user has actually
-        # provided jacobian that is *exactly* the correct size and
-        # sparsity pattern. This will happen with pyOptSparse is used
-        # in "dense" mode, ie with other pyOpt like problems. 
-
-        allDense = True
-        for iCon in self.constraints:
-            if not self.constraints[iCon].dense:
-                allDense = False
-            # end if
-        # end ofr
-
-        # If we have all dense constraints, AND gcon_in is an array
-        # AND it is the right size, we will interpret this is the
-        # actual constriant jacobian and use. 
-        if allDense and isinstance(gcon_in, numpy.ndarray):
+        # If the user has supplied a complete dense numpy array for
+        # the jacobain AND all the constriants are dense
+        if isinstance(gcon_in, numpy.ndarray):
             if gcon_in.shape == (self.nCon, self.ndvs):
                 gcon_in[numpy.where(gcon_in==0)] = 1e-50
                 # Don't forget to scale:
                 tmp = gcon_in.copy()
                 for i in xrange(self.ndvs):
-                    tmp[:,i] /= self.scale[i]
+                    tmp[:,i] /= self.xscale[i]
 
+                # Do constraint scaling and convert to coo
                 gcon = sparse.coo_matrix(tmp)
+                self._cooRowScale(gcon, self.conScaleFull)
+                print 'Processing Derviatives Time: %8.3f seconds.'%(time.time()-timeA)
 
+                # Quick Return here since we're done
                 return gobj, gcon
+
+            else:
+                print 'pyOptSparse Error: the dense jacobian return was the incorrect size. Expecting \
+size of (%d, %d) but received size of (%d, %d).'%(self.nCon, self.ndvs, gcon_in.shape[0], gcon_in.shape[1])
             # end if
         # end if
+
+        # Data for storing the values in COOrdinate format
+        data = []
+        row  = []
+        col  = []
 
         # Otherwise, process constraints in the dictionary form. 
         # Loop over all constraints:
@@ -624,47 +706,82 @@ the number variables defined by the sets in dvSet = %s'%(wrt)
             con = self.constraints[iCon]
             if ((linearConstraints and con.linear) or
                 (nonlinearConstraints and not con.linear)):
+
                 if not con.name in gcon_in:
-                    print 'Error: the jacobian for the constraint \'%s\' was \
-    not found in the returned dictionary.'%con.name
-                    sys.exit(1)
-                # end if
-                if con.dense:
-                    tmp = numpy.atleast_2d(gcon_in[iCon].copy())
-                    tmp[numpy.where(tmp==0)] = 1e-50
-                    tmp = sparse.csr_matrix(tmp)
-                else:
-                    tmp = sparse.csr_matrix(gcon_in[iCon].copy())
-                # end if
-
-                if tmp.shape <> con.jac.shape:
-                    print 'Error: The jacobian for constraint group \'%s\' \
-was not the correct size. The supplied jacobian has shape %s, but must be \
-shape %s.'%(con.name, gcon_in[iCon].shape, con.jac.shape)
+                    print 'pyOptSparse Error: the jacobian for the constraint \'%s\' was \
+not found in the returned dictionary.'%con.name
                     sys.exit(1)
                 # end if
 
-                if tmp.nnz <> con.jac.nnz:
-                    print 'Error: The number of nonzero elements for \
- constraint group \'%s\' was not the correct size. The supplied jacobian has \
-%d nonzero entries, but must contain %d nonzero entries.'%(
-                        con.name, tmp.nnz, con.jac.nnz)
-                    sys.exit(1)
-                # end if
-                
-                # Loop over rows in constraint jacobian:
-                for iRow in xrange(con.ncon):
-                    # Loop over the number of nonzero entries in this row:
-                    for ii in xrange(con.jac.indptr[iRow], con.jac.indptr[iRow+1]):
-                        row.append(con.rs + iRow)
-                        col.append(con.jacColIndex[ii])
-                        data.append(tmp.data[ii]/self.scale[con.jacColIndex[ii]])
+                if not con.partialReturnOk:
+                    # The keys in gcon_in[iCon] MUST match PRECISELY
+                    # the keys in con.wrt....The user told us they
+                    # would supply derivatives wrt to these sets, and
+                    # then didn't, so scold them. 
+                    for dvSet in con.jac.keys():
+                        if dvSet not in gcon_in[iCon]:
+                            print 'pyOptSparse Error: Constraint \'%s\' was expecting a jacobain with respect to dvSet \'%s\' as \
+was supplied in addConGroup(). This was not found in the constraint jacobian dictionary'%(con.name, dvSet)
+                            sys.exit(1)
+                        # end if
                     # end for
-                # end for
-            # end if (nonlinear)
-        # end for
+                # end if
 
+                # We assume gcon_in MUST be a dictionary
+                for key in con.wrt:
+
+                    ss = self.dvOffset[key]['n'] 
+                    ndvs = ss[1]-ss[0]
+                    if key in gcon_in[iCon]:
+                        if sparse.issparse(gcon_in[iCon][key]):
+                            # Excellent, the user supplied a sparse matrix
+                            # Convert to csr format if not already in that
+                            # format.
+                            tmp = gcon_in[iCon][key].copy().tocsr()
+                        else:
+                            # Supplied jacobian is dense, replace any zero,
+                            # before converting to csr format
+                            gcon_in[iCon][key][numpy.where(gcon_in[iCon][key]==0)] = 1e-50
+                            tmp = sparse.csr_matrix(gcon_in[iCon][key].copy())
+                        # end if
+                    else:
+                        # Just use stored jacobian that contains just zeros:
+                        tmp = con.jac[key]
+                    # end if
+
+                    # Now check that the jacobian is the correct shape
+                    if not(tmp.shape[0] == con.ncon and tmp.shape[1] == ndvs):
+                        print 'pyOptSparse Error: The shape of the supplied constraint jacobian for constraint %s is incorrect. \
+ Expected an array of shape (%d,%d), but received an array of shape (%d, %d).'%(con.name, con.ncon, ndvs, tmp.shape[0], tmp.shape[1])
+                        sys.exit(1)
+                    # end if
+
+                    # Now check that the csr matrix has the correct number of non zeros:
+                    if tmp.nnz <> con.jac[key].nnz:
+                        print 'pyOptSparse Error: The number of nonzero elements for \
+  constraint group \'%s\' was not the correct size. The supplied jacobian has \
+ %d nonzero entries, but must contain %d nonzero entries.'%(con.name, tmp.nnz, con.jac[key].nnz)
+                        sys.exit(1)
+                    # end if
+
+                    # Loop over rows in constraint jacobian:
+                    for iRow in xrange(con.ncon):
+                        # Loop over the number of nonzero entries in this row:
+                        for ii in xrange(con.jac[key].indptr[iRow], con.jac[key].indptr[iRow+1]):
+                            row.append(con.rs + iRow)
+                            icol = self.dvOffset[key]['n'][0] + con.jac[key].indices[ii]
+                            col.append(icol)
+                            data.append(tmp.data[ii]/self.xscale[icol])
+                        # end for
+                    # end for
+
+
+
+        # Create coo matrix and scale the rows
         gcon = sparse.coo_matrix((data, (row, col)),(self.nCon, self.ndvs))
+        self._cooRowScale(gcon, self.conScaleFull)
+
+        print 'Processing Derviatives Time: %8.3f seconds.'%(time.time()-timeA)
 
         return gobj, gcon
 
@@ -682,9 +799,9 @@ shape %s.'%(con.name, gcon_in[iCon].shape, con.jac.shape)
         if not isinstance(tmp, dict):
             fcon = numpy.atleast_1d(tmp)
             if len(fcon) == self.nnCon:
-                return fcon
+                return self.conScaleNonLinear*fcon
             else:
-                print 'Error: The constraint array was the incorrect size. \
+                print 'pyOptSparse Error: The constraint array was the incorrect size. \
 It must contain %d elements (nonlinear constraints only), but an arrary of \
 size %d was given.'%(self.nnCon, len(fcon))
                 error = True
@@ -703,19 +820,20 @@ size %d was given.'%(self.nnCon, len(fcon))
                         if len(c) == self.constraints[iCon].ncon:
                             fcon.extend(c)
                         else:
-                            print 'Error: %d constraint values were returned \
+                            print 'pyOptSparse Error: %d constraint values were returned \
     %s, but expected %d.'%(len(tmp[iCon]), iCon, self.variables[iCon].ncon)
-                            error = True
+                            sys.exit(1)
                         # end if
                     else:
-                        print 'Error: No constraint values were found for the \
+                        print 'pyOptSparse Error: No constraint values were found for the \
 constraint %s.'%(iCon)
-                        error = True
+                        sys.exit(1)
                     # end if
                 # end if
             # end for
-            # Finally convert to array:
-            fcon = numpy.array(fcon)
+
+            # Finally convert to array and scale
+            fcon = self.conScaleNonLinear*numpy.array(fcon)
         # end if
  
         if error:
@@ -726,7 +844,8 @@ constraint %s.'%(iCon)
     def convertToDense(self):
         '''
         Take a sparse optimization problem definition and convert to a
-        dense representation for use in the rest of pyOpt
+        dense representation for use in the rest of pyOpt. This
+        function needs to be rewritten.
         '''
 
         # Variables are the same except the stupid underscore
@@ -768,6 +887,7 @@ constraint %s.'%(iCon)
     def processX(self, x):
         '''
         Take the flattened array of design variables and return a dict
+        if use_groups is true. 
         '''
         if self.use_groups:
             xg = {}
@@ -785,6 +905,25 @@ constraint %s.'%(iCon)
         else:
             return x
         # end if
+
+    def _csrRowScale(self, mat, vec):
+        '''
+        Scale rows in csr matrix. Amazingly enough this is effectively
+        impossible with scipy.sparse if you want to keep the nonzero
+        structure. So we will brute force it here.
+        '''
+        assert mat.shape[0] == len(vec)
+        for iRow in xrange(mat.shape[0]):
+            mat.data[mat.indptr[iRow]:mat.indptr[iRow+1]] *= vec[iRow]
+        # end for
+
+    def _cooRowScale(self, mat, vec):
+        ''' 
+        Scale rows of coo matrx. See _csrRowScale for why
+        '''
+        assert mat.shape[0] == len(vec)
+        for i in xrange(len(mat.data)):
+            mat.data[i] *= vec[mat.row[i]]
 
     def __str__(self):
         
@@ -848,7 +987,8 @@ constraint %s.'%(iCon)
         hasLinear = False
         for iCon in self.constraints:
             nRow += 1 # Name
-            maxConNameLen = max(maxConNameLen, len(self.constraints[iCon].name))
+            con = self.constraints[iCon]
+            maxConNameLen = max(maxConNameLen, len(con.name)+3+int(numpy.log10(con.ncon))+1)
             nRow += 1 # Line
             if self.constraints[iCon].linear:
                 hasLinear = True
@@ -861,8 +1001,11 @@ constraint %s.'%(iCon)
         nCol += 2 # Space plus line
         varCenters = []
         for iVar in self.variables:
-            varCenters.append(nCol + len(iVar)/2 + 1)
-            nCol += len(iVar) 
+            nvar = self.dvOffset[iVar]['n'] [1] - self.dvOffset[iVar]['n'][0]
+            var_str = iVar + ' (%d)'%nvar
+
+            varCenters.append(nCol + len(var_str)/2 + 1)
+            nCol += len(var_str)
             nCol += 2 # Spaces on either side
             nCol += 1 # Line 
 
@@ -876,8 +1019,10 @@ constraint %s.'%(iCon)
         # Print the variable names:
         iCol = maxConNameLen + 2
         for iVar in self.variables:
-            l = len(iVar)
-            txt[0, iCol+1 :iCol + l+1] = list(iVar)
+            nvar = self.dvOffset[iVar]['n'] [1] - self.dvOffset[iVar]['n'][0]
+            var_str = iVar + ' (%d)'%nvar
+            l = len(var_str)
+            txt[0, iCol+1 :iCol + l+1] = list(var_str)
             txt[2:-1, iCol + l + 2] = '|'
             iCol += l + 3
 
@@ -886,21 +1031,18 @@ constraint %s.'%(iCon)
 
         # Do the nonlinear ones first:
         for iCon in self.constraints:
-            if not self.constraints[iCon].linear:
-                name = self.constraints[iCon].name
+            con = self.constraints[iCon]
+            if not con.linear:
+                name = con.name + ' (%d)'%con.ncon
                 l = len(name)
                 # The name
                 txt[iRow, maxConNameLen-l:maxConNameLen] = list(name)
 
                 # Now we write a 'D' for dense, 'S' for sparse or nothing. 
-                for iVar in xrange(len(self.variables)):
-
-                    if self.constraints[iCon].dense:
-                        txt[iRow, varCenters[iVar]] = 'D'
-                    elif self.variables.keys()[iVar] in self.constraints[iCon].wrt:
-                        txt[iRow, varCenters[iVar]] = 'S'
-                    # end if
-                # end for
+                varKeys = self.variables.keys()
+                for iVar in xrange(len(varKeys)):
+                    if varKeys[iVar] in con.wrt:
+                        txt[iRow, varCenters[iVar]] = 'X'
 
                 # The separator
                 txt[iRow+1, maxConNameLen+1:] = '-'
@@ -915,21 +1057,21 @@ constraint %s.'%(iCon)
 
         # Do the nonlinear ones first and then the linear ones:
         for iCon in self.constraints:
-            if self.constraints[iCon].linear:
-                name = self.constraints[iCon].name
+            con = self.constraints[iCon]
+            if con.linear:
+                name = con.name + ' (%d)'%con.ncon
                 l = len(name)
                 # The name
                 txt[iRow, maxConNameLen-l:maxConNameLen] = list(name)
 
                 # Now we write a 'D' for dense, 'S' for sparse or nothing. 
-                for iVar in xrange(len(self.variables)):
-
-                    if self.constraints[iCon].dense:
-                        txt[iRow, varCenters[iVar]] = 'D'
-                    elif self.variables.keys()[iVar] in self.constraints[iCon].wrt:
-                        txt[iRow, varCenters[iVar]] = 'S'
+                varKeys = self.variables.keys()
+                for iVar in xrange(len(varKeys)):
+                    if varKeys[iVar] in con.wrt:
+                        txt[iRow, varCenters[iVar]] = 'X'
                     # end if
                 # end for
+
 
                 # The separator
                 txt[iRow+1, maxConNameLen+1:] = '-'
