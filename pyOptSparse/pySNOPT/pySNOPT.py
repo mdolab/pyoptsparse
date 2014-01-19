@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#/bin/env python
 '''
 pySNOPT - A variation of the pySNOPT wrapper specificially designed to
 work with sparse optimization problems.
@@ -50,12 +50,12 @@ import shelve
 # =============================================================================
 # Extension modules
 # =============================================================================
-from pyOptSparse import Optimizer
-from pyOptSparse import History
+from pyoptsparse import Optimizer
+from pyoptsparse import History
 # =============================================================================
 # Misc Definitions
 # =============================================================================
-inf = 10.E+20  # define a value for infinity
+inf = 1e20  # define a value for infinity
 
 # Try to import mpi4py and determine rank
 try: 
@@ -66,7 +66,6 @@ except:
     MPI = None
 # end try
 
-eps = numpy.finfo(1.0).eps
 # =============================================================================
 # SNOPT Optimizer Class
 # =============================================================================
@@ -342,14 +341,8 @@ class SNOPT(Optimizer):
             if len(self.opt_prob.constraints) > 0: 
                 for key in self.opt_prob.constraints.keys():
                     if not self.opt_prob.constraints[key].linear:
-                        if (self.opt_prob.constraints[key].type == 'i'):
-                            blc.extend(self.opt_prob.constraints[key].lower)
-                            buc.extend(self.opt_prob.constraints[key].upper)
-                        else:
-                            print 'Error: only inequality constraints allowed; \
-use the same upper/lower bounds for equality constraints'
-                            sys.exit(1)
-                        # end if
+                        blc.extend(self.opt_prob.constraints[key].lower)
+                        buc.extend(self.opt_prob.constraints[key].upper)
                     # end if
                 # end for
 
@@ -374,7 +367,7 @@ use the same upper/lower bounds for equality constraints'
             buc = numpy.array(buc)
 
            # Objective Handling
-            objfunc = self.opt_prob.obj_fun
+            objfunc = self.opt_prob.objFun
             nobj = len(self.opt_prob.objectives.keys())
             ff = []
             for key in self.opt_prob.objectives.keys():
@@ -550,7 +543,7 @@ match the number in the current optimization. Ignorning warm_start file and tryi
                 if os.path.exists(cold_start):
                     cold_file = shelve.open(cold_start,flag='r')
                     last_key = cold_file['last']
-                    x = cold_file[last_key]['x_array'].copy()*self.opt_prob.xscale
+                    x = cold_file[last_key]['x_array'].copy()/self.opt_prob.xscale
                     cold_file.close()
                     if len(x) == nvar:
                         xs[0:nvar] = x.copy()
@@ -652,7 +645,7 @@ match the number in the current optimization. Ignorning cold_start file'
         the data.
         '''
    
-        x = x/self.opt_prob.xscale
+        x = x*self.opt_prob.xscale
 
         # Determine if we've exeeded the time limit:
         if self.time_limit:
@@ -761,7 +754,7 @@ match the number in the current optimization. Ignorning cold_start file'
             
         # Evaluate the function
         if mode == 0 or mode == 2:
-            fargs = self.opt_prob.obj_fun(xn)
+            fargs = self.opt_prob.objFun(xn)
             if rank == 0:
                 # Process fcon and fobj
                 fobj = fargs[0]
@@ -826,7 +819,7 @@ match the number in the current optimization. Ignorning cold_start file'
                 # previously evaluated point is different. Evaluate the
                 # objective then the gradient
                 gradEvaled = True
-                fargs = self.opt_prob.obj_fun(xn)
+                fargs = self.opt_prob.objFun(xn)
                 gargs = self.gobj_con(xn, fobj, fcon)
 
                 # Non root rank return for gradient evaluation
@@ -918,7 +911,6 @@ match the number in the current optimization. Ignorning cold_start file'
         Documentation last updated:  May. 07, 2008 - Ruben E. Perez
         '''
         
-        # 
         self.set_options.append([name,value])
         
         
