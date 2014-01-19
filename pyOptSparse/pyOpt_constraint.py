@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 '''
-pyOptSparse_constraint
+pyOpt_constraint
 
-Holds the Python sparse constraint class
+Holds the representation of a pyOptSparse constraint group
 
-Copyright (c) 2013-2013 by Dr. Gaetan Kenway
+Copyright (c) 2008-2013 by pyOpt Developers
 All rights reserved.
-Revision: 1.0   $Date: 19/09/2013 21:00$
-
 
 Developers:
 -----------
@@ -16,28 +14,11 @@ Developers:
 History
 -------
     v. 1.0  - Initial Class Creation (GKK, 2013)
-
 '''
-
-# =============================================================================
-# Standard Python modules
-# =============================================================================
-import os, sys
-
 # =============================================================================
 # External Python modules
 # =============================================================================
 import numpy
-from scipy import sparse
-# =============================================================================
-# Extension modules
-# =============================================================================
-
-# =============================================================================
-# Misc Definitions
-# =============================================================================
-inf = 10.E+20  # define a value for infinity
-
 
 # =============================================================================
 # Constraint Class
@@ -52,18 +33,10 @@ class Constraint(object):
         
         '''
         Constraint Class Initialization
-        
-        **Arguments:**
-         
-        See addConGroup in pyOpt_optimization
-        
-        Documentation last updated:  Feb. 03, 2011 - Peter W. Jansen
         '''
-        
-        # 
+
         self.name = name
         self.linear = linear
-        self.type = 'i'
         self.wrt = wrt
         self.jac = jac
         self.partialReturnOk = partialReturnOk
@@ -90,13 +63,3 @@ class Constraint(object):
         # end for
 
         return res
-
-
-#==============================================================================
-# Constraint Test
-#==============================================================================
-if __name__ == '__main__':
-    
-    print 'Testing ...'
-    
- 
