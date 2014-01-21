@@ -1,15 +1,13 @@
 #!/usr/bin/env python
-'''
+"""
 pyOptSparse_optimization
 
-Holds the Python Design Optimization Classes (base and inherited).
+Holds the Python Design Optimization Class
 
-The class performs the basic functionality of
-pyOpt/pyOpt_optimization, but eliminates most of the unused
-functionality. The main purpose, therefore is to describe the
-structure and sparsity pattery of a sparse optimization problem. 
+ The main purpose, of this class is to describe the struture and
+potentially, sparsity pattern of an optimization problem. 
 
-Copyright (c) 2008-2013 by Dr. Gaetan Kenway
+Copyright (c) 2013-2014 by Dr. Gaetan Kenway
 All rights reserved.
 
 Developers:
@@ -19,7 +17,7 @@ Developers:
 History
 -------
     v. 1.0  - Initial Class Creation (GKK, 2013)
-'''
+"""
 
 # =============================================================================
 # Standard Python modules
@@ -33,7 +31,6 @@ except ImportError:
     # get using "pip install ordereddict"
     from ordereddict import OrderedDict
     
-
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -57,7 +54,7 @@ inf = 1e20  # define a value for infinity
 # Optimization Class
 # =============================================================================
 class Optimization(object):
-    '''
+    """
     Create a description of an optimization probelem. 
 
     Parameters
@@ -74,7 +71,7 @@ class Optimization(object):
         Flag to specify whether or not design variables are returned in a
         flattened array or as a dictionary. It is **highly** recommened that
         useGroups is **always** used, even for small problems.
-        '''
+        """
       
     def __init__(self, name, objFun, useGroups=True):
 
@@ -105,10 +102,10 @@ class Optimization(object):
 All variables must be added before constraints can be added.')
     
     def _finalizeDesignVariables(self):
-        '''
+        """
         This function computes the ordering of the design variables
         and set the flag to prevent any more variables from being
-        added '''
+        added """
 
         dvCounter = 0
 
@@ -133,10 +130,10 @@ All variables must be added before constraints can be added.')
         return
 
     def addVarSet(self, name):
-        '''An outer grouping of design variables. These sets are used
+        """An outer grouping of design variables. These sets are used
         when specifiying the sparsity structure of the constraint
         jacobian
-        '''
+        """
 
         self._checkOkToAddVariables()
 
@@ -146,15 +143,15 @@ All variables must be added before constraints can be added.')
 
         # end if
         self.varSetNames.add(name)
-        self.variables[name]=OrderedDict()
+        self.variables[name]= OrderedDict()
 
         return
 
     def addVar(self, name, *args, **kwargs):
-        '''
+        """
         This is a convience function. See addVarGroup for the
         appropriate list of parameters.
-        '''
+        """
 
         self.addVarGroup(name, 1, *args, scalar=True, **kwargs)
 
@@ -162,7 +159,7 @@ All variables must be added before constraints can be added.')
 
     def addVarGroup(self, name, nVars, type='c', value=0.0, lower=None, upper=None, scale=1.0,
                     varSet='default', choices=None, **kwargs):
-        '''
+        """
         Add a group of variables into a variable set. This is the main
         function used for adding variables to pyOptSparse.
 
@@ -230,10 +227,10 @@ All variables must be added before constraints can be added.')
 
         It is recommended that the addVar() and addVarGroup() calls
         follow the examples above by including all the keyword
-        arguments. This make it very clear the itent of the script\'s
+        arguments. This make it very clear the itent of the script's
         author. The type, value, lower, upper and scale should be
         given for all variables even if the default value is used. 
-        '''
+        """
 
         self._checkOkToAddVariables()
 
@@ -321,14 +318,14 @@ addVarGroup is %d, but the number of variables in nVars is %d.'%(len(scale), nVa
         # end for
 
     def delVar(self, name):
-        '''
+        """
         Delete a variable or variable group
 
         Parameters
         ----------
         name : str
            Name of variable or variable group to remove
-           '''
+           """
         deleted = False
         for dvSet in self.variables.keys():
             for dvGroup in self.variables[dvSet]:
@@ -340,31 +337,31 @@ addVarGroup is %d, but the number of variables in nVars is %d.'%(len(scale), nVa
             print '%s was not a valid design variable name'
             
     def delVarSet(self, name):
-        '''
+        """
         Delete all variables belonging to a variable set
 
         Parameters
         ----------
         name : str
            Name of variable or variable group to remove
-           '''
+           """
 
         assert name in self.variables, '%s not a valid varSet.'%name
         self.variables.pop(name)
 
     def addObj(self, name, *args, **kwargs):
-        '''
+        """
         Add Objective into Objectives Set
-        '''
+        """
         
         self.objectives[name] = Objective(name, *args, **kwargs)
 
         return
                 
     def addCon(self, name, *args, **kwargs):
-        '''
+        """
         Convenience function. See addConGroup() for more information
-        '''
+        """
         
         self.addConGroup(name, 1, *args, **kwargs)
 
@@ -372,7 +369,7 @@ addVarGroup is %d, but the number of variables in nVars is %d.'%(len(scale), nVa
                 
     def addConGroup(self, name, nCon, lower=None, upper=None, scale=1.0,
                     linear=False, wrt=None, jac=None):
-        '''
+        """
         Add a group of variables into a variable set. This is the main
         function used for adding variables to pyOptSparse.
 
@@ -437,7 +434,7 @@ addVarGroup is %d, but the number of variables in nVars is %d.'%(len(scale), nVa
             the jacobian change throughout the optimization. This
             stipulation is automatically checked internally. 
             
-              '''
+              """
 
         # If this is the first constraint, finalize the variables to
         # ensure no more variables can be added. 
@@ -622,7 +619,7 @@ does not exist. It must be added with a call to addVar() or addVarGroup() with a
         return 
         
     def reorderConstraintJacobian(self, reorder=['nonLinear','linear']):
-        '''
+        """
         ** This function should not need to be called by the end
            user**
 
@@ -639,7 +636,7 @@ does not exist. It must be added with a call to addVar() or addVarGroup() with a
             ['linear','nonLinear'] => put nonlinear ones first
             [] => Anything else: keep the same order as supplied.
       
-        '''
+        """
 
         # Determine the total number of linear and nonlinear constraints:
         nlcon = 0 # Linear 
@@ -728,7 +725,7 @@ does not exist. It must be added with a call to addVar() or addVarGroup() with a
 
     def processDerivatives(self, gobj_in, gcon_in, linearConstraints=False, 
                            nonlinearConstraints=True):
-        '''
+        """
         ** This function should not need to be called by the end
         user**
         
@@ -744,7 +741,6 @@ does not exist. It must be added with a call to addVar() or addVarGroup() with a
 
         Parameters
         ----------
-
         gobj_in : array or dict
             Objective gradient. Either a complete array or a dictionary of
             gradients given with respect to the dvSets
@@ -752,7 +748,7 @@ does not exist. It must be added with a call to addVar() or addVarGroup() with a
         gcon_in : array or dict
             Constraint gradients. Either a complete 2D array or a nested
             dictionary of gradients given with respect to the dvSets
-        '''
+        """
 
         timeA = time.time()
         # Process the objective gradient. This may be vector or it may be
@@ -791,8 +787,19 @@ This derivative will be ignored'%(key)
         # Finally scale the objective gradient based on the scaling data.
         gobj *= self.xscale
 
+        if self.nCon == 0:
+            # We don't have constraints! We can just return now since
+            # the objective is processed
+            return gobj, numpy.array([],'d')
+
         # If the user has supplied a complete dense numpy array for
         # the jacobain AND all the constriants are dense
+        if not isinstance(gcon_in, dict):
+            try:
+                gcon_in = numpy.atleast_2d(gcon_in)
+            except:
+                pass
+
         if isinstance(gcon_in, numpy.ndarray):
             if gcon_in.shape == (self.nCon, self.ndvs):
                 gcon_in[numpy.where(gcon_in==0)] = 1e-50
@@ -804,7 +811,6 @@ This derivative will be ignored'%(key)
                 # Do constraint scaling and convert to coo
                 gcon = sparse.coo_matrix(tmp)
                 self._cooRowScale(gcon, self.conScaleFull)
-                print 'Processing Derviatives Time: %8.3f seconds.'%(time.time()-timeA)
 
                 # Quick Return here since we're done
                 return gobj, gcon
@@ -858,8 +864,10 @@ was supplied in addConGroup(). This was not found in the constraint jacobian dic
                         else:
                             # Supplied jacobian is dense, replace any zero,
                             # before converting to csr format
-                            gcon_in[iCon][key][numpy.where(gcon_in[iCon][key]==0)] = 1e-50
-                            tmp = sparse.csr_matrix(gcon_in[iCon][key].copy())
+
+                            tmp = numpy.atleast_2d(gcon_in[iCon][key])
+                            tmp[numpy.where(tmp==0)] = 1e-50
+                            tmp = sparse.csr_matrix(tmp.copy())
                         # end if
                     else:
                         # Just use stored jacobian that contains just zeros:
@@ -896,13 +904,11 @@ was supplied in addConGroup(). This was not found in the constraint jacobian dic
         gcon = sparse.coo_matrix((data, (row, col)),(self.nCon, self.ndvs))
         self._cooRowScale(gcon, self.conScaleFull)
 
-        print 'Processing Derviatives Time: %8.3f seconds.'%(time.time()-timeA)
-
         return gobj, gcon
 
     def processConstraints(self, fcon_in, linearConstraints=False, 
-                           nonlinearConstraints=True):
-        '''
+                           nonlinearConstraints=True, scaled=True):
+        """
         ** This function should not need to be called by the end
         user**
 
@@ -917,16 +923,21 @@ was supplied in addConGroup(). This was not found in the constraint jacobian dic
 
         nonLinearConstraint : bool
             Flag as to whether or not nonlinear constraints are to be included. 
-            '''
+            """
 
         # We will actually be a little leniant here; the user CAN
         # return an iterable of the correct length and we will accept
         # that. Otherwise we will use the dictionary formulation
 
+        if scaled:
+            scaleFact = self.conScaleNonLinear
+        else:
+            scaleFact = numpy.ones_like(self.conScaleNonLinear)
+        
         if not isinstance(fcon_in, dict):
             fcon = numpy.atleast_1d(fcon_in)
             if len(fcon) == self.nnCon:
-                return self.conScaleNonLinear*fcon
+                return scaleFact*fcon
             else:
                 raise Error('The constraint array was the incorrect size. \
 It must contain %d elements (nonlinear constraints only), but an arrary of \
@@ -957,13 +968,13 @@ constraint %s.'%(iCon))
             # end for
 
             # Finally convert to array and scale
-            fcon = self.conScaleNonLinear*numpy.array(fcon)
+            fcon = scaleFact*numpy.array(fcon)
         # end if
  
         return fcon
 
     def convertToDense(self):
-        '''
+        """
         ** This function should not need to be called by the end
         user**
         
@@ -971,16 +982,16 @@ constraint %s.'%(iCon))
         dense representation. This function will be called
         automatically by optimizers that do not support sparse
         jacobians or do not support linear constraints.
-        '''
+        """
 
         return
 
     def processX(self, x):
-        '''
+        """
         ** This function should not need to be called by the end
         user**
 
-        Take the flattened array of variables in \'x\' and return a
+        Take the flattened array of variables in 'x' and return a
         dictionary of variables keyed on the name of each variable
         group if useGroups is True. 
 
@@ -988,7 +999,8 @@ constraint %s.'%(iCon))
         ----------
         x : array
             Flattened array from optimizer
-        '''
+        """
+
         if self.useGroups:
             xg = {}
             for dvSet in self.variables.keys():
@@ -996,51 +1008,82 @@ constraint %s.'%(iCon))
                     istart = self.dvOffset[dvSet][dvGroup][0]
                     iend   = self.dvOffset[dvSet][dvGroup][1]
                     scalar = self.dvOffset[dvSet][dvGroup][2]
-                    xg[dvGroup] = x[istart:iend]
+                    xg[dvGroup] = x[istart:iend].copy()
                     if scalar:
                         xg[dvGroup] = x[istart]
-                # end for
-            # end for
-            return xg 
+            return xg
         else:
             return x
-        # end if
+
+    def deProcessX(self, x):
+        """
+        ** This function should not need to be called by the end
+        user**
+
+        Take the dictionary form of x and convert back to flattened
+        array. Nothing is done if useGroups is False (since we should
+        not have a dictionary in that case)
+
+        Parameters
+        ----------
+        x : dict
+            Dictionary form of variables
+
+        Returns
+        -------
+        x_array : array
+            Flattened array of variables
+        """
+        if self.useGroups:
+            x_array = numpy.zeros(self.ndvs)
+            for dvSet in self.variables.keys():
+                for dvGroup in self.variables[dvSet]:
+                    istart = self.dvOffset[dvSet][dvGroup][0]
+                    iend   = self.dvOffset[dvSet][dvGroup][1]
+                    scalar = self.dvOffset[dvSet][dvGroup][2]
+                    if scalar:
+                        x_array[istart] = x[dvGroup]
+                    else:
+                        x_array[istart:iend] = x[dvGroup]
+            return x_array
+        else:
+            return x
 
     def _csrRowScale(self, mat, vec):
-        '''
+        """
         Scale rows in csr matrix. Amazingly enough this is effectively
         impossible with scipy.sparse if you want to keep the nonzero
         structure. So we will brute force it here.
-        '''
+        """
         assert mat.shape[0] == len(vec)
         for iRow in xrange(mat.shape[0]):
             mat.data[mat.indptr[iRow]:mat.indptr[iRow+1]] *= vec[iRow]
         # end for
 
     def _cooRowScale(self, mat, vec):
-        ''' 
+        """ 
         Scale rows of coo matrx. See _csrRowScale for why
-        '''
+        """
         assert mat.shape[0] == len(vec)
         for i in xrange(len(mat.data)):
             mat.data[i] *= vec[mat.row[i]]
 
     def __str__(self):
-        '''
+        """
         Print Structured Optimization Problem
-        '''
+        """
         
-        text = '''\nOptimization Problem -- %s\n%s\n
+        text = """\nOptimization Problem -- %s\n%s\n
         Objective Function: %s\n\n    Objectives:
-        Name        Value        Optimum\n''' %(self.name,'='*80,self.objFun.__name__)
+        Name        Value        Optimum\n""" %(self.name,'='*80,self.objFun.__name__)
 
         for obj in self.objectives:
             lines = str(self.objectives[obj]).split('\n')
             text += lines[1] + '\n'
         # end for
 
-        text += '''\n	Variables (c - continuous, i - integer, d - discrete):
-        Name    Type       Value       Lower Bound  Upper Bound\n'''
+        text += """\n	Variables (c - continuous, i - integer, d - discrete):
+        Name    Type       Value       Lower Bound  Upper Bound\n"""
 
         for dvSet in self.variables:
             for dvGroup in self.variables[dvSet]:
@@ -1053,8 +1096,8 @@ constraint %s.'%(iCon))
 
         print '	    Name        Type'+' '*25+'Bound\n'+'	 '
         if len(self.constraints) > 0:
-            text += '''\n	Constraints (i - inequality, e - equality):
-        Name    Type                    Bounds\n'''
+            text += """\n	Constraints (i - inequality, e - equality):
+        Name    Type                    Bounds\n"""
             for iCon in self.constraints:
                 text += str(self.constraints[iCon])
             # end for
@@ -1063,14 +1106,14 @@ constraint %s.'%(iCon))
         return text
  
     def printSparsity(self):
-        '''
+        """
         This function prints an (ascii) visualization of the jacobian
         sparsity structure. This helps the user visualize what
         pyOptSparse has been given and helps ensure it is what the
         user expected. It is highly recommended this function be
         called before the start of every optimization to verify the
         optimization problem setup.
-        '''
+        """
 
         # Header describing what we are printing:
         print '+'+'-'*78+'-'+'+'

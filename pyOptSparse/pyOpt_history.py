@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''
+"""
 pyOpt_history
 
 Holds the Python Design Optimization History Class.
@@ -16,14 +16,9 @@ Developers:
 History
 -------
     v. 1.0  - Initial Class Creation (GKK 2013)
-'''
+"""
 
 __version__ = '$Revision: $'
-
-'''
-To Do:
-
-'''
 
 # =============================================================================
 # Standard Python modules
@@ -40,27 +35,37 @@ eps = numpy.finfo(1.0).eps
 # History Class
 # =============================================================================
 class History(object):
-    
-    '''
+    """
     Abstract Class for Optimizer History Object
-    '''
-    
+    """
     def __init__(self, fileName, temp=False, flag=''):
-        '''
-        Optimizer History Class Initialization
-        
-        **Arguments:**
-        - fileName  -> STR: Name for .bin and .cue file
-        - temp -> BOOL: If this is a temporary file, delete file
-                        upon closing.
-        '''
-        
-        # 
+        """
+        Optimizer History Class Initialization. This is essentially a
+        thin wrapper around a shelve dictionary to facilitate
+        operations with pyOptSparse
+
+        Parameters
+        ----------
+        fileName : str
+           File name for history file
+
+        temp : bool
+           Flag to signify that the file should be deleted after it is
+           closed
+
+        flag : str
+           String of flags to be passed to shelve.open. The only
+           useful flag is 'r' which will cause the database to be
+           opened in read-only mode. This is often necessary when the
+           history file needs to be read from a read-only partition
+           during a HPC run job. 
+        """
+
         if flag == '':
             self.db = shelve.open(fileName, protocol=2, writeback=True)
         else:
             self.db = shelve.open(fileName, protocol=2, flag=flag)
-        # end if
+
         self.temp = temp
         self.fileName = fileName
 
@@ -93,18 +98,19 @@ class History(object):
         return
 
     def writeData(self, key, data):
-        '''
+        """
         Write arbitrary key:data value to db
-        '''
+        """
         self.db[key] = data
         self.db.sync()
 
     def validPoint(self, callCounter, x):
-        '''
+        """
         Determine if callCounter is in the database AND that
         the x matches the x in that point
-        '''
-        key = '%d'%callCounter     
+        """
+        key = '%d'%callCounter
+
         if key not in self.keys:
             return False
         # end if
@@ -120,23 +126,29 @@ class History(object):
         # end if
 
     def read(self, callCounter):
-        '''
+        """
         Read data for index 'callCounter'. Note that this
-        point should be verified by calling validPoint() first.'''
+        point should be verified by calling validPoint() first.
+        """
         key = '%d'%callCounter
         return self.db[key]
     
     def readData(self, key):
-        '''
+        """
         Read data for generic key 'key'.
-        '''
+        """
         try:
             return self.db[key]
         except KeyError:
             return None
     
     def __del__(self):
-        self.close()
+        try:
+            self.db.close()
+            if self.temp:
+                os.remove(self.fileName)
+        except:
+            pass
 
 #==============================================================================
 # Optimizer History Test

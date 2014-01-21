@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''
+"""
 pyOpt_optimizer
 
 Holds the Python Design Optimization Classes (base and inherited).
@@ -19,11 +19,11 @@ History
     v. 1.0  - Initial Class Creation (RP, 2008)
     v. 1.1  - Pretty Print of Optimization Problems (PJ, 2008)
             - Bug Fix in setOption (PJ, 2008)
-'''
+"""
 
 __version__ = '$Revision: $'
 
-'''
+"""
 To Do:
     - deal with g>=0 & g<=0 depending on optimizer !
     - add timing routine in optimizer class ?? better leave @ specific opt level ?
@@ -32,7 +32,7 @@ To Do:
     - Implement Restart Capability ?
     - self tests ?
     - add Optimizer Info method
-'''
+"""
 
 # =============================================================================
 # Standard Python modules
@@ -54,13 +54,13 @@ from pyOpt_optimization import Optimization
 # =============================================================================
 class Optimizer(object):
     
-    '''
+    """
     Abstract Class for Optimizer Object
-    '''
+    """
     
     def __init__(self, name={}, category={}, def_options={}, informs={}, *args, **kwargs):
         
-        '''
+        """
         Optimizer Class Initialization
         
         **Keyword arguments:**
@@ -71,7 +71,7 @@ class Optimizer(object):
         - informs -> DICT: Calling routine informations texts, *Default* = {}
         
         Documentation last updated:  Feb. 03, 2011 - Peter W. Jansen
-        '''
+        """
         
         # 
         self.name = name
@@ -94,7 +94,7 @@ class Optimizer(object):
         
     def __solve__(self, opt_problem={}, *args, **kwargs):
         
-        '''
+        """
         Run Optimizer (Optimizer Specific Routine)
         
         **Keyword arguments:**
@@ -102,14 +102,14 @@ class Optimizer(object):
         - opt_problem -> INST: Optimization problem instance, *Default* = {}
         
         Documentation last updated:  Feb. 03, 2011 - Peter W. Jansen
-        '''
+        """
         
         pass
         
         
     def __call__(self, opt_problem={}, *args, **kwargs):
         
-        '''
+        """
         Run Optimizer (Calling Routine)
         
         **Keyword arguments:**
@@ -119,7 +119,7 @@ class Optimizer(object):
         Additional arguments and keyword arguments are passed to the objective function call
         
         Documentation last updated:  Feb. 03, 2011 - Peter W. Jansen
-        '''
+        """
         
         # Check Optimization Problem
         if not isinstance(opt_problem,Optimization):
@@ -135,7 +135,7 @@ class Optimizer(object):
         
     def _on_setOption(self, name, value):
         
-        '''
+        """
         Set Optimizer Option Value (Optimizer Specific Routine)
         
         **Arguments:**
@@ -144,13 +144,13 @@ class Optimizer(object):
         - value ->   : Option value
         
         Documentation last updated:  Feb. 07, 2011 - Peter W. Jansen
-        '''
+        """
         
         raise NotImplementedError()
         
     def setOption(self, name, value=None):
         
-        '''
+        """
         Set Optimizer Option Value (Calling Routine)
         
         **Arguments:**
@@ -162,7 +162,7 @@ class Optimizer(object):
         - value -> FLOAT/INT/BOOL: Option Value, *Default* = None
         
         Documentation last updated:  Feb. 07, 2011 - Peter W. Jansen
-        '''
+        """
         
         # 
         def_options = self.options['defaults']
@@ -181,7 +181,7 @@ class Optimizer(object):
         
     def _on_getOption(self, name):
         
-        '''
+        """
         Get Optimizer Option Value (Optimizer Specific Routine)
         
         **Arguments:**
@@ -189,13 +189,13 @@ class Optimizer(object):
         - name -> STR: Option name
         
         Documentation last updated:  Feb. 07, 2011 - Peter W. Jansen
-        '''
+        """
         
         raise NotImplementedError()
         
     def getOption(self, name):
         
-        '''
+        """
         Get Optimizer Option Value (Calling Routine)
         
         **Arguments:**
@@ -203,7 +203,7 @@ class Optimizer(object):
         - name -> STR: Option name
         
         Documentation last updated:  Feb. 07, 2011 - Peter W. Jansen
-        '''
+        """
         
         # 
         def_options = self.options['defaults']
@@ -218,7 +218,7 @@ class Optimizer(object):
         
     def _on_getInform(self, info):
         
-        '''
+        """
         Get Optimizer Result Information (Optimizer Specific Routine)
         
         **Arguments:**
@@ -226,13 +226,13 @@ class Optimizer(object):
         - info -> STR: Information key
         
         Documentation last updated:  Feb. 07, 2011 - Peter W. Jansen
-        '''
+        """
         
         raise NotImplementedError()
         
     def getInform(self, infocode=None):
         
-        '''
+        """
         Get Optimizer Result Information (Calling Routine)
         
         **Keyword arguments:**
@@ -240,7 +240,7 @@ class Optimizer(object):
         - infocode -> INT: information code key
         
         Documentation last updated:  Feb. 07, 2011 - Peter W. Jansen
-        '''
+        """
 
         if (infocode == None):
             return self.informs
@@ -250,21 +250,21 @@ class Optimizer(object):
         
     def _on_flushFiles(self):
         
-        '''
+        """
         Flush Output Files (Optimizer Specific Routine)
         
         Documentation last updated:  August. 09, 2009 - Ruben E. Perez
-        '''
+        """
         
         raise NotImplementedError()
         
     def flushFiles(self):
         
-        '''
+        """
         Flush Output Files (Calling Routine)
         
         Documentation last updated:  August. 09, 2009 - Ruben E. Perez
-        '''
+        """
         
         self._on_flushFiles()       
   

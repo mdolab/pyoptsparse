@@ -7,8 +7,8 @@ if os.path.exists('MANIFEST'):
     os.remove('MANIFEST')
 #end
 
-if sys.version_info[:2] < (2, 4):
-    print('pyOptSparse requires Python version 2.4 or later (%d.%d detected).' %sys.version_info[:2])
+if sys.version_info[:2] < (2, 5):
+    print('pyOptSparse requires Python version 2.5 or later (%d.%d detected).' %sys.version_info[:2])
     sys.exit(-1)
 #end
 

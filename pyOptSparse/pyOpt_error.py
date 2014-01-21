@@ -17,25 +17,20 @@ History
 '''
 
 class Error(Exception):
-    """General error raised when we detect something that the user
-    should not have done"""
-
+    """
+    Format the error message in a box to make it clear this
+    was a expliclty raised exception.
+    """
     def __init__(self, message):
-        print '+'+'-'*78+'+'
-        print '| pyOptSparse Error: ',
-        i = 22
-        aux = message.split()
-        for word in aux:
-            if len(word) + i > 78:
-                print ' '*(79-i)+'|'
-                print '|',
-                i = 2
-                print word,
-                i += len(word)+1
-            else:
-                print word,
-                i += len(word)+1
-            # end if
-        # end for
-        print ' '*(79-i)+'|'
-        print '+'+'-'*78+'+'
+      msg = '\n+'+'-'*78+'+'+'\n' + '| pyOptSparse Error: '
+      i = 22
+      for word in message.split():
+         if len(word) + i +1 > 78: # Finish line and start new one
+            msg += ' '*(78-i)+'|\n| ' + word + ' '
+            i = 2 + len(word)+1
+         else:
+            msg += word + ' '
+            i += len(word)+1
+         msg += ' '*(79-i) + '|\n' + '+'+'-'*78+'+'+'\n'
+         print msg
+

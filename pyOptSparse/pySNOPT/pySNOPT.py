@@ -3,10 +3,8 @@
 pySNOPT - A variation of the pySNOPT wrapper specificially designed to
 work with sparse optimization problems.
 
-Copyright (c) 2013-2013 by Dr. Gaetan Kenway
+Copyright (c) 2013-2014 by Dr. Gaetan Kenway
 All rights reserved.
-Revision: 1.0   $Date: 20/09/2013 21:00$
-
 
 Tested on:
 ---------
@@ -18,12 +16,8 @@ Developers:
 - Dr. Graeme Kennedy (GJK)
 History
 -------
-    v. 0.1    - Initial Wrapper Creation (JM, 2000)
+    v. 0.1    - Initial Wrapper Creation 
 '''
-
-__version__ = '$Revision: $'
-
-
 # =============================================================================
 # SNOPT Library
 # =============================================================================
@@ -31,7 +25,6 @@ try:
     import snopt
 except:
     raise ImportError('SNOPT shared library failed to import')
-# end if
 
 # =============================================================================
 # Standard Python modules
@@ -40,18 +33,20 @@ import os
 import sys
 import copy
 import time
-
+import types
 # =============================================================================
 # External Python modules
 # =============================================================================
 import numpy
 import shelve
-
-# =============================================================================
-# Extension modules
-# =============================================================================
+from scipy import sparse
+# # =============================================================================
+# # Extension modules
+# # =============================================================================
 from pyoptsparse import Optimizer
 from pyoptsparse import History
+from pyoptsparse import Gradient
+from pyoptsparse import Solution
 # =============================================================================
 # Misc Definitions
 # =============================================================================
@@ -70,22 +65,15 @@ except:
 # SNOPT Optimizer Class
 # =============================================================================
 class SNOPT(Optimizer):
-    
     '''
     SNOPT Optimizer Class - Inherited from Optimizer Abstract Class
     '''
     
     def __init__(self, *args, **kwargs):
-        
         '''
         SNOPT Optimizer Class Initialization
-        
-        **Keyword arguments:**
-        
-        Documentation last updated:  Feb. 16, 2010 - Peter W. Jansen
         '''
         
-        #
         name = 'SNOPT'
         category = 'Local Optimizer'
         def_opts = {
@@ -262,49 +250,125 @@ class SNOPT(Optimizer):
 
         # The state of the variables and the slacks
         self.x_previous = None
+        self.startTime = None
+        self.timeLimit = None
+
+    def __solve__(self, optProb, sens=None, sensStep=None, sensMode=None,
+                  storeHistory=None, hotStart=None, warmStart=None,
+                  coldStart=None, timeLimit=None, comm=None):
+        '''
+        This is the main routine used to solve the optimization
+        problem.
+
+        Parameters
+        ----------
+        optProb : Optimization or Solution class instance
+            This is the complete description of the optimization problem
+            to be solved by the optimizer
+
+        sens : str or python Function.
+            Specifiy method to compute sensitivities. The default is
+            None which will use SNOPT\'s own finite differences which
+            are vastly superiour to the pyOptSparse implementation. To
+            explictly use pyOptSparse gradient class to do the
+            derivatives with finite differenes use \'FD\'. \'sens\'
+            may also be \'CS\' which will cause pyOptSpare to compute
+            the derivatives using the complex step method. Finally,
+            \'sens\' may be a python function handle which is expected
+            to compute the sensitivities directly. For expensive
+            function evaluations and/or problems with large numbers of
+            design variables this is the preferred method.
+
+        sensStep : float 
+            Set the step size to use for design variables. Defaults to
+            1e-6 when sens is \'FD\' and 1e-40j when sens is \'CS\'. 
+
+        sensMode : str
+            Use \'pgc\' for parallel gradient computations. Only
+            available with mpi4py and each objective evaluation is
+            otherwise serial
+            
+        storeHistory : str
+            File name of the history file into which the history of
+            this optimization will be stored
+
+        hotStart : str
+            File name of the history file to "replay" for the
+            optimziation.  The optimization problem used to generate
+            the history file specified in \'hotStart\' must be
+            **IDENTICAL** to the currently supplied \'optProb\'. By
+            identical we mean, **EVERY SINGLE PARAMETER MUST BE
+            IDENTICAL**. As soon as he requested evaluation point
+            from SNOPT does not match the history, function and
+            gradient evaluations revert back to normal evaluations. 
+             
+        warmStart : str
+            File name of the history file to use for "warm"
+            restart. The only difference between a "warm" and "cold"
+            restart is that the state of the variables is used when
+            initializing snopt. This information is stored in the
+            history file from snopt only. If a warm start cannot be
+            preformed for any reason, a cold start is attempted
+            instead.
+
+        coldStart : str
+            Filename of the history file to use for "cold"
+            restart. Here, the only requirment is that the number of
+            design variables (and their order) are the same. Use this
+            method if any of the optimization parameters have changed.
+
+        timeLimit : number
+            Number of seconds to run the optimization before a
+            terminate flag is given to the optimizer and a "clean"
+            exit is performed.
+
+        comm : MPI Intra communicator
+            Specifiy a MPI comm to use. Default is None. If mpi4py is not
+            available, the serial mode will still work. if mpi4py *is*
+            available, comm defaluts to MPI.COMM_WORLD. 
+            '''
+        
         self.callCounter = 0
-        self.start_time = None
-        self.time_limit = None
-
-    def __solve__(self, opt_prob, gobj_con=None, store_hst=None, 
-                  hot_start=None, warm_start=None, cold_start=None, 
-                  time_limit=None, *args, **kwargs):
-        
-        '''
-        Run Optimizer (Optimize Routine)
-        - opt_problem -> INST: Optimization instance
-        - gobj_con -> FUNC: Gradient function 
-        
-        **Keyword arguments:**
-        
-        - store_sol -> BOOL: Store solution in Optimization class flag, *Default* = True 
-        - disp_opts -> BOOL: Flag to display options in solution text, *Default* = False
-        - store_hst -> STR: Filename to store optimization history, *Default* = None (don't store)
-        - hot_start -> STR: Filename to read optimization history and hot start a previous
-                            optimization. *Default* = None, don't hot start
-        - cold_start -> STR: Filename to read optimization history and do a cold start from a prevous
-                            optimization. *Default* = None, don't cold start
-        - warm_start -> File to read optimization history and do a warm start from a previous
-                            optimization. *Default* = None, don't warm start
-        - time_limit -> Number: The time limit in seconds for optimziation. A clean 
-                                terimination will be executed ater 'time_limit' seconds.
-        Documentation last updated:  Feb. 2, 2011 - Peter W. Jansen
-        '''
-
-        # Check that gobj_con is not None if Derivative level is non zero:
-        if self.getOption('Derivative level') <> 0 and gobj_con is None:
-            print 'Erorr: Derivative level is not 0 and gradient function not supplied'
-            sys.exit(0)
-        
         # Pull off starting time, if necessary
-        self.start_time = time.time()
-        if time_limit is not None:
-            self.time_limit = time_limit
+        self.startTime = time.time()
+        if timeLimit is not None:
+            self.timeLimit = timeLimit
 
-        # Save the optimization problem and the gradient function
-        self.opt_prob = opt_prob
-        self.gobj_con = gobj_con
+        self.unconstrained = False
+        if len(optProb.constraints) == 0:
+            # If the user *actually* has an unconstrained problem,
+            # snopt sort of chokes with that....it has to have at
+            # least one constraint. So we will add one
+            # automatically here:
+            self.unconstrained = True
+            
+        # Save the optimization problem and finialize constraint
+        # jacobian, in general can only do on root proc
+        self.optProb = optProb
+        self.optProb._finalizeDesignVariables()
+        self.optProb.reorderConstraintJacobian(
+            reorder=['nonLinear','linear'])
 
+        # Next we determine what to what to do about
+        # derivatives. SNOPT is a little special actually since it can
+        # do derivatives itself.
+        if sens is None:
+            # Tell snopt it should do the derivatives
+            self.setOption('Derivative level', 0)
+            self.sens = None
+        elif isinstance(sens, types.FunctionType):
+            # We have function handle for gradients! Excellent!
+            self.sens = sens
+        elif sens.lower() in ['fd','cs']:
+            # Create the gradient class that will operate just like if
+            # the user supplied fucntion
+            self.sens = Gradient(optProb, sens.lower(), sensStep,
+                                 sensMode, comm)
+        else:
+            raise Error('Unknown value given for sens. Must be None, \'FD\', \
+            \'CS\' or a python function handle')
+        # end if
+                
         # We make a split here: If the rank is zero we setup the
         # problem and run SNOPT, otherwise we go to the waiting loop:
 
@@ -315,17 +379,17 @@ class SNOPT(Optimizer):
             blx = []
             bux = []
             xs = []
-            for dvSet in self.opt_prob.variables.keys():
-                for dvGroup in self.opt_prob.variables[dvSet]:
-                    for var in self.opt_prob.variables[dvSet][dvGroup]:
+            for dvSet in self.optProb.variables.keys():
+                for dvGroup in self.optProb.variables[dvSet]:
+                    for var in self.optProb.variables[dvSet][dvGroup]:
                         if var.type == 'c':
                             blx.append(var.lower)
                             bux.append(var.upper)
                             xs.append(var.value)
 
-                        elif (self.opt_prob._variables[key].type == 'i'):
+                        elif (self.optProb.variables[key].type == 'i'):
                             raise IOError('SNOPT cannot handle integer design variables')
-                        elif (self.opt_prob._variables[key].type == 'd'):
+                        elif (self.optProb.variables[key].type == 'd'):
                             raise IOError('SNOPT cannot handle discrete design variables')
                         # end if
                     # end for
@@ -335,44 +399,36 @@ class SNOPT(Optimizer):
             bux = numpy.array(bux)
             xs = numpy.array(xs)
 
-            # Constraints Handling -- make sure nonlinear constraints go first!
+            # Constraints Handling -- make sure nonlinear constraints
+            # go first -- this is particular to snopt
             blc = []
             buc = []
-            if len(self.opt_prob.constraints) > 0: 
-                for key in self.opt_prob.constraints.keys():
-                    if not self.opt_prob.constraints[key].linear:
-                        blc.extend(self.opt_prob.constraints[key].lower)
-                        buc.extend(self.opt_prob.constraints[key].upper)
-                    # end if
-                # end for
+                
+            for key in self.optProb.constraints.keys():
+                if not self.optProb.constraints[key].linear:
+                    blc.extend(self.optProb.constraints[key].lower)
+                    buc.extend(self.optProb.constraints[key].upper)
+         
+            for key in self.optProb.constraints.keys():
+                if self.optProb.constraints[key].linear:
+                    blc.extend(self.optProb.constraints[key].lower)
+                    buc.extend(self.optProb.constraints[key].upper)
 
-                for key in self.opt_prob.constraints.keys():
-                    if self.opt_prob.constraints[key].linear:
-                        if (self.opt_prob.constraints[key].type == 'i'):
-                            blc.extend(self.opt_prob.constraints[key].lower)
-                            buc.extend(self.opt_prob.constraints[key].upper)
-                        else:
-                            print 'Error: only inequality constraints allowed; \
-use the same upper/lower bounds for equality constraints'
-                            sys.exit(1)
-                        # end if
-                    # end if
-                # end for
-            else:
+            if self.unconstrained:
                 blc.append(-inf)
-                buc.append( inf)
-            # end if
+                buc.append(inf)
+            
             ncon = len(blc)
             blc = numpy.array(blc)
             buc = numpy.array(buc)
 
-           # Objective Handling
-            objfunc = self.opt_prob.objFun
-            nobj = len(self.opt_prob.objectives.keys())
+            # Objective Handling
+            objfunc = self.optProb.objFun
+            nobj = len(self.optProb.objectives.keys())
             ff = []
-            for key in self.opt_prob.objectives.keys():
-                ff.append(self.opt_prob.objectives[key].value)
-            #end
+            for key in self.optProb.objectives.keys():
+                ff.append(self.optProb.objectives[key].value)
+
             ff = numpy.array(ff)
 
             # Initialize the Print and Summary files
@@ -402,30 +458,35 @@ use the same upper/lower bounds for equality constraints'
                     raise IOError('Failed to properly open %s, ierror = %3d'%
                                   (SummFile,ierror))
 
-            self.opt_prob.reorderConstraintJacobian(reorder=['nonLinear','linear'])
-
+      
             # We will also assemble just the nonlinear jacobain to
             # determine the number nonzero entries. This must remain
             # fixed in subsequent iterations
             gcon = {}
-            for iCon in self.opt_prob.constraints:
-                con = self.opt_prob.constraints[iCon]
+            for iCon in self.optProb.constraints:
+                con = self.optProb.constraints[iCon]
                 gcon[iCon] = con.jac
             # end for
-            gobj = numpy.zeros(self.opt_prob.ndvs)
+            gobj = numpy.zeros(self.optProb.ndvs)
 
-            gobj, fullJacobian = self.opt_prob.processDerivatives(
-                gobj, gcon, linearConstraints=True, nonlinearConstraints=True)
+            if not self.unconstrained:
+                gobj, fullJacobian = self.optProb.processDerivatives(
+                    gobj, gcon, linearConstraints=True, nonlinearConstraints=True)
+
+                fullJacobian = fullJacobian.tocsc()
+                self.nnCon = self.optProb.nnCon
+            else:
+                fullJacobian = sparse.csc_matrix(numpy.ones(self.optProb.ndvs))
+                self.nnCon = 1
+            # end if
             
-            fullJacobian = fullJacobian.tocsc()
             Acol = fullJacobian.data
             indA = fullJacobian.indices + 1
             locA = fullJacobian.indptr + 1
-            self.nnCon = self.opt_prob.nnCon
-
+                
             # Calculate the length of the work arrays
             # --------------------------------------
-            nvar = self.opt_prob.ndvs
+            nvar = self.optProb.ndvs
             lencw = 500
             leniw = 500 + 100*(ncon+nvar)
             lenrw = 500 + 200*(ncon+nvar)
@@ -455,7 +516,6 @@ use the same upper/lower bounds for equality constraints'
                                                   nnCon, nnJac, nnObj, cw, iw, rw)
 
             if (minrw > lenrw) or (miniw > leniw) or (mincw > lencw):
-                print 'pySNOPT: Initial memory estimate for snopt insufficient'
                 if mincw > lencw:
                     lencw = mincw
                     cw = numpy.array((lencw, 8), 'c')
@@ -478,7 +538,7 @@ use the same upper/lower bounds for equality constraints'
             start = numpy.array(self.options['Start'][1])
             nName = numpy.array([1], numpy.intc)
             ObjAdd = numpy.array([0.], numpy.float)
-            ProbNm = numpy.array(self.opt_prob.name)        
+            ProbNm = numpy.array(self.optProb.name)        
             xs = numpy.concatenate((xs, numpy.zeros(ncon,numpy.float)))
             bl = numpy.concatenate((blx, blc))
             bu = numpy.concatenate((bux, buc))
@@ -502,18 +562,17 @@ use the same upper/lower bounds for equality constraints'
             sinf = numpy.array([0.], numpy.float)
 
             # Open history file if required:
-            self.store_hst = False
-            if store_hst:
-                self.hist = History(store_hst)
-                self.store_hst = True
+            self.storeHistory = False
+            if storeHistory:
+                self.hist = History(storeHistory)
+                self.storeHistory = True
             # end if
-
 
             # Check for warm start 
             # ------------------------------------------
-            if warm_start is not None:
-                if os.path.exists(warm_start):
-                    hist = History(warm_start, flag='r')
+            if warmStart is not None:
+                if os.path.exists(warmStart):
+                    hist = History(warmStart, flag='r')
                     xs_tmp = hist.readData('xs')
                     hs_tmp = hist.readData('hs')
                     hist.close()
@@ -524,14 +583,14 @@ use the same upper/lower bounds for equality constraints'
                             # Tell snopt to use this warm start information
                             self.setOption('Start', 'Warm start')
                         else:
-                            print 'The number of variables or constraints in warm_start file do not \
-match the number in the current optimization. Ignorning warm_start file and trying cold start.'
-                            cold_start = warm_start
+                            print 'The number of variables or constraints in warmStart file do not \
+match the number in the current optimization. Ignorning warmStart file and trying cold start.'
+                            coldStart = warmStart
                         # end if
                     else:
                         print 'No warm start information in file. \'xs\' and \'hs\' must be\
  present in history file. Trying cold start.'
-                        cold_start = warm_start
+                        coldStart = warmStart
                 else:
                     print 'warm_file not found. Continuing without warm restart'
                 # end if
@@ -539,47 +598,50 @@ match the number in the current optimization. Ignorning warm_start file and tryi
 
             # Check for cold start 
             # ------------------------------------------
-            if cold_start is not None:
-                if os.path.exists(cold_start):
-                    cold_file = shelve.open(cold_start,flag='r')
+            if coldStart is not None:
+                if os.path.exists(coldStart):
+                    cold_file = shelve.open(coldStart,flag='r')
                     last_key = cold_file['last']
-                    x = cold_file[last_key]['x_array'].copy()/self.opt_prob.xscale
+                    x = cold_file[last_key]['x_array'].copy()/self.optProb.xscale
                     cold_file.close()
                     if len(x) == nvar:
                         xs[0:nvar] = x.copy()
                     else:
-                        print 'The number of variable in cold_start file do not \
-match the number in the current optimization. Ignorning cold_start file'
+                        print 'The number of variable in coldStart file do not \
+match the number in the current optimization. Ignorning coldStart file'
                     # end if
                 else:
                     print 'Cold file not found. Continuing without cold restart'
                 # end if
             # end if
 
-            self.hot_start = None
+            self.hotStart = None
+     
             # Determine if we want to do a hot start:
-            if hot_start is not None:
+            if hotStart is not None:
                 # Now, if if the hot start file and the history are
                 # the SAME, we don't allow that. We will create a copy
-                # of the hot_start file and use *that* instead. 
+                # of the hotStart file and use *that* instead. 
                 import tempfile, shutil
-                if store_hst == hot_start:
-                    if os.path.exists(hot_start):
+                if storeHistory == hotStart:
+                    if os.path.exists(hotStart):
                         fname = tempfile.mktemp()
-                        shutil.copyfile(store_hst, fname)
-                        self.hot_start = History(fname, temp=True, flag='r')
+                        shutil.copyfile(storeHistory, fname)
+                        self.hotStart = History(fname, temp=True, flag='r')
                 else:
-                    self.hot_start = History(hot_start, temp=False, flag='r')
+                    self.hotStart = History(hotStart, temp=False, flag='r')
                 # end if
             # end if
 
             # The snopt c interface
+            timeA = time.time()
             snopt.snoptc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
-                         self.userfg_wrap, Acol, indA, locA, bl, bu, 
+                         self._userfg_wrap, Acol, indA, locA, bl, bu, 
                          Names, hs, xs, pi, rc, inform, mincw, miniw, minrw, 
                          nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
-
-            if self.store_hst:
+            optTime = time.time()-timeA
+          
+            if self.storeHistory:
                 # Record the full state of variables, xs and hs such
                 # that we could perform a warm start. 
                 self.hist.writeData('xs', xs)
@@ -602,7 +664,18 @@ match the number in the current optimization. Ignorning cold_start file'
             sol_inform['value'] = inform
             sol_inform['text'] = self.informs[inform[0]]
 
-        else: # We are not on the rot process so go into waiting loop:
+            # Create the optimization solution
+            sol = Solution(self.optProb, optTime, 1, sol_inform)
+
+            # Now set the x-values:
+            i = 0
+            for dvSet in sol.variables.keys():
+                for dvGroup in sol.variables[dvSet]:
+                    for var in sol.variables[dvSet][dvGroup]:
+                        var.value = xs[i]
+                        i += 1
+            sol.fStar = ff
+        else: # We are not on the root process so go into waiting loop:
 
             mode = None
             info = None
@@ -623,18 +696,16 @@ match the number in the current optimization. Ignorning cold_start file'
 
                 self.userfg(*info)
             # end while
-
-            ff = None
-            xs = None
-            sol_inform = None
-            nvar = None
-
+            sol = None
         # end if
 
-        return 
+        # Communicate the solution
+        if MPI:
+            sol = MPI.COMM_WORLD.bcast(sol)
+        
+        return  sol
 
-    def userfg_wrap(self, mode, nnJac, x, fObj, gObj, fCon, gCon, nState, cu, iu, ru):
-
+    def _userfg_wrap(self, mode, nnJac, x, fObj, gObj, fCon, gCon, nState, cu, iu, ru):
         '''
         The snopt user function. This is what is actually called from snopt.
         
@@ -645,11 +716,11 @@ match the number in the current optimization. Ignorning cold_start file'
         the data.
         '''
    
-        x = x*self.opt_prob.xscale
+        x = x*self.optProb.xscale
 
         # Determine if we've exeeded the time limit:
-        if self.time_limit:
-            if time.time() - self.start_time > self.time_limit:
+        if self.timeLimit:
+            if time.time() - self.startTime > self.timeLimit:
 
                 # Broadcast a -1 to indcate SNOPT has finished and
                 # make the remainder of the processors finish.
@@ -665,9 +736,9 @@ match the number in the current optimization. Ignorning cold_start file'
         # end if
 
         # ------------------ Hot Start Processing ------------------
-        if self.hot_start:
-            if self.hot_start.validPoint(self.callCounter, x):
-                data = self.hot_start.read(self.callCounter)
+        if self.hotStart:
+            if self.hotStart.validPoint(self.callCounter, x):
+                data = self.hotStart.read(self.callCounter)
                 xn = data['x']
                 x_array = data['x_array']
                 fObj = data['fobj']
@@ -676,8 +747,11 @@ match the number in the current optimization. Ignorning cold_start file'
                 if fail: 
                     mode = -1
 
-                fcon_return = self.opt_prob.processConstraints(fCon)
-
+                if not self.unconstrained:
+                    fcon_return = self.optProb.processConstraints(fCon)
+                else:
+                    fcon_return = [0]
+        
                 # Just pass gobj and gcon back if no gradient evaluated
                 gobj_return = gObj
                 gcon_return = gCon
@@ -686,18 +760,19 @@ match the number in the current optimization. Ignorning cold_start file'
                     gradEvaled = True
                     gObj = data['gobj']
                     gCon = data['gcon']
-                    gobj_return, gcon_return = self.opt_prob.processDerivatives(
+                    gobj_return, gcon_return = self.optProb.processDerivatives(
                         gObj, gCon, linearConstraints=False, nonlinearConstraints=True)
-                    gcon_return = gcon_return.tocsc().data
+                    if self.unconstrained:
+                        gcon_return = numpy.zeros(self.optProb.ndvs)
+                    else:
+                        gcon_return = gcon_return.tocsc().data
                 # end if
 
                 # Write Data to history (if required):
-                if self.store_hst:
+                if self.storeHistory:
                     self.hist.write(self.callCounter, fObj, fCon, fail, xn, x, gradEvaled, 
                                     gObj, gCon, mode=mode, feasibility=ru[0], optimality=ru[1],
                                     merit=ru[1], majorIt=iu[0])
-
-                    
                 # end if
 
                 self.callCounter += 1
@@ -707,8 +782,8 @@ match the number in the current optimization. Ignorning cold_start file'
 
             # We have used up all the information in hot start
             # so we can close the hot start file
-            self.hot_start.close()
-            self.hot_start = None
+            self.hotStart.close()
+            self.hotStart = None
         # end if
         # ----------------------------------------------------------
 
@@ -738,7 +813,7 @@ match the number in the current optimization. Ignorning cold_start file'
         gcon = gradient of the constraints
         '''
 
-        xn = self.opt_prob.processX(x)
+        xn = self.optProb.processX(x)
 
         # If the gradient isn't calculated, gobj and gcon pass back
         # through
@@ -751,17 +826,30 @@ match the number in the current optimization. Ignorning cold_start file'
             snopt.pyflush(self.options['iPrint'][1])
         if self.options['iSumm'][1] != 0:
             snopt.pyflush(self.options['iSumm'][1])
-            
+
+        # Assume fail is False. This is really subtle: When using
+        # snopt with its own internal FD calc, even with derivative
+        # level 0 and not changing the gobj, and gcon arrays, snopt
+        # will **STILL** call with mode 1, just because. When mode 1
+        # is called, with derivative level 0, nothing happens, (no
+        # function or gradient is called since this is call is realy
+        # meaningless --- compute gradient when no gradient is
+        # supplied) and the fail flag isn't set anywhere. That's why it
+        # needs to be set here.
+        fail=False
+        
         # Evaluate the function
         if mode == 0 or mode == 2:
-            fargs = self.opt_prob.objFun(xn)
+            fargs = self.optProb.objFun(xn)
             if rank == 0:
                 # Process fcon and fobj
                 fobj = fargs[0]
                 fcon = fargs[1]
                 fail = fargs[2]
-
-                fcon_return = self.opt_prob.processConstraints(fcon)
+                if not self.unconstrained:
+                    fcon_return = self.optProb.processConstraints(fcon)
+                else:
+                    fcon_return = [0]
                 if fail:
                     mode = -1
                 # end if
@@ -771,8 +859,7 @@ match the number in the current optimization. Ignorning cold_start file'
                 fcon_return = fcon.copy()
             # end if
         # end if
-            
-     
+
         # Check if last point is *actually* what we evaluated for
         # mode=1
         diff = 1.0
@@ -794,7 +881,7 @@ match the number in the current optimization. Ignorning cold_start file'
                 # evaluated point is the same as this point. Evaluate only
                 # the gradient                
                 gradEvaled = True
-                gargs = self.gobj_con(xn, fobj, fcon)
+                gargs = self.sens(xn, fobj, fcon)
 
                 # Non root rank return for gradient evaluation
                 if rank <> 0:
@@ -810,17 +897,21 @@ match the number in the current optimization. Ignorning cold_start file'
                 # end if
 
                 # Run the standard process derivatives function
-                gobj_return, gcon_return = self.opt_prob.processDerivatives(
+                gobj_return, gcon_return = self.optProb.processDerivatives(
                     gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
-                gcon_return = gcon_return.tocsc().data
+
+                if self.unconstrained:
+                    gcon_return = numpy.zeros(self.optProb.ndvs)
+                else:
+                    gcon_return = gcon_return.tocsc().data
 
             elif mode == 1:
                 # mode == 1: only gradient is required, but the
                 # previously evaluated point is different. Evaluate the
                 # objective then the gradient
                 gradEvaled = True
-                fargs = self.opt_prob.objFun(xn)
-                gargs = self.gobj_con(xn, fobj, fcon)
+                fargs = self.optProb.objFun(xn)
+                gargs = self.sens(xn, fobj, fcon)
 
                 # Non root rank return for gradient evaluation
                 if rank <> 0:
@@ -835,9 +926,13 @@ match the number in the current optimization. Ignorning cold_start file'
                     mode = -1
 
                 # Run the standard process derivatives function
-                gobj_return, gcon_return = self.opt_prob.processDerivatives(
+                gobj_return, gcon_return = self.optProb.processDerivatives(
                     gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
-                gcon_return = gcon_return.tocsc().data
+
+                if self.unconstrained:
+                    gcon_return = numpy.zeros(self.optProb.ndvs)
+                else:
+                    gcon_return = gcon_return.tocsc().data
             # end if
         # end if
 
@@ -846,7 +941,7 @@ match the number in the current optimization. Ignorning cold_start file'
             return 
 
         # Write Data to history:
-        if self.store_hst:
+        if self.storeHistory:
             self.hist.write(self.callCounter, fobj, fcon, fail, xn, x, gradEvaled, 
                             gobj, gcon, mode=mode, feasibility=ru[0], optimality=ru[1],
                             merit=ru[1], majorIt=iu[0])
@@ -941,7 +1036,7 @@ match the number in the current optimization. Ignorning cold_start file'
             inform_text = self.informs[mjr_code]
         except:
             inform_text = 'Unknown Exit Status'
-        #end
+        # end try
         
         return inform_text
         
@@ -957,11 +1052,9 @@ match the number in the current optimization. Ignorning cold_start file'
         iSumm = self.options['iSumm'][1]
         if (iPrint != 0):
             snopt.pyflush(iPrint)
-        #end
+
         if (iSumm != 0):
             snopt.pyflush(iSumm)
-        #end
-        
  
 #==============================================================================
 # SNOPT Optimizer Test

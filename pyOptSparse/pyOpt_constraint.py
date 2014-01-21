@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''
+"""
 pyOpt_constraint
 
 Holds the representation of a pyOptSparse constraint group
@@ -14,7 +14,7 @@ Developers:
 History
 -------
     v. 1.0  - Initial Class Creation (GKK, 2013)
-'''
+"""
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -24,16 +24,11 @@ import numpy
 # Constraint Class
 # =============================================================================
 class Constraint(object):
-    
-    '''
-    Optimization Constraint Class
-    '''
-    
+    """
+    Constraint Class Initialization
+    """
     def __init__(self, name, linear, wrt, jac, partialReturnOk, lower, upper, scale):
         
-        '''
-        Constraint Class Initialization
-        '''
 
         self.name = name
         self.linear = linear
@@ -49,12 +44,11 @@ class Constraint(object):
         self.scale = scale
 
     def __str__(self):
-        
-        '''
+        """
         Print Constraint
         
         Documentation last updated:  April. 30, 2008 - Peter W. Jansen
-        '''
+        """
         res = ''
         for i in xrange(self.ncon):
             res +='	 '+str(self.name).center(9) + \
