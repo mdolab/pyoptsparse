@@ -126,7 +126,6 @@ All variables must be added before constraints can be added.')
         # end for
         self.ndvs = dvCounter
         self.ableToAddVariables = False
-
         return
 
     def addVarSet(self, name):
@@ -1067,6 +1066,77 @@ constraint %s.'%(iCon))
         assert mat.shape[0] == len(vec)
         for i in xrange(len(mat.data)):
             mat.data[i] *= vec[mat.row[i]]
+
+    def getDVs(self):
+        '''
+        return a dictionary of the design variables
+        ''' 
+        print self.useGroups
+        if self.useGroups:
+            outDVs = {}
+            for dvSet in self.variables.keys():
+                outDVs[dvSet]={}
+                for dvGroup in self.variables[dvSet]:
+                    groupLength = len(dvGroup)
+                    temp = []
+                    for var in self.variables[dvSet][dvGroup]:
+                        temp.append(var.value)
+                    # end
+                    outDVs[dvSet][dvGroup] = numpy.array(temp)
+        else:
+            outDVs = numpy.zeros(self.ndvs)
+            for dvSet in self.variables.keys():
+                for dvGroup in self.variables[dvSet]:
+                    istart = self.dvOffset[dvSet][dvGroup][0]
+                    iend   = self.dvOffset[dvSet][dvGroup][1]
+                    scalar = self.dvOffset[dvSet][dvGroup][2]
+                    if scalar:
+                        outDVs[istart] = self.variables[dvSet][dvGroup][0].value
+                    else:
+                        for i in xrange(istart,iend):
+                            outDVs[i] = self.variables[dvSet][dvGroup][i].value
+                        # end
+                    # end
+                # end
+            # end
+        # end
+
+        return outDVs
+
+    def setDVs(self,inDVs):
+        '''
+        set the problem design variables from a dictionary. Set only the
+        values that are in the dictionary. add in some type checking as well
+        '''
+
+        if self.useGroups:
+            for dvSet in set(inDVs.keys()) & set(self.variables.keys()):
+                for dvGroup in set(inDVs[dvSet])&set(self.variables[dvSet]):
+                    groupLength = len(dvGroup)
+                    for i in xrange(groupLength):
+                        self.variables[dvSet][dvGroup][i].value =  inDVs[dvSet][dvGroup][i]
+                    # end
+                # end
+            # end
+        else:
+            for dvSet in self.variables.keys():
+                for dvGroup in self.variables[dvSet]:
+                    istart = self.dvOffset[dvSet][dvGroup][0]
+                    iend   = self.dvOffset[dvSet][dvGroup][1]
+                    scalar = self.dvOffset[dvSet][dvGroup][2]
+                    if scalar:
+                        self.variables[dvSet][dvGroup][0].value = inDVs[istart]
+                    else:
+                        for i in xrange(istart,iend):
+                            self.variables[dvSet][dvGroup][i].value =inDVs[i]
+                        # end
+                    # end
+                # end
+            # end
+        # end
+
+        return
+        
 
     def __str__(self):
         """
