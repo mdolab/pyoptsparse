@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''
+"""
 pyOpt_objective
 
 Holds the representation of a pyOptSparse objective
@@ -14,21 +14,20 @@ Developers:
 History
 -------
     v. 1.0  - Initial Class Creation (GKK, 2013)
-'''
+"""
 # =============================================================================
 # Objective Class
 # =============================================================================
 class Objective(object):
     
-    '''
+    """
     Optimization Objective Class
 
     Parameters
     ----------
-
     name : str
         Name of this objective
-        '''
+        """
     
     def __init__(self, name):
         self.name = name
@@ -36,11 +35,11 @@ class Objective(object):
         self.optimum = 0.0
     def __str__(self):
         
-        '''
+        """
         Structured Print of Objective
         
         Documentation last updated:  April. 30, 2008 - Peter W. Jansen
-        '''
+        """
         
         return ( '        Name        Value        Optimum\n'+'	 '+str(self.name).center(9) +'%12g  %12g\n' %(self.value,self.optimum))
     

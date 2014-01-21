@@ -3,7 +3,6 @@
 import os,sys
 
 from pyOpt_history import History
-from pyOpt_parameter import Parameter
 from pyOpt_variable import Variable
 from pyOpt_gradient import Gradient
 from pyOpt_constraint import Constraint

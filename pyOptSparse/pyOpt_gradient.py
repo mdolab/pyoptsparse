@@ -1,335 +1,175 @@
 #!/usr/bin/env python
-'''
-pyOpt_gradient
+"""
+pyOpt_gradient - A class that produce gradients using finite
+difference or complex step. 
 
-Holds the Python Design Optimization Gradient Calculation Class.
-
-Copyright (c) 2008-2013 by pyOpt Developers
+Copyright (c) 2013-2014 by Dr. Gaetan Kenway
 All rights reserved.
-Revision: 1.0   $Date: 20/06/2010 21:00$
 
-
-Developers:
------------
-- Dr. Ruben E. Perez (RP)
-- Mr. Peter W. Jansen (PJ)
+Developers
+----------
+- Dr. Gaetan Kenway (GKK)
 
 History
 -------
-    v. 1.0  - Initial Class Creation (PJ,RP 2010)
-'''
-
-__version__ = '$Revision: $'
-
-'''
-To Do:
-    - add calc fail flag
-'''
-
-# =============================================================================
-# Standard Python modules
-# =============================================================================
-import os, sys
-import copy
-
+    v. 0.1  - Initial Class Creation (GKK)
+"""
 # =============================================================================
 # External Python modules
 # =============================================================================
 import numpy
 
 # =============================================================================
-# Extension modules
-# =============================================================================
-#import extension
-
-# =============================================================================
-# Misc Definitions
-# =============================================================================
-eps = 1.0	# define a value for machine precision
-while ((eps/2.0 + 1.0) > 1.0):
-    eps = eps/2.0
-#end
-eps = 2.0*eps
-#eps = math.ldexp(1,-52)
-
-
-# =============================================================================
 # Gradient Class
 # =============================================================================
 class Gradient(object):
+    """
+    Gradient class for automatically computing gradients with finite
+    difference or complex step. 
+
+    Parameters
+    ----------
+    optProb : Optimization instance
+        This is the complete description of the optimization problem. 
+
+    sensType : str
+        'FD' for finite difference, 'CS' for complex step
+
+    sensStep : number
+        Step size to use for differencing
+
+    sensMode : str
+        Flag to compute gradients in parallel.
+
+    comm : MPI Intra communicator
+        Specifiy a MPI comm to use. Default is None. If mpi4py is not
+        available, the serial mode will still work. if mpi4py *is*
+        available, comm defaluts to MPI.COMM_WORLD. 
+        """
     
-    '''
-    Abstract Class for Optimizer Gradient Calculation Object
-    '''
-    
-    def __init__(self, opt_problem, sens_type, sens_mode='', sens_step={}, *args, **kwargs):
+    def __init__(self, optProb, sensType, sensStep=None, sensMode='', comm=None):
         
-        '''
-        Optimizer Gradient Calculation Class Initialization
-        
-        **Arguments:**
-        
-        - opt_problem -> INST: Optimization instance
-        - sens_type -> STR/FUNC: Sensitivity type ('FD', 'CS', or function) 
-        
-        **Keyword arguments:**
-        
-        - sens_mode -> STR: Parallel flag [''-serial,'pgc'-parallel], *Default* = '' 
-        - sens_step -> INT: Step size, *Default* = {} [=1e-6(FD), 1e-20(CS)] 
-        
-        Documentation last updated:  Feb. 03, 2011 - Peter W. Jansen
-        '''
-        
-        # 
-        self.opt_problem = opt_problem
-        if isinstance(sens_type,str):
-            self.sens_type = sens_type.lower()
-        else:
-            self.sens_type = sens_type
-        #end
-        if (sens_step == {}):
-            if (self.sens_type == 'fd'):
-                self.sens_step = 1.0e-6
-            elif (self.sens_type == 'cs'):
-                self.sens_step = 1.0e-20
+        self.optProb = optProb
+        self.sensType = sensType
+        if sensStep is None:
+            if self.sensType == 'fd':
+                self.sensStep = 1e-6
             else:
-                self.sens_step = sens_step
-            #end
-        else:
-            self.sens_step = sens_step
-        #end
-        self.sens_mode = sens_mode.lower()
-        
-        # MPI Setup
-        if (self.sens_mode.lower() == 'pgc'):
+                self.sensStep = 1e-40j
+        self.sensMode = sensMode
+        if comm is None:
+            # Two things can happen: we don't *actually* have MPI,
+            # which means the calcuation *must* be serial, or we can
+            # import MPI in which case, the comm will default to
+            # MPI.COMM_WORLD
             try:
-                import mpi4py
                 from mpi4py import MPI
+                self.comm = MPI.COMM_WORLD
+                self.MPI = MPI
             except ImportError:
-                print 'Error: mpi4py library failed to import'
-            #end
-            comm = MPI.COMM_WORLD
-            self.nproc = comm.Get_size()
-            self.myrank = comm.Get_rank()
-            if (mpi4py.__version__[0] == '0'):
-                self.Send = comm.Send
-                self.Recv = comm.Recv
-                self.Bcast = comm.Bcast
-            elif (mpi4py.__version__[0] == '1'):
-                self.Send = comm.send
-                self.Recv = comm.recv
-                self.Bcast = comm.bcast
-            #end
-            self.mydvs = xrange(self.myrank,len(opt_problem._variables.keys()),self.nproc)
+                self.comm = None
+            # end try
         else:
-            self.myrank = 0
-            self.mydvs = xrange(len(opt_problem._variables.keys()))
-        #end
-        
-        
-    def getGrad(self, x, group_ids, f, g, *args, **kwargs):
-        
-        '''
-        Get Gradient
-        
-        **Arguments:**
-        
-        - x -> ARRAY: Design variables
-        - group_ids -> DICT: Group identifications
-        - f -> ARRAY: Objective values
-        - g -> ARRAY: Constraint values
-        
-        Documentation last updated:  Feb. 07, 2011 - Peter W. Jansen
-        '''
-        
-        # 
-        opt_problem = self.opt_problem
-        sens_type = self.sens_type
-        sens_mode = self.sens_mode
-        sens_step = self.sens_step
-        mydvs = self.mydvs
-        myrank = self.myrank
-        
-        
-        # 
-        dfi = numpy.zeros([len(opt_problem._objectives.keys()),len(mydvs)],'d')
-        dgi = numpy.zeros([len(opt_problem._constraints.keys()),len(mydvs)],'d')
-        
-        if (sens_type == 'fd'):
-            
-            # Finite Differences
-            dh = sens_step            
-            xs = x
-            k = 0
-            for i in mydvs:
-                xh = copy.copy(xs)
-                xh[i] += dh
-                
-                # Variables Groups Handling
-                if opt_problem.use_groups:
-                    xhg = {}
-                    for group in group_ids.keys():
-                        if (group_ids[group][1]-group_ids[group][0] == 1):
-                            xhg[group] = xh[group_ids[group][0]]
-                        else:
-                            xhg[group] = xh[group_ids[group][0]:group_ids[group][1]]
-                        #end
-                    #end
-                    xh = xhg
-                #end
-                
-                [fph,gph,fail] = opt_problem.obj_fun(xh, *args, **kwargs)
-                if isinstance(fph,float):
-                    fph = [fph]
-                #end
-                
-                for j in xrange(len(opt_problem._objectives.keys())):
-                    dfi[j,k] = (fph[j] - f[j])/dh
-                #end
-                for j in xrange(len(opt_problem._constraints.keys())):
-                    dgi[j,k] = (gph[j] - g[j])/dh
-                #end
-                k += 1
-            #end
-            
-        elif (sens_type == 'cs'):
-            
-            # Complex Step
-            cdh = sens_step
-            cxs = copy.copy(x)
-            k = 0
-            for i in mydvs:
-                cxh = cxs + numpy.zeros(len(cxs),complex)
-                cxh[i] = complex(cxh[i],cdh)
-                
-                # Variables Groups Handling
-                if opt_problem.use_groups:
-                    cxhg = {}
-                    for group in group_ids.keys():
-                        if (group_ids[group][1]-group_ids[group][0] == 1):
-                            cxhg[group] = cxh[group_ids[group][0]]
-                        else:
-                            cxhg[group] = cxh[group_ids[group][0]:group_ids[group][1]]
-                        #end
-                    #end
-                    cxh = cxhg
-                #end
-                
-                [cfph,cgph,fail] = opt_problem.obj_fun(cxh, *args, **kwargs)
-                if isinstance(cfph,complex):
-                    cfph = [cfph]
-                #end
-                
-                for j in xrange(len(opt_problem._objectives.keys())):
-                    dfi[j,k] = cfph[j].imag/cdh
-                #end
-                for j in xrange(len(opt_problem._constraints.keys())):
-                    dgi[j,k] = cgph[j].imag/cdh
-                #end
-                k += 1
-            #end
-            
-            dfi = dfi.astype(float)
-            dgi = dgi.astype(float)
-            
+            self.comm = comm
+        # end if
+
+        # Now we can compute which dvs each process will need to
+        # compute:
+        ndvs = self.optProb.ndvs
+        if self.sensMode == 'pgc' and self.comm:
+            self.mydvs = range(self.comm.rank, ndvs, self.comm.size)
         else:
+            self.mydvs = range(ndvs)
+        return
+
+    def __call__(self, x, fobj, fcon):
+        """
+        We need to make this object "look" the same as a user supplied
+        function handle. That way, the optimizers need not care how
+        the gradients are **actually** calculated. 
+
+        Parameters
+        ----------
+        x : array
+            Optimization variables from optimizer
+
+        fobj : float
+            Function value for the point about which we are computing
+            the gradient
+
+        fcon : array or dict
+            Constraint values for the point about which we are computing
+            the gradient
+
+        Returns
+        -------
+        gobj : 1D array
+            The derivative of the objective with respect to the design
+            variables
+
+        gcon : 2D array
+            The derivative of the constraints with respect to the design
+            variables
+
+        fail : bool
+            Flag for failure. It currently always returns False
+            """
+
+        # Since this is *very* dumb loop over all the design
+        # variables, it is easier to just loop over the x values as an
+        # array. Furthermore, since the user **should** have
+        # reasonably well scaled variables, the fixed step size should
+        # have more meaning. 
+
+        # Generate final array sizes for the objective and constraint
+        # gradients
+        ndvs = self.optProb.ndvs
+        ncon = self.optProb.nCon
+        gobj = numpy.zeros(ndvs, 'd')
+        gcon = numpy.zeros((ncon, ndvs), 'd')
+
+        if self.sensMode == 'pgc':
+            fobj_base = self.comm.bcast(fobj)
+            fcon_base = self.comm.bcast(fcon)
+        else:
+            fobj_base = fobj
+            fcon_base = fcon
+
+        # We DO NOT want the constraints scaled here....the constraint
+        # scaling will be taken into account when the derivatives are
+        # processed as per normal.
+        fcon_base = self.optProb.processConstraints(fcon_base, scaled=False)
+        x_base = self.optProb.deProcessX(x)
+
+        # Convert to complex if necessary:
+        if self.sensType == 'cs':
+            x_base = x_base.astype('D')
+
+        for i in self.mydvs:
+            xph = x_base.copy()
+            xph[i] += self.sensStep
             
-            # Variables Groups Handling
-            if opt_problem.use_groups:
-                xg = {}
-                for group in group_ids.keys():
-                    if (group_ids[group][1]-group_ids[group][0] == 1):
-                        xg[group] = x[group_ids[group][0]]
-                    else:
-                        xg[group] = x[group_ids[group][0]:group_ids[group][1]]
-                    #end
-                #end
-                xn = xg
+            x_call = self.optProb.processX(xph)
+            # Call objective    
+            [fobj_ph, fcon_ph, fail] = self.optProb.objFun(x_call)
+
+            # Process constraint in case they are in dict form
+            fcon_ph = self.optProb.processConstraints(fcon_ph, scaled=False)
+
+            if self.sensType == 'fd':
+                gobj[i]    = (fobj_ph - fobj_base)/self.sensStep
+                gcon[:, i] = (fcon_ph - fcon_base)/self.sensStep
             else:
-                xn = x
-            #end
-            
-            # User Provided Sensitivities
-            [df_user,dg_user,fail] = sens_type(xn, f, g, *args, **kwargs)
-            
-            if isinstance(df_user,list):
-                if len(opt_problem._objectives.keys()) == 1:
-                    df_user = [df_user]
-                #end
-                df_user = numpy.array(df_user)
-            #end
-            if isinstance(dg_user,list):
-                dg_user = numpy.array(dg_user)
-            #end
-            
-            # 
-            for i in xrange(len(opt_problem._variables.keys())):
-                for j in xrange(len(opt_problem._objectives.keys())):
-                    dfi[j,i] = df_user[j,i]
-                #end
-                for j in xrange(len(opt_problem._constraints.keys())):
-                    dgi[j,i] = dg_user[j,i]
-                #end
-            #end
-            
-        #end
-        
-        # MPI Gradient Assembly
-        df = numpy.zeros([len(opt_problem._objectives.keys()),len(opt_problem._variables.keys())],'d')
-        dg = numpy.zeros([len(opt_problem._constraints.keys()),len(opt_problem._variables.keys())],'d')
-        if (sens_mode == 'pgc'):
-            if (sens_type == 'fd') or (sens_type == 'cs'):
-                if myrank != 0:
-                    self.Send([myrank, dfi, dgi],dest=0)
-                else:
-                    p_results = [[myrank, dfi, dgi]]
-                    for proc in xrange(1,self.nproc):
-                        p_results.append(self.Recv(source=proc))
-                    #end
-                #end
-                if myrank == 0:
-                    for proc in xrange(self.nproc):
-                        k = 0
-                        for i in xrange(p_results[proc][0],len(opt_problem._variables.keys()),self.nproc):
-                            df[:,i] = p_results[proc][1][:,k]
-                            dg[:,i] = p_results[proc][2][:,k]
-                            k += 1
-                        #end
-                    #end
-                #end
-            [df,dg] = self.Bcast([df,dg],root=0)
-            #end
-        else:
-            df = dfi
-            dg = dgi
-        #end
-        
-        
-        return df,dg
-        
-        
-    def getHess(self, *args, **kwargs):
-        
-        '''
-        Get Hessian
-        
-        Documentation last updated:  June. 20, 2010 - Ruben E. Perez
-        '''
-        
-        # 
-        
-        
-        # 
-        return 
-    
+                gobj[i]    = numpy.imag(fobj_ph)/numpy.imag(self.sensStep)
+                gcon[:, i] = numpy.imag(fcon_ph)/numpy.imag(self.sensStep)
+            # end if
+        # end for
 
+        if self.sensMode == 'pgc':
+            # We just mpi_reduce to the root with sum. This uses the
+            # efficent numpy versions
+            self.comm.Reduce(gobj.copy(), gobj, op=self.MPI.SUM, root=0)
+            self.comm.Reduce(gcon.copy(), gcon, op=self.MPI.SUM, root=0)
 
-#==============================================================================
-# Optimizer Gradient Calculation Test
-#==============================================================================
-if __name__ == '__main__':
-    
-    # Test Optimizer Gradient Calculation
-    print 'Testing Optimizer Gradient Calculation...'
-    grd = Gradient()
-    
+        return gobj, gcon, False
+        

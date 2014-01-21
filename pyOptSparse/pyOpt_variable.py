@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''
+"""
 pyOpt_variable
 
 Holds the representation of a single pyOptSparse variable 
@@ -14,14 +14,14 @@ Developers
 History
 -------
     v. 1.0  - Initial Class Creation (GKK, 2013)
-'''
+"""
 # =============================================================================
 # Variable Class
 # =============================================================================
 class Variable(object):
-    '''
+    """
     Variable Class Initialization
-    '''
+    """
     def __init__(self, name, type, value, lower, upper, scale, scalar=False, choices=None):
         
         self.name = name
@@ -45,9 +45,9 @@ class Variable(object):
         # end if
         
     def __str__(self):
-        '''
+        """
         Print Structured List of Variable
-        '''
+        """
         
         if (self.type == 'd'):
             return ('Name    Type       Value       Lower Bound  Upper Bound\n'+'	 '+str(self.name).center(9) +'%5s	%14f %14.2e %12.2e \n' %(self.type, self.choices[int(self.value)], min(self.choices), max(self.choices)))
