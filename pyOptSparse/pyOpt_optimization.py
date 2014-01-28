@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 #!/usr/bin/env python
 """
 pyOptSparse_optimization
@@ -23,27 +25,30 @@ History
 # Standard Python modules
 # =============================================================================
 
-import os, sys, time
+import os, copy, time
 try:
     from collections import OrderedDict
 except ImportError:
-    # python 2.6 or earlier, use backport
-    # get using "pip install ordereddict"
-    from ordereddict import OrderedDict
+    try:
+        from ordereddict import OrderedDict
+    except ImportError:
+        print('Could not find any OrderedDict class. For 2.6 and earlier, \
+use:\n pip install ordereddict')
     
 # =============================================================================
 # External Python modules
 # =============================================================================
 import numpy
+# pylint: disable-msg=E0611
 from scipy import sparse
 
 # =============================================================================
 # Extension modules
 # =============================================================================
-from pyOpt_variable import Variable
-from pyOpt_objective import Objective
-from pyOpt_constraint import Constraint
-from pyOpt_error import Error
+from .pyOpt_variable import Variable
+from .pyOpt_objective import Objective
+from .pyOpt_constraint import Constraint
+from .pyOpt_error import Error
 
 # =============================================================================
 # Misc Definitions
@@ -109,7 +114,7 @@ All variables must be added before constraints can be added.')
 
         dvCounter = 0
 
-        for dvSet in self.variables.keys():
+        for dvSet in self.variables:
             # Check that varSet *actually* has variables in it:
             if len(self.variables[dvSet]) > 0:
                 self.dvOffset[dvSet] = OrderedDict()
@@ -122,8 +127,7 @@ All variables must be added before constraints can be added.')
             else:
                 # Get rid of the dvSet since it has no variable groups
                 self.variables.pop(dvSet)
-            # end if
-        # end for
+
         self.ndvs = dvCounter
         self.ableToAddVariables = False
         return
@@ -138,13 +142,10 @@ All variables must be added before constraints can be added.')
 
         if name in self.varSetNames:
             raise Error('The supplied name \'%s\' for a variable set \
-            has already been used.'%(name))
+            has already been used.'% name)
 
-        # end if
         self.varSetNames.add(name)
-        self.variables[name]= OrderedDict()
-
-        return
+        self.variables[name] = OrderedDict()
 
     def addVar(self, name, *args, **kwargs):
         """
@@ -153,8 +154,6 @@ All variables must be added before constraints can be added.')
         """
 
         self.addVarGroup(name, 1, *args, scalar=True, **kwargs)
-
-        return 
 
     def addVarGroup(self, name, nVars, type='c', value=0.0, lower=None, upper=None, scale=1.0,
                     varSet='default', choices=None, **kwargs):
@@ -235,17 +234,15 @@ All variables must be added before constraints can be added.')
 
         if name in self.varGroupNames:
             raise Error('The supplied name \'%s\' for a variable group \
-has already been used.'%(name))
+has already been used.'% name)
         else:
             self.varGroupNames.add(name)
-        # end if
 
         if not varSet in self.variables:
             self.addVarSet(varSet)
-        # end if
 
         # Check that the type is ok:
-        assert type in ['c','i','d'], 'Type must be one of \'c\' for continuous, \
+        assert type in ['c', 'i', 'd'], 'Type must be one of \'c\' for continuous, \
 \'i\' for integer or \'d\' for discrete.'
                     
         # ------ Process the value arguement
@@ -256,8 +253,8 @@ has already been used.'%(name))
             pass
         else:
             raise Error('The length of the \'value\' argument to \
- addVarGroup is %d, but the number of variables in nVars is %d.'%(len(value), nVars))
-        # end if
+ addVarGroup is %d, but the number of variables in nVars is %d.'% (
+                    len(value), nVars))
 
         # ------ Process the lower bound argument
         if lower is None:
@@ -270,9 +267,8 @@ has already been used.'%(name))
                 pass
             else:
                 raise Error('The length of the \'lower\' argument to \
-addVarGroup is %d, but the number of variables in nVars is %d.'%(len(lower), nVars))
-            # end if
-        # end if
+addVarGroup is %d, but the number of variables in nVars is %d.'% (
+                        len(lower), nVars))
 
         # ------ Process the upper bound argument
         if upper is None:
@@ -285,9 +281,8 @@ addVarGroup is %d, but the number of variables in nVars is %d.'%(len(lower), nVa
                 pass
             else:
                 raise Error('The length of the \'upper\' argument to \
-addVarGroup is %d, but the number of variables in nVars is %d.'%(len(upper), nVars))
-            # end if
-        # end if
+addVarGroup is %d, but the number of variables in nVars is %d.'% (
+                        len(upper), nVars))
 
         # ------ Process the scale bound argument
         if scale is None:
@@ -300,21 +295,19 @@ addVarGroup is %d, but the number of variables in nVars is %d.'%(len(upper), nVa
                 pass
             else:
                 raise Error('The length of the \'scale\' argument to \
-addVarGroup is %d, but the number of variables in nVars is %d.'%(len(scale), nVars))
-            # end if
-        # end if
+addVarGroup is %d, but the number of variables in nVars is %d.'% (
+                        len(scale), nVars))
 
         # Determine if scalar i.e. it was called from addVar():
         scalar = kwargs.pop('scalar', False)
 
         # Now create all the variable objects
         self.variables[varSet][name] = []
-        for iVar in xrange(nVars):
-            varName = name + '_%d'%(iVar)
+        for iVar in range(nVars):
+            varName = name + '_%d'% iVar
             self.variables[varSet][name].append(
                 Variable(varName, type=type, value=value[iVar], lower=lower[iVar],
                          upper=upper[iVar], scale=scale[iVar], scalar=scalar, choices=choices))
-        # end for
 
     def delVar(self, name):
         """
@@ -326,14 +319,14 @@ addVarGroup is %d, but the number of variables in nVars is %d.'%(len(scale), nVa
            Name of variable or variable group to remove
            """
         deleted = False
-        for dvSet in self.variables.keys():
+        for dvSet in self.variables:
             for dvGroup in self.variables[dvSet]:
                 if dvGroup == name:
                     self.variables[dvSet].pop(dvGroup)
                     deleted = True
 
         if not deleted:
-            print '%s was not a valid design variable name'
+            print('%s was not a valid design variable name'% name)
             
     def delVarSet(self, name):
         """
@@ -345,7 +338,7 @@ addVarGroup is %d, but the number of variables in nVars is %d.'%(len(scale), nVa
            Name of variable or variable group to remove
            """
 
-        assert name in self.variables, '%s not a valid varSet.'%name
+        assert name in self.variables, '%s not a valid varSet.'% name
         self.variables.pop(name)
 
     def addObj(self, name, *args, **kwargs):
@@ -442,7 +435,7 @@ addVarGroup is %d, but the number of variables in nVars is %d.'%(len(scale), nVa
 
         if name in self.conGroupNames:
             raise Error('The supplied name \'%s\' for a constraint group \
-has already been used.'%(name))
+has already been used.'% name)
 
         self.conGroupNames.add(name)
 
@@ -457,9 +450,8 @@ has already been used.'%(name))
                 pass
             else:
                 raise Error('The length of the \'lower\' argument to \
-addConGroup is %d, but the number of constraints is %d.'%(len(lower), nCon))
-            # end if
-        # end if
+addConGroup is %d, but the number of constraints is %d.'% (
+                        len(lower), nCon))
 
         # ------ Process the upper bound argument
         if upper is None:
@@ -472,9 +464,8 @@ addConGroup is %d, but the number of constraints is %d.'%(len(lower), nCon))
                 pass
             else:
                 raise Error('The length of the \'upper\' argument to \
-addConGroup is %d, but the number of constraints is %d.'%(len(upper), nCon))
-            # end if
-        # end if
+addConGroup is %d, but the number of constraints is %d.'%(
+                        len(upper), nCon))
 
         # ------ Process the scale argument
         scale = numpy.atleast_1d(scale)
@@ -484,13 +475,13 @@ addConGroup is %d, but the number of constraints is %d.'%(len(upper), nCon))
             pass
         else:
             raise Error('The length of the \'scale\' argument to \
- addConGroup is %d, but the number of constraints is %d.'%(len(scale), nCon))
-        # end if
-            
+ addConGroup is %d, but the number of constraints is %d.'%(
+                    len(scale), nCon))
+        
         # First check if 'wrt' is supplied...if not we just take all
         # the dvSet
         if wrt is None:
-            wrt = self.variables.keys()
+            wrt = list(self.variables.keys())
         else:
             # Sanitize the wrt input:
             if isinstance(wrt, str):
@@ -500,18 +491,15 @@ addConGroup is %d, but the number of constraints is %d.'%(len(upper), nCon))
                     wrt = list(wrt)
                 except:
                     raise Error('\'wrt\' must be a iterable list')
-                # end try
-            # end if
                     
             # Now, make sure that each dvSet the user supplied list
             # *actually* are DVsets
             for dvSet in wrt:
-                if not dvSet in self.variables.keys():
-                    raise Error('The supplied dvSet \'%s\' in \'wrt\' for the %s constraint, \
-does not exist. It must be added with a call to addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'%(dvSet, name, dvSet))
-                # end if
-            # end for
-        # end if
+                if not dvSet in self.variables:
+                    raise Error('The supplied dvSet \'%s\' in \'wrt\' \
+for the %s constraint, does not exist. It must be added with a call to \
+addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'% (
+                            dvSet, name, dvSet))
 
         # Last thing for wrt is to reorder them such that dvsets are
         # in order. This way when the jacobian is assembled in
@@ -522,7 +510,7 @@ does not exist. It must be added with a call to addVar() or addVarGroup() with a
             dvStart.append(self.dvOffset[dvSet]['n'][0])
 
         # This sort wrt using the keys in dvOffset
-        wrt = [x for (y,x) in sorted(zip(dvStart, wrt))]
+        wrt = [x for (y, x) in sorted(zip(dvStart, wrt))]
 
         # Now we know which DVsets this constraint will have a
         # derivative with respect to (i.e. what is in the wrt list)
@@ -547,7 +535,6 @@ does not exist. It must be added with a call to addVar() or addVarGroup() with a
                 ndvs = ss[1]-ss[0]
                 jac[dvSet] = sparse.csr_matrix(numpy.ones((nCon, ndvs)))
                 jac[dvSet].data[:] = 0.0
-            # end for
                 
             # Set a flag for the constraint object, that not returning them all is ok. 
             partialReturnOk = True
@@ -574,12 +561,13 @@ does not exist. It must be added with a call to addVar() or addVarGroup() with a
                     # No big deal, just make a dense component...and set to zero
                     jac[dvSet] = sparse.csr_matrix(numpy.ones((nCon, ndvs)))
                     jac[dvSet].data[:] = 0.0
-                # end try
                     
-                if jac[dvSet].shape[0] <> nCon or jac[dvSet].shape[1] <> ndvs:
-                    raise Error('The supplied jacobian for dvSet \'%s\' in constraint %s, was the incorrect size. Expecting a jacobian\
- of size (%d,%d) but received a jacobian of size (%d,%d).'%(dvSet, name, nCon, ndvs, jac[dvSet].shape[0], jac[dvSet].shape[1]))
-                # end if
+                if jac[dvSet].shape[0] != nCon or jac[dvSet].shape[1] != ndvs:
+                    raise Error('The supplied jacobian for dvSet \'%s\'\
+ in constraint %s, was the incorrect size. Expecting a jacobian\
+ of size (%d,%d) but received a jacobian of size (%d,%d).'%(
+                            dvSet, name, nCon, ndvs, jac[dvSet].shape[0], 
+                            jac[dvSet].shape[1]))
 
                 # Now check that the supplied jacobian is sparse of not:
                 if sparse.issparse(jac[dvSet]):
@@ -592,21 +580,19 @@ does not exist. It must be added with a call to addVar() or addVarGroup() with a
                     # before converting to csr format
                     jac[dvSet][numpy.where(jac[dvSet]==0)] = 1e-50
                     jac[dvSet] = sparse.csr_matrix(jac[dvSet])
-                # end if
-            # end for
+            # end for (dvSet)
 
             # If there is anything left in jac print a warning:
             for dvSet in tmp:
-                print 'pyOptSparse Warning: An unused jacobian with dvSet key of \'%s\'\
- was unused. This will be ignored'%(dvSet)
-            # end for
+                print('pyOptSparse Warning: An unused jacobian with \
+dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
 
             # Finally partial returns NOT ok, since the user has
             # supplied information about the sparsity:
             partialReturnOk = False
 
-        # end if
-
+        # end if (if Jac)
+        
         # Scale the rows of each jacobian part:
         for dvSet in jac:
             self._csrRowScale(jac[dvSet], scale)
@@ -614,8 +600,6 @@ does not exist. It must be added with a call to addVar() or addVarGroup() with a
         # Finally! Create constraint object
         self.constraints[name] = Constraint(name, linear, wrt, jac, partialReturnOk,
                                             lower*scale, upper*scale, scale)
-
-        return 
         
     def reorderConstraintJacobian(self, reorder=['nonLinear','linear']):
         """
@@ -646,8 +630,6 @@ does not exist. It must be added with a call to addVar() or addVarGroup() with a
                 nlcon += self.constraints[iCon].ncon
             else:
                 nncon += self.constraints[iCon].ncon
-            # end if
-        # end for
         
         # Store number of linear and nonlinear constriants:
         self.nnCon = nncon
@@ -705,8 +687,6 @@ does not exist. It must be added with a call to addVar() or addVarGroup() with a
                 if not con.linear:
                     conScaleNonLinear.extend(con.scale)
                 conScaleFull.extend(con.scale)
-            # end for
-        # end if
 
         # Save constraint scaling arrays
         self.conScaleFull = numpy.array(conScaleFull)
@@ -714,7 +694,7 @@ does not exist. It must be added with a call to addVar() or addVarGroup() with a
 
         # Assemble the design variable scaling
         xscale = []
-        for dvSet in self.variables.keys():
+        for dvSet in self.variables:
             for dvGroup in self.variables[dvSet]:
                 for var in self.variables[dvSet][dvGroup]:
                     xscale.append(var.scale)
@@ -752,7 +732,7 @@ does not exist. It must be added with a call to addVar() or addVarGroup() with a
         timeA = time.time()
         # Process the objective gradient. This may be vector or it may be
         # given as a dictionary. 
-        dvSets = self.variables.keys()
+        dvSets = list(self.variables.keys())
         if isinstance(gobj_in, dict):
             gobj = numpy.zeros(self.ndvs)
             for key in gobj_in:
@@ -767,21 +747,20 @@ does not exist. It must be added with a call to addVar() or addVarGroup() with a
                         # Everything checks out so set:
                         gobj[ss[0]:ss[1]] = gobj_in[key]
                     else:
-                        raise Error('The length of the objective deritative for dvSet %s\
- is the incorrect length. Expecting a length of %d but received a length of %d.'%(dvSet, ss[1]-ss[0], len(gobj_in[key])))
-                    # end if
+                        raise Error('The length of the objective deritative \
+for dvSet %s is the incorrect length. Expecting a length of %d but received \
+a length of %d.'% (key, ss[1]-ss[0], len(gobj_in[key])))
                 else:
-                    print 'Warning: The key \'%s\' in g_obj does not match any of the added DVsets. \
-This derivative will be ignored'%(key)
-                # end if
-            # end for
+                    print('Warning: The key \'%s\' in g_obj does not match any of the added DVsets. \
+This derivative will be ignored'%(key))
+
         else:
             # Otherwise we will assume it is a vector:
             gobj = numpy.atleast_1d(gobj_in).copy()
-            if len(gobj) <> self.ndvs:
-                raise Error('The length of the objective derivative for all design variables\
- is not the correct size. Received size %d, should be size %d.'%(len(gobj), self.ndvs))
-        # end if
+            if len(gobj) != self.ndvs:
+                raise Error('The length of the objective derivative for all \
+design variables is not the correct size. Received size %d, should be \
+size %d.'%(len(gobj), self.ndvs))
                 
         # Finally scale the objective gradient based on the scaling data.
         gobj /= self.xscale
@@ -804,6 +783,7 @@ This derivative will be ignored'%(key)
                 gcon_in[numpy.where(gcon_in==0)] = 1e-50
                 # Don't forget to scale:
                 tmp = gcon_in.copy()
+
                 for i in xrange(self.ndvs):
                     tmp[:,i] /= self.xscale[i]
 
@@ -815,10 +795,9 @@ This derivative will be ignored'%(key)
                 return gobj, gcon
 
             else:
-                raise Error('The dense jacobian return was the incorrect size. Expecting \
-size of (%d, %d) but received size of (%d, %d).'%(self.nCon, self.ndvs, gcon_in.shape[0], gcon_in.shape[1]))
-            # end if
-        # end if
+                raise Error('The dense jacobian return was the incorrect size.\
+ Expecting size of (%d, %d) but received size of (%d, %d).'% (
+                        self.nCon, self.ndvs, gcon_in.shape[0], gcon_in.shape[1]))
 
         # Data for storing the values in COOrdinate format
         data = []
@@ -834,20 +813,18 @@ size of (%d, %d) but received size of (%d, %d).'%(self.nCon, self.ndvs, gcon_in.
 
                 if not con.name in gcon_in:
                     raise Error('The jacobian for the constraint \'%s\' was \
-not found in the returned dictionary.'%con.name)
-                # end if
+not found in the returned dictionary.'% con.name)
 
                 if not con.partialReturnOk:
                     # The keys in gcon_in[iCon] MUST match PRECISELY
                     # the keys in con.wrt....The user told us they
                     # would supply derivatives wrt to these sets, and
                     # then didn't, so scold them. 
-                    for dvSet in con.jac.keys():
+                    for dvSet in con.jac:
                         if dvSet not in gcon_in[iCon]:
-                            raise Error('Constraint \'%s\' was expecting a jacobain with respect to dvSet \'%s\' as \
-was supplied in addConGroup(). This was not found in the constraint jacobian dictionary'%(con.name, dvSet))
-                    # end for
-                # end if
+                            raise Error('Constraint \'%s\' was expecting\
+ a jacobain with respect to dvSet \'%s\' as was supplied in addConGroup(). \
+This was not found in the constraint jacobian dictionary'% (con.name, dvSet))
 
                 # We assume gcon_in MUST be a dictionary
                 for key in con.wrt:
@@ -867,37 +844,34 @@ was supplied in addConGroup(). This was not found in the constraint jacobian dic
                             tmp = numpy.atleast_2d(gcon_in[iCon][key])
                             tmp[numpy.where(tmp==0)] = 1e-50
                             tmp = sparse.csr_matrix(tmp.copy())
-                        # end if
                     else:
                         # Just use stored jacobian that contains just zeros:
                         tmp = con.jac[key]
-                    # end if
 
                     # Now check that the jacobian is the correct shape
                     if not(tmp.shape[0] == con.ncon and tmp.shape[1] == ndvs):
-                        raise Error('The shape of the supplied constraint jacobian for constraint %s is incorrect. \
- Expected an array of shape (%d,%d), but received an array of shape (%d, %d).'%(con.name, con.ncon, ndvs, tmp.shape[0], tmp.shape[1]))
+                        raise Error('The shape of the supplied constraint \
+jacobian for constraint %s is incorrect. Expected an array of shape (%d,%d), \
+but received an array of shape (%d, %d).'% (con.name, con.ncon, ndvs, 
+                                            tmp.shape[0], tmp.shape[1]))
 
                     # Now check that the csr matrix has the correct number of non zeros:
-                    if tmp.nnz <> con.jac[key].nnz:
+                    if tmp.nnz != con.jac[key].nnz:
                         raise Error('The number of nonzero elements for \
   constraint group \'%s\' was not the correct size. The supplied jacobian has \
- %d nonzero entries, but must contain %d nonzero entries.'%(con.name, tmp.nnz, con.jac[key].nnz))
-                    # end if
+ %d nonzero entries, but must contain %d nonzero entries.'%(con.name, tmp.nnz, 
+                                                            con.jac[key].nnz))
 
                     # Loop over rows in constraint jacobian:
-                    for iRow in xrange(con.ncon):
+                    for iRow in range(con.ncon):
                         # Loop over the number of nonzero entries in this row:
-                        for ii in xrange(con.jac[key].indptr[iRow], con.jac[key].indptr[iRow+1]):
+                        for ii in range(con.jac[key].indptr[iRow], con.jac[key].indptr[iRow+1]):
                             row.append(con.rs + iRow)
                             icol = self.dvOffset[key]['n'][0] + con.jac[key].indices[ii]
                             col.append(icol)
+
                             data.append(tmp.data[ii]/self.xscale[icol])
-                        # end for
-                    # end for
-                # end for
-            # end if
-        # end for
+
 
         # Create coo matrix and scale the rows
         gcon = sparse.coo_matrix((data, (row, col)),(self.nCon, self.ndvs))
@@ -936,12 +910,12 @@ was supplied in addConGroup(). This was not found in the constraint jacobian dic
         if not isinstance(fcon_in, dict):
             fcon = numpy.atleast_1d(fcon_in)
             if len(fcon) == self.nnCon:
+                print('scaleFact:',scaleFact, fcon)
                 return scaleFact*fcon
             else:
                 raise Error('The constraint array was the incorrect size. \
 It must contain %d elements (nonlinear constraints only), but an arrary of \
 size %d was given.'%(self.nnCon, len(fcon)))
-            # end if
         else:
             # Process as a dictionary:
             # Loop over (nonlinear) constraints and extract as required:
@@ -958,17 +932,12 @@ size %d was given.'%(self.nnCon, len(fcon)))
                         else:
                             raise Error('%d constraint values were returned \
     %s, but expected %d.'%(len(fcon_in[iCon]), iCon, self.variables[iCon].ncon))
-                        # end if
                     else:
                         raise Error('No constraint values were found for the \
 constraint %s.'%(iCon))
-                    # end if
-                # end if
-            # end for
 
             # Finally convert to array and scale
             fcon = scaleFact*numpy.array(fcon)
-        # end if
  
         return fcon
 
@@ -1002,7 +971,7 @@ constraint %s.'%(iCon))
 
         if self.useGroups:
             xg = {}
-            for dvSet in self.variables.keys():
+            for dvSet in self.variables:
                 for dvGroup in self.variables[dvSet]:
                     istart = self.dvOffset[dvSet][dvGroup][0]
                     iend   = self.dvOffset[dvSet][dvGroup][1]
@@ -1035,7 +1004,7 @@ constraint %s.'%(iCon))
         """
         if self.useGroups:
             x_array = numpy.zeros(self.ndvs)
-            for dvSet in self.variables.keys():
+            for dvSet in self.variables:
                 for dvGroup in self.variables[dvSet]:
                     istart = self.dvOffset[dvSet][dvGroup][0]
                     iend   = self.dvOffset[dvSet][dvGroup][1]
@@ -1055,37 +1024,35 @@ constraint %s.'%(iCon))
         structure. So we will brute force it here.
         """
         assert mat.shape[0] == len(vec)
-        for iRow in xrange(mat.shape[0]):
+        for iRow in range(mat.shape[0]):
             mat.data[mat.indptr[iRow]:mat.indptr[iRow+1]] *= vec[iRow]
-        # end for
 
     def _cooRowScale(self, mat, vec):
         """ 
         Scale rows of coo matrx. See _csrRowScale for why
         """
         assert mat.shape[0] == len(vec)
-        for i in xrange(len(mat.data)):
+        for i in range(len(mat.data)):
             mat.data[i] *= vec[mat.row[i]]
 
     def getDVs(self):
         '''
         return a dictionary of the design variables
         ''' 
-        print self.useGroups
+
         if self.useGroups:
             outDVs = {}
-            for dvSet in self.variables.keys():
+            for dvSet in self.variables:
                 outDVs[dvSet]={}
                 for dvGroup in self.variables[dvSet]:
                     groupLength = len(dvGroup)
                     temp = []
                     for var in self.variables[dvSet][dvGroup]:
                         temp.append(var.value)
-                    # end
                     outDVs[dvSet][dvGroup] = numpy.array(temp)
         else:
             outDVs = numpy.zeros(self.ndvs)
-            for dvSet in self.variables.keys():
+            for dvSet in self.variables:
                 for dvGroup in self.variables[dvSet]:
                     istart = self.dvOffset[dvSet][dvGroup][0]
                     iend   = self.dvOffset[dvSet][dvGroup][1]
@@ -1093,13 +1060,8 @@ constraint %s.'%(iCon))
                     if scalar:
                         outDVs[istart] = self.variables[dvSet][dvGroup][0].value
                     else:
-                        for i in xrange(istart,iend):
+                        for i in range(istart,iend):
                             outDVs[i] = self.variables[dvSet][dvGroup][i].value
-                        # end
-                    # end
-                # end
-            # end
-        # end
 
         return outDVs
 
@@ -1113,13 +1075,11 @@ constraint %s.'%(iCon))
             for dvSet in set(inDVs.keys()) & set(self.variables.keys()):
                 for dvGroup in set(inDVs[dvSet])&set(self.variables[dvSet]):
                     groupLength = len(dvGroup)
-                    for i in xrange(groupLength):
+                    for i in range(groupLength):
                         self.variables[dvSet][dvGroup][i].value =  inDVs[dvSet][dvGroup][i]
-                    # end
-                # end
-            # end
+
         else:
-            for dvSet in self.variables.keys():
+            for dvSet in list(self.variables.keys()):
                 for dvGroup in self.variables[dvSet]:
                     istart = self.dvOffset[dvSet][dvGroup][0]
                     iend   = self.dvOffset[dvSet][dvGroup][1]
@@ -1127,16 +1087,8 @@ constraint %s.'%(iCon))
                     if scalar:
                         self.variables[dvSet][dvGroup][0].value = inDVs[istart]
                     else:
-                        for i in xrange(istart,iend):
+                        for i in range(istart,iend):
                             self.variables[dvSet][dvGroup][i].value =inDVs[i]
-                        # end
-                    # end
-                # end
-            # end
-        # end
-
-        return
-        
 
     def __str__(self):
         """
@@ -1150,7 +1102,6 @@ constraint %s.'%(iCon))
         for obj in self.objectives:
             lines = str(self.objectives[obj]).split('\n')
             text += lines[1] + '\n'
-        # end for
 
         text += """\n	Variables (c - continuous, i - integer, d - discrete):
         Name    Type       Value       Lower Bound  Upper Bound\n"""
@@ -1160,18 +1111,13 @@ constraint %s.'%(iCon))
                 for var in self.variables[dvSet][dvGroup]:
                     lines = str(var).split('\n')
                     text+= lines[1] + '\n'
-                # end for
-            # end for
-        # end for
 
-        print '	    Name        Type'+' '*25+'Bound\n'+'	 '
+        print('	    Name        Type'+' '*25+'Bound\n'+'	 ')
         if len(self.constraints) > 0:
             text += """\n	Constraints (i - inequality, e - equality):
         Name    Type                    Bounds\n"""
             for iCon in self.constraints:
                 text += str(self.constraints[iCon])
-            # end for
-        # end if
         
         return text
  
@@ -1186,9 +1132,9 @@ constraint %s.'%(iCon))
         """
 
         # Header describing what we are printing:
-        print '+'+'-'*78+'-'+'+'
-        print '|' + ' '*19 +'Sparsity structure of constraint Jacobian' + ' '*19 + '|'
-        print '+'+'-'*78+'-'+'+'
+        print('+'+'-'*78+'-'+'+')
+        print('|' + ' '*19 +'Sparsity structure of constraint Jacobian' + ' '*19 + '|')
+        print('+'+'-'*78+'-'+'+')
 
         # We will do this with a 2d numpy array of characters since it
         # will make slicing easier
@@ -1205,7 +1151,6 @@ constraint %s.'%(iCon))
             nRow += 1 # Line
             if self.constraints[iCon].linear:
                 hasLinear = True
-        # end for
         if hasLinear:
             nRow += 1 # Extra line to separate linear constraints
 
@@ -1222,7 +1167,6 @@ constraint %s.'%(iCon))
             nCol += 2 # Spaces on either side
             nCol += 1 # Line 
 
-        # end for
         txt = numpy.zeros((nRow, nCol),dtype=str)
         txt[:,:] = ' '
         # Outline of the matrix on left and top
@@ -1252,16 +1196,14 @@ constraint %s.'%(iCon))
                 txt[iRow, maxConNameLen-l:maxConNameLen] = list(name)
 
                 # Now we write a 'D' for dense, 'S' for sparse or nothing. 
-                varKeys = self.variables.keys()
-                for iVar in xrange(len(varKeys)):
+                varKeys = list(self.variables.keys())
+                for iVar in range(len(varKeys)):
                     if varKeys[iVar] in con.wrt:
                         txt[iRow, varCenters[iVar]] = 'X'
 
                 # The separator
                 txt[iRow+1, maxConNameLen+1:] = '-'
                 iRow += 2
-            # end if
-        # end for
             
         # Print an extra '---' to distinguish:
         if hasLinear:
@@ -1278,37 +1220,29 @@ constraint %s.'%(iCon))
                 txt[iRow, maxConNameLen-l:maxConNameLen] = list(name)
 
                 # Now we write a 'D' for dense, 'S' for sparse or nothing. 
-                varKeys = self.variables.keys()
-                for iVar in xrange(len(varKeys)):
+                varKeys = list(self.variables.keys())
+                for iVar in range(len(varKeys)):
                     if varKeys[iVar] in con.wrt:
                         txt[iRow, varCenters[iVar]] = 'X'
-                    # end if
-                # end for
-
 
                 # The separator
                 txt[iRow+1, maxConNameLen+1:] = '-'
                 iRow += 2
-            # end if
-        # end for
 
         # Corners
         txt[1, maxConNameLen+1] = '+'
         txt[-1,maxConNameLen+1] = '+'
         txt[1,-1] = '+'
         txt[-1,-1] = '+'
-        for i in xrange(len(txt)):
-            print ''.join(txt[i])
-        # end for
-
-        return 
+        for i in range(len(txt)):
+            print(''.join(txt[i]))
 
 #==============================================================================
 # Optimization Test
 #==============================================================================
 if __name__ == '__main__':
     
-    print 'Testing Optimization...'
+    print('Testing Optimization...')
     optprob = Optimization('Optimization Problem',{})
     
     
