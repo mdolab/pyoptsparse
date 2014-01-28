@@ -28,9 +28,9 @@ class Variable(object):
         self.type = type
         self.scalar = scalar
         if self.type == 'c':
-            self.value = value/scale
-            self.lower = lower/scale
-            self.upper = upper/scale
+            self.value = value*scale
+            self.lower = lower*scale
+            self.upper = upper*scale
             self.scale = scale
         elif self.type == 'i':
             self.value = int(value)

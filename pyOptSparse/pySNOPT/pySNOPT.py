@@ -398,7 +398,7 @@ class SNOPT(Optimizer):
             blx = numpy.array(blx)
             bux = numpy.array(bux)
             xs = numpy.array(xs)
-
+            
             # Constraints Handling -- make sure nonlinear constraints
             # go first -- this is particular to snopt
             blc = []
@@ -602,7 +602,7 @@ match the number in the current optimization. Ignorning warmStart file and tryin
                 if os.path.exists(coldStart):
                     cold_file = shelve.open(coldStart,flag='r')
                     last_key = cold_file['last']
-                    x = cold_file[last_key]['x_array'].copy()/self.optProb.xscale
+                    x = cold_file[last_key]['x_array'].copy()*self.optProb.xscale
                     cold_file.close()
                     if len(x) == nvar:
                         xs[0:nvar] = x.copy()
@@ -715,8 +715,8 @@ match the number in the current optimization. Ignorning coldStart file'
         makes sense to only read on processor that actually requires
         the data.
         '''
-   
-        x = x*self.optProb.xscale
+        
+        x = x/self.optProb.xscale
 
         # Determine if we've exeeded the time limit:
         if self.timeLimit:

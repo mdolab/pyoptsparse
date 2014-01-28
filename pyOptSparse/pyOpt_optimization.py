@@ -784,7 +784,7 @@ This derivative will be ignored'%(key)
         # end if
                 
         # Finally scale the objective gradient based on the scaling data.
-        gobj *= self.xscale
+        gobj /= self.xscale
 
         if self.nCon == 0:
             # We don't have constraints! We can just return now since
@@ -805,7 +805,7 @@ This derivative will be ignored'%(key)
                 # Don't forget to scale:
                 tmp = gcon_in.copy()
                 for i in xrange(self.ndvs):
-                    tmp[:,i] *= self.xscale[i]
+                    tmp[:,i] /= self.xscale[i]
 
                 # Do constraint scaling and convert to coo
                 gcon = sparse.coo_matrix(tmp)
@@ -892,7 +892,7 @@ was supplied in addConGroup(). This was not found in the constraint jacobian dic
                             row.append(con.rs + iRow)
                             icol = self.dvOffset[key]['n'][0] + con.jac[key].indices[ii]
                             col.append(icol)
-                            data.append(tmp.data[ii]*self.xscale[icol])
+                            data.append(tmp.data[ii]/self.xscale[icol])
                         # end for
                     # end for
                 # end for
