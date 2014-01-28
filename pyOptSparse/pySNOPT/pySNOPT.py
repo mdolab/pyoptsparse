@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 #/bin/env python
 '''
 pySNOPT - A variation of the pySNOPT wrapper specificially designed to
@@ -22,7 +24,7 @@ History
 # SNOPT Library
 # =============================================================================
 try:
-    import snopt
+    from . import snopt
 except:
     raise ImportError('SNOPT shared library failed to import')
 
@@ -40,13 +42,13 @@ import types
 import numpy
 import shelve
 from scipy import sparse
-# # =============================================================================
+# # ===========================================================================
 # # Extension modules
-# # =============================================================================
-from pyoptsparse import Optimizer
-from pyoptsparse import History
-from pyoptsparse import Gradient
-from pyoptsparse import Solution
+# # ===========================================================================
+from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_history import History
+from ..pyOpt_gradient import Gradient
+from ..pyOpt_solution import Solution
 # =============================================================================
 # Misc Definitions
 # =============================================================================
@@ -253,7 +255,7 @@ class SNOPT(Optimizer):
         self.startTime = None
         self.timeLimit = None
 
-    def __solve__(self, optProb, sens=None, sensStep=None, sensMode=None,
+    def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                   storeHistory=None, hotStart=None, warmStart=None,
                   coldStart=None, timeLimit=None, comm=None):
         '''
@@ -583,16 +585,16 @@ class SNOPT(Optimizer):
                             # Tell snopt to use this warm start information
                             self.setOption('Start', 'Warm start')
                         else:
-                            print 'The number of variables or constraints in warmStart file do not \
-match the number in the current optimization. Ignorning warmStart file and trying cold start.'
+                            print('The number of variables or constraints in warmStart file do not \
+match the number in the current optimization. Ignorning warmStart file and trying cold start.')
                             coldStart = warmStart
                         # end if
                     else:
-                        print 'No warm start information in file. \'xs\' and \'hs\' must be\
- present in history file. Trying cold start.'
+                        print('No warm start information in file. \'xs\' and \'hs\' must be\
+ present in history file. Trying cold start.')
                         coldStart = warmStart
                 else:
-                    print 'warm_file not found. Continuing without warm restart'
+                    print('warm_file not found. Continuing without warm restart')
                 # end if
             # end if
 
@@ -607,11 +609,11 @@ match the number in the current optimization. Ignorning warmStart file and tryin
                     if len(x) == nvar:
                         xs[0:nvar] = x.copy()
                     else:
-                        print 'The number of variable in coldStart file do not \
-match the number in the current optimization. Ignorning coldStart file'
+                        print('The number of variable in coldStart file do not \
+match the number in the current optimization. Ignorning coldStart file')
                     # end if
                 else:
-                    print 'Cold file not found. Continuing without cold restart'
+                    print('Cold file not found. Continuing without cold restart')
                 # end if
             # end if
 
@@ -1062,7 +1064,7 @@ match the number in the current optimization. Ignorning coldStart file'
 if __name__ == '__main__':
     
     # Test SNOPT
-    print 'Testing ...'
+    print('Testing ...')
     snopt = SNOPT()
-    print snopt
+    print(snopt)
 

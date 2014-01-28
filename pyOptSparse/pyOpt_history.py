@@ -1,3 +1,4 @@
+from __future__ import print_function
 #!/usr/bin/env python
 """
 pyOpt_history
@@ -70,7 +71,7 @@ class History(object):
         self.fileName = fileName
 
         # Load any keys it happens to have:
-        self.keys = self.db.keys()
+        self.keys = list(self.db.keys())
 
     def close(self):
         self.db.close()
@@ -156,5 +157,5 @@ class History(object):
 if __name__ == '__main__':
     
     # Test Optimizer History
-    print 'Testing Optimizer History...'
+    print('Testing Optimizer History...')
     
