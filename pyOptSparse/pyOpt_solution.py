@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #!/usr/bin/env python
 """
 pyOpt_solution 
@@ -22,7 +23,7 @@ History
 # Standard Python modules
 # =============================================================================
 import copy
-from pyOpt_optimization import Optimization
+from .pyOpt_optimization import Optimization
 class Solution(Optimization):
     """
     Solution Class Initialization
@@ -68,7 +69,7 @@ class Solution(Optimization):
         text1 = ''
         lines = text0.split('\n')
         lines[1] = lines[1][len('Optimization Problem -- '):]
-        for i in xrange(5):
+        for i in range(5):
             text1 += lines[i] + '\n'
         #end
         # if self.display_opt:
@@ -94,7 +95,7 @@ class Solution(Optimization):
         #     #end
         # #end
 
-        for i in xrange(5,len(lines)):
+        for i in range(5,len(lines)):
             text1 += lines[i] + '\n'
         #end
         text1 += ('-'*80) + '\n'

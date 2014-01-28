@@ -77,9 +77,9 @@ class Gradient(object):
         # compute:
         ndvs = self.optProb.ndvs
         if self.sensMode == 'pgc' and self.comm:
-            self.mydvs = range(self.comm.rank, ndvs, self.comm.size)
+            self.mydvs = list(range(self.comm.rank, ndvs, self.comm.size))
         else:
-            self.mydvs = range(ndvs)
+            self.mydvs = list(range(ndvs))
         return
 
     def __call__(self, x, fobj, fcon):

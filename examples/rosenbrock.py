@@ -1,7 +1,8 @@
+from __future__ import print_function
 #!/usr/bin/env python
 import time, sys
 from pyoptsparse import Optimization
-from pyoptsparse import SNOPT
+from pyoptsparse import SNOPT, IPOPT
 import os, argparse
 import numpy
 import sys
@@ -38,8 +39,9 @@ def objfunc(xx):
             fcon = [0.1-(x[0]-1)**3 - (x[1]-1)]
         else:
             fcon = []
-            
+
     fail = False
+
     return fobj, fcon, fail
 
 def sensfunc(xx, fobj, fcon):
@@ -76,18 +78,21 @@ if sens == 'user':
 
 # Instantiate Optimization Problem
 optProb = Optimization('Rosenbrock function', objfunc, useGroups=groups)
-optProb.addVarGroup('x', 2, 'c', value=[-3,4], lower=-5.12, upper=5.12,
-                    scale=[0.5, 2.0], varSet='xvars')
+optProb.addVarGroup('x', 2, 'c', value=[-1,3], lower=-5.12, upper=5.12,
+                    scale=[1.0, 1.0], varSet='xvars')
 if constrained:
-    optProb.addCon('con',upper=0, scale=2.0)
+    optProb.addCon('con',upper=0, scale=1.0)
 optProb.addObj('f')
 
 # Create optimizer
 snopt = SNOPT()
+ipopt = IPOPT()
 if testHist == 'no':
     # Just run a normal run
     solSnopt1 = snopt(optProb, sens=sens, sensMode=sensMode)
-    print solSnopt1.fStar
+    solIpopt1 = ipopt(optProb, sens=sens, sensMode=sensMode)
+    print(solSnopt1.fStar)
+    print(solIpopt1.fStar)
 else:
     # First call just does 10 iterations
     snopt.setOption('Major iterations limit',10)
@@ -102,4 +107,4 @@ else:
         solSnopt2 = snopt(optProb, sens=sens, sensMode=sensMode,
                           coldStart='opt_hist', storeHistory='opt_hist')
 
-    print solSnopt2.fStar
+    print(solSnopt2.fStar)
