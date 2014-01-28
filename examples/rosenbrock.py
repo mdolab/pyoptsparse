@@ -2,7 +2,7 @@ from __future__ import print_function
 #!/usr/bin/env python
 import time, sys
 from pyoptsparse import Optimization
-from pyoptsparse import SNOPT, IPOPT
+from pyoptsparse import SNOPT#, IPOPT
 import os, argparse
 import numpy
 import sys
@@ -86,13 +86,13 @@ optProb.addObj('f')
 
 # Create optimizer
 snopt = SNOPT()
-ipopt = IPOPT()
+#ipopt = IPOPT()
 if testHist == 'no':
     # Just run a normal run
     solSnopt1 = snopt(optProb, sens=sens, sensMode=sensMode)
-    solIpopt1 = ipopt(optProb, sens=sens, sensMode=sensMode)
+    #solIpopt1 = ipopt(optProb, sens=sens, sensMode=sensMode)
     print(solSnopt1.fStar)
-    print(solIpopt1.fStar)
+    #print(solIpopt1.fStar)
 else:
     # First call just does 10 iterations
     snopt.setOption('Major iterations limit',10)

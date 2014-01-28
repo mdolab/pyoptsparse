@@ -24,10 +24,9 @@ History
 # SNOPT Library
 # =============================================================================
 try:
-    import snopt
+    from . import snopt
 except:
     raise ImportError('SNOPT shared library failed to import')
-
 # =============================================================================
 # Standard Python modules
 # =============================================================================
@@ -440,10 +439,7 @@ class SNOPT(Optimizer):
             if iPrint != 0:
                 if os.path.isfile(PrintFile):
                     os.remove(PrintFile)
-
-                ierror = snopt.openunit(iPrint, numpy.array(PrintFile), 
-                                        numpy.array('new'), 
-                                        numpy.array('sequential'))
+                ierror = snopt.openunit(iPrint, PrintFile, "new", "sequential")
                 if ierror != 0:
                     raise IOError('Failed to properly open %s, ierror = %3d'%
                                   (PrintFile,ierror))
@@ -453,9 +449,8 @@ class SNOPT(Optimizer):
             if iSumm != 0:
                 if os.path.isfile(SummFile):
                     os.remove(SummFile)
-                ierror = snopt.openunit(iSumm, numpy.array(SummFile), 
-                                        numpy.array('new'), 
-                                        numpy.array('sequential'))
+                iSumm = 20
+                ierror = snopt.openunit(iSumm, SummFile, "new", "sequential")
                 if ierror != 0:
                     raise IOError('Failed to properly open %s, ierror = %3d'%
                                   (SummFile,ierror))
