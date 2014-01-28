@@ -910,7 +910,6 @@ but received an array of shape (%d, %d).'% (con.name, con.ncon, ndvs,
         if not isinstance(fcon_in, dict):
             fcon = numpy.atleast_1d(fcon_in)
             if len(fcon) == self.nnCon:
-                print('scaleFact:',scaleFact, fcon)
                 return scaleFact*fcon
             else:
                 raise Error('The constraint array was the incorrect size. \
