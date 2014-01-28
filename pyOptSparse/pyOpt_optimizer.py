@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 #!/usr/bin/env python
 """
 pyOpt_optimizer
@@ -34,31 +36,15 @@ To Do:
     - add Optimizer Info method
 """
 
-# =============================================================================
-# Standard Python modules
-# =============================================================================
-import os, sys
+from .pyOpt_error import Error
 
-# =============================================================================
-# External Python modules
-# =============================================================================
-#import external
-
-# =============================================================================
-# Extension modules
-# =============================================================================
-from pyOpt_optimization import Optimization
-
-# =============================================================================
-# Optimizer Class
-# =============================================================================
 class Optimizer(object):
     
     """
     Abstract Class for Optimizer Object
     """
     
-    def __init__(self, name={}, category={}, def_options={}, informs={}, *args, **kwargs):
+    def __init__(self, name=None, category=None, def_options=None, informs=None, **kwargs):
         
         """
         Optimizer Class Initialization
@@ -81,57 +67,13 @@ class Optimizer(object):
         self.informs = informs
         
         # Initialize Options
-        def_keys = def_options.keys()
-        for key in def_keys:
+        for key in def_options:
             self.options[key] = def_options[key]
-        #end
-        koptions = kwargs.pop('options',{})
-        kopt_keys = koptions.keys()
-        for key in kopt_keys:
-            self.setOption(key,koptions[key])
-        #end
+
+        koptions = kwargs.pop('options', {})
+        for key in koptions:
+            self.setOption(key, koptions[key])
         
-        
-    def __solve__(self, opt_problem={}, *args, **kwargs):
-        
-        """
-        Run Optimizer (Optimizer Specific Routine)
-        
-        **Keyword arguments:**
-        
-        - opt_problem -> INST: Optimization problem instance, *Default* = {}
-        
-        Documentation last updated:  Feb. 03, 2011 - Peter W. Jansen
-        """
-        
-        pass
-        
-        
-    def __call__(self, opt_problem={}, *args, **kwargs):
-        
-        """
-        Run Optimizer (Calling Routine)
-        
-        **Keyword arguments:**
-        
-        - opt_problem -> INST: Optimization problem instance, *Default* = {}
-        
-        Additional arguments and keyword arguments are passed to the objective function call
-        
-        Documentation last updated:  Feb. 03, 2011 - Peter W. Jansen
-        """
-        
-        # Check Optimization Problem
-        if not isinstance(opt_problem,Optimization):
-            try:
-                hasattr(opt_problem,'_constraints')
-            except:
-                raise ValueError("Input is not a Valid Optimization Problem Instance\n")
-            #end
-        #end
-        
-        # Solve Optimization Problem
-        return self.__solve__(opt_problem, *args, **kwargs)
         
     def _on_setOption(self, name, value):
         
@@ -146,131 +88,84 @@ class Optimizer(object):
         Documentation last updated:  Feb. 07, 2011 - Peter W. Jansen
         """
         
-        raise NotImplementedError()
+        raise Error('This optimizer hsa not implemented _on_setOption')
         
     def setOption(self, name, value=None):
-        
         """
-        Set Optimizer Option Value (Calling Routine)
-        
-        **Arguments:**
-        
-        - name -> STR: Option Name
-        
-        **Keyword arguments:**
-        
-        - value -> FLOAT/INT/BOOL: Option Value, *Default* = None
-        
-        Documentation last updated:  Feb. 07, 2011 - Peter W. Jansen
-        """
-        
-        # 
-        def_options = self.options['defaults']
-        if def_options.has_key(name):
-            if (type(value) == def_options[name][0]):
-                self.options[name] = [type(value),value]
+        Generic routine for all option setting. This routine does
+        error checking on the type of the value. 
+
+        Parameters
+        ----------
+        name : str
+            Name of the option to set
+        value : varies
+            Variable value to set. 
+            """
+
+        if name in self.options['defaults']:
+            if type(value) == self.options['defaults'][name][0]:
+                self.options[name] = [type(value), value]
             else:
-                raise IOError('Incorrect ' + repr(name) + ' value type')
-            #end
+                raise Error('Value type for option %s was incorrect. It was \
+expecting type \'%s\' by received type \'%s\''% (
+                        name, self.options['defaults'][name][0], type(value)))
         else:
-            raise IOError(repr(name) + ' is not a valid option name')
-        #end
+            raise Error('Received an unknown option: %s'%repr(name))
         
-        # 
+        # Now call the optimizer specific routine
         self._on_setOption(name, value)
         
     def _on_getOption(self, name):
-        
         """
-        Get Optimizer Option Value (Optimizer Specific Routine)
-        
-        **Arguments:**
-        
-        - name -> STR: Option name
-        
-        Documentation last updated:  Feb. 07, 2011 - Peter W. Jansen
+        Routine to be implemented by optimizer
         """
-        
-        raise NotImplementedError()
+        raise Error('This optimizer haa not implemented _on_getOption')
         
     def getOption(self, name):
-        
         """
-        Get Optimizer Option Value (Calling Routine)
+        Return the optimizer option value for name
+
+        Parameters
+        ----------
+        name : str
+            name of option for which to retrieve value
+
+        Returns
+        -------
+        value : varies
+            value of option for 'name'
+            """
         
-        **Arguments:**
-        
-        - name -> STR: Option name
-        
-        Documentation last updated:  Feb. 07, 2011 - Peter W. Jansen
-        """
-        
-        # 
-        def_options = self.options['defaults']
-        if def_options.has_key(name):
+        if name in self.options['defaults']:
             return self.options[name][1]
         else:	
-            raise IOError(repr(name) + ' is not a valid option name')
-        #end
-        
-        # 
+            raise Error('Received an unknown option: %s.'%repr(name))
+
+        # Now call the optimizer specific routine
         self._on_getOption(name)
         
     def _on_getInform(self, info):
-        
         """
-        Get Optimizer Result Information (Optimizer Specific Routine)
-        
-        **Arguments:**
-        
-        - info -> STR: Information key
-        
-        Documentation last updated:  Feb. 07, 2011 - Peter W. Jansen
-        """
-        
-        raise NotImplementedError()
+        Routine to be implemented by optimizer
+        """        
+        raise Error('This optimizer has not implemented _on_getInform')
         
     def getInform(self, infocode=None):
-        
         """
-        Get Optimizer Result Information (Calling Routine)
-        
-        **Keyword arguments:**
-        
-        - infocode -> INT: information code key
-        
-        Documentation last updated:  Feb. 07, 2011 - Peter W. Jansen
-        """
+        Get optimizer result infom code at exit
 
-        if (infocode == None):
+        Parameters
+        ----------
+        infocode : int
+            Integer information code
+            """
+
+        if infocode is None:
             return self.informs
         else:
             return self._on_getInform(infocode)
-        # end if
         
-    def _on_flushFiles(self):
-        
-        """
-        Flush Output Files (Optimizer Specific Routine)
-        
-        Documentation last updated:  August. 09, 2009 - Ruben E. Perez
-        """
-        
-        raise NotImplementedError()
-        
-    def flushFiles(self):
-        
-        """
-        Flush Output Files (Calling Routine)
-        
-        Documentation last updated:  August. 09, 2009 - Ruben E. Perez
-        """
-        
-        self._on_flushFiles()       
-  
-        
-
-
 
 #==============================================================================
 # Optimizer Test
@@ -278,7 +173,6 @@ class Optimizer(object):
 if __name__ == '__main__':
     
     # Test Optimizer
-    print 'Testing Optimizer...'
+    print('Testing Optimizer...')
     opt = Optimizer()
-    opt.ListAttributes()
     

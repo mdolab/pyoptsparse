@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 #!/usr/bin/env python
 '''
 pyOptSparse_error
@@ -31,6 +33,6 @@ class Error(Exception):
          else:
             msg += word + ' '
             i += len(word)+1
-         msg += ' '*(79-i) + '|\n' + '+'+'-'*78+'+'+'\n'
-         print msg
+      msg += ' '*(79-i) + '|\n' + '+'+'-'*78+'+'+'\n'
+      print(msg)
 
