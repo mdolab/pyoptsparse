@@ -24,7 +24,7 @@ History
 # SNOPT Library
 # =============================================================================
 try:
-    from . import snopt
+    import snopt
 except:
     raise ImportError('SNOPT shared library failed to import')
 
@@ -874,7 +874,7 @@ match the number in the current optimization. Ignorning coldStart file')
 
         self.x_previous[:] = x[:]
         gradEvaled = False
-        if self.getOption('Derivative level') <> 0:
+        if self.getOption('Derivative level') != 0:
             # Evaluate the gradient
             if mode == 2 or (mode == 1 and diff == 0.0):
                 # mode == 2: Evaluate the gradient
@@ -886,7 +886,7 @@ match the number in the current optimization. Ignorning coldStart file')
                 gargs = self.sens(xn, fobj, fcon)
 
                 # Non root rank return for gradient evaluation
-                if rank <> 0:
+                if rank != 0:
                     return
 
                 # Extract returns
@@ -916,7 +916,7 @@ match the number in the current optimization. Ignorning coldStart file')
                 gargs = self.sens(xn, fobj, fcon)
 
                 # Non root rank return for gradient evaluation
-                if rank <> 0:
+                if rank != 0:
                     return 
 
                 # Extract returns
@@ -939,7 +939,7 @@ match the number in the current optimization. Ignorning coldStart file')
         # end if
 
         # Non root rank return for objective evaluation only
-        if rank <> 0:
+        if rank != 0:
             return 
 
         # Write Data to history:
