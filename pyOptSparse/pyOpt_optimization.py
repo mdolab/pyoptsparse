@@ -623,7 +623,7 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
             name, linear, wrt, jac, partialReturnOk,
             lower*scale, upper*scale, scale)
         
-    def reorderConstraintJacobian(self, reorder=['nonLinear', 'linear']):
+    def reorderConstraintJacobian(self):
         """
         ** This function should not need to be called by the end
            user**
@@ -633,14 +633,9 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
         must be called by all optimizers regardless, since the con.rs
         and con.re values are computed in this function. 
 
-        Parameters
-        ----------
-        reorder : list
-            How to reorder:
-            ['nonLinear', 'linear'] => put nonlinear ones first
-            ['linear', 'nonLinear'] => put nonlinear ones first
-            [] => Anything else: keep the same order as supplied.
-      
+        By always reordering in this manner, if an optimizer doesn't
+        support linear constraints explictly, we can just tack them on
+        at the end of the non-linear jacobian
         """
 
         # Determine the total number of linear and nonlinear constraints:
@@ -665,64 +660,34 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
         # and column end (ce) values. The actual ordering depends on
         # if constraints are reordered or not. 
         rowCounter = 0 
-        if reorder == ['nonLinear', 'linear']:
-            for iCon in self.constraints:
-                con = self.constraints[iCon]
-                if not con.linear:
-                    con.rs = rowCounter
-                    rowCounter += con.ncon
-                    con.re = rowCounter
-                    conScaleNonLinear.extend(con.scale)
-                    conScaleFull.extend(con.scale)
-
-            for iCon in self.constraints:
-                con = self.constraints[iCon]
-                if con.linear:
-                    con.rs = rowCounter
-                    rowCounter += con.ncon
-                    con.re = rowCounter
-                    conScaleFull.extend(con.scale)
-        elif reorder == ['linear', 'nonLinear']:
-            for iCon in self.constraints:
-                con = self.constraints[iCon]
-                if con.linear:
-                    con.rs = rowCounter
-                    rowCounter += con.ncon
-                    con.re = rowCounter
-                    conScaleFull.extend(con.scale)
-
-            for iCon in self.constraints:
-                con = self.constraints[iCon]
-                if not con.linear:
-                    con.rs = rowCounter
-                    rowCounter += con.ncon
-                    con.re = rowCounter
-                    conScaleNonLinear.extend(con.scale)
-                    conScaleFull.extend(con.scale)
-
-        else: # No re-ordering
-            for iCon in self.constraints:
-                con = self.constraints[iCon]
+        for iCon in self.constraints:
+            con = self.constraints[iCon]
+            if not con.linear:
                 con.rs = rowCounter
                 rowCounter += con.ncon
-                con.re = rowCounter 
-                if not con.linear:
-                    conScaleNonLinear.extend(con.scale)
-                conScaleFull.extend(con.scale)
+                con.re = rowCounter
+                conScaleNonLinear.extend(con.scale)
+
+        for iCon in self.constraints:
+            con = self.constraints[iCon]
+            if con.linear:
+                con.rs = rowCounter
+                rowCounter += con.ncon
+                con.re = rowCounter
+                conScaleLinear.extend(con.scale)
 
         # Save constraint scaling arrays
-        self.conScaleFull = numpy.array(conScaleFull)
+        self.conScaleFull = numpy.hstack([conScaleNonLinear, conScaleLinear])
         self.conScaleNonLinear = numpy.array(conScaleNonLinear)
+        self.conScaleLinear = numpy.array(conScaleLinear)
 
-        # Assemble the design variable scaling
+        # Also assemble the design variable scaling
         xscale = []
         for dvSet in self.variables:
             for dvGroup in self.variables[dvSet]:
                 for var in self.variables[dvSet][dvGroup]:
                     xscale.append(var.scale)
         self.xscale = numpy.array(xscale)
-
-        return
 
     def processDerivatives(self, gobj_in, gcon_in, linearConstraints=False, 
                            nonlinearConstraints=True):

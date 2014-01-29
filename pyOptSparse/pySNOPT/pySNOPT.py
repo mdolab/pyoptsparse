@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 #/bin/env python
-'''
+"""
 pySNOPT - A variation of the pySNOPT wrapper specificially designed to
 work with sparse optimization problems.
 
@@ -19,7 +19,7 @@ Developers:
 History
 -------
     v. 0.1    - Initial Wrapper Creation 
-'''
+"""
 # =============================================================================
 # SNOPT Library
 # =============================================================================
@@ -66,14 +66,14 @@ except:
 # SNOPT Optimizer Class
 # =============================================================================
 class SNOPT(Optimizer):
-    '''
+    """
     SNOPT Optimizer Class - Inherited from Optimizer Abstract Class
-    '''
+    """
     
     def __init__(self, *args, **kwargs):
-        '''
+        """
         SNOPT Optimizer Class Initialization
-        '''
+        """
         
         name = 'SNOPT'
         category = 'Local Optimizer'
@@ -257,7 +257,7 @@ class SNOPT(Optimizer):
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                   storeHistory=None, hotStart=None, warmStart=None,
                   coldStart=None, timeLimit=None, comm=None):
-        '''
+        """
         This is the main routine used to solve the optimization
         problem.
 
@@ -327,7 +327,7 @@ class SNOPT(Optimizer):
             Specifiy a MPI comm to use. Default is None. If mpi4py is not
             available, the serial mode will still work. if mpi4py *is*
             available, comm defaluts to MPI.COMM_WORLD. 
-            '''
+            """
         
         self.callCounter = 0
         # Pull off starting time, if necessary
@@ -347,8 +347,7 @@ class SNOPT(Optimizer):
         # jacobian, in general can only do on root proc
         self.optProb = optProb
         self.optProb._finalizeDesignVariables()
-        self.optProb.reorderConstraintJacobian(
-            reorder=['nonLinear','linear'])
+        self.optProb.reorderConstraintJacobian()
 
         # Next we determine what to what to do about
         # derivatives. SNOPT is a little special actually since it can
@@ -368,7 +367,6 @@ class SNOPT(Optimizer):
         else:
             raise Error('Unknown value given for sens. Must be None, \'FD\', \
             \'CS\' or a python function handle')
-        # end if
                 
         # We make a split here: If the rank is zero we setup the
         # problem and run SNOPT, otherwise we go to the waiting loop:
@@ -429,7 +427,6 @@ class SNOPT(Optimizer):
             ff = []
             for key in self.optProb.objectives.keys():
                 ff.append(self.optProb.objectives[key].value)
-
             ff = numpy.array(ff)
 
             # Initialize the Print and Summary files
@@ -437,24 +434,18 @@ class SNOPT(Optimizer):
             iPrint = self.options['iPrint'][1]
             PrintFile = self.options['Print file'][1]
             if iPrint != 0:
-                if os.path.isfile(PrintFile):
-                    os.remove(PrintFile)
-                ierror = snopt.openunit(iPrint, PrintFile, "new", "sequential")
+                ierror = snopt.openunit(iPrint, PrintFile, "replace", "sequential")
                 if ierror != 0:
-                    raise IOError('Failed to properly open %s, ierror = %3d'%
-                                  (PrintFile,ierror))
+                    raise Error('Failed to properly open %s, ierror = %3d'%
+                                (PrintFile,ierror))
 
             iSumm = self.options['iSumm'][1]
             SummFile = self.options['Summary file'][1]
             if iSumm != 0:
-                if os.path.isfile(SummFile):
-                    os.remove(SummFile)
-                iSumm = 20
-                ierror = snopt.openunit(iSumm, SummFile, "new", "sequential")
+                ierror = snopt.openunit(iSumm, SummFile, "replace", "sequential")
                 if ierror != 0:
-                    raise IOError('Failed to properly open %s, ierror = %3d'%
-                                  (SummFile,ierror))
-
+                    raise Error('Failed to properly open %s, ierror = %3d'%
+                                  (SummFile, ierror))
       
             # We will also assemble just the nonlinear jacobain to
             # determine the number nonzero entries. This must remain
@@ -558,77 +549,19 @@ class SNOPT(Optimizer):
             ninf = numpy.array([0], numpy.intc)
             sinf = numpy.array([0.], numpy.float)
 
-            # Open history file if required:
-            self.storeHistory = False
-            if storeHistory:
-                self.hist = History(storeHistory)
-                self.storeHistory = True
-            # end if
+            # Set history
+            self._setHistory(storeHistory)
 
-            # Check for warm start 
-            # ------------------------------------------
-            if warmStart is not None:
-                if os.path.exists(warmStart):
-                    hist = History(warmStart, flag='r')
-                    xs_tmp = hist.readData('xs')
-                    hs_tmp = hist.readData('hs')
-                    hist.close()
-                    if xs_tmp is not None and hs_tmp is not None:
-                        if len(xs_tmp) == len(xs) and len(hs_tmp) == len(hs):
-                            xs = xs_tmp.copy()
-                            hs = hs_tmp.copy()
-                            # Tell snopt to use this warm start information
-                            self.setOption('Start', 'Warm start')
-                        else:
-                            print('The number of variables or constraints in warmStart file do not \
-match the number in the current optimization. Ignorning warmStart file and trying cold start.')
-                            coldStart = warmStart
-                        # end if
-                    else:
-                        print('No warm start information in file. \'xs\' and \'hs\' must be\
- present in history file. Trying cold start.')
-                        coldStart = warmStart
-                else:
-                    print('warm_file not found. Continuing without warm restart')
-                # end if
-            # end if
+            # Check for warm/cold start --- this is snopt specific so
+            # we have a special function for this:
+            res1, res2 = self._warmStart(warmStart, coldStart)
+            if res1 is not None:
+                xs[0:nvar] = res1
+            if res2 is not None:
+                hs = res2.copy()
 
-            # Check for cold start 
-            # ------------------------------------------
-            if coldStart is not None:
-                if os.path.exists(coldStart):
-                    cold_file = shelve.open(coldStart,flag='r')
-                    last_key = cold_file['last']
-                    x = cold_file[last_key]['x_array'].copy()*self.optProb.xscale
-                    cold_file.close()
-                    if len(x) == nvar:
-                        xs[0:nvar] = x.copy()
-                    else:
-                        print('The number of variable in coldStart file do not \
-match the number in the current optimization. Ignorning coldStart file')
-                    # end if
-                else:
-                    print('Cold file not found. Continuing without cold restart')
-                # end if
-            # end if
-
-            self.hotStart = None
-     
-            # Determine if we want to do a hot start:
-            if hotStart is not None:
-                # Now, if if the hot start file and the history are
-                # the SAME, we don't allow that. We will create a copy
-                # of the hotStart file and use *that* instead. 
-                import tempfile, shutil
-                if storeHistory == hotStart:
-                    if os.path.exists(hotStart):
-                        fname = tempfile.mktemp()
-                        shutil.copyfile(storeHistory, fname)
-                        self.hotStart = History(fname, temp=True, flag='r')
-                else:
-                    self.hotStart = History(hotStart, temp=False, flag='r')
-                # end if
-            # end if
+            # Setup hot start if necessary
+            self._hotStart(storeHistory, hotStart)
 
             # The snopt c interface
             timeA = time.time()
@@ -671,6 +604,7 @@ match the number in the current optimization. Ignorning coldStart file')
                     for var in sol.variables[dvSet][dvGroup]:
                         var.value = xs[i]
                         i += 1
+
             sol.fStar = ff
         else: # We are not on the root process so go into waiting loop:
 
@@ -702,81 +636,40 @@ match the number in the current optimization. Ignorning coldStart file')
         
         return  sol
 
-    def _userfg_wrap(self, mode, nnJac, x, fObj, gObj, fCon, gCon, nState, cu, iu, ru):
-        '''
+    def _userfg_wrap(self, mode, nnJac, x, fObj, gObj, fCon, gCon, 
+                     nState, cu, iu, ru):
+        """
         The snopt user function. This is what is actually called from snopt.
         
-        It is only called on the root processor actually running
-        snopt. History processing is also performed here. The reason
-        for this is that the re-runnign on history is serial so it
-        makes sense to only read on processor that actually requires
-        the data.
-        '''
+        Essentially nothing is done in this function, but this funcion
+        has to precisely match the signature of the fortran function so
+        has to look EXACTLY like this. 
+
+        All we do here is call the generic masterFunc in the base
+        class which will take care of everything else. 
+        """
+
+        # We do however, have to tell it what we want back:
+        evaluate = []
+        if mode == 0:
+            evaluate.append('fobj')
+            evaluate.append('fcon')
+        if mode == 1:
+            evaluate.append('gobj')
+            evaluate.append('gcon')
+        if mode == 2:
+            evaluate.append('fobj')
+            evaluate.append('fcon')
+            evaluate.append('gobj')
+            evaluate.append('gcon')
         
-        x = x/self.optProb.xscale
+        fobj_return, fcon_return, gobj_return, gcon_return = \
+            self.masterFunc(x, evaluate)
 
-        # Determine if we've exeeded the time limit:
-        if self.timeLimit:
-            if time.time() - self.startTime > self.timeLimit:
 
-                # Broadcast a -1 to indcate SNOPT has finished and
-                # make the remainder of the processors finish.
-                if MPI:
-                    MPI.COMM_WORLD.bcast(-1, root=0)
-                # end if
-                    
-                # Mode = -2 will tell SNOPT that we want to finish
-                # (immediately)
-                mode = -2
-                return mode 
-            # end if
-        # end if
 
-        # ------------------ Hot Start Processing ------------------
-        if self.hotStart:
-            if self.hotStart.validPoint(self.callCounter, x):
-                data = self.hotStart.read(self.callCounter)
-                xn = data['x']
-                x_array = data['x_array']
-                fObj = data['fobj']
-                fCon = data['fcon']
-                fail = data['fail']
-                if fail: 
-                    mode = -1
 
-                if not self.unconstrained:
-                    fcon_return = self.optProb.processConstraints(fCon)
-                else:
-                    fcon_return = [0]
         
-                # Just pass gobj and gcon back if no gradient evaluated
-                gobj_return = gObj
-                gcon_return = gCon
-                gradEvaled = False
-                if data.has_key('gobj'):
-                    gradEvaled = True
-                    gObj = data['gobj']
-                    gCon = data['gcon']
-                    gobj_return, gcon_return = self.optProb.processDerivatives(
-                        gObj, gCon, linearConstraints=False, nonlinearConstraints=True)
-                    if self.unconstrained:
-                        gcon_return = numpy.zeros(self.optProb.ndvs)
-                    else:
-                        gcon_return = gcon_return.tocsc().data
-                # end if
-
-                # Write Data to history (if required):
-                if self.storeHistory:
-                    self.hist.write(self.callCounter, fObj, fCon, fail, xn, x, gradEvaled, 
-                                    gObj, gCon, mode=mode, feasibility=ru[0], optimality=ru[1],
-                                    merit=ru[1], majorIt=iu[0])
-                # end if
-
-                self.callCounter += 1
-
-                return mode, fObj, gobj_return, fcon_return, gcon_return
-            # end if
-
             # We have used up all the information in hot start
             # so we can close the hot start file
             self.hotStart.close()
@@ -797,7 +690,7 @@ match the number in the current optimization. Ignorning coldStart file')
         return self.userfg(*userfg_args)
 
     def userfg(self, mode, nnJac, x, fobj, gobj, fcon, gcon, cu, iu, ru):
-        '''
+        """
         The snopt user function. This is what would normally be called
         from snopt. This function is called on all processors. 
         
@@ -808,7 +701,7 @@ match the number in the current optimization. Ignorning coldStart file')
         gobj = gradient of the objective
         fcon = constraints
         gcon = gradient of the constraints
-        '''
+        """
 
         xn = self.optProb.processX(x)
 
@@ -947,11 +840,51 @@ match the number in the current optimization. Ignorning coldStart file')
 
         return mode, fobj, gobj_return, fcon_return, gcon_return
 
+
+    def _warmStart(self, warmStart, coldStart):
+        """
+        Internal snopt function to do a warm start or cold start. The
+        cold start code resides in the generic base class"""
+
+        xs = None
+        hs = None
+        if warmStart is not None:
+            if os.path.exists(warmStart):
+                hist = History(warmStart, flag='r')
+                xs_tmp = hist.readData('xs')
+                hs_tmp = hist.readData('hs')
+                hist.close()
+                if xs_tmp is not None and hs_tmp is not None:
+                    if len(xs_tmp) == len(xs) and len(hs_tmp) == len(hs):
+                        xs = xs_tmp.copy()
+                        hs = hs_tmp.copy()
+                        # Tell snopt to use this warm start information
+                        self.setOption('Start', 'Warm start')
+                    else:
+                        print('The number of variables or constraints in warmStart file do not \
+match the number in the current optimization. Ignorning warmStart file and trying cold start.')
+                        coldStart = warmStart
+
+                else:
+                    print('No warm start information in file. \'xs\' and \'hs\' must be\
+ present in history file. Trying cold start instead.')
+                    coldStart = warmStart
+            else:
+                print('warmStart file not found. Continuing without warm restart')
+        # end if (warm start)
+
+        # Now if we have a cold start, we can call the common code:
+        if coldStart is not None:
+            xs = self._coldStart(coldStart)
+
+        # Return 
+        return xs, hs
+
     def _set_snopt_options(self, iPrint, iSumm, cw, iw, rw):
-        '''
+        """
         Set all the options into SNOPT that have been assigned
         by the user
-        '''
+        """
                 
         # Set Options from the local options dictionary
         # ---------------------------------------------
@@ -997,26 +930,26 @@ match the number in the current optimization. Ignorning coldStart file')
         return
 
     def _on_setOption(self, name, value):
-        '''
+        """
         Set Optimizer Option Value (Optimizer Specific Routine)
         
         Documentation last updated:  May. 07, 2008 - Ruben E. Perez
-        '''
+        """
         
         self.set_options.append([name,value])
         
         
     def _on_getOption(self, name):
-        '''
+        """
         Get Optimizer Option Value (Optimizer Specific Routine)
         
         Documentation last updated:  May. 07, 2008 - Ruben E. Perez
-        '''
+        """
         
         pass
         
     def _on_getInform(self, infocode):
-        '''
+        """
         Get Optimizer Result Information (Optimizer Specific Routine)
         
         Keyword arguments:
@@ -1024,7 +957,7 @@ match the number in the current optimization. Ignorning coldStart file')
         id -> STRING: Option Name
         
         Documentation last updated:  May. 07, 2008 - Ruben E. Perez
-        '''
+        """
         
         # 
         mjr_code = (infocode[0]/10)*10
@@ -1038,11 +971,11 @@ match the number in the current optimization. Ignorning coldStart file')
         return inform_text
         
     def _on_flushFiles(self):
-        '''
+        """
         Flush the Output Files (Optimizer Specific Routine)
         
         Documentation last updated:  August. 09, 2009 - Ruben E. Perez
-        '''
+        """
         
         # 
         iPrint = self.options['iPrint'][1]
