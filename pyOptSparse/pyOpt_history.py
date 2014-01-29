@@ -69,22 +69,11 @@ class History(object):
         if self.temp:
             os.remove(self.fileName)
 
-    def write(self, callCounter, fobj, fcon, fail, xn, x_array,
-              gradEvaled, gobj, gcon, **kwargs):
-        """This is the main function called from each optimizer to
-        write the current information from a evaluation to the history
-        file"""
+    def write(self, callCounter, data):
+        """This is the main to write data. Basically, we just pass in
+        the callCounter, the integer forming the key, and a dictionary
+        which will be written to the key"""
         
-        data = {'fobj':fobj, 'fcon':fcon, 'fail':fail, 'x':xn,
-                'x_array':x_array}
-        if gradEvaled:
-            data['gobj'] = gobj
-            data['gcon'] = gcon
-
-        # Add any extra keyword arguments that specific optimizers may
-        # want to save
-        data.update(kwargs)
-
         # String key to database on disk
         key = '%d'% callCounter
 
@@ -92,8 +81,6 @@ class History(object):
         self.db['last'] = key
         self.db.sync()
         
-        return
-
     def writeData(self, key, data):
         """
         Write arbitrary key:data value to db
