@@ -249,11 +249,14 @@ class SNOPT(Optimizer):
         self.set_options = []
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
 
-        # The state of the variables and the slacks
-        self.x_previous = None
-        self.startTime = None
-        self.timeLimit = None
+        # Snopt doesn't required appending linearConstraint 
+        self.appendLinearConstraints = False
 
+        # Snopt need jacobians in csc format
+        self.jacType = 'csc'
+
+        # Constrained until we know otherwise :-)
+        self.unconstrained = False
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                   storeHistory=None, hotStart=None, warmStart=None,
                   coldStart=None, timeLimit=None, comm=None):
@@ -330,24 +333,22 @@ class SNOPT(Optimizer):
             """
         
         self.callCounter = 0
-        # Pull off starting time, if necessary
-        self.startTime = time.time()
-        if timeLimit is not None:
-            self.timeLimit = timeLimit
-
-        self.unconstrained = False
+  
         if len(optProb.constraints) == 0:
             # If the user *actually* has an unconstrained problem,
             # snopt sort of chokes with that....it has to have at
             # least one constraint. So we will add one
             # automatically here:
             self.unconstrained = True
+            optProb.dummyConstraint = True
             
         # Save the optimization problem and finialize constraint
         # jacobian, in general can only do on root proc
         self.optProb = optProb
-        self.optProb._finalizeDesignVariables()
-        self.optProb.reorderConstraintJacobian()
+        self.optProb.finalizeDesignVariables()
+        self.optProb.finalizeConstraints()
+        # Setup initial cache values
+        self._setInitialCacheValues()
 
         # Next we determine what to what to do about
         # derivatives. SNOPT is a little special actually since it can
@@ -447,31 +448,37 @@ class SNOPT(Optimizer):
                     raise Error('Failed to properly open %s, ierror = %3d'%
                                   (SummFile, ierror))
       
-            # We will also assemble just the nonlinear jacobain to
-            # determine the number nonzero entries. This must remain
-            # fixed in subsequent iterations
+
+            # Determine the sparsity structure of the full jacobian
+            # -----------------------------------------------------
+            # Get nonlinear part:
             gcon = {}
             for iCon in self.optProb.constraints:
                 con = self.optProb.constraints[iCon]
-                gcon[iCon] = con.jac
-            # end for
-            gobj = numpy.zeros(self.optProb.ndvs)
+                if not con.linear:
+                    gcon[iCon] = con.jac
 
-            if not self.unconstrained:
-                gobj, fullJacobian = self.optProb.processDerivatives(
-                    gobj, gcon, linearConstraints=True, nonlinearConstraints=True)
+            fullJacobian = self.optProb.processConstraintJacobian(
+                gcon, linearFlag=False)
 
-                fullJacobian = fullJacobian.tocsc()
-                self.nnCon = self.optProb.nnCon
-            else:
-                fullJacobian = sparse.csc_matrix(numpy.ones(self.optProb.ndvs))
-                self.nnCon = 1
-            # end if
-            
+            # If we have linear constraints those are already done actually.
+            if self.optProb.linearJacobian is not None:
+                fullJacobian = sparse.vstack([fullJacobian,
+                                              self.optProb.linearJacobian])
+
+            # Convert to the csc format that snopt needs
+            fullJacobian = fullJacobian.tocsc()
+
             Acol = fullJacobian.data
             indA = fullJacobian.indices + 1
             locA = fullJacobian.indptr + 1
-                
+            
+            # Set the number of nonlinear constraints snopt *thinks* we have:
+            if self.unconstrained:
+                nnCon = 1
+            else:
+                nnCon = self.optProb.nnCon
+            
             # Calculate the length of the work arrays
             # --------------------------------------
             nvar = self.optProb.ndvs
@@ -489,7 +496,6 @@ class SNOPT(Optimizer):
 
             # Memory allocation
             nnObj = nvar
-            nnCon = self.nnCon
             nnJac = nvar
             iObj = numpy.array(0, numpy.intc)
             neA = len(indA)
@@ -501,7 +507,8 @@ class SNOPT(Optimizer):
 
             mincw, miniw, minrw,cw = snopt.snmemb(iExit, ncon, nvar, 
                                                   neA, neGcon, 
-                                                  nnCon, nnJac, nnObj, cw, iw, rw)
+                                                  nnCon, nnJac, nnObj,
+                                                  cw, iw, rw)
 
             if (minrw > lenrw) or (miniw > leniw) or (mincw > lencw):
                 if mincw > lencw:
@@ -520,6 +527,7 @@ class SNOPT(Optimizer):
                 # snInit resets all the options to the defaults. 
                 # Set them again!
                 self._set_snopt_options(iPrint, iSumm, cw, iw, rw)  
+
             # end if
 
             # Setup argument list values
@@ -565,6 +573,11 @@ class SNOPT(Optimizer):
 
             # The snopt c interface
             timeA = time.time()
+            #print (start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm)
+            #print (self._userfg_wrap, Acol, indA, locA, bl, bu, Names, hs, xs, pi, rc)
+            #print (inform, mincw, miniw, minrw, 
+            #       nS, ninf, sinf, ff)#, cu, iu, ru, cw, iw, rw)
+
             snopt.snoptc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
                          self._userfg_wrap, Acol, indA, locA, bl, bu, 
                          Names, hs, xs, pi, rc, inform, mincw, miniw, minrw, 
@@ -606,241 +619,54 @@ class SNOPT(Optimizer):
                         i += 1
 
             sol.fStar = ff
+            
         else: # We are not on the root process so go into waiting loop:
-
-            mode = None
-            info = None
-            while True:
-                # * Note*: No checks for MPI here since this code is
-                # * only run in parallel, which assumes mpi4py is working
-
-                # Receive mode and quit if mode is -1:
-                mode = MPI.COMM_WORLD.bcast(mode, root=0)
-                if mode == -1:
-                    break
-
-                # Otherwise receive info from shell function
-                info = MPI.COMM_WORLD.bcast(info, root=0)
-
-                # Call the internal function we should have called from
-                # SNOPT. We don't care about return values on these procs
-
-                self.userfg(*info)
-            # end while
+            self.waitLoop()
             sol = None
         # end if
 
-        # Communicate the solution
+        # Communicate the solution -- We are back to the point where
+        # all processors are back together, so a standard bcast is
+        # fine.
         if MPI:
             sol = MPI.COMM_WORLD.bcast(sol)
         
         return  sol
 
-    def _userfg_wrap(self, mode, nnJac, x, fObj, gObj, fCon, gCon, 
+    def _userfg_wrap(self, mode, nnJac, x, fobj, gobj, fcon, gcon, 
                      nState, cu, iu, ru):
         """
         The snopt user function. This is what is actually called from snopt.
         
         Essentially nothing is done in this function, but this funcion
-        has to precisely match the signature of the fortran function so
-        has to look EXACTLY like this. 
+        has to precisely match the signature from fortran so must look
+        EXACTLY like this. 
 
-        All we do here is call the generic masterFunc in the base
-        class which will take care of everything else. 
+        All we do here is call the generic masterFunc in the baseclass
+        which will take care of everything else.
         """
 
-        # We do however, have to tell it what we want back:
-        evaluate = []
-        if mode == 0:
-            evaluate.append('fobj')
-            evaluate.append('fcon')
-        if mode == 1:
-            evaluate.append('gobj')
-            evaluate.append('gcon')
-        if mode == 2:
-            evaluate.append('fobj')
-            evaluate.append('fcon')
-            evaluate.append('gobj')
-            evaluate.append('gcon')
-        
-        fobj_return, fcon_return, gobj_return, gcon_return = \
-            self.masterFunc(x, evaluate)
-
-
-
-
-        
-            # We have used up all the information in hot start
-            # so we can close the hot start file
-            self.hotStart.close()
-            self.hotStart = None
-        # end if
-        # ----------------------------------------------------------
-
-        userfg_args = [mode, nnJac, x, fObj, gObj, fCon, gCon, cu, iu, ru]
-        if MPI:
-            # Broadcast the type of call (0 means regular call)
-            MPI.COMM_WORLD.bcast(0, root=0)
-
-            # Broadcast the requried arguments
-            MPI.COMM_WORLD.bcast(userfg_args)
-        # end if
-
-        # Call userfg and return result
-        return self.userfg(*userfg_args)
-
-    def userfg(self, mode, nnJac, x, fobj, gobj, fcon, gcon, cu, iu, ru):
-        """
-        The snopt user function. This is what would normally be called
-        from snopt. This function is called on all processors. 
-        
-        mode = the mode used to indicate whether to eval gradient or not
-        njac = the number of Jacobian elements
-        x = the design variables
-        fobj = objective function
-        gobj = gradient of the objective
-        fcon = constraints
-        gcon = gradient of the constraints
-        """
-
-        xn = self.optProb.processX(x)
-
-        # If the gradient isn't calculated, gobj and gcon pass back
-        # through
-        gobj_return = gobj
-        gcon_return = gcon
-
-        # Flush the files to the buffer for all the people who like to 
-        # monitor the residual           
-        if self.options['iPrint'][1] != 0:
-            snopt.pyflush(self.options['iPrint'][1])
-        if self.options['iSumm'][1] != 0:
-            snopt.pyflush(self.options['iSumm'][1])
-
-        # Assume fail is False. This is really subtle: When using
-        # snopt with its own internal FD calc, even with derivative
-        # level 0 and not changing the gobj, and gcon arrays, snopt
-        # will **STILL** call with mode 1, just because. When mode 1
-        # is called, with derivative level 0, nothing happens, (no
-        # function or gradient is called since this is call is realy
-        # meaningless --- compute gradient when no gradient is
-        # supplied) and the fail flag isn't set anywhere. That's why it
-        # needs to be set here.
-        fail=False
-        
-        # Evaluate the function
+        fail = False
         if mode == 0 or mode == 2:
-            fargs = self.optProb.objFun(xn)
-            if rank == 0:
-                # Process fcon and fobj
-                fobj = fargs[0]
-                fcon = fargs[1]
-                fail = fargs[2]
-                if not self.unconstrained:
-                    fcon_return = self.optProb.processConstraints(fcon)
-                else:
-                    fcon_return = [0]
-                if fail:
-                    mode = -1
-                # end if
-            # end if
-        else:
-            if rank == 0:
-                fcon_return = fcon.copy()
-            # end if
-        # end if
+            fobj, fcon, fail = self.masterFunc(x, ['fobj', 'fcon'])
+        if mode == 1:
+            if self.getOption('Derivative level') != 0:
+                gobj, gcon, fail = self.masterFunc(x, ['gobj', 'gcon'])
+        if mode == 2:
+            if self.getOption('Derivative level') != 0:
+                gobj, gcon, fail2 = self.masterFunc(x, ['gobj', 'gcon'])
+                fail = fail or fail2
+                
+        # Flush the files to the buffer for all the people who like to
+        # monitor the residual
+        snopt.pyflush(self.getOption('iPrint'))
+        snopt.pyflush(self.getOption('iSumm'))
 
-        # Check if last point is *actually* what we evaluated for
-        # mode=1
-        diff = 1.0
-        if not (self.x_previous is None):
-            diff = numpy.dot(x-self.x_previous, x-self.x_previous)
+        if fail:
+            mode = -1
 
-        if self.x_previous is None:
-            self.x_previous = numpy.zeros(x.size)
-        # end if
-
-        self.x_previous[:] = x[:]
-        gradEvaled = False
-        if self.getOption('Derivative level') != 0:
-            # Evaluate the gradient
-            if mode == 2 or (mode == 1 and diff == 0.0):
-                # mode == 2: Evaluate the gradient
-                # or
-                # mode == 1: Only the gradient is required and the previously
-                # evaluated point is the same as this point. Evaluate only
-                # the gradient                
-                gradEvaled = True
-                gargs = self.sens(xn, fobj, fcon)
-
-                # Non root rank return for gradient evaluation
-                if rank != 0:
-                    return
-
-                # Extract returns
-                gobj = gargs[0]
-                gcon = gargs[1]
-                fail = gargs[2]
-
-                if fail:
-                    mode = -1
-                # end if
-
-                # Run the standard process derivatives function
-                gobj_return, gcon_return = self.optProb.processDerivatives(
-                    gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
-
-                if self.unconstrained:
-                    gcon_return = numpy.zeros(self.optProb.ndvs)
-                else:
-                    gcon_return = gcon_return.tocsc().data
-
-            elif mode == 1:
-                # mode == 1: only gradient is required, but the
-                # previously evaluated point is different. Evaluate the
-                # objective then the gradient
-                gradEvaled = True
-                fargs = self.optProb.objFun(xn)
-                gargs = self.sens(xn, fobj, fcon)
-
-                # Non root rank return for gradient evaluation
-                if rank != 0:
-                    return 
-
-                # Extract returns
-                gobj = gargs[0]
-                gcon = gargs[1]
-                fail = gargs[2]
-
-                if fail:
-                    mode = -1
-
-                # Run the standard process derivatives function
-                gobj_return, gcon_return = self.optProb.processDerivatives(
-                    gobj, gcon, linearConstraints=False, nonlinearConstraints=True)
-
-                if self.unconstrained:
-                    gcon_return = numpy.zeros(self.optProb.ndvs)
-                else:
-                    gcon_return = gcon_return.tocsc().data
-            # end if
-        # end if
-
-        # Non root rank return for objective evaluation only
-        if rank != 0:
-            return 
-
-        # Write Data to history:
-        if self.storeHistory:
-            self.hist.write(self.callCounter, fobj, fcon, fail, xn, x, gradEvaled, 
-                            gobj, gcon, mode=mode, feasibility=ru[0], optimality=ru[1],
-                            merit=ru[1], majorIt=iu[0])
-        # end if
-        self.callCounter += 1
-
-        return mode, fobj, gobj_return, fcon_return, gcon_return
-
-
+        return mode, fobj, gobj, fcon, gcon
+       
     def _warmStart(self, warmStart, coldStart):
         """
         Internal snopt function to do a warm start or cold start. The

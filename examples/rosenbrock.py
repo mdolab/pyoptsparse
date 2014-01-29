@@ -28,7 +28,7 @@ def objfunc(xx):
         x = xx['x'] # Extract array
     else:
         x = xx
-        
+
     fobj = 100*(x[1]-x[0]**2)**2+(1-x[0])**2
 
     if useDict:
@@ -49,7 +49,7 @@ def sensfunc(xx, fobj, fcon):
         x = xx['x'] # Extract array
     else:
         x = xx
-        
+
     if useDict:
         gobj = {}
         gobj['xvars'] = [2*100*(x[1]-x[0]**2)*(-2*x[0]) - 2*(1-x[0]),
@@ -78,7 +78,7 @@ if sens == 'user':
 
 # Instantiate Optimization Problem
 optProb = Optimization('Rosenbrock function', objfunc, useGroups=groups)
-optProb.addVarGroup('x', 2, 'c', value=[-1,3], lower=-5.12, upper=5.12,
+optProb.addVarGroup('x', 2, 'c', value=[-4,-4], lower=-5.12, upper=5.12,
                     scale=[1.0, 1.0], varSet='xvars')
 if constrained:
     optProb.addCon('con',upper=0, scale=1.0)
@@ -89,7 +89,7 @@ snopt = SNOPT()
 #ipopt = IPOPT()
 if testHist == 'no':
     # Just run a normal run
-    solSnopt1 = snopt(optProb, sens=sens, sensMode=sensMode)
+    solSnopt1 = snopt(optProb, sens=sens, sensMode=sensMode)#, storeHistory='opt_hist')
     #solIpopt1 = ipopt(optProb, sens=sens, sensMode=sensMode)
     print(solSnopt1.fStar)
     #print(solIpopt1.fStar)

@@ -98,12 +98,7 @@ class History(object):
         if key not in self.keys:
             return False
 
-        x_array = self.db[key]['x_array']
-        
-        # Check that the x's *actually* match
-        diff = numpy.dot(x-x_array, x-x_array)
-
-        if diff < eps:
+        if numpy.linalg.norm(x-self.db[key]['x']) < eps:
             return True
         else:
             return False

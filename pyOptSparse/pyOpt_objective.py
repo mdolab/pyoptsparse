@@ -27,12 +27,18 @@ class Objective(object):
     ----------
     name : str
         Name of this objective
+
+    scale : float
+        Scaling factor for objective. This does not change the actual
+        optimization problem, but may be used to give a more
+        human-meaningful value
         """
     
-    def __init__(self, name):
+    def __init__(self, name, scale=1.0):
         self.name = name
         self.value = 0.0
         self.optimum = 0.0
+        self.scale = scale
         
     def __str__(self):
         """
