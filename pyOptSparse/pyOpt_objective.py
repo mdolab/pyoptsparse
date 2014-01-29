@@ -33,13 +33,14 @@ class Objective(object):
         self.name = name
         self.value = 0.0
         self.optimum = 0.0
-    def __str__(self):
         
+    def __str__(self):
         """
         Structured Print of Objective
-        
-        Documentation last updated:  April. 30, 2008 - Peter W. Jansen
         """
+        res = '        Name        Value        Optimum\n'
+        res += '	 '+str(self.name).center(9)
+        res += '%12g  %12g\n'% (self.value, self.optimum)
+
+        return res
         
-        return ( '        Name        Value        Optimum\n'+'	 '+str(self.name).center(9) +'%12g  %12g\n' %(self.value,self.optimum))
-    

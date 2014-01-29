@@ -77,7 +77,7 @@ class SNOPT(Optimizer):
         
         name = 'SNOPT'
         category = 'Local Optimizer'
-        def_opts = {
+        defOpts = {
         # SNOPT Printing Options
         'Major print level':[int,1],                     # Majors Print (1 - line major iteration log)
         'Minor print level':[int,1],                     # Minors Print (1 - line minor iteration log)
@@ -247,7 +247,7 @@ class SNOPT(Optimizer):
         142 : 'Problem dimensions are too large'
         }
         self.set_options = []
-        Optimizer.__init__(self, name, category, def_opts, informs, *args, **kwargs)
+        Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
 
         # The state of the variables and the slacks
         self.x_previous = None
