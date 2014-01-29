@@ -13,10 +13,29 @@ Developers:
 - Dr. Gaetan K.W. Kenway (GKK)
 """
 from __future__ import print_function
-import os
+# =============================================================================
+# Imports 
+# =============================================================================
+import os, sys
 import shelve
+import numpy
+from scipy import sparse
 from .pyOpt_error import Error
 from .pyOpt_history import History
+eps = numpy.finfo(1.0).eps
+
+# Try to import mpi4py and determine rank
+try: 
+    from mpi4py import MPI
+    rank = MPI.COMM_WORLD.rank
+except:
+    rank = 0
+    MPI = None
+# end try
+
+# =============================================================================
+# Optimizer Class
+# =============================================================================
 class Optimizer(object):
     """
     Base optimizer class
@@ -40,7 +59,8 @@ class Optimizer(object):
         self.options = {}
         self.options['defaults'] = defOptions
         self.informs = informs
-        
+        self.callCounter = 0
+        self.sens = None
         # Initialize Options
         for key in defOptions:
             self.options[key] = defOptions[key]
@@ -49,6 +69,15 @@ class Optimizer(object):
         for key in koptions:
             self.setOption(key, koptions[key])
 
+        self.optProb = None
+        # Default options:
+        self.appendLinearConstraints = True
+        self.jacType = 'dense'
+
+        # Cache storage 
+        self.cache = {'x':None, 'fobj':None, 'fcon':None,
+                      'gobj':None, 'gcon':None}
+        
     def _coldStart(self, coldStart):
         """
         Common code to do cold restarting. 
@@ -64,7 +93,7 @@ class Optimizer(object):
             # have to write anyway
             coldFile = shelve.open(coldStart, flag='r')
             lastKey = coldFile['last']
-            x = coldFile[lastKey]['x_array'].copy()*self.optProb.xscale
+            x = coldFile[lastKey]['x']
             coldFile.close()
             if len(x) == self.optProb.ndvs:
                 xCold = x.copy()
@@ -143,11 +172,6 @@ match the number in the current optimization. Ignorning coldStart file')
             values is required on return
             """
 
-        # First, apply the master scaling to the design
-        # variables. This restores the variables to the range the user
-        # is expecting. 
-        x = x/self.optProb.xscale
-
         # We are hot starting, we should be able to read the required
         # information out of the hot start file, process it and then
         # fire it back to the specific optimizer
@@ -174,51 +198,283 @@ match the number in the current optimization. Ignorning coldStart file')
                 if 'gobj' in evaluate:
                     gobj = data['gobj']
                 if 'gcon' in evaluate:
-                    gon = data['gcon']
-
+                    gcon = data['gcon']
+                fail = data['fail']
+                
+                returns = []
+                
+                # Process objective if we have one (them)
+                if fobj is not None:
+                    returns.append(self.optProb.processObjective(fobj))
+                    
                 # Process constraints if we have them
                 if fcon is not None:
-                    fcon = self.optProb.processConstraints(fcon)
-
+                    fcon = self.optProb.processNonlinearConstraints(fcon)
+                    if self.appendLinearConstraints:
+                        fcon.extend(self.optProb.evaluateLinearConstraints(x))
+                    returns.append(fcon)
+                    
                 # Process objective gradient
                 if gobj is not None:
-                    gobj = self.optProb.processObjectiveGradient(gobj)
-
+                    returns.append(self.optProb.processObjectiveGradient(gobj))
+                    
                 # Process constraint gradient
                 if gcon is not None:
-                    gcon = self.optProb.processConstraintGradient(gcon)
-
-                # Now, gcon is a coo sparse matrix. Depending on what
-                # the optimizer wants, we will convert. The
-                # conceivable options are: dense (most), csc (snopt), csr
-                # (???), or coo (IPOPT)
-                if self.jacType == '2ddense':
-                    gcon = gcon.todense()
-                elif self.jacType == '1ddense':
-                    gcon = gcon.todense().flatten()
-                elif self.jacType == 'csc':
-                    gcon = gcon.tocsc().data
-                elif self.jacType == 'csr':
-                    gcon = gcon.tocsr().data
-                elif self.jacType === 'coo':
-                    gcon = gcon.data # Already in coo format
-                
-                return fobj, fcon, gobj, gcon
-
+                    gcon = self.optProb.processConstraintJacobian(gcon)
+                    if self.appendLinearConstraints:
+                        gcon = sparse.vstack([gcon,
+                                              self.optProb.linearJacobian])
+                    gcon = self.convertJacobian(gcon)
+                    returns.append(gcon)
+                    
                 # We can now safely increment the call counter
                 self.callCounter += 1
+                returns.append(fail)
+
+                return returns
+            # end if (valid hot start point)  
+
+            # We have used up all the information in hot start so we
+            # can close the hot start file
+            self.hotStart.close()
+            self.hotStart = None
+        # end if (hot starting)
+
+        # Now we have to actually run our function...this is where the
+        # MPI gets a little tricy. Up until now, only the root proc
+        # has called up to here...the rest of them are waiting at a
+        # broadcast to know what to do. 
+
+        args = [x, evaluate]
+        if MPI:
+            # Broadcast the type of call (0 means regular call)
+            MPI.COMM_WORLD.bcast(0, root=0)
+
+            # Now broadcast out the required arguments:
+            MPI.COMM_WORLD.bcast(args)
+        # end if
+
+        return self.masterFunc2(*args)
+
+    def masterFunc2(self, x, evaluate, writeHist=True):
+        """
+        Another shell function. This function is now actually called
+        on all the processors.
+        """
+
+        # Our goal in this function is to return the values requested
+        # in 'evaluate' for the corresponding x. We have to be a
+        # little cheaky here since some optimizers will make multiple
+        # call backs with the same x, one for the objective and one
+        # for the constraint. We therefore at the end of each function
+        # or sensitivity call we cache the x value and the fobj, fcon,
+        # gobj, and gcon values such that on the next pass we can just
+        # read them and return.
+
+        xscaled = x/self.optProb.xscale
+        xuser = self.optProb.processX(xscaled)
+
+        masterFail = False
+
+        # Set basic parameters in history
+        hist = {'x':x, 'xuser':xuser, 'xscaled':xscaled}
+        returns = []
+        # Start with fobj:
+
+        if 'fobj' in evaluate:
+            if numpy.linalg.norm(x-self.cache['x']) > eps:
+                fobj, fcon, fail = self.optProb.objFun(xuser)
+                # User values stored is immediately 
+                self.cache['fobj_user'] = fobj
+                self.cache['fcon_user'] = fcon
+                
+                # Process constraints 
+                fcon = self.optProb.processNonlinearConstraints(fcon)
+                if self.appendLinearConstraints:
+                    fcon.extend(self.optProb.evaluateLinearConstraints(x))
+                             
+                # Now clear out gobj and gcon in the cache since these
+                # are out of date and set the current ones
+                self.cache['gobj'] = None
+                self.cache['gcon'] = None
+                self.cache['x'] = x.copy()
+                self.cache['fobj'] = fobj
+                self.cache['fcon'] = fcon
+
+                # Update fail flag
+                masterFail = masterFail or fail
+
+            # fobj is now in cache
+            returns.append(self.cache['fobj'])
+            hist['fobj'] = self.cache['fobj_user']
+            
+        if 'fcon' in evaluate:
+            if numpy.linalg.norm(x-self.cache['x']) > eps:
+                fobj, fcon, fail = self.optProb.objFun(xuser)
+                # User values stored is immediately 
+                self.cache['fobj_user'] = fobj
+                self.cache['fcon_user'] = fcon
+
+                # Process constraints
+                fcon = self.optProb.processNonlinearConstraints(fcon)
+                if self.appendLinearConstraints:
+                    fcon.extend(self.optProb.evaluateLinearConstraints(x))
+
+                # Now clear out gobj and gcon in the cache since these
+                # are out of date and set the current ones
+                self.cache['gobj'] = None
+                self.cache['gcon'] = None
+                self.cache['x'] = x.copy()
+                self.cache['fobj'] = fobj
+                self.cache['fcon'] = fcon
+
+                # Update fail flag
+                masterFail = masterFail or fail
+
+            # fcon is now in cache
+            returns.append(self.cache['fcon'])
+            hist['fcon'] = self.cache['fcon_user']
+            
+        if 'gobj' in evaluate:
+            if numpy.linalg.norm(x-self.cache['x']) > eps:
+                # Previous evaluated point is *different* than the
+                # point requested for the derivative. Recusively call
+                # the routine with ['fobj', and 'fcon']
+                self.masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
+            else:
+                # Now, the point has been evaluated correctly so we
+                # determine if we have to run the sens calc:
+                if self.cache['gobj'] is None:
+                    gobj, gcon, fail = self.sens(
+                        xuser, self.cache['fobj'], self.cache['fcon'])
+                    # User values are stored is immediately 
+                    self.cache['gobj_user'] = gobj
+                    self.cache['gcon_user'] = gcon
+
+                    # Process objective gradient for optimizer
+                    gobj = self.optProb.processObjectiveGradient(gobj)
+
+                    # Process constraint gradients for optimizer
+                    gcon = self.optProb.processConstraintJacobian(gcon)
+                    if self.appendLinearConstraints:
+                        gcon = sparse.vstack([gcon,
+                                              self.optProb.linearJacobian])
+                    gcon = self.convertJacobian(gcon)
+                    # Set the cache values:
+                    self.cache['gobj'] = gobj
+                    self.cache['gcon'] = gcon
+
+                    # Update fail flag
+                    masterFail = masterFail or fail
+
+                # gobj is now in the cache
+                returns.append(self.cache['gobj'])
+                hist['gobj'] = self.cache['gobj_user']
+                
+        if 'gcon' in evaluate:
+            if numpy.linalg.norm(x-self.cache['x']) > eps:
+                # Previous evaluated point is *different* than the
+                # point requested for the derivative. Recusively call
+                # the routine with ['fobj', and 'fcon']
+                self.masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
+            else:
+                # Now, the point has been evaluated correctly so we
+                # determine if we have to run the sens calc:
+                if self.cache['gcon'] is None:
+                    gobj, gcon, fail = self.sens(
+                        xuser, self.cache['fobj'], self.cache['fcon'])
+                    # User values stored is immediately 
+                    self.cache['gobj_user'] = gobj
+                    self.cache['gcon_user'] = gcon
+
+                    # Process objective gradient for optimizer
+                    gobj = self.optProb.processObjectiveGradient(gobj)
+                    
+                    # Process constraint gradients for optimizer
+                    gcon = self.optProb.processConstraintJacobian(gcon)
+                    if self.appendLinearConstraints:
+                        gcon = sparse.vstack([gcon,
+                                              self.optProb.linearJacobian])
+                    gcon = self.convertJacobian(gcon)
+                    
+                    # Set cache values
+                    self.cache['gobj'] = gobj
+                    self.cache['gcon'] = gcon
+
+                    # Update fail flag
+                    masterFail = masterFail or fail
+
+                # gcon is now in the cache
+                returns.append(self.cache['gcon'])
+                hist['gcon'] = self.cache['gcon_user']
+                
+        # Put the fail flag in the history:
+        hist['fail'] = masterFail
+
+        # Write history if necessary
+        if rank == 0 and writeHist and self.storeHistory:
+            self.hist.write(self.callCounter, hist)
+
+        # We can now safely increment the call counter
+        self.callCounter += 1
+
+        # Tack the fail flag on at the end
+        returns.append(masterFail)
+
+        return returns
 
 
+    def convertJacobian(self, gcon):
+        """
+        Convert gcon which is a coo matrix into the format we need
+        """
 
-            # end if
+        # Now, gcon is a coo sparse matrix. Depending on what the
+        # optimizer wants, we will convert. The conceivable options
+        # are: dense (most), csc (snopt), csr (???), or coo (IPOPT)
+        if self.jacType == '2ddense':
+            gcon = gcon.todense()
+        elif self.jacType == '1ddense':
+            gcon = gcon.todense().flatten()
+        elif self.jacType == 'csc':
+            gcon = gcon.tocsc().data
+        elif self.jacType == 'csr':
+            gcon = gcon.tocsr().data
+        elif self.jacType == 'coo':
+            gcon = gcon.data # Already in coo format
+
+        return gcon
+            
+    def waitLoop(self):
+        """Non-root processors go into this waiting loop while the
+        root proc does all the work in the optimization algorithm"""
         
+        mode = None
+        info = None
+        while True:
+            # * Note*: No checks for MPI here since this code is
+            # * only run in parallel, which assumes mpi4py is working
 
+            # Receive mode and quit if mode is -1:
+            mode = MPI.COMM_WORLD.bcast(mode, root=0)
+            if mode == -1:
+                break
 
+            # Otherwise receive info from shell function
+            info = MPI.COMM_WORLD.bcast(info, root=0)
 
+            # Call the generic internal function. We don't care
+            # about return values on these procs
+            self.masterFunc2(*info)
 
-        pass
-
-
+    def _setInitialCacheValues(self):
+        """
+        Once we know that the optProb has been set, we populate the
+        cache with a magic numbers. If the starting points for your
+        optimization is -9999999999 then you out of luck!
+        """
+        self.cache['x'] = -999999999*numpy.ones(self.optProb.ndvs)
+    
     def _on_setOption(self, name, value):
         """
         Set Optimizer Option Value (Optimizer Specific Routine)

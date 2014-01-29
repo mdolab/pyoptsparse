@@ -1,11 +1,11 @@
 # Define all the possible sets of parameters we have.
 import os
-sens = ['FD','CS','none','user']
+sens = ['user','FD','CS','none']
 sensMode = ['']#, 'pgc']
-constrained =[0, 1]
+constrained =[1, 0]
 useDict = [0, 1]
 testHist = ['no', 'hot', 'cold']
-groups = [0]#, 1]
+groups = [0, 1]
 
 nproc = 1
 for sm in sensMode:

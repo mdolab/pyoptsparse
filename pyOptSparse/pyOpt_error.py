@@ -24,10 +24,10 @@ class Error(Exception):
     """
     def __init__(self, message):
         msg = '\n+'+'-'*78+'+'+'\n' + '| pyOptSparse Error: '
-        i = 22
+        i = 21
         for word in message.split():
             if len(word) + i +1 > 78: # Finish line and start new one
-                msg += ' '*(78-i)+'|\n| ' + word + ' '
+                msg += ' '*(79-i)+'|\n| ' + word + ' '
                 i = 2 + len(word)+1
             else:
                 msg += word + ' '

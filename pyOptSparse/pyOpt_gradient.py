@@ -138,7 +138,7 @@ class Gradient(object):
         # We DO NOT want the constraints scaled here....the constraint
         # scaling will be taken into account when the derivatives are
         # processed as per normal.
-        fconBase = self.optProb.processConstraints(fconBase, scaled=False)
+        fconBase = self.optProb.processNonlinearConstraints(fconBase, scaled=False)
         xBase = self.optProb.deProcessX(x)
 
         # Convert to complex if necessary:
@@ -157,7 +157,7 @@ class Gradient(object):
                 masterFail = True
                 
             # Process constraint in case they are in dict form
-            fcon_ph = self.optProb.processConstraints(fcon_ph, scaled=False)
+            fcon_ph = self.optProb.processNonlinearConstraints(fcon_ph, scaled=False)
 
             if self.sensType == 'fd':
                 gobj[i]    = (fobj_ph - fobjBase)/self.sensStep
