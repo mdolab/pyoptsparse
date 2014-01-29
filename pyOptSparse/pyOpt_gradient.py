@@ -47,7 +47,8 @@ class Gradient(object):
         available, comm defaluts to MPI.COMM_WORLD. 
         """
     
-    def __init__(self, optProb, sensType, sensStep=None, sensMode='', comm=None):
+    def __init__(self, optProb, sensType, sensStep=None, sensMode='',
+                 comm=None):
         
         self.optProb = optProb
         self.sensType = sensType
@@ -68,10 +69,9 @@ class Gradient(object):
                 self.MPI = MPI
             except ImportError:
                 self.comm = None
-            # end try
+
         else:
             self.comm = comm
-        # end if
 
         # Now we can compute which dvs each process will need to
         # compute:
@@ -129,41 +129,42 @@ class Gradient(object):
         gcon = numpy.zeros((ncon, ndvs), 'd')
 
         if self.sensMode == 'pgc':
-            fobj_base = self.comm.bcast(fobj)
-            fcon_base = self.comm.bcast(fcon)
+            fobjBase = self.comm.bcast(fobj)
+            fconBase = self.comm.bcast(fcon)
         else:
-            fobj_base = fobj
-            fcon_base = fcon
+            fobjBase = fobj
+            fconBase = fcon
 
         # We DO NOT want the constraints scaled here....the constraint
         # scaling will be taken into account when the derivatives are
         # processed as per normal.
-        fcon_base = self.optProb.processConstraints(fcon_base, scaled=False)
-        x_base = self.optProb.deProcessX(x)
+        fconBase = self.optProb.processConstraints(fconBase, scaled=False)
+        xBase = self.optProb.deProcessX(x)
 
         # Convert to complex if necessary:
         if self.sensType == 'cs':
-            x_base = x_base.astype('D')
+            xBase = xBase.astype('D')
 
+        masterFail = False
         for i in self.mydvs:
-            xph = x_base.copy()
+            xph = xBase.copy()
             xph[i] += self.sensStep
             
-            x_call = self.optProb.processX(xph)
+            xCall = self.optProb.processX(xph)
             # Call objective    
-            [fobj_ph, fcon_ph, fail] = self.optProb.objFun(x_call)
-
+            [fobj_ph, fcon_ph, fail] = self.optProb.objFun(xCall)
+            if fail:
+                masterFail = True
+                
             # Process constraint in case they are in dict form
             fcon_ph = self.optProb.processConstraints(fcon_ph, scaled=False)
 
             if self.sensType == 'fd':
-                gobj[i]    = (fobj_ph - fobj_base)/self.sensStep
-                gcon[:, i] = (fcon_ph - fcon_base)/self.sensStep
+                gobj[i]    = (fobj_ph - fobjBase)/self.sensStep
+                gcon[:, i] = (fcon_ph - fconBase)/self.sensStep
             else:
                 gobj[i]    = numpy.imag(fobj_ph)/numpy.imag(self.sensStep)
                 gcon[:, i] = numpy.imag(fcon_ph)/numpy.imag(self.sensStep)
-            # end if
-        # end for
 
         if self.sensMode == 'pgc':
             # We just mpi_reduce to the root with sum. This uses the
@@ -171,5 +172,10 @@ class Gradient(object):
             self.comm.Reduce(gobj.copy(), gobj, op=self.MPI.SUM, root=0)
             self.comm.Reduce(gcon.copy(), gcon, op=self.MPI.SUM, root=0)
 
-        return gobj, gcon, False
+        # Logically reduce (over the comm) if the fail if *ANY*
+        # gradient calc failed:
+        if self.comm is not None:
+            masterFail = self.comm.allreduce(masterFail, op=self.MPI.LOR)
+    
+        return gobj, gcon, masterFail
         

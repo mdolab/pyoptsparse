@@ -1,5 +1,3 @@
-from __future__ import print_function
-from __future__ import absolute_import
 #!/usr/bin/env python
 """
 pyOptSparse_optimization
@@ -20,12 +18,12 @@ History
 -------
     v. 1.0  - Initial Class Creation (GKK, 2013)
 """
+from __future__ import print_function
 
 # =============================================================================
 # Standard Python modules
 # =============================================================================
-
-import os, copy, time
+import copy
 try:
     from collections import OrderedDict
 except ImportError:
@@ -99,9 +97,22 @@ class Optimization(object):
         # Flag to determine if adding variables is legal. 
         self.ableToAddVariables = True
 
+        # Variables to be set in reorderConstraintJacobian after we
+        # have finalized the specification of the variable and the
+        # constraints
+        self.ndvs = None
+        self.conScaleNonLinear = None
+        self.nnCon = None
+        self.conScaleFull = None
+        self.nCon = None
+        self.xscale = None
+        self.nlCon = None
+
         return
 
     def _checkOkToAddVariables(self):
+        """Internal check if it is safe to add more variables"""
+        
         if not self.ableToAddVariables:
             raise Error('No more variables can be added at this time. \
 All variables must be added before constraints can be added.')
@@ -121,7 +132,9 @@ All variables must be added before constraints can be added.')
                 self.dvOffset[dvSet]['n'] = [dvCounter, -1]
                 for dvGroup in self.variables[dvSet]:
                     n = len(self.variables[dvSet][dvGroup])
-                    self.dvOffset[dvSet][dvGroup] = [dvCounter, dvCounter + n, self.variables[dvSet][dvGroup][0].scalar]
+                    self.dvOffset[dvSet][dvGroup] = [
+                        dvCounter, dvCounter + n, 
+                        self.variables[dvSet][dvGroup][0].scalar]
                     dvCounter += n
                 self.dvOffset[dvSet]['n'][1] = dvCounter
             else:
@@ -155,7 +168,8 @@ All variables must be added before constraints can be added.')
 
         self.addVarGroup(name, 1, *args, scalar=True, **kwargs)
 
-    def addVarGroup(self, name, nVars, type='c', value=0.0, lower=None, upper=None, scale=1.0,
+    def addVarGroup(self, name, nVars, type='c', value=0.0, 
+                    lower=None, upper=None, scale=1.0, 
                     varSet='default', choices=None, **kwargs):
         """
         Add a group of variables into a variable set. This is the main
@@ -242,8 +256,9 @@ has already been used.'% name)
             self.addVarSet(varSet)
 
         # Check that the type is ok:
-        assert type in ['c', 'i', 'd'], 'Type must be one of \'c\' for continuous, \
-\'i\' for integer or \'d\' for discrete.'
+        if type not in ['c', 'i', 'd']:
+            raise Error('Type must be one of \'c\' for continuous, \
+\'i\' for integer or \'d\' for discrete.')
                     
         # ------ Process the value arguement
         value = numpy.atleast_1d(value)
@@ -306,8 +321,9 @@ addVarGroup is %d, but the number of variables in nVars is %d.'% (
         for iVar in range(nVars):
             varName = name + '_%d'% iVar
             self.variables[varSet][name].append(
-                Variable(varName, type=type, value=value[iVar], lower=lower[iVar],
-                         upper=upper[iVar], scale=scale[iVar], scalar=scalar, choices=choices))
+                Variable(varName, type=type, value=value[iVar],
+                         lower=lower[iVar], upper=upper[iVar],
+                         scale=scale[iVar], scalar=scalar, choices=choices))
 
     def delVar(self, name):
         """
@@ -359,7 +375,7 @@ addVarGroup is %d, but the number of variables in nVars is %d.'% (
 
         return
                 
-    def addConGroup(self, name, nCon, lower=None, upper=None, scale=1.0,
+    def addConGroup(self, name, nCon, lower=None, upper=None, scale=1.0, 
                     linear=False, wrt=None, jac=None):
         """
         Add a group of variables into a variable set. This is the main
@@ -375,13 +391,13 @@ addVarGroup is %d, but the number of variables in nVars is %d.'% (
             The number of constraints in this group
 
         lower : scalar or array
-            The lower bound(s) for the constraint. If it is a scalar,
-            it is applied to all nCon constraints. If it is an array,
+            The lower bound(s) for the constraint. If it is a scalar, 
+            it is applied to all nCon constraints. If it is an array, 
             the array must be the same length as nCon.
 
         upper : scalar or array
-            The upper bound(s) for the constraint. If it is a scalar,
-            it is applied to all nCon constraints. If it is an array,
+            The upper bound(s) for the constraint. If it is a scalar, 
+            it is applied to all nCon constraints. If it is an array, 
             the array must be the same length as nCon.
 
         scale : scalar or array
@@ -418,7 +434,7 @@ addVarGroup is %d, but the number of variables in nVars is %d.'% (
             be as previously described. 
 
             Note that for nonlinear constraints (linear=False), the
-            values themselves in the matrices in jac do not matter,
+            values themselves in the matrices in jac do not matter, 
             but the sparsity structure **does** matter. It is
             imparative that entries that will at some point have
             non-zero entries have non-zero entries in jac
@@ -525,7 +541,8 @@ addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'% (
             # sparse constraints.
 
             if linear:
-                raise Error('The \'jac\' keyword argument to addConGroup() must be supplied for a linear constraint')
+                raise Error('The \'jac\' keyword argument to addConGroup()\
+                must be supplied for a linear constraint')
 
             # without any additional information about the jacobian
             # structure, we must assume they are all dense. 
@@ -536,13 +553,15 @@ addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'% (
                 jac[dvSet] = sparse.csr_matrix(numpy.ones((nCon, ndvs)))
                 jac[dvSet].data[:] = 0.0
                 
-            # Set a flag for the constraint object, that not returning them all is ok. 
+            # Set a flag for the constraint object, that not returning
+            # them all is ok.
             partialReturnOk = True
 
         else:
             # First sanitize input:
             if not isinstance(jac, dict):
-                raise Error('The \'jac\' keyword argument to addConGroup() must be a dictionary')
+                raise Error('The \'jac\' keyword argument to \
+                addConGroup() must be a dictionary')
 
             # Now loop over the set we *know* we need and see if any
             # are in jac. We will actually pop them out, and that way
@@ -556,16 +575,18 @@ addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'% (
 
                 try:
                     jac[dvSet] = tmp.pop(dvSet)
-                    # Check that this user-supplied jacobian is in fact the right size
+                    # Check that this user-supplied jacobian is in
+                    # fact the right size
                 except:
-                    # No big deal, just make a dense component...and set to zero
+                    # No big deal, just make a dense component...and
+                    # set to zero
                     jac[dvSet] = sparse.csr_matrix(numpy.ones((nCon, ndvs)))
                     jac[dvSet].data[:] = 0.0
                     
                 if jac[dvSet].shape[0] != nCon or jac[dvSet].shape[1] != ndvs:
                     raise Error('The supplied jacobian for dvSet \'%s\'\
  in constraint %s, was the incorrect size. Expecting a jacobian\
- of size (%d,%d) but received a jacobian of size (%d,%d).'%(
+ of size (%d, %d) but received a jacobian of size (%d, %d).'%(
                             dvSet, name, nCon, ndvs, jac[dvSet].shape[0], 
                             jac[dvSet].shape[1]))
 
@@ -576,7 +597,7 @@ addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'% (
                     # if not already in that format.
                     jac[dvSet] = jac[dvSet].tocsr()
                 else:
-                    # Supplied jacobian is dense, replace any zero,
+                    # Supplied jacobian is dense, replace any zero, 
                     # before converting to csr format
                     jac[dvSet][numpy.where(jac[dvSet]==0)] = 1e-50
                     jac[dvSet] = sparse.csr_matrix(jac[dvSet])
@@ -598,10 +619,11 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
             self._csrRowScale(jac[dvSet], scale)
 
         # Finally! Create constraint object
-        self.constraints[name] = Constraint(name, linear, wrt, jac, partialReturnOk,
-                                            lower*scale, upper*scale, scale)
+        self.constraints[name] = Constraint(
+            name, linear, wrt, jac, partialReturnOk,
+            lower*scale, upper*scale, scale)
         
-    def reorderConstraintJacobian(self, reorder=['nonLinear','linear']):
+    def reorderConstraintJacobian(self, reorder=['nonLinear', 'linear']):
         """
         ** This function should not need to be called by the end
            user**
@@ -615,8 +637,8 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
         ----------
         reorder : list
             How to reorder:
-            ['nonLinear','linear'] => put nonlinear ones first
-            ['linear','nonLinear'] => put nonlinear ones first
+            ['nonLinear', 'linear'] => put nonlinear ones first
+            ['linear', 'nonLinear'] => put nonlinear ones first
             [] => Anything else: keep the same order as supplied.
       
         """
@@ -643,7 +665,7 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
         # and column end (ce) values. The actual ordering depends on
         # if constraints are reordered or not. 
         rowCounter = 0 
-        if reorder == ['nonLinear','linear']:
+        if reorder == ['nonLinear', 'linear']:
             for iCon in self.constraints:
                 con = self.constraints[iCon]
                 if not con.linear:
@@ -660,7 +682,7 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
                     rowCounter += con.ncon
                     con.re = rowCounter
                     conScaleFull.extend(con.scale)
-        elif reorder == ['linear','nonLinear']:
+        elif reorder == ['linear', 'nonLinear']:
             for iCon in self.constraints:
                 con = self.constraints[iCon]
                 if con.linear:
@@ -729,7 +751,6 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
             dictionary of gradients given with respect to the dvSets
         """
 
-        timeA = time.time()
         # Process the objective gradient. This may be vector or it may be
         # given as a dictionary. 
         dvSets = list(self.variables.keys())
@@ -751,8 +772,9 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
 for dvSet %s is the incorrect length. Expecting a length of %d but received \
 a length of %d.'% (key, ss[1]-ss[0], len(gobj_in[key])))
                 else:
-                    print('Warning: The key \'%s\' in g_obj does not match any of the added DVsets. \
-This derivative will be ignored'%(key))
+                    print('Warning: The key \'%s\' in g_obj does not \
+                    match any of the added DVsets. This derivative \
+                    will be ignored'%(key))
 
         else:
             # Otherwise we will assume it is a vector:
@@ -768,7 +790,7 @@ size %d.'%(len(gobj), self.ndvs))
         if self.nCon == 0:
             # We don't have constraints! We can just return now since
             # the objective is processed
-            return gobj, numpy.array([],'d')
+            return gobj, numpy.array([], 'd')
 
         # If the user has supplied a complete dense numpy array for
         # the jacobain AND all the constriants are dense
@@ -784,9 +806,9 @@ size %d.'%(len(gobj), self.ndvs))
                 # Don't forget to scale:
                 tmp = gcon_in.copy()
 
-                for i in xrange(self.ndvs):
-                    tmp[:,i] /= self.xscale[i]
-
+                for i in range(self.ndvs):
+                    tmp[:, i] /= self.xscale[i]
+                    
                 # Do constraint scaling and convert to coo
                 gcon = sparse.coo_matrix(tmp)
                 self._cooRowScale(gcon, self.conScaleFull)
@@ -797,7 +819,7 @@ size %d.'%(len(gobj), self.ndvs))
             else:
                 raise Error('The dense jacobian return was the incorrect size.\
  Expecting size of (%d, %d) but received size of (%d, %d).'% (
-                        self.nCon, self.ndvs, gcon_in.shape[0], gcon_in.shape[1]))
+                    self.nCon, self.ndvs, gcon_in.shape[0], gcon_in.shape[1]))
 
         # Data for storing the values in COOrdinate format
         data = []
@@ -838,7 +860,7 @@ This was not found in the constraint jacobian dictionary'% (con.name, dvSet))
                             # format.
                             tmp = gcon_in[iCon][key].copy().tocsr()
                         else:
-                            # Supplied jacobian is dense, replace any zero,
+                            # Supplied jacobian is dense, replace any zero, 
                             # before converting to csr format
 
                             tmp = numpy.atleast_2d(gcon_in[iCon][key])
@@ -851,11 +873,12 @@ This was not found in the constraint jacobian dictionary'% (con.name, dvSet))
                     # Now check that the jacobian is the correct shape
                     if not(tmp.shape[0] == con.ncon and tmp.shape[1] == ndvs):
                         raise Error('The shape of the supplied constraint \
-jacobian for constraint %s is incorrect. Expected an array of shape (%d,%d), \
+jacobian for constraint %s is incorrect. Expected an array of shape (%d, %d), \
 but received an array of shape (%d, %d).'% (con.name, con.ncon, ndvs, 
                                             tmp.shape[0], tmp.shape[1]))
 
-                    # Now check that the csr matrix has the correct number of non zeros:
+                    # Now check that the csr matrix has the correct
+                    # number of non zeros:
                     if tmp.nnz != con.jac[key].nnz:
                         raise Error('The number of nonzero elements for \
   constraint group \'%s\' was not the correct size. The supplied jacobian has \
@@ -865,22 +888,23 @@ but received an array of shape (%d, %d).'% (con.name, con.ncon, ndvs,
                     # Loop over rows in constraint jacobian:
                     for iRow in range(con.ncon):
                         # Loop over the number of nonzero entries in this row:
-                        for ii in range(con.jac[key].indptr[iRow], con.jac[key].indptr[iRow+1]):
+                        for ii in range(con.jac[key].indptr[iRow],
+                                        con.jac[key].indptr[iRow+1]):
                             row.append(con.rs + iRow)
-                            icol = self.dvOffset[key]['n'][0] + con.jac[key].indices[ii]
+                            icol = self.dvOffset[key]['n'][0] + \
+                                   con.jac[key].indices[ii]
                             col.append(icol)
 
                             data.append(tmp.data[ii]/self.xscale[icol])
 
 
         # Create coo matrix and scale the rows
-        gcon = sparse.coo_matrix((data, (row, col)),(self.nCon, self.ndvs))
+        gcon = sparse.coo_matrix((data, (row, col)), (self.nCon, self.ndvs))
         self._cooRowScale(gcon, self.conScaleFull)
 
         return gobj, gcon
 
-    def processConstraints(self, fcon_in, linearConstraints=False, 
-                           nonlinearConstraints=True, scaled=True):
+    def processConstraints(self, fcon_in, scaled=True):
         """
         ** This function should not need to be called by the end
         user**
@@ -891,11 +915,9 @@ but received an array of shape (%d, %d).'% (con.name, con.ncon, ndvs,
             Array of constraint values or a dictionary of constraint
             values
 
-        linearConstraints : bool
-            Flag as to whether or not linear constraints are to be included
-
-        nonLinearConstraint : bool
-            Flag as to whether or not nonlinear constraints are to be included. 
+        scaled : bool
+            Flag specifying if the returned array should be scaled by
+            the pyOpt scaling.
             """
 
         # We will actually be a little leniant here; the user CAN
@@ -1035,16 +1057,15 @@ constraint %s.'%(iCon))
             mat.data[i] *= vec[mat.row[i]]
 
     def getDVs(self):
-        '''
-        return a dictionary of the design variables
-        ''' 
+        """
+        Return a dictionary of the design variables
+        """ 
 
         if self.useGroups:
             outDVs = {}
             for dvSet in self.variables:
-                outDVs[dvSet]={}
+                outDVs[dvSet] = {}
                 for dvGroup in self.variables[dvSet]:
-                    groupLength = len(dvGroup)
                     temp = []
                     for var in self.variables[dvSet][dvGroup]:
                         temp.append(var.value)
@@ -1059,23 +1080,23 @@ constraint %s.'%(iCon))
                     if scalar:
                         outDVs[istart] = self.variables[dvSet][dvGroup][0].value
                     else:
-                        for i in range(istart,iend):
+                        for i in range(istart, iend):
                             outDVs[i] = self.variables[dvSet][dvGroup][i].value
 
         return outDVs
 
-    def setDVs(self,inDVs):
-        '''
+    def setDVs(self, inDVs):
+        """
         set the problem design variables from a dictionary. Set only the
         values that are in the dictionary. add in some type checking as well
-        '''
+        """
 
         if self.useGroups:
             for dvSet in set(inDVs.keys()) & set(self.variables.keys()):
                 for dvGroup in set(inDVs[dvSet])&set(self.variables[dvSet]):
                     groupLength = len(dvGroup)
                     for i in range(groupLength):
-                        self.variables[dvSet][dvGroup][i].value =  inDVs[dvSet][dvGroup][i]
+                        self.variables[dvSet][dvGroup][i].value = inDVs[dvSet][dvGroup][i]
 
         else:
             for dvSet in list(self.variables.keys()):
@@ -1086,8 +1107,8 @@ constraint %s.'%(iCon))
                     if scalar:
                         self.variables[dvSet][dvGroup][0].value = inDVs[istart]
                     else:
-                        for i in range(istart,iend):
-                            self.variables[dvSet][dvGroup][i].value =inDVs[i]
+                        for i in range(istart, iend):
+                            self.variables[dvSet][dvGroup][i].value = inDVs[i]
 
     def __str__(self):
         """
@@ -1096,7 +1117,8 @@ constraint %s.'%(iCon))
         
         text = """\nOptimization Problem -- %s\n%s\n
         Objective Function: %s\n\n    Objectives:
-        Name        Value        Optimum\n""" %(self.name,'='*80,self.objFun.__name__)
+        Name        Value        Optimum\n""" % (
+        self.name, '='*80, self.objFun.__name__)
 
         for obj in self.objectives:
             lines = str(self.objectives[obj]).split('\n')
@@ -1109,7 +1131,7 @@ constraint %s.'%(iCon))
             for dvGroup in self.variables[dvSet]:
                 for var in self.variables[dvSet][dvGroup]:
                     lines = str(var).split('\n')
-                    text+= lines[1] + '\n'
+                    text += lines[1] + '\n'
 
         print('	    Name        Type'+' '*25+'Bound\n'+'	 ')
         if len(self.constraints) > 0:
@@ -1146,7 +1168,8 @@ constraint %s.'%(iCon))
         for iCon in self.constraints:
             nRow += 1 # Name
             con = self.constraints[iCon]
-            maxConNameLen = max(maxConNameLen, len(con.name)+3+int(numpy.log10(con.ncon))+1)
+            maxConNameLen = max(maxConNameLen,
+                                len(con.name)+3+int(numpy.log10(con.ncon))+1)
             nRow += 1 # Line
             if self.constraints[iCon].linear:
                 hasLinear = True
@@ -1159,24 +1182,24 @@ constraint %s.'%(iCon))
         varCenters = []
         for iVar in self.variables:
             nvar = self.dvOffset[iVar]['n'] [1] - self.dvOffset[iVar]['n'][0]
-            var_str = iVar + ' (%d)'%nvar
+            var_str = iVar + ' (%d)'% nvar
 
             varCenters.append(nCol + len(var_str)/2 + 1)
             nCol += len(var_str)
             nCol += 2 # Spaces on either side
             nCol += 1 # Line 
 
-        txt = numpy.zeros((nRow, nCol),dtype=str)
-        txt[:,:] = ' '
+        txt = numpy.zeros((nRow, nCol), dtype=str)
+        txt[:, :] = ' '
         # Outline of the matrix on left and top
-        txt[1,maxConNameLen+1:-1] = '-'
-        txt[2:-1,maxConNameLen+1] = '|'
+        txt[1, maxConNameLen+1:-1] = '-'
+        txt[2:-1, maxConNameLen+1] = '|'
      
         # Print the variable names:
         iCol = maxConNameLen + 2
         for iVar in self.variables:
             nvar = self.dvOffset[iVar]['n'] [1] - self.dvOffset[iVar]['n'][0]
-            var_str = iVar + ' (%d)'%nvar
+            var_str = iVar + ' (%d)'% nvar
             l = len(var_str)
             txt[0, iCol+1 :iCol + l+1] = list(var_str)
             txt[2:-1, iCol + l + 2] = '|'
@@ -1189,7 +1212,7 @@ constraint %s.'%(iCon))
         for iCon in self.constraints:
             con = self.constraints[iCon]
             if not con.linear:
-                name = con.name + ' (%d)'%con.ncon
+                name = con.name + ' (%d)'% con.ncon
                 l = len(name)
                 # The name
                 txt[iRow, maxConNameLen-l:maxConNameLen] = list(name)
@@ -1213,7 +1236,7 @@ constraint %s.'%(iCon))
         for iCon in self.constraints:
             con = self.constraints[iCon]
             if con.linear:
-                name = con.name + ' (%d)'%con.ncon
+                name = con.name + ' (%d)'% con.ncon
                 l = len(name)
                 # The name
                 txt[iRow, maxConNameLen-l:maxConNameLen] = list(name)
@@ -1230,9 +1253,9 @@ constraint %s.'%(iCon))
 
         # Corners
         txt[1, maxConNameLen+1] = '+'
-        txt[-1,maxConNameLen+1] = '+'
-        txt[1,-1] = '+'
-        txt[-1,-1] = '+'
+        txt[-1, maxConNameLen+1] = '+'
+        txt[1, -1] = '+'
+        txt[-1, -1] = '+'
         for i in range(len(txt)):
             print(''.join(txt[i]))
 
@@ -1242,6 +1265,6 @@ constraint %s.'%(iCon))
 if __name__ == '__main__':
     
     print('Testing Optimization...')
-    optprob = Optimization('Optimization Problem',{})
+    optprob = Optimization('Optimization Problem', {})
     
     

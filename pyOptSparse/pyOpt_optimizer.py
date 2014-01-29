@@ -1,5 +1,3 @@
-from __future__ import print_function
-from __future__ import absolute_import
 #!/usr/bin/env python
 """
 pyOpt_optimizer
@@ -10,65 +8,40 @@ Copyright (c) 2008-2013 by pyOpt Developers
 All rights reserved.
 Revision: 1.1   $Date: 08/05/2008 21:00$
 
-
 Developers:
 -----------
-- Dr. Ruben E. Perez (RP)
-- Mr. Peter W. Jansen (PJ)
-
-History
--------
-    v. 1.0  - Initial Class Creation (RP, 2008)
-    v. 1.1  - Pretty Print of Optimization Problems (PJ, 2008)
-            - Bug Fix in setOption (PJ, 2008)
+- Dr. Gaetan K.W. Kenway (GKK)
 """
-
-__version__ = '$Revision: $'
-
-"""
-To Do:
-    - deal with g>=0 & g<=0 depending on optimizer !
-    - add timing routine in optimizer class ?? better leave @ specific opt level ?
-    - parameters class ?
-    - How to handle external gradients calculations ?
-    - Implement Restart Capability ?
-    - self tests ?
-    - add Optimizer Info method
-"""
-
+from __future__ import print_function
 from .pyOpt_error import Error
 
 class Optimizer(object):
-    
     """
-    Abstract Class for Optimizer Object
-    """
-    
-    def __init__(self, name=None, category=None, def_options=None, informs=None, **kwargs):
-        
+    Base optimizer class
+
+    Parameters
+    ----------
+    name : str
+        Optimizer name
+    category : str
+        Typicaly local or gobal
+    defOptions : dictionary
+        A dictionary containing the default options
+    informs : dict
+        Dictionary of the inform codes
         """
-        Optimizer Class Initialization
-        
-        **Keyword arguments:**
-        
-        - name -> STR: Optimizer name, *Default* = {}
-        - category -> STR: Optimizer category, *Default* = {}
-        - def_options -> DICT: Deafult options, *Default* = {}
-        - informs -> DICT: Calling routine informations texts, *Default* = {}
-        
-        Documentation last updated:  Feb. 03, 2011 - Peter W. Jansen
-        """
-        
-        # 
+    def __init__(self, name=None, category=None, defOptions=None,
+                 informs=None, **kwargs):
+
         self.name = name
         self.category = category
         self.options = {}
-        self.options['defaults'] = def_options
+        self.options['defaults'] = defOptions
         self.informs = informs
         
         # Initialize Options
-        for key in def_options:
-            self.options[key] = def_options[key]
+        for key in defOptions:
+            self.options[key] = defOptions[key]
 
         koptions = kwargs.pop('options', {})
         for key in koptions:
@@ -76,18 +49,9 @@ class Optimizer(object):
         
         
     def _on_setOption(self, name, value):
-        
         """
         Set Optimizer Option Value (Optimizer Specific Routine)
-        
-        **Arguments:**
-        
-        - name -> STR: Option name
-        - value ->   : Option value
-        
-        Documentation last updated:  Feb. 07, 2011 - Peter W. Jansen
         """
-        
         raise Error('This optimizer hsa not implemented _on_setOption')
         
     def setOption(self, name, value=None):
@@ -111,7 +75,7 @@ class Optimizer(object):
 expecting type \'%s\' by received type \'%s\''% (
                         name, self.options['defaults'][name][0], type(value)))
         else:
-            raise Error('Received an unknown option: %s'%repr(name))
+            raise Error('Received an unknown option: %s'% repr(name))
         
         # Now call the optimizer specific routine
         self._on_setOption(name, value)
@@ -166,7 +130,6 @@ expecting type \'%s\' by received type \'%s\''% (
         else:
             return self._on_getInform(infocode)
         
-
 #==============================================================================
 # Optimizer Test
 #==============================================================================

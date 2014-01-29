@@ -1,8 +1,5 @@
-from __future__ import absolute_import
 #!/usr/bin/env python
-
-import os,sys
-
+from __future__ import absolute_import
 from .pyOpt_history import History
 from .pyOpt_variable import Variable
 from .pyOpt_gradient import Gradient
