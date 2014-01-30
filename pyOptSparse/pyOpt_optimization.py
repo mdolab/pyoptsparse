@@ -23,7 +23,7 @@ History
 # Standard Python modules
 # =============================================================================
 
-import os, sys, time
+import os, sys, time, copy
 try:
     from collections import OrderedDict
 except ImportError:
