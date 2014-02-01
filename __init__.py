@@ -26,6 +26,11 @@ try:
 except ImportError:
     pass
 
+#try:
+from .pyOptSparse.pyIPOPT.pyIPOPT import IPOPT
+#except ImportError:
+#    pass
+
 # try:
 #     from .pyOptSparse.pyFSQP.pyFSQP import FSQP
 # except ImportError:
@@ -41,7 +46,3 @@ except ImportError:
 # except ImportError:
 #     pass
 
-# try:
-#     from .pyOptSparse.pyIPOPT.pyIPOPT import IPOPT
-# except ImportError:
-#     pass

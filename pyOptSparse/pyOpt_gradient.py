@@ -124,7 +124,7 @@ class Gradient(object):
         # Generate final array sizes for the objective and constraint
         # gradients
         ndvs = self.optProb.ndvs
-        ncon = self.optProb.nCon
+        ncon = self.optProb.nnCon
         gobj = numpy.zeros(ndvs, 'd')
         gcon = numpy.zeros((ncon, ndvs), 'd')
 
@@ -172,6 +172,7 @@ class Gradient(object):
             self.comm.Reduce(gobj.copy(), gobj, op=self.MPI.SUM, root=0)
             self.comm.Reduce(gcon.copy(), gcon, op=self.MPI.SUM, root=0)
 
+        gcon[numpy.where(gcon==0)] = 1e-50
         # Logically reduce (over the comm) if the fail if *ANY*
         # gradient calc failed:
         if self.comm is not None:

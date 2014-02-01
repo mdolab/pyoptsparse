@@ -227,7 +227,7 @@ has already been used.'% name)
 \'i\' for integer or \'d\' for discrete.')
                     
         # ------ Process the value arguement
-        value = numpy.atleast_1d(value)
+        value = numpy.atleast_1d(value).real
         if len(value) == 1:
             value = value[0]*numpy.ones(nVars)
         elif len(value) == nVars:
@@ -241,7 +241,7 @@ has already been used.'% name)
         if lower is None:
             lower = -inf*numpy.ones(nVars)
         else:
-            lower = numpy.atleast_1d(lower)
+            lower = numpy.atleast_1d(lower).real
             if len(lower) == 1:
                 lower = lower[0]*numpy.ones(nVars)
             elif len(lower) == nVars:
@@ -255,7 +255,7 @@ addVarGroup is %d, but the number of variables in nVars is %d.'% (
         if upper is None:
             upper = inf*numpy.ones(nVars)
         else:
-            upper = numpy.atleast_1d(upper)
+            upper = numpy.atleast_1d(upper).real
             if len(upper) == 1:
                 upper = upper[0]*numpy.ones(nVars)
             elif len(upper) == nVars:
@@ -839,9 +839,9 @@ All variables must be added before constraints can be added.')
 
         conScaleNonLinear = []
         conScaleLinear = []
-        # Loop over the constraints assigning the column start (cs)
-        # and column end (ce) values. The actual ordering depends on
-        # if constraints are reordered or not. 
+        # Loop over the constraints assigning the row start (rs) and
+        # row end (re) values. The actual ordering depends on if
+        # constraints are reordered or not.
         rowCounter = 0 
         for iCon in self.constraints:
             con = self.constraints[iCon]
@@ -1045,8 +1045,8 @@ size %d was given.'%(self.nnCon, len(fcon)))
                         if len(c) == self.constraints[iCon].ncon:
                             fcon.extend(c)
                         else:
-                            raise Error('%d constraint values were returned \
-    %s, but expected %d.'%(len(fcon_in[iCon]), iCon, self.variables[iCon].ncon))
+                            raise Error('%d constraint values were returned in\
+ %s, but expected %d.'%(len(fcon_in[iCon]), iCon, self.constraints[iCon].ncon))
                     else:
                         raise Error('No constraint values were found for the \
 constraint %s.'%(iCon))
@@ -1074,9 +1074,10 @@ constraint %s.'%(iCon))
             linearConstraints = self.linearJacobian.dot(x)
             return linearConstraints
         else:
-            raise Error('For some reason the evaluateLinearConstraints()\
-            function was called but no linear constraints are defined \
-            for this optimization problem. This is a bug.')
+            return []
+            # raise Error('For some reason the evaluateLinearConstraints()\
+            # function was called but no linear constraints are defined \
+            # for this optimization problem. This is a bug.')
 
     def processObjectiveGradient(self, gobj_in, obj='f'):
         """
@@ -1309,17 +1310,26 @@ but received an array of shape (%d, %d).'% (con.name, con.ncon, ndvs,
                                    con.jac[key].indices[ii]
                             col.append(icol)
 
-                            # The next line performs the colume (dv scaling)
+                            # The next line performs the column (dv scaling)
                             data.append(tmp.data[ii]/self.xscale[icol])
+                            
                         # end for loop over local columns
                     # end for local loop over constraint keys
                 # end for (key in constraint)
             # end if constraint nonlinear
         # end for constraint loop
 
+        row = numpy.array(row, 'intc')
+        col = numpy.array(col, 'intc')
+        if linearFlag:
+            row -= self.nnCon
+            
         # Finally, the coo matrix and scale the rows (constraint scaling)
-        gcon = sparse.coo_matrix((data, (row, col)), (self.nCon, self.ndvs))
+        gcon = sparse.coo_matrix((data, (row, col)), shp)
         self._cooRowScale(gcon, conScale)
+
+        # Extract indices, and multiply by -1 and hstack
+        #gcon = sparse.hstack((gcon, gcon[self.indices, :]*-1))
 
         return gcon
 
