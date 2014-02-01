@@ -27,8 +27,8 @@ class Constraint(object):
     """
     Constraint Class Initialization
     """
-    def __init__(self, name, linear, wrt, jac, partialReturnOk, lower, upper, scale):
-        
+    def __init__(self, name, linear, wrt, jac, partialReturnOk,
+                 lower, upper, scale):
 
         self.name = name
         self.linear = linear
@@ -50,10 +50,9 @@ class Constraint(object):
         Documentation last updated:  April. 30, 2008 - Peter W. Jansen
         """
         res = ''
-        for i in xrange(self.ncon):
-            res +='	 '+str(self.name).center(9) + \
-                '	  i %15.2e <= %8f <= %8.2e\n' %(
+        for i in range(self.ncon):
+            res += '	 '+str(self.name).center(9) + \
+                   '	  i %15.2e <= %8f <= %8.2e\n' %(
                 self.lower[i],self.value[i],self.upper[i])
-        # end for
-
+       
         return res

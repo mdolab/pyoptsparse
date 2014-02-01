@@ -18,7 +18,7 @@ try:
         print('pyOptSparse requires NumPy version 1.0 or later (%s detected).' %numpy.__version__)
         sys.exit(-1)
     #end
-except ImportError, e:
+except ImportError as e:
     print('NumPy version 1.0 or later must be installed to build pyOptSparse')
     sys.exit(-1)
 #end
