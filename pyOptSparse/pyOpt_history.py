@@ -8,7 +8,6 @@ Copyright (c) 2008-2013 by pyOpt Developers
 All rights reserved.
 Revision: 1.0   $Date: 11/12/2009 21:00$
 
-
 Developers:
 -----------
 - Dr. Gaetan K. W. Kneway (GKK)
@@ -17,49 +16,41 @@ History
 -------
     v. 1.0  - Initial Class Creation (GKK 2013)
 """
-
-__version__ = '$Revision: $'
-
-# =============================================================================
-# Standard Python modules
-# =============================================================================
-import os, sys
-import shelve
-
+from __future__ import print_function
 # =============================================================================
 # External Python modules
 # =============================================================================
+import os
+import shelve
 import numpy
 eps = numpy.finfo(1.0).eps
+
 # =============================================================================
 # History Class
 # =============================================================================
 class History(object):
     """
-    Abstract Class for Optimizer History Object
-    """
+    Optimizer History Class Initialization. This is essentially a
+    thin wrapper around a shelve dictionary to facilitate
+    operations with pyOptSparse
+
+    Parameters
+    ----------
+    fileName : str
+       File name for history file
+
+    temp : bool
+       Flag to signify that the file should be deleted after it is
+       closed
+
+    flag : str
+       String of flags to be passed to shelve.open. The only
+       useful flag is 'r' which will cause the database to be
+       opened in read-only mode. This is often necessary when the
+       history file needs to be read from a read-only partition
+       during a HPC run job. 
+       """
     def __init__(self, fileName, temp=False, flag=''):
-        """
-        Optimizer History Class Initialization. This is essentially a
-        thin wrapper around a shelve dictionary to facilitate
-        operations with pyOptSparse
-
-        Parameters
-        ----------
-        fileName : str
-           File name for history file
-
-        temp : bool
-           Flag to signify that the file should be deleted after it is
-           closed
-
-        flag : str
-           String of flags to be passed to shelve.open. The only
-           useful flag is 'r' which will cause the database to be
-           opened in read-only mode. This is often necessary when the
-           history file needs to be read from a read-only partition
-           during a HPC run job. 
-        """
 
         if flag == '':
             self.db = shelve.open(fileName, protocol=2, writeback=True)
@@ -70,33 +61,26 @@ class History(object):
         self.fileName = fileName
 
         # Load any keys it happens to have:
-        self.keys = self.db.keys()
+        self.keys = list(self.db.keys())
 
     def close(self):
+        """Close the underlying database"""
         self.db.close()
         if self.temp:
             os.remove(self.fileName)
-        # end if
 
-    def write(self, callCounter, fobj, fcon, fail, xn, x_array, gradEvaled, gobj, gcon, **kwargs):
-        data = {'fobj':fobj, 'fcon':fcon, 'fail':fail,'x':xn,'x_array':x_array}
-        if gradEvaled:
-            data['gobj'] = gobj
-            data['gcon'] = gcon
-
-        # Add any extra keyword arguments that specific optimizers may
-        # want to save
-        data.update(kwargs)
-
+    def write(self, callCounter, data):
+        """This is the main to write data. Basically, we just pass in
+        the callCounter, the integer forming the key, and a dictionary
+        which will be written to the key"""
+        
         # String key to database on disk
-        key = '%d'%callCounter
+        key = '%d'% callCounter
 
         self.db[key] = data
         self.db['last'] = key
         self.db.sync()
         
-        return
-
     def writeData(self, key, data):
         """
         Write arbitrary key:data value to db
@@ -109,28 +93,22 @@ class History(object):
         Determine if callCounter is in the database AND that
         the x matches the x in that point
         """
-        key = '%d'%callCounter
+        key = '%d'% callCounter
 
         if key not in self.keys:
             return False
-        # end if
-        x_array = self.db[key]['x_array']
-        
-        # Check that the x's *actually* match
-        diff = numpy.dot(x-x_array, x-x_array)
 
-        if diff < eps:
+        if numpy.linalg.norm(x-self.db[key]['x']) < eps:
             return True
         else:
             return False
-        # end if
 
     def read(self, callCounter):
         """
         Read data for index 'callCounter'. Note that this
         point should be verified by calling validPoint() first.
         """
-        key = '%d'%callCounter
+        key = '%d'% callCounter
         return self.db[key]
     
     def readData(self, key):
@@ -156,5 +134,5 @@ class History(object):
 if __name__ == '__main__':
     
     # Test Optimizer History
-    print 'Testing Optimizer History...'
+    print('Testing Optimizer History...')
     
