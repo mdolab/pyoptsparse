@@ -177,22 +177,8 @@ class IPOPT(Optimizer):
 
         # Setup initial cache values
         self._setInitialCacheValues()
-
-        # Next we determine what to what to do about
-        # derivatives. We must hvae a function or we use FD or CS:
-        if isinstance(sens, types.FunctionType):
-            # We have function handle for gradients! Excellent!
-            self.sens = sens
-        elif sens.lower() in ['fd','cs']:
-            # Create the gradient class that will operate just like if
-            # the user supplied fucntion
-            self.sens = Gradient(optProb, sens.lower(), sensStep,
-                                 sensMode, comm)
-        else:
-            raise Error('Unknown value given for sens. Must be None, \'FD\', \
-            \'CS\' or a python function handle')
-        # end if
-                
+        self._setSens(sens, sensStep, sensMode, comm)
+              
         # We make a split here: If the rank is zero we setup the
         # problem and run IPOPT, otherwise we go to the waiting loop:
 
@@ -281,7 +267,6 @@ class IPOPT(Optimizer):
 
             def eval_jac_g(x, flag, user_data = None):
                 if flag:
-                    print matStruct
                     return copy.deepcopy(matStruct)
                 else:
                     gcon, fail = self.masterFunc(x, ['gcon'])
@@ -292,11 +277,12 @@ class IPOPT(Optimizer):
             nnzh = 0
             nlp = pyipoptcore.create(len(xs), blx, bux, ncon, blc, buc, nnzj, nnzh, 
                                           eval_f, eval_grad_f, eval_g, eval_jac_g) 
-            nlp.num_option('tol',1e-5)
+            nlp.num_option('tol',1e-10)
             nlp.str_option('hessian_approximation','limited-memory')
             nlp.int_option('limited_memory_max_history',10)
             nlp.str_option('derivative_test','first-order')
-            nlp.int_option('max_iter',10)
+            nlp.str_option('derivative_test_print_all','yes')
+            nlp.int_option('max_iter',100)
             x, zl, zu, constraint_multipliers, obj, status = nlp.solve(xs)
             nlp.close()
             optTime = time.time()-timeA

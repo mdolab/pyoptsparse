@@ -997,7 +997,7 @@ All variables must be added before constraints can be added.')
 
         return fobj
 
-    def processNonlinearConstraints(self, fcon_in, scaled=True):
+    def processNonlinearConstraints(self, fcon_in, scaled=True, dtype='d'):
         """
         ** This function should not need to be called by the user**
 
@@ -1024,36 +1024,28 @@ All variables must be added before constraints can be added.')
         else:
             scaleFact = numpy.ones_like(self.conScaleNonLinear)
         
-        if not isinstance(fcon_in, dict):
-            fcon = numpy.atleast_1d(fcon_in)
-            if len(fcon) == self.nnCon:
-                return scaleFact*fcon
-            else:
-                raise Error('The constraint array was the incorrect size. \
-It must contain %d elements (nonlinear constraints only), but an arrary of \
-size %d was given.'%(self.nnCon, len(fcon)))
-        else:
-            # Process as a dictionary: Loop over (nonlinear)
-            # constraints and extract as required:
-            fcon = []
-            for iCon in self.constraints:
-                if not self.constraints[iCon].linear:
-                    if iCon in fcon_in:
-                        # Make sure it is at least 1dimension:
-                        c = numpy.atleast_1d(fcon_in[iCon])
+        # We REQUIRE that fcon_in is a dict:
+        fcon = numpy.zeros(self.nnCon, dtype=dtype)
+        for iCon in self.constraints:
+            con = self.constraints[iCon]
+            if not con.linear:
+                if iCon in fcon_in:
+                    
+                    # Make sure it is at least 1dimension:
+                    c = numpy.atleast_1d(fcon_in[iCon])
                         
-                        # Make sure it is the correct size:
-                        if len(c) == self.constraints[iCon].ncon:
-                            fcon.extend(c)
-                        else:
-                            raise Error('%d constraint values were returned in\
- %s, but expected %d.'%(len(fcon_in[iCon]), iCon, self.constraints[iCon].ncon))
+                    # Make sure it is the correct size:
+                    if len(c) == self.constraints[iCon].ncon:
+                        fcon[con.rs:con.re] = c
                     else:
-                        raise Error('No constraint values were found for the \
-constraint %s.'%(iCon))
+                        raise Error('%d constraint values were returned in\
+ %s, but expected %d.'%(len(fcon_in[iCon]), iCon, self.constraints[iCon].ncon))
+                else:
+                    raise Error('No constraint values were found for the \
+constraint \'%s\'.'%(iCon))
 
-            # Finally convert to array, scale and return:
-            return  scaleFact*numpy.array(fcon)
+        # Finally convert to array, scale and return:
+        return  scaleFact*fcon
 
     def evaluateLinearConstraints(self, x):
         """

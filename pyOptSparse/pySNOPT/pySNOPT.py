@@ -46,7 +46,6 @@ from scipy import sparse
 # # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_history import History
-from ..pyOpt_gradient import Gradient
 from ..pyOpt_solution import Solution
 from ..pyOpt_error import Error
 # =============================================================================
@@ -351,25 +350,7 @@ class SNOPT(Optimizer):
         self.optProb.finalizeConstraints()
         # Setup initial cache values
         self._setInitialCacheValues()
-
-        # Next we determine what to what to do about
-        # derivatives. SNOPT is a little special actually since it can
-        # do derivatives itself.
-        if sens is None:
-            # Tell snopt it should do the derivatives
-            self.setOption('Derivative level', 0)
-            self.sens = None
-        elif hasattr(sens, '__call__'):
-            # We have function handle for gradients! Excellent!
-            self.sens = sens
-        elif isinstance(sens, str) and sens.lower() in ['fd', 'cs']:
-            # Create the gradient class that will operate just like if
-            # the user supplied fucntion
-            self.sens = Gradient(optProb, sens.lower(), sensStep,
-                                 sensMode, comm)
-        else:
-            raise Error('Unknown value given for sens. Must be None, \'FD\', \
-            \'CS\' or a python function handle')
+        self._setSens(sens, sensStep, sensMode, comm)
                 
         # We make a split here: If the rank is zero we setup the
         # problem and run SNOPT, otherwise we go to the waiting loop:
@@ -432,7 +413,7 @@ class SNOPT(Optimizer):
                 self.optProb.addObj('f', scale=1.0)
             elif nobj <> 1:
                 raise Error('%s can only use one objective'% self.name)
-            ff = [0.0]
+            ff = numpy.array([0.0])
 
             # Initialize the Print and Summary files
             # --------------------------------------
@@ -618,7 +599,7 @@ class SNOPT(Optimizer):
                     for var in sol.variables[dvSet][dvGroup]:
                         var.value = xs[i]
                         i += 1
-
+            
             sol.fStar = ff
             
         else: # We are not on the root process so go into waiting loop:

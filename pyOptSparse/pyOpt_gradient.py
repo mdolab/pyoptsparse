@@ -57,6 +57,8 @@ class Gradient(object):
                 self.sensStep = 1e-6
             else:
                 self.sensStep = 1e-40j
+        else:
+            self.sensStep = sensStep
         self.sensMode = sensMode
         if comm is None:
             # Two things can happen: we don't *actually* have MPI,
@@ -138,7 +140,7 @@ class Gradient(object):
         # We DO NOT want the constraints scaled here....the constraint
         # scaling will be taken into account when the derivatives are
         # processed as per normal.
-        fconBase = self.optProb.processNonlinearConstraints(fconBase, scaled=False)
+        fconBase = self.optProb.processNonlinearConstraints(fconBase, scaled=False, dtype='D')
         xBase = self.optProb.deProcessX(x)
 
         # Convert to complex if necessary:
@@ -146,10 +148,11 @@ class Gradient(object):
             xBase = xBase.astype('D')
 
         masterFail = False
+
         for i in self.mydvs:
             xph = xBase.copy()
             xph[i] += self.sensStep
-            
+          
             xCall = self.optProb.processX(xph)
             # Call objective    
             [fobj_ph, fcon_ph, fail] = self.optProb.objFun(xCall)
@@ -157,7 +160,7 @@ class Gradient(object):
                 masterFail = True
                 
             # Process constraint in case they are in dict form
-            fcon_ph = self.optProb.processNonlinearConstraints(fcon_ph, scaled=False)
+            fcon_ph = self.optProb.processNonlinearConstraints(fcon_ph, scaled=False, dtype='D')
 
             if self.sensType == 'fd':
                 gobj[i]    = (fobj_ph - fobjBase)/self.sensStep
@@ -165,14 +168,13 @@ class Gradient(object):
             else:
                 gobj[i]    = numpy.imag(fobj_ph)/numpy.imag(self.sensStep)
                 gcon[:, i] = numpy.imag(fcon_ph)/numpy.imag(self.sensStep)
-
+            
         if self.sensMode == 'pgc':
             # We just mpi_reduce to the root with sum. This uses the
             # efficent numpy versions
             self.comm.Reduce(gobj.copy(), gobj, op=self.MPI.SUM, root=0)
             self.comm.Reduce(gcon.copy(), gcon, op=self.MPI.SUM, root=0)
 
-        gcon[numpy.where(gcon==0)] = 1e-50
         # Logically reduce (over the comm) if the fail if *ANY*
         # gradient calc failed:
         if self.comm is not None:
