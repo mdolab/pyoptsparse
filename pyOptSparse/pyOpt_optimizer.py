@@ -16,7 +16,7 @@ from __future__ import print_function
 # =============================================================================
 # Imports 
 # =============================================================================
-import os, sys
+import os, sys, copy
 import shelve
 import numpy
 from scipy import sparse
@@ -71,7 +71,7 @@ class Optimizer(object):
 
         self.optProb = None
         # Default options:
-        self.appendLinearConstraints = True
+        self.appendLinearConstraints = False
         self.jacType = 'dense'
 
         # Cache storage 
@@ -211,7 +211,7 @@ match the number in the current optimization. Ignorning coldStart file')
                 if fcon is not None:
                     fcon = self.optProb.processNonlinearConstraints(fcon)
                     if self.appendLinearConstraints:
-                        fcon.extend(self.optProb.evaluateLinearConstraints(x))
+                        fcon = numpy.append(fcon, self.optProb.evaluateLinearConstraints(x))
                     returns.append(fcon)
                     
                 # Process objective gradient
@@ -291,8 +291,8 @@ match the number in the current optimization. Ignorning coldStart file')
                 # Process constraints 
                 fcon = self.optProb.processNonlinearConstraints(fcon)
                 if self.appendLinearConstraints:
-                    fcon.extend(self.optProb.evaluateLinearConstraints(x))
-                             
+                    fcon = numpy.append(fcon, self.optProb.evaluateLinearConstraints(x))
+
                 # Now clear out gobj and gcon in the cache since these
                 # are out of date and set the current ones
                 self.cache['gobj'] = None
@@ -318,7 +318,7 @@ match the number in the current optimization. Ignorning coldStart file')
                 # Process constraints
                 fcon = self.optProb.processNonlinearConstraints(fcon)
                 if self.appendLinearConstraints:
-                    fcon.extend(self.optProb.evaluateLinearConstraints(x))
+                    fcon = numpy.append(fcon, self.optProb.evaluateLinearConstraints(x))
 
                 # Now clear out gobj and gcon in the cache since these
                 # are out of date and set the current ones
@@ -341,35 +341,36 @@ match the number in the current optimization. Ignorning coldStart file')
                 # point requested for the derivative. Recusively call
                 # the routine with ['fobj', and 'fcon']
                 self.masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
-            else:
-                # Now, the point has been evaluated correctly so we
-                # determine if we have to run the sens calc:
-                if self.cache['gobj'] is None:
-                    gobj, gcon, fail = self.sens(
-                        xuser, self.cache['fobj'], self.cache['fcon'])
-                    # User values are stored is immediately 
-                    self.cache['gobj_user'] = gobj
-                    self.cache['gcon_user'] = gcon
 
-                    # Process objective gradient for optimizer
-                    gobj = self.optProb.processObjectiveGradient(gobj)
+            # Now, the point has been evaluated correctly so we
+            # determine if we have to run the sens calc:
 
-                    # Process constraint gradients for optimizer
-                    gcon = self.optProb.processConstraintJacobian(gcon)
-                    if self.appendLinearConstraints:
-                        gcon = sparse.vstack([gcon,
-                                              self.optProb.linearJacobian])
-                    gcon = self.convertJacobian(gcon)
-                    # Set the cache values:
-                    self.cache['gobj'] = gobj
-                    self.cache['gcon'] = gcon
+            if self.cache['gobj'] is None:
+                gobj, gcon, fail = self.sens(
+                    xuser, self.cache['fobj'], self.cache['fcon'])
+                # User values are stored is immediately 
+                self.cache['gobj_user'] = copy.deepcopy(gobj)
+                self.cache['gcon_user'] = copy.deepcopy(gcon)
 
-                    # Update fail flag
-                    masterFail = masterFail or fail
+                # Process objective gradient for optimizer
+                gobj = self.optProb.processObjectiveGradient(gobj)
+         
+                # Process constraint gradients for optimizer
+                gcon = self.optProb.processConstraintJacobian(gcon)
+                if self.appendLinearConstraints:
+                    gcon = sparse.vstack([gcon,
+                                          self.optProb.linearJacobian])
+                gcon = self.convertJacobian(gcon)
+                # Set the cache values:
+                self.cache['gobj'] = gobj.copy()
+                self.cache['gcon'] = gcon.copy()
 
-                # gobj is now in the cache
-                returns.append(self.cache['gobj'])
-                hist['gobj'] = self.cache['gobj_user']
+                # Update fail flag
+                masterFail = masterFail or fail
+                
+            # gobj is now in the cache
+            returns.append(self.cache['gobj'])
+            hist['gobj'] = self.cache['gobj_user']
                 
         if 'gcon' in evaluate:
             if numpy.linalg.norm(x-self.cache['x']) > eps:
@@ -377,36 +378,36 @@ match the number in the current optimization. Ignorning coldStart file')
                 # point requested for the derivative. Recusively call
                 # the routine with ['fobj', and 'fcon']
                 self.masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
-            else:
-                # Now, the point has been evaluated correctly so we
-                # determine if we have to run the sens calc:
-                if self.cache['gcon'] is None:
-                    gobj, gcon, fail = self.sens(
-                        xuser, self.cache['fobj'], self.cache['fcon'])
-                    # User values stored is immediately 
-                    self.cache['gobj_user'] = gobj
-                    self.cache['gcon_user'] = gcon
+         
+            # Now, the point has been evaluated correctly so we
+            # determine if we have to run the sens calc:
+            if self.cache['gcon'] is None:
+                gobj, gcon, fail = self.sens(
+                    xuser, self.cache['fobj'], self.cache['fcon'])
+                # User values stored is immediately 
+                self.cache['gobj_user'] = copy.deepcopy(gobj)
+                self.cache['gcon_user'] = copy.deepcopy(gcon)
 
-                    # Process objective gradient for optimizer
-                    gobj = self.optProb.processObjectiveGradient(gobj)
-                    
-                    # Process constraint gradients for optimizer
-                    gcon = self.optProb.processConstraintJacobian(gcon)
-                    if self.appendLinearConstraints:
-                        gcon = sparse.vstack([gcon,
-                                              self.optProb.linearJacobian])
-                    gcon = self.convertJacobian(gcon)
-                    
-                    # Set cache values
-                    self.cache['gobj'] = gobj
-                    self.cache['gcon'] = gcon
+                # Process objective gradient for optimizer
+                gobj = self.optProb.processObjectiveGradient(gobj)
 
-                    # Update fail flag
-                    masterFail = masterFail or fail
+                # Process constraint gradients for optimizer
+                gcon = self.optProb.processConstraintJacobian(gcon)
+                if self.appendLinearConstraints:
+                    gcon = sparse.vstack([gcon,
+                                          self.optProb.linearJacobian])
+                gcon = self.convertJacobian(gcon)
 
-                # gcon is now in the cache
-                returns.append(self.cache['gcon'])
-                hist['gcon'] = self.cache['gcon_user']
+                # Set cache values
+                self.cache['gobj'] = gobj.copy()
+                self.cache['gcon'] = gcon.copy()
+
+                # Update fail flag
+                masterFail = masterFail or fail
+
+            # gcon is now in the cache
+            returns.append(self.cache['gcon'])
+            hist['gcon'] = self.cache['gcon_user']
                 
         # Put the fail flag in the history:
         hist['fail'] = masterFail
@@ -422,7 +423,6 @@ match the number in the current optimization. Ignorning coldStart file')
         returns.append(masterFail)
 
         return returns
-
 
     def convertJacobian(self, gcon):
         """
@@ -474,7 +474,86 @@ match the number in the current optimization. Ignorning coldStart file')
         optimization is -9999999999 then you out of luck!
         """
         self.cache['x'] = -999999999*numpy.ones(self.optProb.ndvs)
-    
+
+    def _assembleContinuousVariables(self):
+        """
+        Utility function for assembling the design variables. Most
+        optimizers here use continuous variables so this chunk of code
+        can be reused. 
+        """
+
+        blx = []
+        bux = []
+        xs = []
+        for dvSet in self.optProb.variables.keys():
+            for dvGroup in self.optProb.variables[dvSet]:
+                for var in self.optProb.variables[dvSet][dvGroup]:
+                    if var.type == 'c':
+                        blx.append(var.lower)
+                        bux.append(var.upper)
+                        xs.append(var.value)
+
+                    elif (self.optProb.variables[key].type == 'i'):
+                        raise Error('%s cannot handle integer design variables'% self.name)
+                    elif (self.optProb.variables[key].type == 'd'):
+                        raise Error('%s cannot handle discrete design variables'% self.name)
+
+        blx = numpy.array(blx)
+        bux = numpy.array(bux)
+        xs = numpy.array(xs)
+        
+        return blx, bux, xs
+
+    def _assembleConstraints(self):
+        """
+        Utility function for assembling the design variables. Most
+        optimizers here use continuous variables so this chunk of code
+        can be reused. 
+        """
+
+        # Constraints Handling -- make sure nonlinear constraints
+        # go first -- this is particular to slsqp
+        blc = []
+        buc = []
+                
+        for key in self.optProb.constraints.keys():
+            if not self.optProb.constraints[key].linear:
+                blc.extend(self.optProb.constraints[key].lower)
+                buc.extend(self.optProb.constraints[key].upper)
+
+        for key in self.optProb.constraints.keys():
+            if self.optProb.constraints[key].linear:
+                blc.extend(self.optProb.constraints[key].lower)
+                buc.extend(self.optProb.constraints[key].upper)
+
+        if self.unconstrained:
+            blc.append(-inf)
+            buc.append(inf)
+            
+        ncon = len(blc)
+        blc = numpy.array(blc)
+        buc = numpy.array(buc)
+
+        return non, blc, buc
+
+
+    def _assembleObjective(self):
+        """
+        Utility function for assembling the design variables. Most
+        optimizers here use continuous variables so this chunk of code
+        can be reused. 
+        """
+
+        nobj = len(self.optProb.objectives.keys())
+        if nobj == 0:
+            # NO objective, add one                                                                            
+            self.optProb.addObj('f', scale=1.0)
+        elif nobj <> 1:
+            raise Error('%s can only use one objective'% self.name)
+        ff = [0.0]
+
+        return ff
+
     def _on_setOption(self, name, value):
         """
         Set Optimizer Option Value (Optimizer Specific Routine)

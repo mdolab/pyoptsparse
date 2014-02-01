@@ -10,13 +10,13 @@ def configuration(parent_package='',top_path=None):
     
     # need: auto add_subpackage from source availability
     config.add_subpackage('pySNOPT')
+    config.add_subpackage('pyIPOPT')
     #config.add_subpackage('pyFSQP')
     #config.add_subpackage('pySLSQP')
     #config.add_subpackage('pyNSGA2')
     config.add_data_files('LICENSE','README')
     
     return config
-    
 
 if __name__ == '__main__':
     from numpy.distutils.core import setup

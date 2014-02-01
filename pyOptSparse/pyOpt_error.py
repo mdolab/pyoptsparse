@@ -34,4 +34,4 @@ class Error(Exception):
                 i += len(word)+1
         msg += ' '*(79-i) + '|\n' + '+'+'-'*78+'+'+'\n'
         print(msg)
-        Exception.__init__()
+        Exception.__init__(self)

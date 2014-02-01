@@ -48,6 +48,7 @@ from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_history import History
 from ..pyOpt_gradient import Gradient
 from ..pyOpt_solution import Solution
+from ..pyOpt_error import Error
 # =============================================================================
 # Misc Definitions
 # =============================================================================
@@ -60,7 +61,6 @@ try:
 except:
     rank = 0
     MPI = None
-# end try
 
 # =============================================================================
 # SNOPT Optimizer Class
@@ -79,6 +79,7 @@ class SNOPT(Optimizer):
         category = 'Local Optimizer'
         defOpts = {
         # SNOPT Printing Options
+        'outputDirectory':[str, './'],      # Directory to put files in.     
         'Major print level':[int,1],                     # Majors Print (1 - line major iteration log)
         'Minor print level':[int,1],                     # Minors Print (1 - line minor iteration log)
         'Print file':[str,'SNOPT_print.out'],            # Print File Name (specified by subroutine snInit)
@@ -344,6 +345,7 @@ class SNOPT(Optimizer):
             
         # Save the optimization problem and finialize constraint
         # jacobian, in general can only do on root proc
+
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()
@@ -357,10 +359,10 @@ class SNOPT(Optimizer):
             # Tell snopt it should do the derivatives
             self.setOption('Derivative level', 0)
             self.sens = None
-        elif isinstance(sens, types.FunctionType):
+        elif hasattr(sens, '__call__'):
             # We have function handle for gradients! Excellent!
             self.sens = sens
-        elif sens.lower() in ['fd','cs']:
+        elif isinstance(sens, str) and sens.lower() in ['fd', 'cs']:
             # Create the gradient class that will operate just like if
             # the user supplied fucntion
             self.sens = Gradient(optProb, sens.lower(), sensStep,
@@ -425,15 +427,18 @@ class SNOPT(Optimizer):
             # Objective Handling
             objfunc = self.optProb.objFun
             nobj = len(self.optProb.objectives.keys())
-            ff = []
-            for key in self.optProb.objectives.keys():
-                ff.append(self.optProb.objectives[key].value)
-            ff = numpy.array(ff)
+            if nobj == 0:
+                # NO objective, add one
+                self.optProb.addObj('f', scale=1.0)
+            elif nobj <> 1:
+                raise Error('%s can only use one objective'% self.name)
+            ff = [0.0]
 
             # Initialize the Print and Summary files
             # --------------------------------------
             iPrint = self.options['iPrint'][1]
-            PrintFile = self.options['Print file'][1]
+            PrintFile = os.path.join(self.getOption('outputDirectory'),
+                                     self.getOption('Print file'))
             if iPrint != 0:
                 ierror = snopt.openunit(iPrint, PrintFile, "replace", "sequential")
                 if ierror != 0:
@@ -441,7 +446,8 @@ class SNOPT(Optimizer):
                                 (PrintFile,ierror))
 
             iSumm = self.options['iSumm'][1]
-            SummFile = self.options['Summary file'][1]
+            SummFile = os.path.join(self.getOption('outputDirectory'),
+                                    self.getOption('Summary file'))
             if iSumm != 0:
                 ierror = snopt.openunit(iSumm, SummFile, "replace", "sequential")
                 if ierror != 0:
@@ -573,11 +579,6 @@ class SNOPT(Optimizer):
 
             # The snopt c interface
             timeA = time.time()
-            #print (start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm)
-            #print (self._userfg_wrap, Acol, indA, locA, bl, bu, Names, hs, xs, pi, rc)
-            #print (inform, mincw, miniw, minrw, 
-            #       nS, ninf, sinf, ff)#, cu, iu, ru, cw, iw, rw)
-
             snopt.snoptc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
                          self._userfg_wrap, Acol, indA, locA, bl, bu, 
                          Names, hs, xs, pi, rc, inform, mincw, miniw, minrw, 
