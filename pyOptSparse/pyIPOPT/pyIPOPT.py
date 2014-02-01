@@ -183,51 +183,12 @@ class IPOPT(Optimizer):
         # problem and run IPOPT, otherwise we go to the waiting loop:
 
         if rank == 0:
-
-            # Get the variable names and variable bounds
-            # ------------------------------------------
-            blx = []
-            bux = []
-            xs = []
-            for dvSet in self.optProb.variables.keys():
-                for dvGroup in self.optProb.variables[dvSet]:
-                    for var in self.optProb.variables[dvSet][dvGroup]:
-                        if var.type == 'c':
-                            blx.append(var.lower)
-                            bux.append(var.upper)
-                            xs.append(var.value)
-
-            blx = numpy.array(blx)
-            bux = numpy.array(bux)
-            xs = numpy.array(xs)
-
-            # Constraints Handling -- Put the nonlinear constraints
-            # first which will make it easier to tack on the linear
-            # ones at the end.
-            blc = []
-            buc = []
-                
-            for key in self.optProb.constraints.keys():
-                if not self.optProb.constraints[key].linear:
-                    blc.extend(self.optProb.constraints[key].lower)
-                    buc.extend(self.optProb.constraints[key].upper)
-         
-            for key in self.optProb.constraints.keys():
-                if self.optProb.constraints[key].linear:
-                    blc.extend(self.optProb.constraints[key].lower)
-                    buc.extend(self.optProb.constraints[key].upper)
-            if self.unconstrained:
-                blc.append(-inf)
-                buc.append(inf)
-
-            ncon = len(blc)
-            blc = numpy.array(blc)
-            buc = numpy.array(buc)
+            blx, bux, xs = self._assembleContinuousVariables()
+            ncon, blc, buc = self._assembleConstraints()
 
             # Before we start, we assemble the full jacobian, convert
             # to COO format, and store the format since we will need
             # that on the first constraint jacobian call back. 
-            # Determine the sparsity structure of the full jacobian
             # -----------------------------------------------------
             # Get nonlinear part:
             gcon = {}
@@ -287,22 +248,16 @@ class IPOPT(Optimizer):
             nlp.close()
             optTime = time.time()-timeA
             
+            if self.storeHistory:
+                self.hist.close()
+
             # Store Results
             sol_inform = {}
             # sol_inform['value'] = inform
             # sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
-            sol = Solution(self.optProb, optTime, 1, sol_inform)
-
-            # Now set the x-values:
-            i = 0
-            for dvSet in sol.variables.keys():
-                for dvGroup in sol.variables[dvSet]:
-                    for var in sol.variables[dvSet][dvGroup]:
-                        var.value = xs[i]
-                        i += 1
-            sol.fStar = obj
+            sol = self._createSolution(optTime, funcEval, sol_inform, obj)
 
             if MPI:
                 # Broadcast a -1 to indcate IPOPT has finished
@@ -320,7 +275,6 @@ class IPOPT(Optimizer):
             sol = MPI.COMM_WORLD.bcast(sol)
 
         return  sol
-
 
     def _on_setOption(self, name, value):
         '''

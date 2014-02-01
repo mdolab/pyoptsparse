@@ -564,8 +564,7 @@ match the number in the current optimization. Ignorning coldStart file')
         blc = numpy.array(blc)
         buc = numpy.array(buc)
 
-        return non, blc, buc
-
+        return ncon, blc, buc
 
     def _assembleObjective(self):
         """
@@ -580,10 +579,28 @@ match the number in the current optimization. Ignorning coldStart file')
             self.optProb.addObj('f', scale=1.0)
         elif nobj <> 1:
             raise Error('%s can only use one objective'% self.name)
-        ff = [0.0]
+        ff = numpy.array([0.0])
 
         return ff
 
+    def _createSolution(self, optTime, funcEval, sol_inform, obj):
+        """
+        Generic routine to create the solution after an optimizer
+        finishes.
+        """
+        sol = Solution(self.optProb, optTime, funcEval, sol_inform)
+
+        # Now set the x-values:
+        i = 0
+        for dvSet in sol.variables.keys():
+            for dvGroup in sol.variables[dvSet]:
+                for var in sol.variables[dvSet][dvGroup]:
+                    var.value = xs[i]
+                    i += 1
+        sol.fStar = obj
+
+        return sol
+        
     def _on_setOption(self, name, value):
         """
         Set Optimizer Option Value (Optimizer Specific Routine)

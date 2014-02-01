@@ -356,64 +356,9 @@ class SNOPT(Optimizer):
         # problem and run SNOPT, otherwise we go to the waiting loop:
 
         if rank == 0:
-
-            # Get the variable names and variable bounds
-            # ------------------------------------------
-            blx = []
-            bux = []
-            xs = []
-            for dvSet in self.optProb.variables.keys():
-                for dvGroup in self.optProb.variables[dvSet]:
-                    for var in self.optProb.variables[dvSet][dvGroup]:
-                        if var.type == 'c':
-                            blx.append(var.lower)
-                            bux.append(var.upper)
-                            xs.append(var.value)
-
-                        elif (self.optProb.variables[key].type == 'i'):
-                            raise IOError('SNOPT cannot handle integer design variables')
-                        elif (self.optProb.variables[key].type == 'd'):
-                            raise IOError('SNOPT cannot handle discrete design variables')
-                        # end if
-                    # end for
-                # end for
-            # end for
-            blx = numpy.array(blx)
-            bux = numpy.array(bux)
-            xs = numpy.array(xs)
-            
-            # Constraints Handling -- make sure nonlinear constraints
-            # go first -- this is particular to snopt
-            blc = []
-            buc = []
-                
-            for key in self.optProb.constraints.keys():
-                if not self.optProb.constraints[key].linear:
-                    blc.extend(self.optProb.constraints[key].lower)
-                    buc.extend(self.optProb.constraints[key].upper)
-         
-            for key in self.optProb.constraints.keys():
-                if self.optProb.constraints[key].linear:
-                    blc.extend(self.optProb.constraints[key].lower)
-                    buc.extend(self.optProb.constraints[key].upper)
-
-            if self.unconstrained:
-                blc.append(-inf)
-                buc.append(inf)
-            
-            ncon = len(blc)
-            blc = numpy.array(blc)
-            buc = numpy.array(buc)
-
-            # Objective Handling
-            objfunc = self.optProb.objFun
-            nobj = len(self.optProb.objectives.keys())
-            if nobj == 0:
-                # NO objective, add one
-                self.optProb.addObj('f', scale=1.0)
-            elif nobj <> 1:
-                raise Error('%s can only use one objective'% self.name)
-            ff = numpy.array([0.0])
+            blx, bux, xs = self._assembleContinuousVariables()
+            ncon, blc, buc = self._assembleConstraints()
+            ff = self._assembleObjective()
 
             # Initialize the Print and Summary files
             # --------------------------------------
@@ -572,12 +517,6 @@ class SNOPT(Optimizer):
                 self.hist.writeData('xs', xs)
                 self.hist.writeData('hs', hs)
                 self.hist.close()
-            # end if
-
-            if MPI:
-                # Broadcast a -1 to indcate SNOPT has finished
-                MPI.COMM_WORLD.bcast(-1, root=0)
-            # end if
 
             if iPrint != 0:
                 snopt.closeunit(self.options['iPrint'][1])
@@ -590,17 +529,12 @@ class SNOPT(Optimizer):
             sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
-            sol = Solution(self.optProb, optTime, 1, sol_inform)
+            funcEval = 1
+            sol = self._createSolution(optTime, funcEval, sol_inform, ff)
 
-            # Now set the x-values:
-            i = 0
-            for dvSet in sol.variables.keys():
-                for dvGroup in sol.variables[dvSet]:
-                    for var in sol.variables[dvSet][dvGroup]:
-                        var.value = xs[i]
-                        i += 1
-            
-            sol.fStar = ff
+            if MPI:
+                # Broadcast a -1 to indcate SNOPT has finished
+                MPI.COMM_WORLD.bcast(-1, root=0)
             
         else: # We are not on the root process so go into waiting loop:
             self.waitLoop()
