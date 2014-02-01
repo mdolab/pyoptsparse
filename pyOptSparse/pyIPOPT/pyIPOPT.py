@@ -173,7 +173,7 @@ class IPOPT(Optimizer):
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()
         if self.optProb.nlCon > 0:
-            self.appendLinearConstraints
+            self.appendLinearConstraints = True
 
         # Setup initial cache values
         self._setInitialCacheValues()
@@ -277,11 +277,11 @@ class IPOPT(Optimizer):
             nnzh = 0
             nlp = pyipoptcore.create(len(xs), blx, bux, ncon, blc, buc, nnzj, nnzh, 
                                           eval_f, eval_grad_f, eval_g, eval_jac_g) 
-            nlp.num_option('tol',1e-10)
+            nlp.num_option('tol',1e-6)
             nlp.str_option('hessian_approximation','limited-memory')
             nlp.int_option('limited_memory_max_history',10)
-            nlp.str_option('derivative_test','first-order')
-            nlp.str_option('derivative_test_print_all','yes')
+            #nlp.str_option('derivative_test','first-order')
+            #nlp.str_option('derivative_test_print_all','yes')
             nlp.int_option('max_iter',100)
             x, zl, zu, constraint_multipliers, obj, status = nlp.solve(xs)
             nlp.close()
