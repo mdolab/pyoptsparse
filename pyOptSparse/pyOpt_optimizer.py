@@ -16,10 +16,11 @@ from __future__ import print_function
 # =============================================================================
 # Imports 
 # =============================================================================
-import os, sys, copy
+import os, sys, copy, types
 import shelve
 import numpy
 from scipy import sparse
+from .pyOpt_gradient import Gradient
 from .pyOpt_error import Error
 from .pyOpt_history import History
 eps = numpy.finfo(1.0).eps
@@ -78,6 +79,35 @@ class Optimizer(object):
         self.cache = {'x':None, 'fobj':None, 'fcon':None,
                       'gobj':None, 'gcon':None}
         
+    def _setSens(self, sens, sensStep, sensMode, comm):
+        """
+        Common function to setup sens function
+        """
+
+        # Next we determine what to what to do about
+        # derivatives. We must hvae a function or we use FD or CS:
+        if sens is None:
+            if self.name in ['SNOPT']:
+                # SNOPT is the only one where None is ok. 
+                self.setOption('Derivative level', 0)
+                self.sens = None
+            else:
+                raise Error('\'None\' value given for sens. Must be one \
+of \'FD\' or \'CS\' or a user supplied function.')
+        elif isinstance(sens, types.FunctionType):
+            # We have function handle for gradients! Excellent!
+            self.sens = sens
+        elif sens.lower() in ['fd','cs']:
+            # Create the gradient class that will operate just like if
+            # the user supplied fucntion
+            self.sens = Gradient(self.optProb, sens.lower(), sensStep,
+                                 sensMode, comm)
+        else:
+            raise Error('Unknown value given for sens. Must be None, \'FD\', \
+            \'CS\' or a python function handle')
+        # end if
+ 
+
     def _coldStart(self, coldStart):
         """
         Common code to do cold restarting. 
@@ -285,8 +315,8 @@ match the number in the current optimization. Ignorning coldStart file')
             if numpy.linalg.norm(x-self.cache['x']) > eps:
                 fobj, fcon, fail = self.optProb.objFun(xuser)
                 # User values stored is immediately 
-                self.cache['fobj_user'] = fobj
-                self.cache['fcon_user'] = fcon
+                self.cache['fobj_user'] = copy.deepcopy(fobj)
+                self.cache['fcon_user'] = copy.deepcopy(fcon)
                 
                 # Process constraints 
                 fcon = self.optProb.processNonlinearConstraints(fcon)
@@ -298,8 +328,8 @@ match the number in the current optimization. Ignorning coldStart file')
                 self.cache['gobj'] = None
                 self.cache['gcon'] = None
                 self.cache['x'] = x.copy()
-                self.cache['fobj'] = fobj
-                self.cache['fcon'] = fcon
+                self.cache['fobj'] = copy.deepcopy(fobj)
+                self.cache['fcon'] = copy.deepcopy(fcon)
 
                 # Update fail flag
                 masterFail = masterFail or fail
@@ -312,8 +342,8 @@ match the number in the current optimization. Ignorning coldStart file')
             if numpy.linalg.norm(x-self.cache['x']) > eps:
                 fobj, fcon, fail = self.optProb.objFun(xuser)
                 # User values stored is immediately 
-                self.cache['fobj_user'] = fobj
-                self.cache['fcon_user'] = fcon
+                self.cache['fobj_user'] = copy.deepcopy(fobj)
+                self.cache['fcon_user'] = copy.deepcopy(fcon)
 
                 # Process constraints
                 fcon = self.optProb.processNonlinearConstraints(fcon)
@@ -325,8 +355,8 @@ match the number in the current optimization. Ignorning coldStart file')
                 self.cache['gobj'] = None
                 self.cache['gcon'] = None
                 self.cache['x'] = x.copy()
-                self.cache['fobj'] = fobj
-                self.cache['fcon'] = fcon
+                self.cache['fobj'] = copy.deepcopy(fobj)
+                self.cache['fcon'] = copy.deepcopy(fcon)
 
                 # Update fail flag
                 masterFail = masterFail or fail
@@ -347,7 +377,7 @@ match the number in the current optimization. Ignorning coldStart file')
 
             if self.cache['gobj'] is None:
                 gobj, gcon, fail = self.sens(
-                    xuser, self.cache['fobj'], self.cache['fcon'])
+                    xuser, self.cache['fobj'], self.cache['fcon_user'])
                 # User values are stored is immediately 
                 self.cache['gobj_user'] = copy.deepcopy(gobj)
                 self.cache['gcon_user'] = copy.deepcopy(gcon)
@@ -383,7 +413,7 @@ match the number in the current optimization. Ignorning coldStart file')
             # determine if we have to run the sens calc:
             if self.cache['gcon'] is None:
                 gobj, gcon, fail = self.sens(
-                    xuser, self.cache['fobj'], self.cache['fcon'])
+                    xuser, self.cache['fobj'], self.cache['fcon_user'])
                 # User values stored is immediately 
                 self.cache['gobj_user'] = copy.deepcopy(gobj)
                 self.cache['gcon_user'] = copy.deepcopy(gcon)
