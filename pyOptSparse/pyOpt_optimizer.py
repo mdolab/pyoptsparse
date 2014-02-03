@@ -23,7 +23,7 @@ from scipy import sparse
 from .pyOpt_gradient import Gradient
 from .pyOpt_error import Error
 from .pyOpt_history import History
-from ..pyOpt_solution import Solution
+from .pyOpt_solution import Solution
 eps = numpy.finfo(1.0).eps
 inf = 1e20
 # Try to import mpi4py and determine rank
