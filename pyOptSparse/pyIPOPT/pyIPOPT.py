@@ -79,8 +79,30 @@ class IPOPT(Optimizer):
         
         name = 'IPOPT'
         category = 'Local Optimizer'
-        def_opts = {# Don't have any yet....
-            }
+        def_opts = {'tol':[float,1e-6],
+                    'hessian_approximation':[str,'limited-memory'],
+                    'limited_memory_max_history':[int,10],
+                    'max_iter':[int,100],
+                    # print options
+                    'print_level':[int, 5], # Output verbosity level. '0-12'
+                    'print_user_options':[str,'no'], #yes or no, Print all options set by the user. 
+                    'print_options_documentation':[str,'no'],#yes or no,Switch to print all algorithmic options. 
+                    'print_frequency_iter':[int,1],# Determines at which iteration frequency the summarizing iteration output line should be printed. 
+                    'print_frequency_time':[int,0],# Determines at which time frequency the summarizing iteration output line should be printed. could be float??
+                    'output_file':[str,'IPOPT_print.out'],
+                    'file_print_level':[int,5],#Verbosity level for output file. '0-12'
+                    'option_file_name':[str,'IPOPT_options.opt'],
+                    'print_info_string':[str,'no'],#yes or no.Enables printing of additional info string at end of iteration output. 
+                    'inf_pr_output':[str,'original'],#Determines what value is printed in the "inf_pr" output column. 'internal' or 'original'
+                    'print_timing_statistics':[str,'no'],#yes or no
+                    # Derivative Testing options
+                    'derivative_test':[str,'none'], # none,first-order,second-order,only-second-order
+                    'derivative_test_perturbation':[float,1e-8],
+                    'derivative_test_tol':[float,1e-4],
+                    'derivative_test_print_all':[str,'no'],#yes,no
+                    'derivative_test_first_index':[int,-2],
+                    'point_perturbation_radius':[int,10], #might be a float
+                    }
         informs = { # Don't have any of these yet either..
             }
 
@@ -238,12 +260,8 @@ class IPOPT(Optimizer):
             nnzh = 0
             nlp = pyipoptcore.create(len(xs), blx, bux, ncon, blc, buc, nnzj, nnzh, 
                                           eval_f, eval_grad_f, eval_g, eval_jac_g) 
-            nlp.num_option('tol',1e-6)
-            nlp.str_option('hessian_approximation','limited-memory')
-            nlp.int_option('limited_memory_max_history',10)
-            #nlp.str_option('derivative_test','first-order')
-            #nlp.str_option('derivative_test_print_all','yes')
-            nlp.int_option('max_iter',100)
+            
+            self._set_ipopt_options(nlp)
             x, zl, zu, constraint_multipliers, obj, status = nlp.solve(xs)
             nlp.close()
             optTime = time.time()-timeA
@@ -257,6 +275,7 @@ class IPOPT(Optimizer):
             # sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
+            funcEval = 1
             sol = self._createSolution(optTime, funcEval, sol_inform, obj)
 
             if MPI:
@@ -275,6 +294,30 @@ class IPOPT(Optimizer):
             sol = MPI.COMM_WORLD.bcast(sol)
 
         return  sol
+    
+    def _set_ipopt_options(self,nlp):
+        '''
+        set all of the the options in self.set_options in the ipopt instance nlp
+        '''
+        # Set Options from the local options dictionary
+        # ---------------------------------------------
+
+        for item in self.set_options:
+            name = item[0]
+            value = item[1]
+            print 'value',name,value
+            if isinstance(value, str):
+                nlp.str_option(name,value)
+            elif isinstance(value, float):
+                nlp.num_option(name,value)
+            elif isinstance(value, int):
+                nlp.int_option(name,value)
+            else:
+                print 'invalid option type',type(value)
+            # end
+        # end for
+
+        return
 
     def _on_setOption(self, name, value):
         '''

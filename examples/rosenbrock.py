@@ -19,10 +19,17 @@ constrained = args.constrained
 testHist = args.testHist
 groups = args.groups
 sensMode = args.sensMode
-if args.opt == 'IPOPT':
+if args.opt.lower() == 'ipopt':
     from pyoptsparse import IPOPT as OPT
+    optOptions={'max_iter':150,
+                'tol': 1e-6,
+                'derivative_test':'first-order',
+                'derivative_test_print_all':'no',
+                'derivative_test_tol':1e-4,
+                'output_file':'testoutIPOPT.out'}
 else:
     from pyoptsparse import SNOPT as OPT
+    optOptions={}
 
 def objfunc(xx):
     if groups:
@@ -64,12 +71,13 @@ if sens == 'user':
 optProb = Optimization('Rosenbrock function', objfunc, useGroups=groups)
 optProb.addVarGroup('x', 2, 'c', value=[5,5], lower=-5.12, upper=5.12,
                     scale=[1.0, 1.0], varSet='xvars')
+optProb.finalizeDesignVariables()
 if constrained:
     optProb.addCon('con',upper=0, scale=1.0)
 optProb.addObj('f')
 
 # Create optimizer
-opt = OPT()
+opt = OPT(options=optOptions)
 if testHist == 'no':
     # Just run a normal run
     sol = opt(optProb, sens=sens, sensMode=sensMode)
