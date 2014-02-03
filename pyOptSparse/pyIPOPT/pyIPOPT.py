@@ -229,8 +229,8 @@ class IPOPT(Optimizer):
 
             # Now what we need for IPOPT is precisely the .row and
             # .col attributes of the fullJacobian array
-            matStruct = (fullJacobian.row.copy().astype('int64'), 
-                         fullJacobian.col.copy().astype('int64'))
+            matStruct = (fullJacobian.row.copy().astype('int_'), 
+                         fullJacobian.col.copy().astype('int_'))
 
             self._setHistory(storeHistory)
             self._hotStart(storeHistory, hotStart)
