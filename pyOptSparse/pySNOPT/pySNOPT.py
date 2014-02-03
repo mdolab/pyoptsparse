@@ -46,7 +46,6 @@ from scipy import sparse
 # # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_history import History
-from ..pyOpt_solution import Solution
 from ..pyOpt_error import Error
 # =============================================================================
 # Misc Definitions
