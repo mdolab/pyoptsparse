@@ -591,13 +591,13 @@ match the number in the current optimization. Ignorning coldStart file')
         """
         sol = Solution(self.optProb, optTime, funcEval, sol_inform)
 
-        # Now set the x-values:
-        i = 0
-        for dvSet in sol.variables.keys():
-            for dvGroup in sol.variables[dvSet]:
-                for var in sol.variables[dvSet][dvGroup]:
-                    var.value = xs[i]
-                    i += 1
+        # # Now set the x-values:
+        # i = 0
+        # for dvSet in sol.variables.keys():
+        #     for dvGroup in sol.variables[dvSet]:
+        #         for var in sol.variables[dvSet][dvGroup]:
+        #             var.value = xs[i]
+        #             i += 1
         sol.fStar = obj
 
         return sol

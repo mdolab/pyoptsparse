@@ -31,8 +31,15 @@ from numpy import sin, cos
 from pyoptsparse import Optimization
 if 'IPOPT' in sys.argv:
     from pyoptsparse import IPOPT as OPT
+    optOptions={'max_iter':150,
+                'tol': 1e-6,
+                'derivative_test':'first-order',
+                'derivative_test_print_all':'no',
+                'derivative_test_tol':1e-4,
+                'output_file':'testoutIPOPT.out'}
 else:
     from pyoptsparse import SNOPT as OPT
+    optOptions={}
 
 USE_LINEAR = True
 def objfunc(xx):
@@ -85,6 +92,7 @@ if not USE_LINEAR:
     lower.extend([0,0])
     upper.extend([inf, inf])
 
+optProb.finalizeDesignVariables()
 # We separate out the 8 non-linear constraints
 optProb.addConGroup('con', len(lower), lower=lower, upper=upper)
 
@@ -105,6 +113,6 @@ if USE_LINEAR:
 print optProb
 optProb.addObj('f')
 optProb.printSparsity()
-opt = OPT()
+opt = OPT(options=optOptions)
 sol = opt(optProb, sens='CS')
 #print sol
