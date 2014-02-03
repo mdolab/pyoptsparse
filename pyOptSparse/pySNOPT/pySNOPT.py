@@ -78,101 +78,101 @@ class SNOPT(Optimizer):
         category = 'Local Optimizer'
         defOpts = {
         # SNOPT Printing Options
-        'outputDirectory':[str, './'],      # Directory to put files in.     
-        'Major print level':[int,1],                     # Majors Print (1 - line major iteration log)
-        'Minor print level':[int,1],                     # Minors Print (1 - line minor iteration log)
-        'Print file':[str,'SNOPT_print.out'],            # Print File Name (specified by subroutine snInit)
-        'iPrint':[int,18],                                # Print File Output Unit (override internally in snopt?)
-        'Summary file':[str,'SNOPT_summary.out'],        # Summary File Name (specified by subroutine snInit)
-        'iSumm':[int,19],                                # Summary File Output Unit (override internally in snopt?)
-        'Print frequency':[int,100],                    # Minors Log Frequency on Print File
-        'Summary frequency':[int,100],                    # Minors Log Frequency on Summary File
-        'Solution':[str,'Yes'],                            # Print Solution on the Print File
-        'Suppress options listing':[type(None),None],    # (options are normally listed)
-        'System information':[str,'No'],                # Print System Information on the Print File
+        'outputDirectory':[str, './'], # Directory to put files in.     
+        'Major print level':[int,1], # Majors Print (1 - line major iteration log)
+        'Minor print level':[int,1], # Minors Print (1 - line minor iteration log)
+        'Print file':[str,'SNOPT_print.out'],# Print File Name (specified by subroutine snInit)
+        'iPrint':[int,18],                  # Print File Output Unit (override internally in snopt?)
+        'Summary file':[str,'SNOPT_summary.out'], # Summary File Name (specified by subroutine snInit)
+        'iSumm':[int,19],             # Summary File Output Unit (override internally in snopt?)
+        'Print frequency':[int,100],   # Minors Log Frequency on Print File
+        'Summary frequency':[int,100], # Minors Log Frequency on Summary File
+        'Solution':[str,'Yes'],  # Print Solution on the Print File
+        'Suppress options listing':[type(None),None],  # (options are normally listed)
+        'System information':[str,'No'], # Print System Information on the Print File
         # SNOPT Problem Specification Options
-        'Problem Type':[str,'Minimize'],                # ('Maximize': alternative over Minimize, 'Feasible point': alternative over Minimize or Maximize)
-        'Objective row':[int,1],                         # (has precedence over ObjRow (snOptA))
-        'Infinite bound':[float,1.0e+20],                # Infinite Bound Value
+        'Problem Type':[str,'Minimize'], # Or 'Maximize', or 'Feasible point'
+        'Objective row':[int,1], # (has precedence over ObjRow (snOptA))
+        'Infinite bound':[float,1.0e+20], # Infinite Bound Value
         # SNOPT Convergence Tolerances Options
-        'Major feasibility tolerance':[float,1.0e-6],    # Target Nonlinear Constraint Violation
-        'Major optimality tolerance':[float,1.0e-6],     # Target Complementarity Gap
-        'Minor feasibility tolerance':[float,1.0e-6],     # For Satisfying the QP Bounds
+        'Major feasibility tolerance':[float,1.0e-6], # Target Nonlinear Constraint Violation
+        'Major optimality tolerance':[float,1.0e-6],  # Target Complementarity Gap
+        'Minor feasibility tolerance':[float,1.0e-6], # For Satisfying the QP Bounds
         # SNOPT Derivative Checking Options
-        'Verify level':[int,0],                            # Gradients Check Flag
+        'Verify level':[int,0], # Gradients Check Flag
         # SNOPT Scaling Options
-        'Scale option':[int,1],                            # Scaling (1 - linear constraints and variables)
-        'Scale tolerance':[float,0.9],                    # Scaling Tolerance
-        'Scale Print':[type(None),None],                # Default: scales are not printed
+        'Scale option':[int,1], # Scaling (1 - linear constraints and variables)
+        'Scale tolerance':[float,0.9], # Scaling Tolerance
+        'Scale Print':[type(None),None], # Default: scales are not printed
         # SNOPT Other Tolerances Options
-        'Crash tolerance':[float,0.1],                    # 
-        'Linesearch tolerance':[float,0.9],             # smaller for more accurate search
-        'Pivot tolerance':[float,3.7e-11],                 # epsilon^(2/3)
+        'Crash tolerance':[float,0.1],
+        'Linesearch tolerance':[float,0.9], # smaller for more accurate search
+        'Pivot tolerance':[float,3.7e-11],  # epsilon^(2/3)
         # SNOPT QP subproblems Options
-        'QPSolver':[str,'Cholesky'],                     # Default: Cholesky
-        'Crash option':[int,3],                         # (3 - first basis is essentially triangular)
-        'Elastic mode':[str,'No'],                        # (start with elastic mode until necessary)
-        'Elastic weight':[float,1.0e+4],                 # (used only during elastic mode)
-        'Iterations limit':[int,10000],                 # (or 20*ncons if that is more)
-        'Partial price':[int,1],                         # (10 for large LPs)
-        'Start':[str,'Cold'],                             # has precedence over argument start, ('Warm': alternative to a cold start)
+        'QPSolver':[str,'Cholesky'],        # Default: Cholesky
+        'Crash option':[int,3],  # (3 - first basis is essentially triangular)
+        'Elastic mode':[str,'No'], # (start with elastic mode until necessary)
+        'Elastic weight':[float,1.0e+4], # (used only during elastic mode)
+        'Iterations limit':[int,10000],  # (or 20*ncons if that is more)
+        'Partial price':[int,1],         # (10 for large LPs)
+        'Start':[str,'Cold'],  # has precedence over argument start, ('Warm': alternative to a cold start)
         # SNOPT SQP method Options
-        'Major iterations limit':[int,1000],             # or ncons if that is more
-        'Minor iterations limit':[int,500],             # or 3*ncons if that is more
-        'Major step limit':[float,2.0],                    # 
-        'Superbasics limit':[int,None],                 # (n1 + 1, n1 = number of nonlinear variables)
-        'Derivative level':[int,3],                        # (NOT ALLOWED IN snOptA)
-        'Derivative option':[int,1],                    # (ONLY FOR snOptA)
-        'Derivative linesearch':[type(None),None],        #
-        'Nonderivative linesearch':[type(None),None],    #
-        'Function precision':[float,3.0e-13],             # epsilon^0.8 (almost full accuracy)
-        'Difference interval':[float,5.5e-7],             # Function precision^(1/2)
-        'Central difference interval':[float,6.7e-5],    # Function precision^(1/3)
-        'New superbasics limit':[int,99],                # controls early termination of QPs
-        'Objective row':[int,1],                        # row number of objective in F(x)
-        'Penalty parameter':[float,0.0],                 # initial penalty parameter
-        'Proximal point method':[int,1],                # (1 - satisfies linear constraints near x0)
-        'Reduced Hessian dimension':[int,2000],            # (or Superbasics limit if that is less)
-        'Violation limit':[float,10.0],                     # (unscaled constraint violation limit)
-        'Unbounded step size':[float,1.0e+18],            # 
-        'Unbounded objective':[float,1.0e+15],            # 
+        'Major iterations limit':[int,1000], # or ncons if that is more
+        'Minor iterations limit':[int,500],  # or 3*ncons if that is more
+        'Major step limit':[float,2.0],     
+        'Superbasics limit':[int,None], # (n1 + 1, n1 = number of nonlinear variables)
+        'Derivative level':[int,3],     # (NOT ALLOWED IN snOptA)
+        'Derivative option':[int,1],    # (ONLY FOR snOptA)
+        'Derivative linesearch':[type(None),None],        
+        'Nonderivative linesearch':[type(None),None],    
+        'Function precision':[float,3.0e-13], # epsilon^0.8 (almost full accuracy)
+        'Difference interval':[float,5.5e-7], # Function precision^(1/2)
+        'Central difference interval':[float,6.7e-5], # Function precision^(1/3)
+        'New superbasics limit':[int,99], # controls early termination of QPs
+        'Objective row':[int,1], # row number of objective in F(x)
+        'Penalty parameter':[float,0.0], # initial penalty parameter
+        'Proximal point method':[int,1], # (1 - satisfies linear constraints near x0)
+        'Reduced Hessian dimension':[int,2000], # (or Superbasics limit if that is less)
+        'Violation limit':[float,10.0],  # (unscaled constraint violation limit)
+        'Unbounded step size':[float,1.0e+18], 
+        'Unbounded objective':[float,1.0e+15],
         # SNOPT Hessian approximation Options
-        'Hessian full memory':[type(None),None],         # default if n1 <= 75
-        'Hessian limited memory':[type(None),None],     # default if n1 > 75
-        'Hessian frequency':[int,999999],                 # for full Hessian (never reset)
-        'Hessian updates':[int,10],                         # for limited memory Hessian
-        'Hessian flush':[int,999999],                     # no flushing
+        'Hessian full memory':[type(None),None], # default if n1 <= 75
+        'Hessian limited memory':[type(None),None], # default if n1 > 75
+        'Hessian frequency':[int,999999],# for full Hessian (never reset)
+        'Hessian updates':[int,10], # for limited memory Hessian
+        'Hessian flush':[int,999999], # no flushing
         # SNOPT Frequencies Options
-        'Check frequency':[int,60],                         # test row residuals ||Ax - sk||
-        'Expand frequency':[int,10000],                    # for anti-cycling procedure
-        'Factorization frequency':[int,50],                # 100 for LPs
-        'Save frequency':[int,100],                         # save basis map
+        'Check frequency':[int,60],   # test row residuals ||Ax - sk||
+        'Expand frequency':[int,10000], # for anti-cycling procedure
+        'Factorization frequency':[int,50], # 100 for LPs
+        'Save frequency':[int,100], # save basis map
         # SNOPT LUSOL Options
-        'LU factor tolerance':[float,3.99],             # for NP (100.0 for LP)
-        'LU update tolerance':[float,3.99],             # for NP ( 10.0 for LP)
-        'LU singularity tolerance':[float,3.2e-11],        # 
-        'LU partial pivoting':[type(None),None],         # default threshold pivoting strategy
-        'LU rook pivoting':[type(None),None],             # threshold rook pivoting
-        'LU complete pivoting':[type(None),None],         # threshold complete pivoting
+        'LU factor tolerance':[float,3.99], # for NP (100.0 for LP)
+        'LU update tolerance':[float,3.99], # for NP ( 10.0 for LP)
+        'LU singularity tolerance':[float,3.2e-11],
+        'LU partial pivoting':[type(None),None], # default threshold pivoting strategy
+        'LU rook pivoting':[type(None),None], # threshold rook pivoting
+        'LU complete pivoting':[type(None),None], # threshold complete pivoting
         # SNOPT Basis files Options
-        'Old basis file':[int,0],                         # input basis map
-        'New basis file':[int,0],                         # output basis map
-        'Backup basis file':[int,0],                     # output extra basis map
-        'Insert file':[int,0],                             # input in industry format
-        'Punch file':[int,0],                             # output Insert data
-        'Load file':[int,0],                             # input names and values
-        'Dump file':[int,0],                             # output Load data
-        'Solution file':[int,0],                         # different from printed solution
+        'Old basis file':[int,0], # input basis map
+        'New basis file':[int,0], # output basis map
+        'Backup basis file':[int,0], # output extra basis map
+        'Insert file':[int,0], # input in industry format
+        'Punch file':[int,0], # output Insert data
+        'Load file':[int,0], # input names and values
+        'Dump file':[int,0], # output Load data
+        'Solution file':[int,0], # different from printed solution
         # SNOPT Partitions of cw, iw, rw Options
-        'Total character workspace':[int,500],          # lencw: 500
-        'Total integer workspace':[int,None],            # leniw: 500 + 100 * (m+n) 
-        'Total real workspace':[int,None],                # lenrw: 500 + 200 * (m+n)
-        'User character workspace':[int,500],            # 
-        'User integer workspace':[int,500],                # 
-        'User real workspace':[int,500],                # 
+        'Total character workspace':[int,500], # lencw: 500
+        'Total integer workspace':[int,None], # leniw: 500 + 100 * (m+n) 
+        'Total real workspace':[int,None], # lenrw: 500 + 200 * (m+n)
+        'User character workspace':[int,500],
+        'User integer workspace':[int,500],
+        'User real workspace':[int,500],
         #SNOPT Miscellaneous Options
-        'Debug level':[int,0],                             # (0 - Normal, 1 - for developers)
-        'Timing level':[int,3],                            # (3 - print cpu times)
+        'Debug level':[int,0], # (0 - Normal, 1 - for developers)
+        'Timing level':[int,3], # (3 - print cpu times)
         }
         informs = {
         0 : 'finished successfully',
@@ -257,6 +257,7 @@ class SNOPT(Optimizer):
 
         # Constrained until we know otherwise :-)
         self.unconstrained = False
+        
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                   storeHistory=None, hotStart=None, warmStart=None,
                   coldStart=None, timeLimit=None, comm=None):
@@ -342,9 +343,6 @@ class SNOPT(Optimizer):
             self.unconstrained = True
             optProb.dummyConstraint = True
             
-        # Save the optimization problem and finialize constraint
-        # jacobian, in general can only do on root proc
-
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()
@@ -355,11 +353,11 @@ class SNOPT(Optimizer):
         # We make a split here: If the rank is zero we setup the
         # problem and run SNOPT, otherwise we go to the waiting loop:
 
-        if rank == 0:
-            blx, bux, xs = self._assembleContinuousVariables()
-            ncon, blc, buc = self._assembleConstraints()
-            ff = self._assembleObjective()
+        blx, bux, xs = self._assembleContinuousVariables()
+        ncon, blc, buc = self._assembleConstraints()
+        ff = self._assembleObjective()
 
+        if rank == 0:
             # Initialize the Print and Summary files
             # --------------------------------------
             iPrint = self.options['iPrint'][1]

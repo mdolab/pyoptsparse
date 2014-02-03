@@ -40,7 +40,7 @@ use:\n pip install ordereddict')
 import numpy
 # pylint: disable-msg=E0611
 from scipy import sparse
-
+from mpi4py import MPI
 # =============================================================================
 # Extension modules
 # =============================================================================
@@ -77,12 +77,16 @@ class Optimization(object):
         useGroups is **always** used, even for small problems.
         """
       
-    def __init__(self, name, objFun, useGroups=True):
+    def __init__(self, name, objFun, comm=None, useGroups=True):
 
         self.name = name
         self.objFun = objFun
         self.useGroups = useGroups
-        
+        if comm is None:
+            self.comm = MPI.COMM_WORLD
+        else:
+            self.comm = comm
+            
         # Ordered dictionaries to keep track of variables and constraints
         self.variables = OrderedDict()
         self.constraints = OrderedDict()
@@ -137,7 +141,7 @@ class Optimization(object):
 
     def addVarGroup(self, name, nVars, type='c', value=0.0, 
                     lower=None, upper=None, scale=1.0, 
-                    varSet='default', choices=None, **kwargs):
+                    varSet=None, choices=None, **kwargs):
         """
         Add a group of variables into a variable set. This is the main
         function used for adding variables to pyOptSparse.
@@ -175,10 +179,10 @@ class Optimization(object):
             as value keyword.
 
         varSet : str. 
-            Specify which variable set this design variable group belons. If
-            the variable set has not already been used, it will be added
-            automatically. 
-
+            Specify which variable set this design variable group
+            belongs. If this is not specified, it will be added to a
+            varSet whose name is the sanme as \'name\'. 
+            
         choices : list
             Specify a list of choices for discrete design variables
             
@@ -187,10 +191,10 @@ class Optimization(object):
         >>> # Add a single design variable 'alpha' to the default variable set
         >>> optProb.addVar('alpha', type='c', value=2.0, lower=0.0, upper=10.0, \
         scale=0.1)
-        >>> # Add a single variable to its own varSet
+        >>> # Add a single variable to its own varSet (varSet is not needed)
         >>> optProb.addVar('alpha_c1', type='c', value=2.0, lower=0.0, upper=10.0, \
-        scale=0.1, varSet='alpha_c1')
-        >>> # Add 10 unscaled variables of 0.5 between 0 and 1
+        scale=0.1)
+        >>> # Add 10 unscaled variables of 0.5 between 0 and 1 to varSet 'y_vars'
         >>> optProb.addVarGroup('y', type='c', value=0.5, lower=0.0, upper=1.0, \
         scale=1.0, varSet='y_vars')
         >>> # Add another scaled variable to the varSet 'y_vars'
@@ -219,6 +223,8 @@ has already been used.'% name)
         else:
             self.varGroupNames.add(name)
 
+        if varSet is None:
+            varSet = name
         if not varSet in self.variables:
             self.addVarSet(varSet)
 
@@ -324,6 +330,91 @@ addVarGroup is %d, but the number of variables in nVars is %d.'% (
         assert name in self.variables, '%s not a valid varSet.'% name
         self.variables.pop(name)
 
+    def _reduceDict(self, variables):
+        """
+        This is a specialized function that is used to communicate
+        variables from dictionaries across the comm to ensure that all
+        processors end up with the same dictionary. It is used for
+        communicating the design variables and constrainted, which may
+        be specified on different processors independently.
+        """
+        
+        # Step 1: Gather just the key names:
+        allKeys = self.comm.gather(list(variables.keys()), root=0)
+       
+        # Step 2: Determine the unique set:
+        procKeys = {}
+        if self.comm.rank == 0:
+            # We can do the reduction efficiently using a dictionary: The
+            # algorithm is as follows: . Loop over the processors in order,
+            # and check if key is in procKeys. If it isn't, add with proc
+            # ID. This ensures that when we're done, the keys of 'procKeys'
+            # contains all the unique values we need, AND it has a single
+            # (lowest proc) that contains that key
+            for iProc in range(len(allKeys)):
+                for key in allKeys[iProc]:
+                    if not key in procKeys:
+                        procKeys[key] = iProc
+
+            # Now pop any keys out with iProc = 0, since we want the
+            # list of ones NOT one the root proc
+            for key in list(procKeys.keys()):
+                if procKeys[key] == 0:
+                    procKeys.pop(key)
+
+        # Step 3. Now broadcast this back to everyone
+        procKeys = self.comm.bcast(procKeys, root=0)
+     
+        # Step 4. The required processors can send the variables
+        if self.comm.rank == 0:
+            for key in procKeys:
+                variables[key] = self.comm.recv(source=procKeys[key], tag=0)
+        else:
+            for key in procKeys:
+                if procKeys[key] == self.comm.rank:
+                    self.comm.send(variables[key], dest=0, tag=0)
+
+        # Step 5. And we finally broadcast the final list back:
+        variables = self.comm.bcast(variables, root=0)
+
+        return variables
+    
+    def finalizeDesignVariables(self):
+        """
+        This function **MUST** be called by all the processors in the
+        communicator given to this function. The reason for this, is
+        that we allow design variables to be added on any of the
+        processors in this comm. This function is therefore collective
+        and combines the variables added on each of processors to come
+        up with a consistent set. Note that adding a variable group
+        with the SAME name but DIFFERENT parameters is undefined and
+        may result in very strange behaviour. 
+         """
+
+        # First thing we need is to determine the consistent set of
+        # variables from all processors.
+        self.variables = self._reduceDict(self.variables)
+
+        dvCounter = 0
+        for dvSet in self.variables:
+            # Check that varSet *actually* has variables in it:
+            if len(self.variables[dvSet]) > 0:
+                self.dvOffset[dvSet] = OrderedDict()
+                self.dvOffset[dvSet]['n'] = [dvCounter, -1]
+                for dvGroup in self.variables[dvSet]:
+                    n = len(self.variables[dvSet][dvGroup])
+                    self.dvOffset[dvSet][dvGroup] = [
+                        dvCounter, dvCounter + n, 
+                        self.variables[dvSet][dvGroup][0].scalar]
+                    dvCounter += n
+                self.dvOffset[dvSet]['n'][1] = dvCounter
+            else:
+                # Get rid of the dvSet since it has no variable groups
+                self.variables.pop(dvSet)
+
+        self.ndvs = dvCounter
+        self.ableToAddVariables = False
+
     def addObj(self, name, *args, **kwargs):
         """
         Add Objective into Objectives Set
@@ -408,7 +499,9 @@ addVarGroup is %d, but the number of variables in nVars is %d.'% (
         # If this is the first constraint, finalize the variables to
         # ensure no more variables can be added. 
         if self.ableToAddVariables:
-            self.finalizeDesignVariables()
+            raise Error('The user MUST call finalizeDesignVariables on all\
+            processors of the optProb communicator before constraints can \
+            be added.')
 
         if name in self.conGroupNames:
             raise Error('The supplied name \'%s\' for a constraint group \
@@ -468,6 +561,10 @@ addConGroup is %d, but the number of constraints is %d.'%(
                     wrt = list(wrt)
                 except:
                     raise Error('\'wrt\' must be a iterable list')
+
+            # We allow 'None' to be in the list...they are null so
+            # just pop them out:
+            wrt = [dvSet for dvSet in wrt if dvSet != None]
                     
             # Now, make sure that each dvSet the user supplied list
             # *actually* are DVsets
@@ -646,6 +743,9 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
         optimization problem setup.
         """
 
+        if self.comm.rank != 0:
+            return
+    
         # Header describing what we are printing:
         print('+'+'-'*78+'-'+'+')
         print('|' + ' '*19 +'Sparsity structure of constraint Jacobian' + ' '*19 + '|')
@@ -768,34 +868,6 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
             raise Error('No more variables can be added at this time. \
 All variables must be added before constraints can be added.')
     
-    def finalizeDesignVariables(self):
-        """
-        ** This function should not need to be called by the user**
-        
-        This function computes the ordering of the design variables
-        and set the flag to prevent any more variables from being
-        added """
-
-        dvCounter = 0
-
-        for dvSet in self.variables:
-            # Check that varSet *actually* has variables in it:
-            if len(self.variables[dvSet]) > 0:
-                self.dvOffset[dvSet] = OrderedDict()
-                self.dvOffset[dvSet]['n'] = [dvCounter, -1]
-                for dvGroup in self.variables[dvSet]:
-                    n = len(self.variables[dvSet][dvGroup])
-                    self.dvOffset[dvSet][dvGroup] = [
-                        dvCounter, dvCounter + n, 
-                        self.variables[dvSet][dvGroup][0].scalar]
-                    dvCounter += n
-                self.dvOffset[dvSet]['n'][1] = dvCounter
-            else:
-                # Get rid of the dvSet since it has no variable groups
-                self.variables.pop(dvSet)
-
-        self.ndvs = dvCounter
-        self.ableToAddVariables = False
         
     def finalizeConstraints(self):
         """
@@ -818,6 +890,10 @@ All variables must be added before constraints can be added.')
         4. Assemble the final (fixed) LINEAR constraint jacobian if it
            exists.
         """
+
+        # First thing we need is to determine the consistent set of
+        # constraints from all processors
+        self.constraints = self._reduceDict(self.constraints)
 
         # ---------
         # Step 1.

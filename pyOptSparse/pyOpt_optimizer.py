@@ -94,7 +94,7 @@ class Optimizer(object):
             else:
                 raise Error('\'None\' value given for sens. Must be one \
 of \'FD\' or \'CS\' or a user supplied function.')
-        elif isinstance(sens, types.FunctionType):
+        elif hasattr(sens, '__call__'):
             # We have function handle for gradients! Excellent!
             self.sens = sens
         elif sens.lower() in ['fd','cs']:
@@ -575,7 +575,7 @@ match the number in the current optimization. Ignorning coldStart file')
 
         nobj = len(self.optProb.objectives.keys())
         if nobj == 0:
-            # NO objective, add one                                                                            
+            # NO objective, add one
             self.optProb.addObj('f', scale=1.0)
         elif nobj <> 1:
             raise Error('%s can only use one objective'% self.name)
