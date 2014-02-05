@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
 #/bin/env python
 """
 pySNOPT - A variation of the pySNOPT wrapper specificially designed to
@@ -18,8 +16,10 @@ Developers:
 - Dr. Graeme Kennedy (GJK)
 History
 -------
-    v. 0.1    - Initial Wrapper Creation 
+    v. 0.1    - Initial Wrapper Creation
 """
+from __future__ import absolute_import
+from __future__ import print_function
 # =============================================================================
 # SNOPT Library
 # =============================================================================
@@ -31,15 +31,11 @@ except:
 # Standard Python modules
 # =============================================================================
 import os
-import sys
-import copy
 import time
-import types
 # =============================================================================
 # External Python modules
 # =============================================================================
 import numpy
-import shelve
 from scipy import sparse
 # # ===========================================================================
 # # Extension modules
@@ -48,36 +44,23 @@ from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_history import History
 from ..pyOpt_error import Error
 # =============================================================================
-# Misc Definitions
-# =============================================================================
-inf = 1e20  # define a value for infinity
-
-# Try to import mpi4py and determine rank
-try: 
-    from mpi4py import MPI
-    rank = MPI.COMM_WORLD.rank
-except:
-    rank = 0
-    MPI = None
-
-# =============================================================================
 # SNOPT Optimizer Class
 # =============================================================================
 class SNOPT(Optimizer):
     """
     SNOPT Optimizer Class - Inherited from Optimizer Abstract Class
     """
-    
+
     def __init__(self, *args, **kwargs):
         """
         SNOPT Optimizer Class Initialization
         """
-        
+
         name = 'SNOPT'
         category = 'Local Optimizer'
         defOpts = {
         # SNOPT Printing Options
-        'outputDirectory':[str, './'], # Directory to put files in.     
+        'outputDirectory':[str, './'], # Directory to put files in.
         'Major print level':[int,1], # Majors Print (1 - line major iteration log)
         'Minor print level':[int,1], # Minors Print (1 - line minor iteration log)
         'Print file':[str,'SNOPT_print.out'],# Print File Name (specified by subroutine snInit)
@@ -118,12 +101,12 @@ class SNOPT(Optimizer):
         # SNOPT SQP method Options
         'Major iterations limit':[int,1000], # or ncons if that is more
         'Minor iterations limit':[int,500],  # or 3*ncons if that is more
-        'Major step limit':[float,2.0],     
+        'Major step limit':[float,2.0],
         'Superbasics limit':[int,None], # (n1 + 1, n1 = number of nonlinear variables)
         'Derivative level':[int,3],     # (NOT ALLOWED IN snOptA)
         'Derivative option':[int,1],    # (ONLY FOR snOptA)
-        'Derivative linesearch':[type(None),None],        
-        'Nonderivative linesearch':[type(None),None],    
+        'Derivative linesearch':[type(None),None],
+        'Nonderivative linesearch':[type(None),None],
         'Function precision':[float,3.0e-13], # epsilon^0.8 (almost full accuracy)
         'Difference interval':[float,5.5e-7], # Function precision^(1/2)
         'Central difference interval':[float,6.7e-5], # Function precision^(1/3)
@@ -133,7 +116,7 @@ class SNOPT(Optimizer):
         'Proximal point method':[int,1], # (1 - satisfies linear constraints near x0)
         'Reduced Hessian dimension':[int,2000], # (or Superbasics limit if that is less)
         'Violation limit':[float,10.0],  # (unscaled constraint violation limit)
-        'Unbounded step size':[float,1.0e+18], 
+        'Unbounded step size':[float,1.0e+18],
         'Unbounded objective':[float,1.0e+15],
         # SNOPT Hessian approximation Options
         'Hessian full memory':[type(None),None], # default if n1 <= 75
@@ -164,7 +147,7 @@ class SNOPT(Optimizer):
         'Solution file':[int,0], # different from printed solution
         # SNOPT Partitions of cw, iw, rw Options
         'Total character workspace':[int,500], # lencw: 500
-        'Total integer workspace':[int,None], # leniw: 500 + 100 * (m+n) 
+        'Total integer workspace':[int,None], # leniw: 500 + 100 * (m+n)
         'Total real workspace':[int,None], # lenrw: 500 + 200 * (m+n)
         'User character workspace':[int,500],
         'User integer workspace':[int,500],
@@ -248,18 +231,12 @@ class SNOPT(Optimizer):
         self.set_options = []
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
 
-        # Snopt doesn't required appending linearConstraint 
-        self.appendLinearConstraints = False
-
         # Snopt need jacobians in csc format
         self.jacType = 'csc'
 
-        # Constrained until we know otherwise :-)
-        self.unconstrained = False
-        
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
-                  storeHistory=None, hotStart=None, warmStart=None,
-                  coldStart=None, timeLimit=None, comm=None):
+                 storeHistory=None, hotStart=None, warmStart=None,
+                 coldStart=None, timeLimit=None):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -283,15 +260,15 @@ class SNOPT(Optimizer):
             function evaluations and/or problems with large numbers of
             design variables this is the preferred method.
 
-        sensStep : float 
+        sensStep : float
             Set the step size to use for design variables. Defaults to
-            1e-6 when sens is \'FD\' and 1e-40j when sens is \'CS\'. 
+            1e-6 when sens is \'FD\' and 1e-40j when sens is \'CS\'.
 
         sensMode : str
             Use \'pgc\' for parallel gradient computations. Only
             available with mpi4py and each objective evaluation is
             otherwise serial
-            
+
         storeHistory : str
             File name of the history file into which the history of
             this optimization will be stored
@@ -304,8 +281,8 @@ class SNOPT(Optimizer):
             identical we mean, **EVERY SINGLE PARAMETER MUST BE
             IDENTICAL**. As soon as he requested evaluation point
             from SNOPT does not match the history, function and
-            gradient evaluations revert back to normal evaluations. 
-             
+            gradient evaluations revert back to normal evaluations.
+
         warmStart : str
             File name of the history file to use for "warm"
             restart. The only difference between a "warm" and "cold"
@@ -325,15 +302,10 @@ class SNOPT(Optimizer):
             Number of seconds to run the optimization before a
             terminate flag is given to the optimizer and a "clean"
             exit is performed.
-
-        comm : MPI Intra communicator
-            Specifiy a MPI comm to use. Default is None. If mpi4py is not
-            available, the serial mode will still work. if mpi4py *is*
-            available, comm defaluts to MPI.COMM_WORLD. 
             """
-        
+
         self.callCounter = 0
-  
+
         if len(optProb.constraints) == 0:
             # If the user *actually* has an unconstrained problem,
             # snopt sort of chokes with that....it has to have at
@@ -341,29 +313,27 @@ class SNOPT(Optimizer):
             # automatically here:
             self.unconstrained = True
             optProb.dummyConstraint = True
-            
+
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()
-        # Setup initial cache values
         self._setInitialCacheValues()
-        self._setSens(sens, sensStep, sensMode, comm)
-                
-        # We make a split here: If the rank is zero we setup the
-        # problem and run SNOPT, otherwise we go to the waiting loop:
-
+        self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
         ncon, blc, buc = self._assembleConstraints()
         ff = self._assembleObjective()
 
-        if rank == 0:
+        # We make a split here: If the rank is zero we setup the
+        # problem and run SNOPT, otherwise we go to the waiting loop:
+        if self.optProb.comm.rank == 0:
             # Initialize the Print and Summary files
             # --------------------------------------
             iPrint = self.options['iPrint'][1]
             PrintFile = os.path.join(self.getOption('outputDirectory'),
                                      self.getOption('Print file'))
             if iPrint != 0:
-                ierror = snopt.openunit(iPrint, PrintFile, "replace", "sequential")
+                ierror = snopt.openunit(iPrint, PrintFile, "replace",
+                                        "sequential")
                 if ierror != 0:
                     raise Error('Failed to properly open %s, ierror = %3d'%
                                 (PrintFile,ierror))
@@ -372,11 +342,11 @@ class SNOPT(Optimizer):
             SummFile = os.path.join(self.getOption('outputDirectory'),
                                     self.getOption('Summary file'))
             if iSumm != 0:
-                ierror = snopt.openunit(iSumm, SummFile, "replace", "sequential")
+                ierror = snopt.openunit(iSumm, SummFile, "replace",
+                                        "sequential")
                 if ierror != 0:
                     raise Error('Failed to properly open %s, ierror = %3d'%
                                   (SummFile, ierror))
-      
 
             # Determine the sparsity structure of the full jacobian
             # -----------------------------------------------------
@@ -401,13 +371,13 @@ class SNOPT(Optimizer):
             Acol = fullJacobian.data
             indA = fullJacobian.indices + 1
             locA = fullJacobian.indptr + 1
-            
+
             # Set the number of nonlinear constraints snopt *thinks* we have:
             if self.unconstrained:
                 nnCon = 1
             else:
                 nnCon = self.optProb.nnCon
-            
+
             # Calculate the length of the work arrays
             # --------------------------------------
             nvar = self.optProb.ndvs
@@ -418,7 +388,7 @@ class SNOPT(Optimizer):
             self.options['Total integer workspace'][1] = leniw
             self.options['Total real workspace'][1] = lenrw
 
-            cw = numpy.empty((lencw,8), 'c')
+            cw = numpy.empty((lencw, 8), 'c')
             iw = numpy.zeros(leniw, numpy.intc)
             rw = numpy.zeros(lenrw, numpy.float)
             snopt.sninit(iPrint, iSumm, cw, iw, rw)
@@ -428,54 +398,52 @@ class SNOPT(Optimizer):
             nnJac = nvar
             iObj = numpy.array(0, numpy.intc)
             neA = len(indA)
-            neGcon = neA  # The nonlinear Jacobian and A are the same 
+            neGcon = neA  # The nonlinear Jacobian and A are the same
             iExit = 0
 
             # Set the options into the SNOPT instance
             self._set_snopt_options(iPrint, iSumm, cw, iw, rw)
 
-            mincw, miniw, minrw,cw = snopt.snmemb(iExit, ncon, nvar, 
-                                                  neA, neGcon, 
-                                                  nnCon, nnJac, nnObj,
-                                                  cw, iw, rw)
+            mincw, miniw, minrw, cw = snopt.snmemb(
+                iExit, ncon, nvar, neA, neGcon, nnCon, nnJac, nnObj,
+                cw, iw, rw)
 
             if (minrw > lenrw) or (miniw > leniw) or (mincw > lencw):
                 if mincw > lencw:
                     lencw = mincw
                     cw = numpy.array((lencw, 8), 'c')
-                    tcw[:] = ' '
+                    cw[:] = ' '
                 if miniw > leniw:
                     leniw = miniw
                     iw = numpy.zeros(leniw, numpy.intc)
                 if (minrw > lenrw):
-                    lenrw = minrw        
+                    lenrw = minrw
                     rw = numpy.zeros(lenrw, numpy.float)
 
                 snopt.sninit(iPrint, iSumm, cw, iw, rw)
 
-                # snInit resets all the options to the defaults. 
+                # snInit resets all the options to the defaults.
                 # Set them again!
-                self._set_snopt_options(iPrint, iSumm, cw, iw, rw)  
+                self._set_snopt_options(iPrint, iSumm, cw, iw, rw)
 
             # end if
 
             # Setup argument list values
             start = numpy.array(self.options['Start'][1])
-            nName = numpy.array([1], numpy.intc)
             ObjAdd = numpy.array([0.], numpy.float)
-            ProbNm = numpy.array(self.optProb.name)        
-            xs = numpy.concatenate((xs, numpy.zeros(ncon,numpy.float)))
+            ProbNm = numpy.array(self.optProb.name)
+            xs = numpy.concatenate((xs, numpy.zeros(ncon, numpy.float)))
             bl = numpy.concatenate((blx, blc))
             bu = numpy.concatenate((bux, buc))
             lencu = 1
             leniu = 2
             lenru = 3
-            cu = numpy.array(["        "],'c')
+            cu = numpy.array(["        "], 'c')
             iu = numpy.zeros(leniu, numpy.intc)
             ru = numpy.zeros(lenru, numpy.float)
             hs = numpy.zeros(nvar+ncon, numpy.intc)
 
-            Names = numpy.array(["        "],'c')
+            Names = numpy.array(["        "], 'c')
             pi = numpy.zeros(ncon, numpy.float)
             rc = numpy.zeros(nvar+ncon, numpy.float)
             inform = numpy.array([-1], numpy.intc)
@@ -503,14 +471,14 @@ class SNOPT(Optimizer):
             # The snopt c interface
             timeA = time.time()
             snopt.snoptc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
-                         self._userfg_wrap, Acol, indA, locA, bl, bu, 
-                         Names, hs, xs, pi, rc, inform, mincw, miniw, minrw, 
+                         self._userfg_wrap, Acol, indA, locA, bl, bu,
+                         Names, hs, xs, pi, rc, inform, mincw, miniw, minrw,
                          nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
             optTime = time.time()-timeA
-          
+
             if self.storeHistory:
                 # Record the full state of variables, xs and hs such
-                # that we could perform a warm start. 
+                # that we could perform a warm start.
                 self.hist.writeData('xs', xs)
                 self.hist.writeData('hs', hs)
                 self.hist.close()
@@ -529,31 +497,26 @@ class SNOPT(Optimizer):
             funcEval = 1
             sol = self._createSolution(optTime, funcEval, sol_inform, ff)
 
-            if MPI:
-                # Broadcast a -1 to indcate SNOPT has finished
-                MPI.COMM_WORLD.bcast(-1, root=0)
-            
-        else: # We are not on the root process so go into waiting loop:
+            # Indicate solution finished
+            self.optProb.comm.bcast(-1, root=0)
+
+        else:  # We are not on the root process so go into waiting loop:
             self.waitLoop()
             sol = None
-        # end if
 
-        # Communicate the solution -- We are back to the point where
-        # all processors are back together, so a standard bcast is
-        # fine.
-        if MPI:
-            sol = MPI.COMM_WORLD.bcast(sol)
-        
-        return  sol
+        # Communication solution and return
+        sol = self._communicateSolution(sol)
 
-    def _userfg_wrap(self, mode, nnJac, x, fobj, gobj, fcon, gcon, 
+        return sol
+
+    def _userfg_wrap(self, mode, nnJac, x, fobj, gobj, fcon, gcon,
                      nState, cu, iu, ru):
         """
         The snopt user function. This is what is actually called from snopt.
-        
+
         Essentially nothing is done in this function, but this funcion
         has to precisely match the signature from fortran so must look
-        EXACTLY like this. 
+        EXACTLY like this.
 
         All we do here is call the generic masterFunc in the baseclass
         which will take care of everything else.
@@ -569,7 +532,7 @@ class SNOPT(Optimizer):
             if self.getOption('Derivative level') != 0:
                 gobj, gcon, fail2 = self.masterFunc(x, ['gobj', 'gcon'])
                 fail = fail or fail2
-                
+
         # Flush the files to the buffer for all the people who like to
         # monitor the residual
         snopt.pyflush(self.getOption('iPrint'))
@@ -579,7 +542,7 @@ class SNOPT(Optimizer):
             mode = -1
 
         return mode, fobj, gobj, fcon, gcon
-       
+
     def _warmStart(self, warmStart, coldStart):
         """
         Internal snopt function to do a warm start or cold start. The
@@ -600,23 +563,27 @@ class SNOPT(Optimizer):
                         # Tell snopt to use this warm start information
                         self.setOption('Start', 'Warm start')
                     else:
-                        print('The number of variables or constraints in warmStart file do not \
-match the number in the current optimization. Ignorning warmStart file and trying cold start.')
+                        print('The number of variables or constraints \
+                            in warmStart file do not match the number \
+                            in the current optimization. Ignorning \
+                            warmStart file and trying cold start.')
                         coldStart = warmStart
 
                 else:
-                    print('No warm start information in file. \'xs\' and \'hs\' must be\
- present in history file. Trying cold start instead.')
+                    print('No warm start information in file. \'xs\' and \
+                    \'hs\' must be present in history file. \
+                    Trying cold start instead.')
                     coldStart = warmStart
             else:
-                print('warmStart file not found. Continuing without warm restart')
+                print('warmStart file not found. Continuing without \
+                    warm restart')
         # end if (warm start)
 
         # Now if we have a cold start, we can call the common code:
         if coldStart is not None:
             xs = self._coldStart(coldStart)
 
-        # Return 
+        # Return
         return xs, hs
 
     def _set_snopt_options(self, iPrint, iSumm, cw, iw, rw):
@@ -624,7 +591,7 @@ match the number in the current optimization. Ignorning warmStart file and tryin
         Set all the options into SNOPT that have been assigned
         by the user
         """
-                
+
         # Set Options from the local options dictionary
         # ---------------------------------------------
         inform = numpy.array([-1], numpy.intc)
@@ -635,29 +602,29 @@ match the number in the current optimization. Ignorning warmStart file and tryin
             if isinstance(value, str):
                 if (name == 'Start'):
                     if (value == 'Cold'):
-                        snopt.snset('Cold start', iPrint, iSumm, inform, 
+                        snopt.snset('Cold start', iPrint, iSumm, inform,
                                     cw, iw, rw)
                     elif (value == 'Warm'):
-                        snopt.snset('Warm start', iPrint, iSumm, inform, 
+                        snopt.snset('Warm start', iPrint, iSumm, inform,
                                     cw, iw, rw)
                 elif (name == 'Problem Type'):
                     if (value == 'Minimize'):
-                        snopt.snset('Minimize', iPrint, iSumm, inform, 
+                        snopt.snset('Minimize', iPrint, iSumm, inform,
                                     cw, iw, rw)
                     elif (value == 'Maximize'):
-                        snopt.snset('Maximize', iPrint, iSumm, inform, 
+                        snopt.snset('Maximize', iPrint, iSumm, inform,
                                     cw, iw, rw)
                     elif (value == 'Feasible point'):
-                        snopt.snset('Feasible point', iPrint, iSumm, inform, 
+                        snopt.snset('Feasible point', iPrint, iSumm, inform,
                                     cw, iw, rw)
                 elif (name == 'Print file'):
-                    snopt.snset(name+' '+'%d'%(iPrint), iPrint, iSumm, inform, 
+                    snopt.snset(name+' '+'%d'% iPrint, iPrint, iSumm, inform,
                                 cw, iw, rw)
                 elif (name == 'Summary file'):
-                    snopt.snset(name+' '+'%d'%(iSumm), iPrint, iSumm, inform, 
+                    snopt.snset(name+' '+'%d'% iSumm, iPrint, iSumm, inform,
                                 cw, iw, rw)
                 else:
-                    snopt.snset(name+' '+value, iPrint, iSumm, inform, 
+                    snopt.snset(name+' '+value, iPrint, iSumm, inform,
                                 cw, iw, rw)
             elif isinstance(value, float):
                 snopt.snsetr(name, value, iPrint, iSumm, inform, cw, iw, rw)
@@ -671,52 +638,52 @@ match the number in the current optimization. Ignorning warmStart file and tryin
     def _on_setOption(self, name, value):
         """
         Set Optimizer Option Value (Optimizer Specific Routine)
-        
+
         Documentation last updated:  May. 07, 2008 - Ruben E. Perez
         """
-        
-        self.set_options.append([name,value])
-        
-        
+
+        self.set_options.append([name, value])
+
+
     def _on_getOption(self, name):
         """
         Get Optimizer Option Value (Optimizer Specific Routine)
-        
+
         Documentation last updated:  May. 07, 2008 - Ruben E. Perez
         """
-        
+
         pass
-        
+
     def _on_getInform(self, infocode):
         """
         Get Optimizer Result Information (Optimizer Specific Routine)
-        
+
         Keyword arguments:
         -----------------
         id -> STRING: Option Name
-        
+
         Documentation last updated:  May. 07, 2008 - Ruben E. Perez
         """
-        
-        # 
+
+        #
         mjr_code = (infocode[0]/10)*10
-        mnr_code = infocode[0] - 10*mjr_code
+        #mnr_code = infocode[0] - 10*mjr_code
         try:
             inform_text = self.informs[mjr_code]
         except:
             inform_text = 'Unknown Exit Status'
         # end try
-        
+
         return inform_text
-        
+
     def _on_flushFiles(self):
         """
         Flush the Output Files (Optimizer Specific Routine)
-        
+
         Documentation last updated:  August. 09, 2009 - Ruben E. Perez
         """
-        
-        # 
+
+        #
         iPrint = self.options['iPrint'][1]
         iSumm = self.options['iSumm'][1]
         if (iPrint != 0):
@@ -724,14 +691,3 @@ match the number in the current optimization. Ignorning warmStart file and tryin
 
         if (iSumm != 0):
             snopt.pyflush(iSumm)
- 
-#==============================================================================
-# SNOPT Optimizer Test
-#==============================================================================
-if __name__ == '__main__':
-    
-    # Test SNOPT
-    print('Testing ...')
-    snopt = SNOPT()
-    print(snopt)
-

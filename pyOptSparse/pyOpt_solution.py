@@ -42,7 +42,7 @@ class Solution(Optimization):
     
     def __init__(self, optProb, optTime, optEvals, optInform):
         
-        Optimization.__init__(self, optProb.name, optProb.objFun,
+        Optimization.__init__(self, optProb.name, None,
                               optProb.useGroups)
 
         # Copy over the variables, constraints, and objectives

@@ -19,7 +19,7 @@ History
 # External Python modules
 # =============================================================================
 import numpy
-
+eps = numpy.finfo(1.0).eps
 # =============================================================================
 # Constraint Class
 # =============================================================================
@@ -42,6 +42,21 @@ class Constraint(object):
         self.rs = None
         self.re = None
         self.scale = scale
+
+        # Now we determine what kind of constraint this is: 
+        # 1. An equality constraint
+        # 2. A upper bound on a 1-sided constraint
+        # 3. A lower bound on a 1-sided constraint
+        # 4. Lower and Upper bounds on 2-sided constraint
+        
+        # The first 3, will give a single "constraint" in all
+        # optimizers. Some optimizers can only do 1-sided constraints
+        # so type 4 must be split into two separate constraints
+        # automatically. 
+
+        # Type 1: Equality
+
+
 
     def __str__(self):
         """

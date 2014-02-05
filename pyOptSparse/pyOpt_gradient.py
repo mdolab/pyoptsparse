@@ -18,7 +18,7 @@ History
 # External Python modules
 # =============================================================================
 import numpy
-
+from mpi4py import MPI
 # =============================================================================
 # Gradient Class
 # =============================================================================
@@ -40,11 +40,6 @@ class Gradient(object):
 
     sensMode : str
         Flag to compute gradients in parallel.
-
-    comm : MPI Intra communicator
-        Specifiy a MPI comm to use. Default is None. If mpi4py is not
-        available, the serial mode will still work. if mpi4py *is*
-        available, comm defaluts to MPI.COMM_WORLD. 
         """
     
     def __init__(self, optProb, sensType, sensStep=None, sensMode='',
@@ -60,21 +55,8 @@ class Gradient(object):
         else:
             self.sensStep = sensStep
         self.sensMode = sensMode
-        if comm is None:
-            # Two things can happen: we don't *actually* have MPI,
-            # which means the calcuation *must* be serial, or we can
-            # import MPI in which case, the comm will default to
-            # MPI.COMM_WORLD
-            try:
-                from mpi4py import MPI
-                self.comm = MPI.COMM_WORLD
-                self.MPI = MPI
-            except ImportError:
-                self.comm = None
-
-        else:
-            self.comm = comm
-
+        self.comm = comm
+            
         # Now we can compute which dvs each process will need to
         # compute:
         ndvs = self.optProb.ndvs
@@ -172,13 +154,13 @@ class Gradient(object):
         if self.sensMode == 'pgc':
             # We just mpi_reduce to the root with sum. This uses the
             # efficent numpy versions
-            self.comm.Reduce(gobj.copy(), gobj, op=self.MPI.SUM, root=0)
-            self.comm.Reduce(gcon.copy(), gcon, op=self.MPI.SUM, root=0)
+            self.comm.Reduce(gobj.copy(), gobj, op=MPI.SUM, root=0)
+            self.comm.Reduce(gcon.copy(), gcon, op=MPI.SUM, root=0)
 
         # Logically reduce (over the comm) if the fail if *ANY*
         # gradient calc failed:
         if self.comm is not None:
-            masterFail = self.comm.allreduce(masterFail, op=self.MPI.LOR)
+            masterFail = self.comm.allreduce(masterFail, op=MPI.LOR)
     
         return gobj, gcon, masterFail
         

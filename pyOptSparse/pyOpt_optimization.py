@@ -48,7 +48,6 @@ from .pyOpt_variable import Variable
 from .pyOpt_objective import Objective
 from .pyOpt_constraint import Constraint
 from .pyOpt_error import Error
-
 # =============================================================================
 # Misc Definitions
 # =============================================================================

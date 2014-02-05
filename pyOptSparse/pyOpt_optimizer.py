@@ -14,9 +14,10 @@ Developers:
 """
 from __future__ import print_function
 # =============================================================================
-# Imports 
+# Imports
 # =============================================================================
-import os, sys, copy, types
+import os
+import copy
 import shelve
 import numpy
 from scipy import sparse
@@ -27,13 +28,7 @@ from .pyOpt_solution import Solution
 eps = numpy.finfo(1.0).eps
 inf = 1e20
 # Try to import mpi4py and determine rank
-try: 
-    from mpi4py import MPI
-    rank = MPI.COMM_WORLD.rank
-except:
-    rank = 0
-    MPI = None
-# end try
+from mpi4py import MPI
 
 # =============================================================================
 # Optimizer Class
@@ -75,12 +70,13 @@ class Optimizer(object):
         # Default options:
         self.appendLinearConstraints = False
         self.jacType = 'dense'
+        self.unconstrained = False
 
-        # Cache storage 
-        self.cache = {'x':None, 'fobj':None, 'fcon':None,
-                      'gobj':None, 'gcon':None}
-        
-    def _setSens(self, sens, sensStep, sensMode, comm):
+        # Cache storage
+        self.cache = {'x': None, 'fobj': None, 'fcon': None,
+                      'gobj': None, 'gcon': None}
+
+    def _setSens(self, sens, sensStep, sensMode):
         """
         Common function to setup sens function
         """
@@ -89,7 +85,7 @@ class Optimizer(object):
         # derivatives. We must hvae a function or we use FD or CS:
         if sens is None:
             if self.name in ['SNOPT']:
-                # SNOPT is the only one where None is ok. 
+                # SNOPT is the only one where None is ok.
                 self.setOption('Derivative level', 0)
                 self.sens = None
             else:
@@ -98,20 +94,18 @@ of \'FD\' or \'CS\' or a user supplied function.')
         elif hasattr(sens, '__call__'):
             # We have function handle for gradients! Excellent!
             self.sens = sens
-        elif sens.lower() in ['fd','cs']:
+        elif sens.lower() in ['fd', 'cs']:
             # Create the gradient class that will operate just like if
             # the user supplied fucntion
             self.sens = Gradient(self.optProb, sens.lower(), sensStep,
-                                 sensMode, comm)
+                                 sensMode, self.optProb.comm)
         else:
             raise Error('Unknown value given for sens. Must be None, \'FD\', \
             \'CS\' or a python function handle')
-        # end if
- 
 
     def _coldStart(self, coldStart):
         """
-        Common code to do cold restarting. 
+        Common code to do cold restarting.
 
         Parameters
         ----------
@@ -131,16 +125,16 @@ of \'FD\' or \'CS\' or a user supplied function.')
             else:
                 print('The number of variable in coldStart file do not \
 match the number in the current optimization. Ignorning coldStart file')
-                    # end if
         else:
-            print('Cold restart file not found. Continuing without cold restart')
+            print('Cold restart file not found. Continuing without\
+                  cold restart')
 
         return xCold
-        
+
     def _hotStart(self, storeHistory, hotStart):
         """
         Generic routine for setting up the hot start information
-        
+
         Parameters
         ----------
         storeHistory : str
@@ -152,13 +146,14 @@ match the number in the current optimization. Ignorning coldStart file')
 
         # By default no hot start
         self.hotStart = None
-     
+
         # Determine if we want to do a hot start:
         if hotStart is not None:
             # Now, if if the hot start file and the history are
             # the SAME, we don't allow that. We will create a copy
-            # of the hotStart file and use *that* instead. 
-            import tempfile, shutil
+            # of the hotStart file and use *that* instead.
+            import tempfile
+            import shutil
             if storeHistory == hotStart:
                 if os.path.exists(hotStart):
                     fname = tempfile.mktemp()
@@ -169,30 +164,30 @@ match the number in the current optimization. Ignorning coldStart file')
 
     def _setHistory(self, storeHistory):
         """Generic routine for setting history file if required
-        
+
         Parameters
         ----------
         storeHistory : str
             Filename for history file for this optimization
             """
-        
+
         self.storeHistory = False
         if storeHistory:
             self.hist = History(storeHistory)
             self.storeHistory = True
 
-    def masterFunc(self, x, evaluate, **kwargs):
+    def masterFunc(self, x, evaluate):
         """
         This is the master function that **ALL** optimizers call from
         the specific signature functions. The reason for this is that
         we can generically do the hot-start replay, history storage,
         timing and possibly chaching once for all optimizers. It also
         takes care of the MPI communcation that allows the optimizer
-        to run on one process only, but within a larger MPI context. 
+        to run on one process only, but within a larger MPI context.
 
         It does add one additional level of call, but we think it is
         well worth it for reduce code duplication
-        
+
         Parameters
         ----------
         x : array
@@ -206,7 +201,7 @@ match the number in the current optimization. Ignorning coldStart file')
         # We are hot starting, we should be able to read the required
         # information out of the hot start file, process it and then
         # fire it back to the specific optimizer
-        
+
         if self.hotStart:
             if self.hotStart.validPoint(self.callCounter, x):
                 data = self.hotStart.read(self.callCounter)
@@ -231,24 +226,25 @@ match the number in the current optimization. Ignorning coldStart file')
                 if 'gcon' in evaluate:
                     gcon = data['gcon']
                 fail = data['fail']
-                
+
                 returns = []
-                
+
                 # Process objective if we have one (them)
                 if fobj is not None:
                     returns.append(self.optProb.processObjective(fobj))
-                    
+
                 # Process constraints if we have them
                 if fcon is not None:
                     fcon = self.optProb.processNonlinearConstraints(fcon)
                     if self.appendLinearConstraints:
-                        fcon = numpy.append(fcon, self.optProb.evaluateLinearConstraints(x))
+                        fcon = numpy.append(
+                            fcon, self.optProb.evaluateLinearConstraints(x))
                     returns.append(fcon)
-                    
+
                 # Process objective gradient
                 if gobj is not None:
                     returns.append(self.optProb.processObjectiveGradient(gobj))
-                    
+
                 # Process constraint gradient
                 if gcon is not None:
                     gcon = self.optProb.processConstraintJacobian(gcon)
@@ -257,13 +253,13 @@ match the number in the current optimization. Ignorning coldStart file')
                                               self.optProb.linearJacobian])
                     gcon = self.convertJacobian(gcon)
                     returns.append(gcon)
-                    
+
                 # We can now safely increment the call counter
                 self.callCounter += 1
                 returns.append(fail)
 
                 return returns
-            # end if (valid hot start point)  
+            # end if (valid hot start point)
 
             # We have used up all the information in hot start so we
             # can close the hot start file
@@ -274,16 +270,15 @@ match the number in the current optimization. Ignorning coldStart file')
         # Now we have to actually run our function...this is where the
         # MPI gets a little tricy. Up until now, only the root proc
         # has called up to here...the rest of them are waiting at a
-        # broadcast to know what to do. 
+        # broadcast to know what to do.
 
         args = [x, evaluate]
         if MPI:
             # Broadcast the type of call (0 means regular call)
-            MPI.COMM_WORLD.bcast(0, root=0)
+            self.optProb.comm.bcast(0, root=0)
 
             # Now broadcast out the required arguments:
-            MPI.COMM_WORLD.bcast(args)
-        # end if
+            self.optProb.comm.bcast(args)
 
         return self.masterFunc2(*args)
 
@@ -308,21 +303,22 @@ match the number in the current optimization. Ignorning coldStart file')
         masterFail = False
 
         # Set basic parameters in history
-        hist = {'x':x, 'xuser':xuser, 'xscaled':xscaled}
+        hist = {'x': x, 'xuser': xuser, 'xscaled': xscaled}
         returns = []
         # Start with fobj:
 
         if 'fobj' in evaluate:
             if numpy.linalg.norm(x-self.cache['x']) > eps:
                 fobj, fcon, fail = self.optProb.objFun(xuser)
-                # User values stored is immediately 
+                # User values stored is immediately
                 self.cache['fobj_user'] = copy.deepcopy(fobj)
                 self.cache['fcon_user'] = copy.deepcopy(fcon)
-                
-                # Process constraints 
+
+                # Process constraints
                 fcon = self.optProb.processNonlinearConstraints(fcon)
                 if self.appendLinearConstraints:
-                    fcon = numpy.append(fcon, self.optProb.evaluateLinearConstraints(x))
+                    fcon = numpy.append(
+                        fcon, self.optProb.evaluateLinearConstraints(x))
 
                 # Now clear out gobj and gcon in the cache since these
                 # are out of date and set the current ones
@@ -338,18 +334,19 @@ match the number in the current optimization. Ignorning coldStart file')
             # fobj is now in cache
             returns.append(self.cache['fobj'])
             hist['fobj'] = self.cache['fobj_user']
-            
+
         if 'fcon' in evaluate:
             if numpy.linalg.norm(x-self.cache['x']) > eps:
                 fobj, fcon, fail = self.optProb.objFun(xuser)
-                # User values stored is immediately 
+                # User values stored is immediately
                 self.cache['fobj_user'] = copy.deepcopy(fobj)
                 self.cache['fcon_user'] = copy.deepcopy(fcon)
 
                 # Process constraints
                 fcon = self.optProb.processNonlinearConstraints(fcon)
                 if self.appendLinearConstraints:
-                    fcon = numpy.append(fcon, self.optProb.evaluateLinearConstraints(x))
+                    fcon = numpy.append(
+                        fcon, self.optProb.evaluateLinearConstraints(x))
 
                 # Now clear out gobj and gcon in the cache since these
                 # are out of date and set the current ones
@@ -365,7 +362,7 @@ match the number in the current optimization. Ignorning coldStart file')
             # fcon is now in cache
             returns.append(self.cache['fcon'])
             hist['fcon'] = self.cache['fcon_user']
-            
+
         if 'gobj' in evaluate:
             if numpy.linalg.norm(x-self.cache['x']) > eps:
                 # Previous evaluated point is *different* than the
@@ -379,13 +376,13 @@ match the number in the current optimization. Ignorning coldStart file')
             if self.cache['gobj'] is None:
                 gobj, gcon, fail = self.sens(
                     xuser, self.cache['fobj'], self.cache['fcon_user'])
-                # User values are stored is immediately 
+                # User values are stored is immediately
                 self.cache['gobj_user'] = copy.deepcopy(gobj)
                 self.cache['gcon_user'] = copy.deepcopy(gcon)
 
                 # Process objective gradient for optimizer
                 gobj = self.optProb.processObjectiveGradient(gobj)
-         
+
                 # Process constraint gradients for optimizer
                 gcon = self.optProb.processConstraintJacobian(gcon)
                 if self.appendLinearConstraints:
@@ -398,24 +395,24 @@ match the number in the current optimization. Ignorning coldStart file')
 
                 # Update fail flag
                 masterFail = masterFail or fail
-                
+
             # gobj is now in the cache
             returns.append(self.cache['gobj'])
             hist['gobj'] = self.cache['gobj_user']
-                
+
         if 'gcon' in evaluate:
             if numpy.linalg.norm(x-self.cache['x']) > eps:
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recusively call
                 # the routine with ['fobj', and 'fcon']
                 self.masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
-         
+
             # Now, the point has been evaluated correctly so we
             # determine if we have to run the sens calc:
             if self.cache['gcon'] is None:
                 gobj, gcon, fail = self.sens(
                     xuser, self.cache['fobj'], self.cache['fcon_user'])
-                # User values stored is immediately 
+                # User values stored is immediately
                 self.cache['gobj_user'] = copy.deepcopy(gobj)
                 self.cache['gcon_user'] = copy.deepcopy(gcon)
 
@@ -439,7 +436,7 @@ match the number in the current optimization. Ignorning coldStart file')
             # gcon is now in the cache
             returns.append(self.cache['gcon'])
             hist['gcon'] = self.cache['gcon_user']
-                
+
         # Put the fail flag in the history:
         hist['fail'] = masterFail
 
@@ -472,14 +469,14 @@ match the number in the current optimization. Ignorning coldStart file')
         elif self.jacType == 'csr':
             gcon = gcon.tocsr().data
         elif self.jacType == 'coo':
-            gcon = gcon.data # Already in coo format
+            gcon = gcon.data  # Already in coo format
 
         return gcon
-            
+
     def waitLoop(self):
         """Non-root processors go into this waiting loop while the
         root proc does all the work in the optimization algorithm"""
-        
+
         mode = None
         info = None
         while True:
@@ -487,12 +484,12 @@ match the number in the current optimization. Ignorning coldStart file')
             # * only run in parallel, which assumes mpi4py is working
 
             # Receive mode and quit if mode is -1:
-            mode = MPI.COMM_WORLD.bcast(mode, root=0)
+            mode = self.optProb.comm.bcast(mode, root=0)
             if mode == -1:
                 break
 
             # Otherwise receive info from shell function
-            info = MPI.COMM_WORLD.bcast(info, root=0)
+            info = self.optProb.comm.bcast(info, root=0)
 
             # Call the generic internal function. We don't care
             # about return values on these procs
@@ -510,7 +507,7 @@ match the number in the current optimization. Ignorning coldStart file')
         """
         Utility function for assembling the design variables. Most
         optimizers here use continuous variables so this chunk of code
-        can be reused. 
+        can be reused.
         """
 
         blx = []
@@ -524,29 +521,28 @@ match the number in the current optimization. Ignorning coldStart file')
                         bux.append(var.upper)
                         xs.append(var.value)
 
-                    elif (self.optProb.variables[key].type == 'i'):
-                        raise Error('%s cannot handle integer design variables'% self.name)
-                    elif (self.optProb.variables[key].type == 'd'):
-                        raise Error('%s cannot handle discrete design variables'% self.name)
+                    else:
+                        raise Error('%s cannot handle integer \
+                        or discrete design variables' % self.name)
 
         blx = numpy.array(blx)
         bux = numpy.array(bux)
         xs = numpy.array(xs)
-        
+
         return blx, bux, xs
 
     def _assembleConstraints(self):
         """
         Utility function for assembling the design variables. Most
         optimizers here use continuous variables so this chunk of code
-        can be reused. 
+        can be reused.
         """
 
         # Constraints Handling -- make sure nonlinear constraints
         # go first -- this is particular to slsqp
         blc = []
         buc = []
-                
+
         for key in self.optProb.constraints.keys():
             if not self.optProb.constraints[key].linear:
                 blc.extend(self.optProb.constraints[key].lower)
@@ -560,7 +556,7 @@ match the number in the current optimization. Ignorning coldStart file')
         if self.unconstrained:
             blc.append(-inf)
             buc.append(inf)
-            
+
         ncon = len(blc)
         blc = numpy.array(blc)
         buc = numpy.array(buc)
@@ -571,15 +567,15 @@ match the number in the current optimization. Ignorning coldStart file')
         """
         Utility function for assembling the design variables. Most
         optimizers here use continuous variables so this chunk of code
-        can be reused. 
+        can be reused.
         """
 
         nobj = len(self.optProb.objectives.keys())
         if nobj == 0:
             # NO objective, add one
             self.optProb.addObj('f', scale=1.0)
-        elif nobj <> 1:
-            raise Error('%s can only use one objective'% self.name)
+        elif nobj != 1:
+            raise Error('%s can only use one objective' % self.name)
         ff = numpy.array([0.0])
 
         return ff
@@ -601,24 +597,35 @@ match the number in the current optimization. Ignorning coldStart file')
         sol.fStar = obj
 
         return sol
-        
+
+    def _communicateSolution(self, sol):
+        """
+        Broadcast the solution from the root proc back to everyone. We
+        have to be a little careful since we can't in general
+        broadcast the function so we have to set manually after the broadcast.
+        """
+        sol = self.optProb.comm.bcast(sol)
+        sol.objFun = self.optProb.objFun
+
+        return sol
+
     def _on_setOption(self, name, value):
         """
         Set Optimizer Option Value (Optimizer Specific Routine)
         """
         raise Error('This optimizer hsa not implemented _on_setOption')
-        
+
     def setOption(self, name, value=None):
         """
-        Generic routine for all option setting. This routine does
-        error checking on the type of the value. 
+        Generic routine for all option setting. Ths routine does
+        error checking on the type of the value.
 
         Parameters
         ----------
         name : str
             Name of the option to set
         value : varies
-            Variable value to set. 
+            Variable value to set.
             """
 
         if name in self.options['defaults']:
@@ -626,20 +633,20 @@ match the number in the current optimization. Ignorning coldStart file')
                 self.options[name] = [type(value), value]
             else:
                 raise Error('Value type for option %s was incorrect. It was \
-expecting type \'%s\' by received type \'%s\''% (
-                        name, self.options['defaults'][name][0], type(value)))
+                expecting type \'%s\' by received type \'%s\'' % (
+                name, self.options['defaults'][name][0], type(value)))
         else:
-            raise Error('Received an unknown option: %s'% repr(name))
-        
+            raise Error('Received an unknown option: %s' % repr(name))
+
         # Now call the optimizer specific routine
         self._on_setOption(name, value)
-        
+
     def _on_getOption(self, name):
         """
         Routine to be implemented by optimizer
         """
         raise Error('This optimizer haa not implemented _on_getOption')
-        
+
     def getOption(self, name):
         """
         Return the optimizer option value for name
@@ -654,21 +661,21 @@ expecting type \'%s\' by received type \'%s\''% (
         value : varies
             value of option for 'name'
             """
-        
+
         if name in self.options['defaults']:
             return self.options[name][1]
-        else:	
-            raise Error('Received an unknown option: %s.'%repr(name))
+        else:
+            raise Error('Received an unknown option: %s.' % repr(name))
 
         # Now call the optimizer specific routine
         self._on_getOption(name)
-        
+
     def _on_getInform(self, info):
         """
         Routine to be implemented by optimizer
-        """        
+        """
         raise Error('This optimizer has not implemented _on_getInform')
-        
+
     def getInform(self, infocode=None):
         """
         Get optimizer result infom code at exit
@@ -683,13 +690,3 @@ expecting type \'%s\' by received type \'%s\''% (
             return self.informs
         else:
             return self._on_getInform(infocode)
-        
-#==============================================================================
-# Optimizer Test
-#==============================================================================
-if __name__ == '__main__':
-    
-    # Test Optimizer
-    print('Testing Optimizer...')
-    opt = Optimizer()
-    
