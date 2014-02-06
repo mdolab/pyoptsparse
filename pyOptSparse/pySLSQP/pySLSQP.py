@@ -197,9 +197,10 @@ class SLSQP(Optimizer):
             # Set history
             self._setHistory(storeHistory)
 
-            # res1 = self._coldStart(coldStart)
-            # if res1 is not None:
-            #     xs[0:nvar] = res1
+            if coldStart is not None:
+                res1 = self._coldStart(coldStart)
+                if res1 is not None:
+                    xs[0:nvar] = res1
 
             #=================================================================
             # SLSQP - Objective/Constraint Values Function
