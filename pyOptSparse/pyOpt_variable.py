@@ -16,7 +16,7 @@ History
     v. 1.0  - Initial Class Creation (GKK, 2013)
 """
 from .pyOpt_error import Error
-
+INFINITY=1e20
 # =============================================================================
 # Variable Class
 # =============================================================================
@@ -26,14 +26,22 @@ class Variable(object):
     """
     def __init__(self, name, type, value, lower, upper, scale,
                  scalar=False, choices=None):
-        
+
         self.name = name
         self.type = type
         self.scalar = scalar
         if self.type == 'c':
+            if lower is None:
+                self.lower = -INFINITY
+            else:
+                self.lower = lower*scale
+
+            if upper is None:
+                self.upper = INFINITY
+            else:
+                self.upper = upper*scale
+
             self.value = value*scale
-            self.lower = lower*scale
-            self.upper = upper*scale
             self.scale = scale
         elif self.type == 'i':
             self.value = int(value)
@@ -64,8 +72,8 @@ class Variable(object):
                 min(self.choices), max(self.choices))
         else:
             res += '	 '
-            res += str(self.name).center(9)
-            res += '%5s	%14f %14.2e %12.2e \n'% (
-                self.type, self.value, self.lower, self.upper)
+            # res += str(self.name).center(9)
+            # res += '%5s	%14f %14.2e %12.2e \n'% (
+            #     self.type, self.value, self.lower, self.upper)
             
         return res

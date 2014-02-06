@@ -37,11 +37,14 @@ if 'IPOPT' in sys.argv:
                 'derivative_test_print_all':'no',
                 'derivative_test_tol':1e-4,
                 'output_file':'testoutIPOPT.out'}
+elif 'SLSQP' in sys.argv:
+    from pyoptsparse import SLSQP as OPT
+    optOptions = {}
 else:
     from pyoptsparse import SNOPT as OPT
     optOptions={}
 
-USE_LINEAR = True
+USE_LINEAR = False
 def objfunc(xx):
     x = xx['xvars']
     a=50.1760
@@ -72,47 +75,47 @@ def objfunc(xx):
     if USE_LINEAR:
         fcon = {'con':fcon[0:8]}
     else:
-        fcon = {'con':fcon[0:10]}
+        fcon = {'con':fcon[0:8]}
     fail = False
 
     return fobj, fcon, fail
 # 
 # ============================================================================= 
 optProb = Optimization('TP109 Constraint Problem',objfunc)
-inf = 1e20
 lower = [0.0, 0.0, -0.55, -0.55, 196, 196, 196, -400, -400]
-upper = [inf, inf, 0.55, 0.55,  252, 252, 252, 800, 800]
+upper = [None, None, 0.55, 0.55,  252, 252, 252, 800, 800]
 value = [0,0,0,0,0,0,0,0,0]
-
-optProb.addVarGroup('xvars', 9, lower=lower, upper=upper, value=value, varSet='xvars')
+optProb.addVarGroup('xvars', 9, lower=lower, upper=upper, value=value)
 
 lower = [0, 0      , 0, 0, 0, 0, 0, 0]
-upper = [inf, inf  , 0, 0, 0, 0, 0, 0]
-if not USE_LINEAR:
-    lower.extend([0,0])
-    upper.extend([inf, inf])
+upper = [None, None, 0, 0, 0, 0, 0, 0]
+# if not USE_LINEAR:
+#     lower.extend([0,0])
+#     upper.extend([None, None])
 
 optProb.finalizeDesignVariables()
 # We separate out the 8 non-linear constraints
-optProb.addConGroup('con', len(lower), lower=lower, upper=upper)
+
 
 # And the 2 linear constriants
 if USE_LINEAR:
-    # jac = numpy.zeros((2, 9))
-    # jac[0, 3] = 1.0; jac[0, 2] = -1.0
-    # jac[1, 2] = 1.0; jac[1, 3] = -1.0
-    # optProb.addConGroup('lin_con',2, lower=[-.55,-.55], upper=[inf, inf],
-    #                     wrt=['xvars'], jac ={'xvars':jac}, linear=True)
+    jac = numpy.zeros((2, 9))
+    jac[0, 3] = 1.0; jac[0, 2] = -1.0
+    jac[1, 2] = 1.0; jac[1, 3] = -1.0
+    optProb.addConGroup('lin_con',2, lower=[-.55,-.55], upper=[None, None],
+                        wrt=['xvars'], jac ={'xvars':jac}, linear=True)
 
 # OR do it with a single two-sided constraint
-    jac = numpy.zeros((1, 9))
-    jac[0, 3] = 1.0; jac[0, 2] = -1.0
-    optProb.addConGroup('lin_con',1, lower=[-.55], upper=[0.55],
-                        wrt=['xvars'], jac ={'xvars':jac}, linear=True)
+    # jac = numpy.zeros((1, 9))
+    # jac[0, 3] = 1.0; jac[0, 2] = -1.0
+    # optProb.addConGroup('lin_con',1, lower=[-.55], upper=[0.55],
+    #                     wrt=['xvars'], jac ={'xvars':jac}, linear=True)
+
+optProb.addConGroup('con', len(lower), lower=lower, upper=upper)
 
 print optProb
 optProb.addObj('f')
 optProb.printSparsity()
 opt = OPT(options=optOptions)
-sol = opt(optProb, sens='CS')
+sol = opt(optProb, sens='FD')
 #print sol

@@ -36,6 +36,7 @@ import time
 # External Python modules
 # =============================================================================
 import numpy
+from mpi4py import MPI
 # ===========================================================================
 # Extension modules
 # ===========================================================================
@@ -53,8 +54,8 @@ class SLSQP(Optimizer):
         category = 'Local Optimizer'
         defOpts = {
             # SLSQP Options
-            'ACC':[float,1e-6],            # Convergence Accurancy
-            'MAXIT':[int,50],             # Maximum Iterations
+            'ACC':[float,1e-12],            # Convergence Accurancy
+            'MAXIT':[int,500],             # Maximum Iterations
             'IPRINT':[int,1],            # Output Level (<0 - None, 0 - Screen, 1 - File)
             'IOUT':[int,6],             # Output Unit Number
             'IFILE':[str,'SLSQP.out'],    # Output File Name
@@ -78,7 +79,7 @@ class SLSQP(Optimizer):
                            **kwargs)
 
         # SLSQP needs jacobians in dense format
-        self.jacType = 'dense'
+        self.jacType = 'dense2d'
 
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                  storeHistory=None, hotStart=None, warmStart=None,
@@ -158,7 +159,7 @@ class SLSQP(Optimizer):
             # least one constraint. So we will add one
             # automatically here:
             self.unconstrained = True
-            optProb.dummyConstraint = True
+            optProb.dummyConstraint = False
 
         # Save the optimization problem and finialize constraint
         # jacobian, in general can only do on root proc
@@ -168,62 +169,75 @@ class SLSQP(Optimizer):
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
-        ncon, blc, buc = self._assembleConstraints()
+        n = len(xs)
         ff = self._assembleObjective()
 
-        # # Constraints Handling
-        # m = len(opt_problem._constraints.keys())
-        # meq = 0
-        # #gg = []
-        # if m > 0:
-        #     for key in opt_problem._constraints.keys():
-        #         if opt_problem._constraints[key].type == 'e':
-        #             meq += 1
-        #         #end
-        #         #gg.append(opt_problem._constraints[key].value)
-        #     #end
-        # #end
+        oneSided = True
+        # Set the number of nonlinear constraints snopt *thinks* we have:
+        if self.unconstrained:
+            m = 0
+            meq = 0
+        else:
+            indices, blc, blu, fact = self.optProb.getOrdering(
+                ['ne','le','ni','li'], oneSided=oneSided)
+            m = len(indices)
+
+            self.optProb.jacIndices = indices
+            self.optProb.fact = fact
+            self.optProb.offset = numpy.array(blu)
+
+            # Also figure out the number of equality:
+            indices, tmp1, tmp2, tmp3 = self.optProb.getOrdering(
+                ['ne','le'], oneSided=oneSided)
+            meq = len(indices)
 
         if self.optProb.comm.rank == 0:
-            res1 = self._coldStart(coldStart)
-            if res1 is not None:
-                xs[0:nvar] = res1
+            # Set history
+            self._setHistory(storeHistory)
+
+            # res1 = self._coldStart(coldStart)
+            # if res1 is not None:
+            #     xs[0:nvar] = res1
 
             #=================================================================
             # SLSQP - Objective/Constraint Values Function
             #=================================================================
             def slfunc(m, me, la, n, f, g, x):
-                fobj, fcon, fail = self.materFunc(x, ['fobj', 'fcon'])
+                fobj, fcon, fail = self.masterFunc(x, ['fobj', 'fcon'])
+                print ('x,fobj:',x,fobj,fcon)
 
-                return fobj, fcon
+                return fobj, -fcon
 
             #=================================================================
             # SLSQP - Objective/Constraint Gradients Function
             #=================================================================
             def slgrad(m, me, la, n, f, g, df, dg, x):
-                gobj, gcon, fail = self.materFunc(x, ['fobj', 'fcon'])
+                gobj, gcon, fail = self.masterFunc(x, ['gobj', 'gcon'])
+                df[0:n] = gobj.copy()
+                #gcon[numpy.where(gcon==1e-50)] = 1e-300
+                dg[:,0:n] = -gcon.copy()
 
-                return gobj, gcon
+                return df, dg
 
             # Setup hot start if necessary
             self._hotStart(storeHistory, hotStart)
 
             # Setup argument list values
-            la = numpy.array([max(m, 1)], numpy.int)
+            la = max(m, 1)
             gg = numpy.zeros([la], numpy.float)
             n1 = numpy.array([n+1], numpy.int)
             df = numpy.zeros([n+1], numpy.float)
             dg = numpy.zeros([la, n+1], numpy.float)
             acc = numpy.array([self.getOption('ACC')], numpy.float)
-            maxit = numpy.array([self.getOption('MAXIT')], numpy.int)
+            maxit = self.getOption('MAXIT')
             iprint = self.getOption('IPRINT')
-            iout = numpy.array([self.getOption('IOUT')], numpy.int)
+            iout = self.getOption('IOUT')
             ifile = self.getOption('IFILE')
             if iprint >= 0:
                 if os.path.isfile(ifile):
                     os.remove(ifile)
 
-            mode = numpy.array([0], numpy.int)
+            mode = 0
             mineq = m - meq + 2*(n+1)
             lsq = (n+1)*((n+1)+1) + meq*((n+1)+1) + mineq*((n+1)+1)
             lsi = ((n+1)-meq+1)*(mineq+2) + 2*mineq
@@ -240,9 +254,10 @@ class SLSQP(Optimizer):
 
             # Run SLSQP
             t0 = time.time()
-            slsqp.slsqp(m, meq, la, n, xx, xl, xu, ff, gg, df, dg, acc, maxit,
+            slsqp.slsqp(m, meq, la, n, xs, blx, bux, ff, gg, df, dg, acc, maxit,
                         iprint, iout, ifile, mode, w, lw, jw, ljw, nfunc,
                         ngrad, slfunc, slgrad)
+            print ('mode:',mode)
             optTime = time.time() - t0
 
             if iprint > 0:
@@ -254,8 +269,8 @@ class SLSQP(Optimizer):
 
             # Store Results
             sol_inform = {}
-            sol_inform['value'] = inform
-            sol_inform['text'] = self.informs[inform[0]]
+            #sol_inform['value'] = inform
+            #sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
             sol = Solution(self.optProb, optTime, 1, sol_inform)

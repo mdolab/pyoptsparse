@@ -26,20 +26,22 @@ try:
 except ImportError:
     pass
 
-#try:
-from .pyOptSparse.pyIPOPT.pyIPOPT import IPOPT
-#except ImportError:
-#    pass
+try:
+    from .pyOptSparse.pyIPOPT.pyIPOPT import IPOPT
+except ImportError:
+    pass
 
-# try:
+try:
+    from .pyOptSparse.pySLSQP.pySLSQP import SLSQP
+except ImportError:
+    pass
+
+
+#try:
 #     from .pyOptSparse.pyFSQP.pyFSQP import FSQP
 # except ImportError:
 #     pass
 
-# try:
-#     from .pyOptSparse.pySLSQP.pySLSQP import SLSQP
-# except ImportError:
-#     pass
 
 # try:
 #     from .pyOptSparse.pyNSGA2.pyNSGA2 import NSGA2
