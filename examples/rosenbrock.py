@@ -24,7 +24,7 @@ if args.opt.lower() == 'ipopt':
     optOptions={'max_iter':150,
                 'tol': 1e-6,
                 'derivative_test':'first-order',
-                'derivative_test_print_all':'no',
+                'derivative_test_print_all':'yes',
                 'derivative_test_tol':1e-4,
                 'output_file':'testoutIPOPT.out'}
 elif args.opt.lower() == 'snopt':
@@ -42,7 +42,6 @@ def objfunc(xx):
 
     fcon = {}
     fcon['con'] = 0.1-(x[0]-1)**3 - (x[1]-1)
-
 
     fail = False
 

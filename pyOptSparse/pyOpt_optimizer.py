@@ -445,27 +445,31 @@ match the number in the current optimization. Ignorning coldStart file')
         # optimizer wants, we will convert. The conceivable options
         # are: dense (most), csc (snopt), csr (???), or coo (IPOPT)
 
-        if self.optProb.nCon > 0:
-            # Extract the rows we need:
-            gcon = gcon[self.optProb.jacIndices, :]
+        if gcon.size > 0:
+            if self.optProb.nCon > 0:
+                # Extract the rows we need:
+                gcon = gcon[self.optProb.jacIndices, :]
+                
+                # Apply factor scaling because of constraint sign changes
+                gcon = self.optProb.fact*gcon
+                
+                # Sort for the ones that need it
+                gcon.sort_indices()
 
-            # Sort for the ones that need it
-            gcon.sort_indices()
-
-            # Apply factor scaling because of constraint sign changes
-            gcon = self.optProb.fact*gcon
-
-        if self.jacType == 'dense2d':
-            gcon = gcon.todense()
-        elif self.jacType == '1ddense':
-            gcon = gcon.todense().flatten()
-        elif self.jacType == 'csc':
-            gcon = gcon.tocsc().data
-        elif self.jacType == 'csr':
-            gcon = gcon.data
-        elif self.jacType == 'coo':
-            gcon = gcon.coo().data
-
+            if self.jacType == 'dense2d':
+                gcon = gcon.todense()
+            elif self.jacType == '1ddense':
+                gcon = gcon.todense().flatten()
+            elif self.jacType == 'csc':
+                gcon = gcon.tocsc()
+                gcon.sort_indices()
+                gcon = gcon.data
+            elif self.jacType == 'csr':
+                gcon = gcon.data
+            elif self.jacType == 'coo':
+                gcon = gcon.tocoo()
+                gcon = gcon.data
+        
         return gcon
 
     def waitLoop(self):

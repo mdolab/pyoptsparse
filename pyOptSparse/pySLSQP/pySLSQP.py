@@ -169,6 +169,8 @@ class SLSQP(Optimizer):
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
+        xs = numpy.maximum(xs, blx)
+        xs = numpy.minimum(xs, bux)
         n = len(xs)
         ff = self._assembleObjective()
 
@@ -178,18 +180,18 @@ class SLSQP(Optimizer):
             m = 0
             meq = 0
         else:
-            indices, blc, blu, fact = self.optProb.getOrdering(
+            indices, blc, buc, fact = self.optProb.getOrdering(
                 ['ne','le','ni','li'], oneSided=oneSided)
             m = len(indices)
 
             self.optProb.jacIndices = indices
             self.optProb.fact = fact
-            self.optProb.offset = numpy.array(blu)
+            self.optProb.offset = buc
 
             # Also figure out the number of equality:
-            indices, tmp1, tmp2, tmp3 = self.optProb.getOrdering(
+            tmp0, tmp1, tmp2, tmp3 = self.optProb.getOrdering(
                 ['ne','le'], oneSided=oneSided)
-            meq = len(indices)
+            meq = len(tmp0)
 
         if self.optProb.comm.rank == 0:
             # Set history
@@ -204,9 +206,9 @@ class SLSQP(Optimizer):
             #=================================================================
             def slfunc(m, me, la, n, f, g, x):
                 fobj, fcon, fail = self.masterFunc(x, ['fobj', 'fcon'])
-                print ('x,fobj:',x,fobj,fcon)
-
-                return fobj, -fcon
+                f = fobj
+                g[0:m] = -fcon
+                return f, g
 
             #=================================================================
             # SLSQP - Objective/Constraint Gradients Function
@@ -214,9 +216,7 @@ class SLSQP(Optimizer):
             def slgrad(m, me, la, n, f, g, df, dg, x):
                 gobj, gcon, fail = self.masterFunc(x, ['gobj', 'gcon'])
                 df[0:n] = gobj.copy()
-                #gcon[numpy.where(gcon==1e-50)] = 1e-300
-                dg[:,0:n] = -gcon.copy()
-
+                dg[0:m,0:n] = -gcon.copy()
                 return df, dg
 
             # Setup hot start if necessary
@@ -254,10 +254,11 @@ class SLSQP(Optimizer):
 
             # Run SLSQP
             t0 = time.time()
+
             slsqp.slsqp(m, meq, la, n, xs, blx, bux, ff, gg, df, dg, acc, maxit,
                         iprint, iout, ifile, mode, w, lw, jw, ljw, nfunc,
                         ngrad, slfunc, slgrad)
-            print ('mode:',mode)
+
             optTime = time.time() - t0
 
             if iprint > 0:
