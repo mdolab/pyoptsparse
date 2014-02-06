@@ -153,7 +153,7 @@ class SNOPT(Optimizer):
         'User integer workspace':[int,500],
         'User real workspace':[int,500],
         #SNOPT Miscellaneous Options
-        'Debug level':[int,0], # (0 - Normal, 1 - for developers)
+        'Debug level':[int,1], # (0 - Normal, 1 - for developers)
         'Timing level':[int,3], # (3 - print cpu times)
         }
         informs = {
@@ -317,18 +317,61 @@ class SNOPT(Optimizer):
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()
+              
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
-        ncon, blc, buc = self._assembleConstraints()
         ff = self._assembleObjective()
 
+        oneSided = False
+        # Set the number of nonlinear constraints snopt *thinks* we have:
+        if self.unconstrained:
+            nnCon = 1
+        else:
+            indices, tmp1, tmp2, fact = self.optProb.getOrdering(
+                ['ne','ni'], oneSided=oneSided)
+            nnCon = len(indices)
+            self.optProb.jacIndices = indices
+            self.optProb.fact = fact
+            self.optProb.offset = numpy.zeros_like(fact)
+            
         # We make a split here: If the rank is zero we setup the
         # problem and run SNOPT, otherwise we go to the waiting loop:
         if self.optProb.comm.rank == 0:
+
+            # Determine the sparsity structure of the full jacobian
+            # -----------------------------------------------------
+
+            # Gather dummy data and process jacobian:
+            gcon = {}
+            for iCon in self.optProb.constraints:
+                gcon[iCon] = self.optProb.constraints[iCon].jac
+
+            jac = self.optProb.processConstraintJacobian(gcon)
+
+            if self.optProb.nCon > 0:
+                # We need to reorder this full jacobian...so get ordering:
+                indices, blc, buc, fact = self.optProb.getOrdering(
+                    ['ne','ni','le','li'], oneSided=oneSided)
+            
+                jac = jac[indices, :] # Does reordering
+                jac = fact*jac # Perform logical scaling
+            else:
+                blc = [-1e20]
+                buc = [1e20]
+            jac = jac.tocsc() # Conver to csc for SNOPT
+
+            Acol = jac.data
+            indA = jac.indices + 1
+            locA = jac.indptr + 1
+            if self.optProb.nCon == 0:
+                ncon = 1
+            else:
+                ncon = len(indices)
+            
             # Initialize the Print and Summary files
             # --------------------------------------
-            iPrint = self.options['iPrint'][1]
+            iPrint = self.getOption('iPrint')
             PrintFile = os.path.join(self.getOption('outputDirectory'),
                                      self.getOption('Print file'))
             if iPrint != 0:
@@ -338,7 +381,7 @@ class SNOPT(Optimizer):
                     raise Error('Failed to properly open %s, ierror = %3d'%
                                 (PrintFile,ierror))
 
-            iSumm = self.options['iSumm'][1]
+            iSumm = self.getOption('iSumm')
             SummFile = os.path.join(self.getOption('outputDirectory'),
                                     self.getOption('Summary file'))
             if iSumm != 0:
@@ -348,35 +391,7 @@ class SNOPT(Optimizer):
                     raise Error('Failed to properly open %s, ierror = %3d'%
                                   (SummFile, ierror))
 
-            # Determine the sparsity structure of the full jacobian
-            # -----------------------------------------------------
-            # Get nonlinear part:
-            gcon = {}
-            for iCon in self.optProb.constraints:
-                con = self.optProb.constraints[iCon]
-                if not con.linear:
-                    gcon[iCon] = con.jac
-
-            fullJacobian = self.optProb.processConstraintJacobian(
-                gcon, linearFlag=False)
-
-            # If we have linear constraints those are already done actually.
-            if self.optProb.linearJacobian is not None:
-                fullJacobian = sparse.vstack([fullJacobian,
-                                              self.optProb.linearJacobian])
-
-            # Convert to the csc format that snopt needs
-            fullJacobian = fullJacobian.tocsc()
-
-            Acol = fullJacobian.data
-            indA = fullJacobian.indices + 1
-            locA = fullJacobian.indptr + 1
-
-            # Set the number of nonlinear constraints snopt *thinks* we have:
-            if self.unconstrained:
-                nnCon = 1
-            else:
-                nnCon = self.optProb.nnCon
+         
 
             # Calculate the length of the work arrays
             # --------------------------------------
@@ -533,6 +548,7 @@ class SNOPT(Optimizer):
                 gobj, gcon, fail2 = self.masterFunc(x, ['gobj', 'gcon'])
                 fail = fail or fail2
 
+        print ('x,fobj:',x,fobj,fcon)
         # Flush the files to the buffer for all the people who like to
         # monitor the residual
         snopt.pyflush(self.getOption('iPrint'))

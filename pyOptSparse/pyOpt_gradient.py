@@ -108,7 +108,7 @@ class Gradient(object):
         # Generate final array sizes for the objective and constraint
         # gradients
         ndvs = self.optProb.ndvs
-        ncon = self.optProb.nnCon
+        ncon = self.optProb.nCon
         gobj = numpy.zeros(ndvs, 'd')
         gcon = numpy.zeros((ncon, ndvs), 'd')
 
@@ -122,8 +122,10 @@ class Gradient(object):
         # We DO NOT want the constraints scaled here....the constraint
         # scaling will be taken into account when the derivatives are
         # processed as per normal.
-        fconBase = self.optProb.processNonlinearConstraints(fconBase, scaled=False, dtype='D')
         xBase = self.optProb.deProcessX(x)
+        self.optProb.evaluateLinearConstraints(xBase, fconBase)
+        fconBase = self.optProb.processConstraints(fconBase, scaled=False,
+                                                   dtype='D', natural=True)
 
         # Convert to complex if necessary:
         if self.sensType == 'cs':
@@ -142,7 +144,9 @@ class Gradient(object):
                 masterFail = True
                 
             # Process constraint in case they are in dict form
-            fcon_ph = self.optProb.processNonlinearConstraints(fcon_ph, scaled=False, dtype='D')
+            self.optProb.evaluateLinearConstraints(xph, fcon_ph)
+            fcon_ph = self.optProb.processConstraints(fcon_ph, scaled=False,
+                                                      dtype='D', natural=True)
 
             if self.sensType == 'fd':
                 gobj[i]    = (fobj_ph - fobjBase)/self.sensStep

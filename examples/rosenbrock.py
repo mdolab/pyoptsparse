@@ -27,15 +27,16 @@ if args.opt.lower() == 'ipopt':
                 'derivative_test_print_all':'no',
                 'derivative_test_tol':1e-4,
                 'output_file':'testoutIPOPT.out'}
-else:
+elif args.opt.lower() == 'snopt':
     from pyoptsparse import SNOPT as OPT
-    optOptions={}
+    optOptions = {}
+elif args.opt.lower() == 'slsqp':
+    from pyoptsparse import SLSQP as OPT
+    optOptions = {}
+
 
 def objfunc(xx):
-    if groups:
-        x = xx['x'] # Extract array
-    else:
-        x = xx
+    x = xx['x'] # Extract array
 
     fobj = 100*(x[1]-x[0]**2)**2+(1-x[0])**2
 
@@ -48,10 +49,7 @@ def objfunc(xx):
     return fobj, fcon, fail
 
 def sensfunc(xx, fobj, fcon):
-    if groups:
-        x = xx['x'] # Extract array
-    else:
-        x = xx
+    x = xx['x'] # Extract array
 
     gobj = {}
     gobj['xvars'] = [2*100*(x[1]-x[0]**2)*(-2*x[0]) - 2*(1-x[0]),
@@ -68,7 +66,7 @@ if sens == 'user':
     sens = sensfunc
 
 # Instantiate Optimization Problem
-optProb = Optimization('Rosenbrock function', objfunc, useGroups=groups)
+optProb = Optimization('Rosenbrock function', objfunc)
 optProb.addVarGroup('x', 2, 'c', value=[5,5], lower=-5.12, upper=5.12,
                     scale=[1.0, 1.0], varSet='xvars')
 optProb.finalizeDesignVariables()

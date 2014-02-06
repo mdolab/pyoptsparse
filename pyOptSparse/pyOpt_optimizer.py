@@ -21,14 +21,13 @@ import copy
 import shelve
 import numpy
 from scipy import sparse
+from mpi4py import MPI
 from .pyOpt_gradient import Gradient
 from .pyOpt_error import Error
 from .pyOpt_history import History
 from .pyOpt_solution import Solution
+from .pyOpt_optimization import INFINITY
 eps = numpy.finfo(1.0).eps
-inf = 1e20
-# Try to import mpi4py and determine rank
-from mpi4py import MPI
 
 # =============================================================================
 # Optimizer Class
@@ -235,10 +234,8 @@ match the number in the current optimization. Ignorning coldStart file')
 
                 # Process constraints if we have them
                 if fcon is not None:
-                    fcon = self.optProb.processNonlinearConstraints(fcon)
-                    if self.appendLinearConstraints:
-                        fcon = numpy.append(
-                            fcon, self.optProb.evaluateLinearConstraints(x))
+                    self.optProb.evaluateLinearConstraints(x, fcon)
+                    fcon = self.optProb.processConstraints(fcon)
                     returns.append(fcon)
 
                 # Process objective gradient
@@ -248,9 +245,6 @@ match the number in the current optimization. Ignorning coldStart file')
                 # Process constraint gradient
                 if gcon is not None:
                     gcon = self.optProb.processConstraintJacobian(gcon)
-                    if self.appendLinearConstraints:
-                        gcon = sparse.vstack([gcon,
-                                              self.optProb.linearJacobian])
                     gcon = self.convertJacobian(gcon)
                     returns.append(gcon)
 
@@ -315,10 +309,8 @@ match the number in the current optimization. Ignorning coldStart file')
                 self.cache['fcon_user'] = copy.deepcopy(fcon)
 
                 # Process constraints
-                fcon = self.optProb.processNonlinearConstraints(fcon)
-                if self.appendLinearConstraints:
-                    fcon = numpy.append(
-                        fcon, self.optProb.evaluateLinearConstraints(x))
+                self.optProb.evaluateLinearConstraints(x, fcon)
+                fcon = self.optProb.processConstraints(fcon)
 
                 # Now clear out gobj and gcon in the cache since these
                 # are out of date and set the current ones
@@ -343,10 +335,8 @@ match the number in the current optimization. Ignorning coldStart file')
                 self.cache['fcon_user'] = copy.deepcopy(fcon)
 
                 # Process constraints
-                fcon = self.optProb.processNonlinearConstraints(fcon)
-                if self.appendLinearConstraints:
-                    fcon = numpy.append(
-                        fcon, self.optProb.evaluateLinearConstraints(x))
+                self.optProb.evaluateLinearConstraints(x, fcon)
+                fcon = self.optProb.processConstraints(fcon)
 
                 # Now clear out gobj and gcon in the cache since these
                 # are out of date and set the current ones
@@ -385,9 +375,6 @@ match the number in the current optimization. Ignorning coldStart file')
 
                 # Process constraint gradients for optimizer
                 gcon = self.optProb.processConstraintJacobian(gcon)
-                if self.appendLinearConstraints:
-                    gcon = sparse.vstack([gcon,
-                                          self.optProb.linearJacobian])
                 gcon = self.convertJacobian(gcon)
                 # Set the cache values:
                 self.cache['gobj'] = gobj.copy()
@@ -421,9 +408,6 @@ match the number in the current optimization. Ignorning coldStart file')
 
                 # Process constraint gradients for optimizer
                 gcon = self.optProb.processConstraintJacobian(gcon)
-                if self.appendLinearConstraints:
-                    gcon = sparse.vstack([gcon,
-                                          self.optProb.linearJacobian])
                 gcon = self.convertJacobian(gcon)
 
                 # Set cache values
@@ -441,7 +425,7 @@ match the number in the current optimization. Ignorning coldStart file')
         hist['fail'] = masterFail
 
         # Write history if necessary
-        if rank == 0 and writeHist and self.storeHistory:
+        if self.optProb.comm.rank == 0 and writeHist and self.storeHistory:
             self.hist.write(self.callCounter, hist)
 
         # We can now safely increment the call counter
@@ -457,19 +441,30 @@ match the number in the current optimization. Ignorning coldStart file')
         Convert gcon which is a coo matrix into the format we need
         """
 
-        # Now, gcon is a coo sparse matrix. Depending on what the
+        # Now, gcon is a csr sparse matrix. Depending on what the
         # optimizer wants, we will convert. The conceivable options
         # are: dense (most), csc (snopt), csr (???), or coo (IPOPT)
-        if self.jacType == '2ddense':
+
+        if self.optProb.nCon > 0:
+            # Extract the rows we need:
+            gcon = gcon[self.optProb.jacIndices, :]
+
+            # Sort for the ones that need it
+            gcon.sort_indices()
+
+            # Apply factor scaling because of constraint sign changes
+            gcon = self.optProb.fact*gcon
+
+        if self.jacType == 'dense2d':
             gcon = gcon.todense()
         elif self.jacType == '1ddense':
             gcon = gcon.todense().flatten()
         elif self.jacType == 'csc':
             gcon = gcon.tocsc().data
         elif self.jacType == 'csr':
-            gcon = gcon.tocsr().data
+            gcon = gcon.data
         elif self.jacType == 'coo':
-            gcon = gcon.data  # Already in coo format
+            gcon = gcon.coo().data
 
         return gcon
 
@@ -554,8 +549,8 @@ match the number in the current optimization. Ignorning coldStart file')
                 buc.extend(self.optProb.constraints[key].upper)
 
         if self.unconstrained:
-            blc.append(-inf)
-            buc.append(inf)
+            blc.append(-INFINITY)
+            buc.append(INFINITY)
 
         ncon = len(blc)
         blc = numpy.array(blc)
