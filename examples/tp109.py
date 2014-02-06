@@ -44,13 +44,14 @@ else:
     from pyoptsparse import SNOPT as OPT
     optOptions={}
 
-USE_LINEAR = False
+USE_LINEAR = True
 def objfunc(xx):
     x = xx['xvars']
+    
     a=50.1760
     b=sin(0.250)    
     c=cos(0.250)
-    
+
     fobj = 3.0*x[0] + (1e-6)*x[0]**3 + 0.522074e-6*x[1]**3 + 2*x[1]
     fcon = numpy.zeros(10,'D')
     fcon[0] = 2250000 - x[0]**2 - x[7]**2
@@ -75,9 +76,9 @@ def objfunc(xx):
     if USE_LINEAR:
         fcon = {'con':fcon[0:8]}
     else:
-        fcon = {'con':fcon[0:8]}
+        fcon = {'con':fcon[0:10]}
     fail = False
-
+  
     return fobj, fcon, fail
 # 
 # ============================================================================= 
@@ -89,33 +90,33 @@ optProb.addVarGroup('xvars', 9, lower=lower, upper=upper, value=value)
 
 lower = [0, 0      , 0, 0, 0, 0, 0, 0]
 upper = [None, None, 0, 0, 0, 0, 0, 0]
-# if not USE_LINEAR:
-#     lower.extend([0,0])
-#     upper.extend([None, None])
+if not USE_LINEAR:
+    lower.extend([0,0])
+    upper.extend([None, None])
 
 optProb.finalizeDesignVariables()
 # We separate out the 8 non-linear constraints
 
-
+optProb.addConGroup('con', len(lower), lower=lower, upper=upper)
 # And the 2 linear constriants
 if USE_LINEAR:
-    jac = numpy.zeros((2, 9))
-    jac[0, 3] = 1.0; jac[0, 2] = -1.0
-    jac[1, 2] = 1.0; jac[1, 3] = -1.0
-    optProb.addConGroup('lin_con',2, lower=[-.55,-.55], upper=[None, None],
-                        wrt=['xvars'], jac ={'xvars':jac}, linear=True)
-
-# OR do it with a single two-sided constraint
-    # jac = numpy.zeros((1, 9))
+    # jac = numpy.zeros((2, 9))
     # jac[0, 3] = 1.0; jac[0, 2] = -1.0
-    # optProb.addConGroup('lin_con',1, lower=[-.55], upper=[0.55],
+    # jac[1, 2] = 1.0; jac[1, 3] = -1.0
+    # optProb.addConGroup('lin_con',2, lower=[-.55,-.55], upper=[None, None],
     #                     wrt=['xvars'], jac ={'xvars':jac}, linear=True)
 
-optProb.addConGroup('con', len(lower), lower=lower, upper=upper)
+# OR do it with a single two-sided constraint
+    jac = numpy.zeros((1, 9))
+    jac[0, 3] = 1.0; jac[0, 2] = -1.0
+    optProb.addConGroup('lin_con',1, lower=[-.55], upper=[0.55],
+                        wrt=['xvars'], jac ={'xvars':jac}, linear=True)
+
+
 
 print optProb
 optProb.addObj('f')
 optProb.printSparsity()
 opt = OPT(options=optOptions)
-sol = opt(optProb, sens='FD')
+sol = opt(optProb, sens='CS')
 #print sol

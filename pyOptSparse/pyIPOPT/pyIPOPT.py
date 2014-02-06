@@ -168,44 +168,45 @@ class IPOPT(Optimizer):
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()
-        if self.optProb.nlCon > 0:
-            self.appendLinearConstraints = True
-
-        # Setup initial cache values
         self._setInitialCacheValues()
+        blx, bux, xs = self._assembleContinuousVariables()
         self._setSens(sens, sensStep, sensMode)
 
         # We make a split here: If the rank is zero we setup the
         # problem and run IPOPT, otherwise we go to the waiting loop:
 
         if self.optProb.comm.rank == 0:
-            blx, bux, xs = self._assembleContinuousVariables()
-            ncon, blc, buc = self._assembleConstraints()
 
-            # Before we start, we assemble the full jacobian, convert
-            # to COO format, and store the format since we will need
-            # that on the first constraint jacobian call back.
+            # Determine the sparsity structure of the full jacobian
             # -----------------------------------------------------
-            # Get nonlinear part:
+
+            # Gather dummy data and process jacobian:
             gcon = {}
             for iCon in self.optProb.constraints:
-                con = self.optProb.constraints[iCon]
-                if not con.linear:
-                    gcon[iCon] = con.jac
+                gcon[iCon] = self.optProb.constraints[iCon].jac
 
-            fullJacobian = self.optProb.processConstraintJacobian(
-                gcon, linearFlag=False)
+            jac = self.optProb.processConstraintJacobian(gcon)
 
-            # If we have linear constraints those are already done actually.
-            if self.optProb.linearJacobian is not None:
-                fullJacobian = sparse.vstack([fullJacobian,
-                                              self.optProb.linearJacobian])
+            if self.optProb.nCon > 0:
+                # We need to reorder this full jacobian...so get ordering:
+                indices, blc, buc, fact = self.optProb.getOrdering(
+                    ['ne','ni','le','li'], oneSided=False)
+                self.optProb.jacIndices = indices
+                self.optProb.fact = fact
+                self.optProb.offset = numpy.zeros(len(indices))
+                ncon = len(indices)
+                jac = jac[indices, :] # Does reordering
+                jac = fact*jac # Perform logical scaling
+            else:
+                blc = numpy.array([-1e20])
+                buc = numpy.array([1e20])
+                ncon = 1
+            jac = jac.tocoo() # Conver to coo format for IPOPT
 
             # Now what we need for IPOPT is precisely the .row and
             # .col attributes of the fullJacobian array
-            matStruct = (fullJacobian.row.copy().astype('int_'),
-                         fullJacobian.col.copy().astype('int_'))
-
+            matStruct = (jac.row.copy().astype('int_'),
+                         jac.col.copy().astype('int_'))
             self._setHistory(storeHistory)
             self._hotStart(storeHistory, hotStart)
 
@@ -232,8 +233,9 @@ class IPOPT(Optimizer):
             timeA = time.time()
             nnzj = len(matStruct[0])
             nnzh = 0
+
             nlp = pyipoptcore.create(len(xs), blx, bux, ncon, blc, buc, nnzj, nnzh,
-                                          eval_f, eval_grad_f, eval_g, eval_jac_g)
+                                     eval_f, eval_grad_f, eval_g, eval_jac_g)
 
             self._set_ipopt_options(nlp)
             x, zl, zu, constraint_multipliers, obj, status = nlp.solve(xs)

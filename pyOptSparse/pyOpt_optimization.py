@@ -557,7 +557,7 @@ addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'% (
                 ss = self.dvOffset[dvSet]['n']                 
                 ndvs = ss[1]-ss[0]
                 jac[dvSet] = sparse.csr_matrix(numpy.ones((nCon, ndvs)))
-                jac[dvSet].data[:] = 1e-250
+                jac[dvSet].data[:] = 1e-50
                 
             # Set a flag for the constraint object, that not returning
             # them all is ok.
@@ -587,7 +587,7 @@ addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'% (
                     # No big deal, just make a dense component...and
                     # set to zero
                     jac[dvSet] = sparse.csr_matrix(numpy.ones((nCon, ndvs)))
-                    jac[dvSet].data[:] = 1e-250
+                    jac[dvSet].data[:] = 1e-50
                     
                 if jac[dvSet].shape[0] != nCon or jac[dvSet].shape[1] != ndvs:
                     raise Error('The supplied jacobian for dvSet \'%s\'\
@@ -605,7 +605,7 @@ addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'% (
                 else:
                     # Supplied jacobian is dense, replace any zero, 
                     # before converting to csr format
-                    jac[dvSet][numpy.where(jac[dvSet]==0)] = 1e-250
+                    jac[dvSet][numpy.where(jac[dvSet]==0)] = 1e-50
                     jac[dvSet] = sparse.csr_matrix(jac[dvSet])
             # end for (dvSet)
 
@@ -937,7 +937,7 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
             fact = sparse.spdiags(fact, 0, len(fact), len(fact))
         else:
             fact = None
-        return indices, lower, upper, fact
+        return numpy.array(indices), numpy.array(lower), numpy.array(upper), fact
     
 
     def processX(self, x):
@@ -1077,10 +1077,13 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
         if natural:
             return fcon
         else:
-            fcon = fcon[self.jacIndices]
-            fcon = self.fact*fcon - self.offset
-            return fcon
+            if self.nCon > 0:
+                fcon = fcon[self.jacIndices]
 
+                fcon = self.fact.dot(fcon) - self.offset
+                return fcon
+            else:
+                return fcon
    
     def evaluateLinearConstraints(self, x, fcon):
         """
@@ -1211,9 +1214,9 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
         # include a dummy constraint:
         if self.nCon == 0:
             if self.dummyConstraint:
-                return sparse.csr_matrix(1e-250*numpy.ones((1, self.ndvs)))
+                return sparse.csr_matrix(1e-50*numpy.ones((1, self.ndvs)))
             else:
-                return numpy.array([], 'd')
+                return numpy.zeros((0, self.ndvs), 'd')
 
         # Full dense return:
         if isinstance(gcon, numpy.ndarray):
@@ -1223,7 +1226,7 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
                 if self.denseJacobianOK:
 
                     # Replce any zero entries with a small value
-                    gcon[numpy.where(gcon==0)] = 1e-250
+                    gcon[numpy.where(gcon==0)] = 1e-50
 
                     # Do columing scaling (dv scaling)
                     for i in range(self.ndvs):
@@ -1298,7 +1301,7 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
                         # Supplied jacobian is dense, replace any zero, 
                         # before converting to csr format
                         tmp = numpy.atleast_2d(gcon[iCon][key])
-                        tmp[numpy.where(tmp==0)] = 1e-250
+                        tmp[numpy.where(tmp==0)] = 1e-50
                         tmp = sparse.csr_matrix(tmp.copy())
                 else:
                     # This key is not returned. Just use the

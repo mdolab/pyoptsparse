@@ -140,6 +140,7 @@ class Gradient(object):
             xCall = self.optProb.processX(xph)
             # Call objective    
             [fobj_ph, fcon_ph, fail] = self.optProb.objFun(xCall)
+
             if fail:
                 masterFail = True
                 
@@ -165,6 +166,6 @@ class Gradient(object):
         # gradient calc failed:
         if self.comm is not None:
             masterFail = self.comm.allreduce(masterFail, op=MPI.LOR)
-    
+
         return gobj, gcon, masterFail
         
