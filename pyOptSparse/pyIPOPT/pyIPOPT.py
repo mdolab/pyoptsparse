@@ -171,37 +171,38 @@ class IPOPT(Optimizer):
         self._setInitialCacheValues()
         blx, bux, xs = self._assembleContinuousVariables()
         self._setSens(sens, sensStep, sensMode)
+        ff = self._assembleObjective()
+
+        # Determine the sparsity structure of the full jacobian
+        # -----------------------------------------------------
+
+        # Gather dummy data and process jacobian:
+        gcon = {}
+        for iCon in self.optProb.constraints:
+            gcon[iCon] = self.optProb.constraints[iCon].jac
+
+        jac = self.optProb.processConstraintJacobian(gcon)
+
+        if self.optProb.nCon > 0:
+            # We need to reorder this full jacobian...so get ordering:
+            indices, blc, buc, fact = self.optProb.getOrdering(
+                ['ne','ni','le','li'], oneSided=False)
+            self.optProb.jacIndices = indices
+            self.optProb.fact = fact
+            self.optProb.offset = numpy.zeros(len(indices))
+            ncon = len(indices)
+            jac = jac[indices, :] # Does reordering
+            jac = fact*jac # Perform logical scaling
+        else:
+            blc = numpy.array([-1e20])
+            buc = numpy.array([1e20])
+            ncon = 1
+        jac = jac.tocoo() # Conver to coo format for IPOPT
 
         # We make a split here: If the rank is zero we setup the
         # problem and run IPOPT, otherwise we go to the waiting loop:
 
         if self.optProb.comm.rank == 0:
-
-            # Determine the sparsity structure of the full jacobian
-            # -----------------------------------------------------
-
-            # Gather dummy data and process jacobian:
-            gcon = {}
-            for iCon in self.optProb.constraints:
-                gcon[iCon] = self.optProb.constraints[iCon].jac
-
-            jac = self.optProb.processConstraintJacobian(gcon)
-
-            if self.optProb.nCon > 0:
-                # We need to reorder this full jacobian...so get ordering:
-                indices, blc, buc, fact = self.optProb.getOrdering(
-                    ['ne','ni','le','li'], oneSided=False)
-                self.optProb.jacIndices = indices
-                self.optProb.fact = fact
-                self.optProb.offset = numpy.zeros(len(indices))
-                ncon = len(indices)
-                jac = jac[indices, :] # Does reordering
-                jac = fact*jac # Perform logical scaling
-            else:
-                blc = numpy.array([-1e20])
-                buc = numpy.array([1e20])
-                ncon = 1
-            jac = jac.tocoo() # Conver to coo format for IPOPT
 
             # Now what we need for IPOPT is precisely the .row and
             # .col attributes of the fullJacobian array
