@@ -84,6 +84,17 @@ class IPOPT(Optimizer):
                     'derivative_test_print_all':[str,'no'],#yes,no
                     'derivative_test_first_index':[int,-2],
                     'point_perturbation_radius':[int,10], #might be a float
+                    # Line search
+                    'mac_soc':[int, 4], #Maximum numbero fsecond order correction trial steps at each iteration
+                    'watchdog_shortened_iter_trigger':[int, 10],
+                    'watchdog_trial_inter_amx':[int,3],
+                    'accept_every_trial_step':[str, 'no'],
+                    'corrector_type':[str,'none'],
+                    'mu_init':[float, 0.1],
+                    'mu_strategy':[str,'monotone'],
+                    'start_with_resto':[str,'no'],
+                    'required_infeasibility_reduction':[float,0.9],
+                    'expect_infeasible_problem':[str,'no'],
                     }
         informs = { # Don't have any of these yet either..
             }
