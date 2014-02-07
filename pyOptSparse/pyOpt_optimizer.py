@@ -17,6 +17,7 @@ from __future__ import print_function
 # Imports
 # =============================================================================
 import os
+import time
 import copy
 import shelve
 import numpy
@@ -202,6 +203,7 @@ match the number in the current optimization. Ignorning coldStart file')
         # fire it back to the specific optimizer
 
         if self.hotStart:
+
             if self.hotStart.validPoint(self.callCounter, x):
                 data = self.hotStart.read(self.callCounter)
 
@@ -215,7 +217,6 @@ match the number in the current optimization. Ignorning coldStart file')
                 fcon = None
                 gobj = None
                 gcon = None
-
                 if 'fobj' in evaluate:
                     fobj = data['fobj']
                 if 'fcon' in evaluate:
@@ -227,6 +228,7 @@ match the number in the current optimization. Ignorning coldStart file')
                 fail = data['fail']
 
                 returns = []
+                xscaled = x/self.optProb.xscale
 
                 # Process objective if we have one (them)
                 if fobj is not None:
@@ -234,7 +236,7 @@ match the number in the current optimization. Ignorning coldStart file')
 
                 # Process constraints if we have them
                 if fcon is not None:
-                    self.optProb.evaluateLinearConstraints(x, fcon)
+                    self.optProb.evaluateLinearConstraints(xscaled, fcon)
                     fcon = self.optProb.processConstraints(fcon)
                     returns.append(fcon)
 
@@ -309,7 +311,7 @@ match the number in the current optimization. Ignorning coldStart file')
                 self.cache['fcon_user'] = copy.deepcopy(fcon)
 
                 # Process constraints
-                self.optProb.evaluateLinearConstraints(x, fcon)
+                self.optProb.evaluateLinearConstraints(xscaled, fcon)
                 fcon = self.optProb.processConstraints(fcon)
 
                 # Now clear out gobj and gcon in the cache since these
@@ -335,7 +337,7 @@ match the number in the current optimization. Ignorning coldStart file')
                 self.cache['fcon_user'] = copy.deepcopy(fcon)
 
                 # Process constraints
-                self.optProb.evaluateLinearConstraints(x, fcon)
+                self.optProb.evaluateLinearConstraints(xscaled, fcon)
                 fcon = self.optProb.processConstraints(fcon)
 
                 # Now clear out gobj and gcon in the cache since these

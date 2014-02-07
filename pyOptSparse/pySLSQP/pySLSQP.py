@@ -54,11 +54,11 @@ class SLSQP(Optimizer):
         category = 'Local Optimizer'
         defOpts = {
             # SLSQP Options
-            'ACC':[float,1e-12],            # Convergence Accurancy
-            'MAXIT':[int,500],             # Maximum Iterations
-            'IPRINT':[int,1],            # Output Level (<0 - None, 0 - Screen, 1 - File)
-            'IOUT':[int,6],             # Output Unit Number
-            'IFILE':[str,'SLSQP.out'],    # Output File Name
+            'ACC': [float, 1e-6],         # Convergence Accurancy
+            'MAXIT': [int, 500],          # Maximum Iterations
+            'IPRINT': [int, 1],           # Output Level (<0 - None, 0 - Screen, 1 - File)
+            'IOUT': [int, 6],             # Output Unit Number
+            'IFILE': [str, 'SLSQP.out'],  # Output File Name
             }
         informs = {
             -1 : "Gradient evaluation required (g & a)",
@@ -189,7 +189,7 @@ class SLSQP(Optimizer):
             self.optProb.offset = buc
 
             # Also figure out the number of equality:
-            tmp0, tmp1, tmp2, tmp3 = self.optProb.getOrdering(
+            tmp0, __, __, __ = self.optProb.getOrdering(
                 ['ne','le'], oneSided=oneSided)
             meq = len(tmp0)
 
@@ -255,11 +255,9 @@ class SLSQP(Optimizer):
 
             # Run SLSQP
             t0 = time.time()
-
             slsqp.slsqp(m, meq, la, n, xs, blx, bux, ff, gg, df, dg, acc, maxit,
                         iprint, iout, ifile, mode, w, lw, jw, ljw, nfunc,
                         ngrad, slfunc, slgrad)
-
             optTime = time.time() - t0
 
             if iprint > 0:
@@ -295,3 +293,10 @@ class SLSQP(Optimizer):
         sol = self._communicateSolution(sol)
 
         return sol
+
+    def _on_setOption(self, name, value):
+        pass
+
+    def _on_getOption(self, name, value):
+        pass
+

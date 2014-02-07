@@ -1096,7 +1096,7 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
         Parameters
         ----------
         x : array
-            This must be the unprocessed x-vector from the optimizer
+            This must be the processed x-vector from the optimizer
 
         fcon : dict
             Dictionary of the constraints. The linear constraints are
@@ -1106,9 +1106,8 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
         # This is actually pretty easy; it's just a matvec with the
         # proper linearJacobian entry we've already computed
         for iCon in self.constraints:
-            con = self.constraints[iCon]
-            if con.linear:
-                fcon[iCon] = con.linearJacobian.dot(x)
+            if self.constraints[iCon].linear:
+                fcon[iCon] = self.constraints[iCon].linearJacobian.dot(x)
 
     def processObjectiveGradient(self, gobj_in, obj='f'):
         """
@@ -1345,11 +1344,12 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
         # end for (constraint loop)
 
         # Finally, the coo matrix and scale the rows (constraint scaling)
+
         gcon = sparse.coo_matrix((data, (row, col)), (self.nCon, self.ndvs))
         gcon = self.conScale*gcon
         gcon = gcon.tocsr()
         gcon.sort_indices()
-        
+
         return gcon
 
     def _csrRowScale(self, mat, vec):
