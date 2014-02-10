@@ -871,7 +871,7 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
         
 
 
-    def getOrdering(self, conOrder, oneSided):
+    def getOrdering(self, conOrder, oneSided, noEquality=False):
                     
         # Now for the fun part determine what *actual* order the
         # constraints need to be in: We recongize the following
@@ -910,10 +910,23 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
                     icon = con.twoSidedConstraints
               
                 if conType == 'ne' and not con.linear:
-                    indices.extend(con.rs + econ['ind'])
-                    fact.extend(econ['fact'])
-                    lower.extend(econ['value'])
-                    upper.extend(econ['value'])
+                    if noEquality:
+                        # Expand Equality constraint to two:
+                        indices.extend(con.rs + econ['ind'])
+                        fact.extend(econ['fact'])
+                        lower.extend(econ['value'])
+                        upper.extend(econ['value'])
+                        #....And the other side
+                        indices.extend(con.rs + econ['ind'])
+                        fact.extend(-1.0*econ['fact'])
+                        lower.extend(econ['value'])
+                        upper.extend(econ['value'])
+
+                    else:
+                        indices.extend(con.rs + econ['ind'])
+                        fact.extend(econ['fact'])
+                        lower.extend(econ['value'])
+                        upper.extend(econ['value'])
                     
                 if conType == 'ni' and not con.linear:
                     indices.extend(con.rs + icon['ind'])
@@ -922,10 +935,22 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
                     upper.extend(icon['upper'])
                         
                 if conType == 'le' and con.linear:
-                    indices.extend(con.rs + econ['ind'])
-                    fact.extend(econ['fact'])
-                    lower.extend(econ['value'])
-                    upper.extend(econ['value'])
+                    if noEquality:
+                        # Expand Equality constraint to two:
+                        indices.extend(con.rs + econ['ind'])
+                        fact.extend(econ['fact'])
+                        lower.extend([-INFINITY]*len(econ['fact']))
+                        upper.extend(econ['value'])
+                        #....And the other side
+                        indices.extend(con.rs + econ['ind'])
+                        fact.extend(-1.0*econ['fact'])
+                        lower.extend([-INFINITY]*len(econ['fact']))
+                        upper.extend(-econ['value'])
+                    else:
+                        indices.extend(con.rs + econ['ind'])
+                        fact.extend(econ['fact'])
+                        lower.extend(econ['value'])
+                        upper.extend(econ['value'])
 
                 if conType == 'li' and con.linear:
                     indices.extend(con.rs + icon['ind'])
