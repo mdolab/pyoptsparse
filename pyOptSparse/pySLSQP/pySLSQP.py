@@ -95,9 +95,7 @@ class SLSQP(Optimizer):
             to be solved by the optimizer
 
         sens : str or python Function.
-            Specifiy method to compute sensitivities. The default is
-            None which will use SLSQP\'s own finite differences which
-            are vastly superiour to the pyOptSparse implementation. To
+            Specifiy method to compute sensitivities. To
             explictly use pyOptSparse gradient class to do the
             derivatives with finite differenes use \'FD\'. \'sens\'
             may also be \'CS\' which will cause pyOptSpare to compute
