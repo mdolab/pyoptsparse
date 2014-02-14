@@ -155,48 +155,48 @@ class FSQP(Optimizer):
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
         ff = self._assembleObjective()
-        
+   
+
+        # Determine all the constraint information, numbers etc. 
+        if self.optProb.nCon > 0:
+            # We need to reorder this full jacobian...so get ordering:
+            indices, blc, buc, fact = self.optProb.getOrdering(
+                ['ni','li','ne','le'], oneSided=True)
+            ncon = len(indices)
+
+            self.optProb.jacIndices = indices
+            self.optProb.fact = fact
+            self.optProb.offset = buc
+
+            # We need to call getOrdering a few more times to get
+            # the remaining sizes:
+            indices, __, __, __ = self.optProb.getOrdering(
+                ['ni'], oneSided=True)
+            nineqn = len(indices)
+
+            indices, __, __, __ = self.optProb.getOrdering(
+                ['ni','li'], oneSided=True)
+            nineq = len(indices)
+
+            indices, __, __, __ = self.optProb.getOrdering(
+                ['ne'], oneSided=True)
+            neqn = len(indices)
+
+            indices, __, __, __ = self.optProb.getOrdering(
+                ['ne','le'], oneSided=True)
+            neq = len(indices)
+        else:
+            nineqn = 0
+            nineq = 0
+            neqn = 0
+            neq = 0
+            ncon = 0
+     
         # We make a split here: If the rank is zero we setup the
         # problem and run SNOPT, otherwise we go to the waiting loop:
         if self.optProb.comm.rank == 0:
             # Set history
             self._setHistory(storeHistory)
-
-            # Determine all the constraint information, numbers etc. 
-            if self.optProb.nCon > 0:
-                # We need to reorder this full jacobian...so get ordering:
-                indices, blc, buc, fact = self.optProb.getOrdering(
-                    ['ni','li','ne','le'], oneSided=True)
-                ncon = len(indices)
-
-                self.optProb.jacIndices = indices
-                self.optProb.fact = fact
-                self.optProb.offset = buc
-
-                # We need to call getOrdering a few more times to get
-                # the remaining sizes:
-                indices, __, __, __ = self.optProb.getOrdering(
-                    ['ni'], oneSided=True)
-                nineqn = len(indices)
-
-                indices, __, __, __ = self.optProb.getOrdering(
-                    ['ni','li'], oneSided=True)
-                nineq = len(indices)
-
-                indices, __, __, __ = self.optProb.getOrdering(
-                    ['ne'], oneSided=True)
-                neqn = len(indices)
-                
-                indices, __, __, __ = self.optProb.getOrdering(
-                    ['ne','le'], oneSided=True)
-                neq = len(indices)
-            else:
-                nineqn = 0
-                nineq = 0
-                neqn = 0
-                neq = 0
-                ncon = 0
-
             #======================================================================
             # FSQP - Objective/Constraint Values Storage 
             #======================================================================
