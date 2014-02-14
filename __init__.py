@@ -41,6 +41,11 @@ try:
 except ImportError:
     pass
 
+try:
+    from .pyOptSparse.pyFSQP.pyFSQP import FSQP
+except ImportError:
+    pass
+
 
 # try:
 #     from .pyOptSparse.pyNSGA2.pyNSGA2 import NSGA2

@@ -43,11 +43,17 @@ elif 'SLSQP' in sys.argv:
 elif 'CONMIN' in sys.argv:
     from pyoptsparse import CONMIN as OPT
     optOptions = {}
+elif 'FSQP' in sys.argv:
+    from pyoptsparse import FSQP as OPT
+    optOptions = {}
 else:
     from pyoptsparse import SNOPT as OPT
     optOptions={}
 
-USE_LINEAR = True
+USE_LINEAR = False
+if 'linear' in sys.argv:
+    USE_LINEAR=True
+
 def objfunc(xx):
     x = xx['xvars']
     
