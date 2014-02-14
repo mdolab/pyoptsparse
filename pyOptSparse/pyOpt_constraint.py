@@ -182,6 +182,12 @@ class Constraint(object):
         oneSidedConstraints['ind'] = numpy.array(oneSidedConstraints['ind'],'intc')
         twoSidedConstraints['ind'] = numpy.array(twoSidedConstraints['ind'],'intc')
         equalityConstraints['ind'] = numpy.array(equalityConstraints['ind'],'intc')
+
+        oneSidedConstraints['fact'] = numpy.array(oneSidedConstraints['fact'])
+        twoSidedConstraints['fact'] = numpy.array(twoSidedConstraints['fact'])
+        equalityConstraints['fact'] = numpy.array(equalityConstraints['fact'])
+
+        equalityConstraints['value'] = numpy.array(equalityConstraints['value'])
         
         # Now save this information:
         self.equalityConstraints = equalityConstraints

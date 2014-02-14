@@ -33,7 +33,9 @@ elif args.opt.lower() == 'snopt':
 elif args.opt.lower() == 'slsqp':
     from pyoptsparse import SLSQP as OPT
     optOptions = {}
-
+elif args.opt.lower() == 'conmin':
+    from pyoptsparse import CONMIN as OPT
+    optOptions = {}
 
 def objfunc(xx):
     x = xx['x'] # Extract array
@@ -66,7 +68,7 @@ if sens == 'user':
 
 # Instantiate Optimization Problem
 optProb = Optimization('Rosenbrock function', objfunc)
-optProb.addVarGroup('x', 2, 'c', value=[5,5], lower=-5.12, upper=5.12,
+optProb.addVarGroup('x', 2, 'c', value=[-3,3], lower=-5.12, upper=5.12,
                     scale=[1.0, 1.0], varSet='xvars')
 optProb.finalizeDesignVariables()
 if constrained:
