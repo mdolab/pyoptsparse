@@ -40,6 +40,9 @@ if 'IPOPT' in sys.argv:
 elif 'SLSQP' in sys.argv:
     from pyoptsparse import SLSQP as OPT
     optOptions = {}
+elif 'CONMIN' in sys.argv:
+    from pyoptsparse import CONMIN as OPT
+    optOptions = {}
 else:
     from pyoptsparse import SNOPT as OPT
     optOptions={}
@@ -86,6 +89,9 @@ optProb = Optimization('TP109 Constraint Problem',objfunc)
 lower = [0.0, 0.0, -0.55, -0.55, 196, 196, 196, -400, -400]
 upper = [None, None, 0.55, 0.55,  252, 252, 252, 800, 800]
 value = [0,0,0,0,0,0,0,0,0]
+
+#value_opt = [0.7e+03, 0.1e+04, 0.1, -0.3, 200, 200, 200, 0.4e+03, 0.4e+03]
+#value=value_opt
 optProb.addVarGroup('xvars', 9, lower=lower, upper=upper, value=value)
 
 lower = [0, 0      , 0, 0, 0, 0, 0, 0]

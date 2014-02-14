@@ -82,8 +82,8 @@ class SLSQP(Optimizer):
         self.jacType = 'dense2d'
 
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
-                 storeHistory=None, hotStart=None, warmStart=None,
-                 coldStart=None, timeLimit=None):
+                 storeHistory=None, hotStart=None, coldStart=None, 
+                 timeLimit=None):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -127,15 +127,6 @@ class SLSQP(Optimizer):
             IDENTICAL**. As soon as he requested evaluation point
             from SLSQP does not match the history, function and
             gradient evaluations revert back to normal evaluations.
-
-        warmStart : str
-            File name of the history file to use for "warm"
-            restart. The only difference between a "warm" and "cold"
-            restart is that the state of the variables is used when
-            initializing slsqp. This information is stored in the
-            history file from slsqp only. If a warm start cannot be
-            preformed for any reason, a cold start is attempted
-            instead.
 
         coldStart : str
             Filename of the history file to use for "cold"

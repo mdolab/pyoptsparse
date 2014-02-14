@@ -36,11 +36,10 @@ try:
 except ImportError:
     pass
 
-
-#try:
-#     from .pyOptSparse.pyFSQP.pyFSQP import FSQP
-# except ImportError:
-#     pass
+try:
+    from .pyOptSparse.pyCONMIN.pyCONMIN import CONMIN
+except ImportError:
+    pass
 
 
 # try:
