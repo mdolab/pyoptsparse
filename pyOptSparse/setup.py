@@ -13,7 +13,7 @@ def configuration(parent_package='',top_path=None):
     config.add_subpackage('pyIPOPT')
     config.add_subpackage('pySLSQP')
     config.add_subpackage('pyCONMIN')
-    #config.add_subpackage('pyFSQP')
+    config.add_subpackage('pyFSQP')
     #config.add_subpackage('pyNSGA2')
     config.add_data_files('LICENSE','README')
     
