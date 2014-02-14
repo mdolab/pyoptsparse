@@ -80,6 +80,7 @@ class FSQP(Optimizer):
         
         # We need jacobians in dens2d formation
         self.jacType = 'dense2d'
+        
 
     def __call__(self, optProb, sens=None, sensStep=None, sensMode='FD',
                  storeHistory=None, hotStart=None,  coldStart=None, 
@@ -194,6 +195,7 @@ class FSQP(Optimizer):
                 nineq = 0
                 neqn = 0
                 neq = 0
+                ncon = 0
 
             #======================================================================
             # FSQP - Objective/Constraint Values Storage 
@@ -287,7 +289,7 @@ class FSQP(Optimizer):
                 if os.path.isfile(ifile):
                     os.remove(ifile)
 
-            gg = numpy.zeros(ncon)
+            gg = numpy.zeros(max(ncon,1))
             miter = self.getOption('miter')
             inform = 0
             bigbnd = self.getOption('bigbnd')
