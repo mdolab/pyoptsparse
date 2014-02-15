@@ -1,6 +1,6 @@
 #/bin/env python
 """
-pySLSQP - A variation of the pySLSQP wrapper specificially designed to
+pyNLPQL - A variation of the pyNLPQL wrapper specificially designed to
 work with sparse optimization problems.
 
 Copyright (c) 2013-2014 by Dr. Gaetan Kenway
@@ -21,12 +21,12 @@ History
 from __future__ import absolute_import
 from __future__ import print_function
 # =============================================================================
-# SLSQP Library
+# NLPQL Library
 # =============================================================================
 try:
-    from . import slsqp
+    from . import nlpql
 except:
-    raise ImportError('SLSQP shared library failed to import')
+    raise ImportError('NLPQL shared library failed to import')
 # =============================================================================
 # Standard Python modules
 # =============================================================================
@@ -42,43 +42,56 @@ from mpi4py import MPI
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_solution import Solution
+eps = numpy.finfo(1.0).eps
 # =============================================================================
-# SLSQP Optimizer Class
+# NLPQL Optimizer Class
 # =============================================================================
-class SLSQP(Optimizer):
+class NLPQL(Optimizer):
     """
-    SLSQP Optimizer Class - Inherited from Optimizer Abstract Class
+    NLPQL Optimizer Class - Inherited from Optimizer Abstract Class
     """
-    def __init__(self, *args, **kwargs):
-        name = 'SLSQP'
+    def __init__(self, pll_type=None, *args, **kwargs):
+        name = 'NLPQL'
         category = 'Local Optimizer'
         defOpts = {
-            # SLSQP Options
-            'ACC': [float, 1e-6],         # Convergence Accurancy
-            'MAXIT': [int, 500],          # Maximum Iterations
-            'IPRINT': [int, 1],           # Output Level (<0 - None, 0 - Screen, 1 - File)
-            'IOUT': [int, 6],             # Output Unit Number
-            'IFILE': [str, 'SLSQP.out'],  # Output File Name
-            }
+        # NLPQL Options
+        'Accurancy':[float,1e-6],   # Convergence Accurancy
+        'ScaleBound':[float,1e30],  # 
+        'maxFun':[int,20],          # Maximum Number of Function Calls During Line Search
+        'maxIt':[int,500],          # Maximum Number of Iterations
+        'iPrint':[int,2],           # Output Level (0 - None, 1 - Final, 2 - Major, 3 - Major/Minor, 4 - Full)
+        'mode':[int,0],             # NLPQL Mode (0 - Normal Execution, 1 to 18 - See Manual)
+        'iout':[int,6],             # Output Unit Number
+        'lmerit':[bool,True],       # Merit Function Type (True - L2 Augmented Penalty, False - L1 Penalty)
+        'lql':[bool,False],         # QP Subproblem Solver (True - Quasi-Newton, False - Cholesky)
+        'iFile':[str,'NLPQL.out'],    # Output File Name
+        }
         informs = {
-            -1 : "Gradient evaluation required (g & a)",
-             0 : "Optimization terminated successfully.",
-             1 : "Function evaluation required (f & c)",
-             2 : "More equality constraints than independent variables",
-             3 : "More than 3*n iterations in LSQ subproblem",
-             4 : "Inequality constraints incompatible",
-             5 : "Singular matrix E in LSQ subproblem",
-             6 : "Singular matrix C in LSQ subproblem",
-             7 : "Rank-deficient equality constraint subproblem HFTI",
-             8 : "Positive directional derivative for linesearch",
-             9 : "Iteration limit exceeded",
-             }
-
-        self.set_options = []
-        Optimizer.__init__(self, name, category, defOpts, informs, *args,
-                           **kwargs)
-
-        # SLSQP needs jacobians in dense format
+        -2 : 'Compute gradient values w.r.t. the variables stored in' \
+            ' first column of X, and store them in DF and DG.' \
+            ' Only derivatives for active constraints ACTIVE(J)=.TRUE. need to be computed.',
+        -1 : 'Compute objective fn and all constraint values subject' \
+            'the variables found in the first L columns of X, and store them in F and G.',
+        0 : 'The optimality conditions are satisfied.', 
+        1 : ' The algorithm has been stopped after MAXIT iterations.',
+        2 : ' The algorithm computed an uphill search direction.',
+        3 : ' Underflow occurred when determining a new approximation matrix' \
+            'for the Hessian of the Lagrangian.',
+        4 : 'The line search could not be terminated successfully.', 
+        5 : 'Length of a working array is too short.' \
+            ' More detailed error information is obtained with IPRINT>0',
+        6 : 'There are false dimensions, for example M>MMAX, N>=NMAX, or MNN2<>M+N+N+2.',
+        7 : 'The search direction is close to zero, but the current iterate is still infeasible.',
+        8 : 'The starting point violates a lower or upper bound.',
+        9 : 'Wrong input parameter, i.e., MODE, LDL decomposition in D and C' \
+            ' (in case of MODE=1), IPRINT, IOUT',
+        10 : 'Internal inconsistency of the quadratic subproblem, division by zero.',
+        100 : 'The solution of the quadratic programming subproblem has been' \
+            ' terminated with an error message and IFAIL is set to IFQL+100,' \
+            ' where IFQL denotes the index of an inconsistent constraint.',
+        }
+        Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
+        # NLPQL needs jacobians in dense format
         self.jacType = 'dense2d'
 
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
@@ -125,7 +138,7 @@ class SLSQP(Optimizer):
             **IDENTICAL** to the currently supplied \'optProb\'. By
             identical we mean, **EVERY SINGLE PARAMETER MUST BE
             IDENTICAL**. As soon as he requested evaluation point
-            from SLSQP does not match the history, function and
+            from NLPQL does not match the history, function and
             gradient evaluations revert back to normal evaluations.
 
         coldStart : str
@@ -143,10 +156,6 @@ class SLSQP(Optimizer):
         self.callCounter = 0
 
         if len(optProb.constraints) == 0:
-            # If the user *actually* has an unconstrained problem,
-            # slsqp sort of chokes with that....it has to have at
-            # least one constraint. So we will add one
-            # automatically here:
             self.unconstrained = True
             optProb.dummyConstraint = False
 
@@ -160,7 +169,7 @@ class SLSQP(Optimizer):
         blx, bux, xs = self._assembleContinuousVariables()
         xs = numpy.maximum(xs, blx)
         xs = numpy.minimum(xs, bux)
-        n = len(xs)
+        nvar = len(xs)
         ff = self._assembleObjective()
 
         oneSided = True
@@ -189,21 +198,20 @@ class SLSQP(Optimizer):
             if coldStart is not None:
                 res1 = self._coldStart(coldStart)
                 if res1 is not None:
-                    xs[0:n] = res1
-
-            #=================================================================
-            # SLSQP - Objective/Constraint Values Function
-            #=================================================================
-            def slfunc(m, me, la, n, f, g, x):
+                    xs[0:nvar] = res1
+            #======================================================================
+            # NLPQL - Objective/Constraint Values Function (Real Valued) 
+            #======================================================================
+            def nlfunc(m, me, mmax, n, f, g, x, active):
                 fobj, fcon, fail = self.masterFunc(x, ['fobj', 'fcon'])
                 f = fobj
                 g[0:m] = -fcon
-                return f, g
+                return f,g
 
-            #=================================================================
-            # SLSQP - Objective/Constraint Gradients Function
-            #=================================================================
-            def slgrad(m, me, la, n, f, g, df, dg, x):
+            #======================================================================
+            # NLPQL - Objective/Constraint Gradients Function
+            #======================================================================
+            def nlgrad(m, me, mmax, n, f, g, df, dg, x, active, wa):
                 gobj, gcon, fail = self.masterFunc(x, ['gobj', 'gcon'])
                 df[0:n] = gobj.copy()
                 dg[0:m,0:n] = -gcon.copy()
@@ -212,46 +220,72 @@ class SLSQP(Optimizer):
             # Setup hot start if necessary
             self._hotStart(storeHistory, hotStart)
 
+            ncon = m
+            neqc = meq
+        
             # Setup argument list values
-            la = max(m, 1)
-            gg = numpy.zeros([la], numpy.float)
-            n1 = numpy.array([n+1], numpy.int)
-            df = numpy.zeros([n+1], numpy.float)
-            dg = numpy.zeros([la, n+1], numpy.float)
-            acc = numpy.array([self.getOption('ACC')], numpy.float)
-            maxit = self.getOption('MAXIT')
-            iprint = self.getOption('IPRINT')
-            iout = self.getOption('IOUT')
-            ifile = self.getOption('IFILE')
-            if iprint >= 0:
-                if os.path.isfile(ifile):
-                    os.remove(ifile)
+            mm = m
+            me = meq
+            mmax = 200
+            if ncon >= mmax:
+                mmxa = ncon + 1
 
-            mode = 0
-            mineq = m - meq + 2*(n+1)
-            lsq = (n+1)*((n+1)+1) + meq*((n+1)+1) + mineq*((n+1)+1)
-            lsi = ((n+1)-meq+1)*(mineq+2) + 2*mineq
-            lsei = ((n+1)+mineq)*((n+1)-meq) + 2*meq + (n+1)
-            slsqpb = (n+1)*(n/2) + 2*m + 3*n + 3*(n+1) + 1
-            lwM = lsq + lsi + lsei + slsqpb + n + m
-            lw = numpy.array([lwM], numpy.int)
-            w = numpy.zeros([lw], numpy.float)
-            ljwM = max(mineq, (n+1)-meq)
-            ljw = numpy.array([ljwM], numpy.int)
-            jw = numpy.zeros([ljw], numpy.intc)
-            nfunc = numpy.array([0], numpy.int)
-            ngrad = numpy.array([0], numpy.int)
+            nn = nvar
+            nmax = 200
+            if nvar >= nmax:
+                nmax = nvar + 1
 
-            # Run SLSQP
+            mnn2 = mm+nn+nn+2
+            gg = numpy.zeros(mmax)
+            df = numpy.zeros(nmax)
+            dg = numpy.zeros((mmax, nmax))
+            uu = numpy.zeros(mnn2)
+            cc = numpy.zeros((nmax, nmax))
+            dd = numpy.zeros(nmax)
+            acc = self.getOption('Accurancy')
+            scbou = self.getOption('ScaleBound')
+            maxfun = self.getOption('maxFun')
+            maxit = self.getOption('maxIt')
+            if self.getOption('iPrint') >= 0 and self.getOption('iPrint') <= 4:
+                iprint = self.getOption('iPrint')
+            else:
+                raise Error('Incorrect iPrint option. Must be >=0 and <= 4')
+
+            mode = self.getOption('mode')
+            if not(mode >= 0 and mode <=18):
+                raise Error('Incorrect mode option. Must be >= 0 and <= 18.')
+
+            iout = self.getOption('iout')
+            ifile = self.getOption('iFile')
+            if os.path.isfile(ifile):
+                os.remove(ifile)
+
+            ifail = 0
+            lwa0 = 100000
+            lwa1 = 4*mmax + 4*ncon + 19*nvar + 55
+            lwa2 = mmax*nvar + 4*mmax + 4*ncon + 18*nvar + 55
+            lwa3 = 3/2*(nvar + 1)*(nvar + 1) + 10*nvar + 2*ncon + 10
+            lwa = max([lwa0,lwa1,lwa2,lwa3]) + lwa3
+            wa = numpy.zeros([lwa], numpy.float)
+            lkwa = numpy.array([mmax+2*nmax+20], numpy.int)
+            kwa = numpy.zeros([lkwa], numpy.intc)
+            lactiv = 2*mmax+15
+            active = numpy.zeros(lactiv, numpy.bool)
+            lmerit = self.getOption('lmerit')
+            lql = self.getOption('lql')
+            fmp = eps
+
+            # Run NLPQL
             t0 = time.time()
-            slsqp.slsqp(m, meq, la, n, xs, blx, bux, ff, gg, df, dg, acc, maxit,
-                        iprint, iout, ifile, mode, w, lw, jw, ljw, nfunc,
-                        ngrad, slfunc, slgrad)
+            nlpql.nlpql1(mm, me, mmax, nn, nmax, mnn2, xs, ff, gg, df, dg, uu,
+                         blx, bux, cc, dd, acc, scbou, maxfun, maxit, iprint,
+                         mode, iout, ifile, ifail, wa, lwa, kwa, lkwa, active,
+                         lactiv, lmerit, lql, fmp, nlfunc, nlgrad)
             optTime = time.time() - t0
-
+        
             if iprint > 0:
-                slsqp.closeunit(self.getOption('IOUT'))
-
+                nlpql.closeunit(self.getOption('iout'))
+                
             if MPI:
                 # Broadcast a -1 to indcate SLSQP has finished
                 self.optProb.comm.bcast(-1, root=0)
@@ -288,4 +322,5 @@ class SLSQP(Optimizer):
 
     def _on_getOption(self, name, value):
         pass
+
 

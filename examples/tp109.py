@@ -46,6 +46,9 @@ elif 'CONMIN' in sys.argv:
 elif 'FSQP' in sys.argv:
     from pyoptsparse import FSQP as OPT
     optOptions = {}
+elif 'NLPQL' in sys.argv:
+    from pyoptsparse import NLPQL as OPT
+    optOptions = {}
 else:
     from pyoptsparse import SNOPT as OPT
     optOptions={}

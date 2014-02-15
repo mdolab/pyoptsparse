@@ -46,9 +46,7 @@ try:
 except ImportError:
     pass
 
-
-# try:
-#     from .pyOptSparse.pyNSGA2.pyNSGA2 import NSGA2
-# except ImportError:
-#     pass
-
+try:
+    from .pyOptSparse.pyNLPQL.pyNLPQL import NLPQL
+except ImportError:
+    pass
