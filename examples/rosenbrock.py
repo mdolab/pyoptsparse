@@ -39,6 +39,9 @@ elif args.opt.lower() == 'conmin':
 elif args.opt.lower() == 'fsqp':
     from pyoptsparse import FSQP as OPT
     optOptions = {}
+elif args.opt.lower() == 'nlpql':
+    from pyoptsparse import NLPQL as OPT
+    optOptions = {}
 
 def objfunc(xx):
     x = xx['x'] # Extract array
