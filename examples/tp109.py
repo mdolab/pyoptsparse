@@ -134,4 +134,4 @@ optProb.addObj('f')
 optProb.printSparsity()
 opt = OPT(options=optOptions)
 sol = opt(optProb, sens='CS')
-#print sol
+print sol
