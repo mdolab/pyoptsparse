@@ -240,7 +240,7 @@ match the number in the current optimization. Ignorning coldStart file')
                 fail = data['fail']
 
                 returns = []
-                xscaled = x/self.optProb.xscale
+                xscaled = self.optProb.invXScale.dot(x)
 
                 # Process objective if we have one (them)
                 if fobj is not None:
@@ -307,7 +307,7 @@ match the number in the current optimization. Ignorning coldStart file')
         # gobj, and gcon values such that on the next pass we can just
         # read them and return.
 
-        xscaled = x/self.optProb.xscale
+        xscaled = self.optProb.invXScale.dot(x)
         xuser = self.optProb.processX(xscaled)
 
         masterFail = False
