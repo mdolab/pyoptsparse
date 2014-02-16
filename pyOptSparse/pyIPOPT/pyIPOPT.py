@@ -263,8 +263,7 @@ class IPOPT(Optimizer):
             # sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
-            funcEval = 1
-            sol = self._createSolution(optTime, funcEval, sol_inform, obj)
+            sol = self._createSolution(optTime, sol_inform, obj)
 
             # Indicate solution finished
             self.optProb.comm.bcast(-1, root=0)

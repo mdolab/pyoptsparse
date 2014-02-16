@@ -66,14 +66,21 @@ class Variable(object):
 
         if self.type == 'd':
             res += '	 '
-            res += str(self.name).center(9)
-            res += '%5s	%14f %14.2e %12.2e \n'% (
+            res += str(self.name).center(15)
+            res += '%25s%20f %14.2e %12.2e \n'% (
                 self.type, self.choices[int(self.value)],
                 min(self.choices), max(self.choices))
         else:
+            lower = self.lower
+            upper = self.upper
+            if self.lower is None:
+                lower = -1e20
+            if self.upper is None:
+                upper = 1e20
+            
             res += '	 '
-            # res += str(self.name).center(9)
-            # res += '%5s	%14f %14.2e %12.2e \n'% (
-            #     self.type, self.value, self.lower, self.upper)
+            res += str(self.name).center(9)
+            res += '%5s	%14f %14.2e %12.2e \n'% (
+                self.type, self.value, lower, upper)
             
         return res

@@ -509,8 +509,7 @@ class SNOPT(Optimizer):
             sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
-            funcEval = 1
-            sol = self._createSolution(optTime, funcEval, sol_inform, ff)
+            sol = self._createSolution(optTime, sol_inform, ff)
 
             # Indicate solution finished
             self.optProb.comm.bcast(-1, root=0)

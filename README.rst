@@ -91,6 +91,8 @@ Changes to pyOptSparse
   
 * Better optimizer class documentation with better formatting
 
+* Python 3.x compatibility
+
 pyOpt - Building and Installing
 ===============================
 Copyright (c) 2013-2014, pyOpt Developers
