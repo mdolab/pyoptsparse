@@ -837,8 +837,9 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
         for dvSet in self.variables:
             for dvGroup in self.variables[dvSet]:
                 for var in self.variables[dvSet][dvGroup]:
-                    xscale.append(var.scale)
-        self.xscale = numpy.array(xscale)
+                    xscale.append(1.0/var.scale)
+        ndv = len(xscale)
+        self.invXScale = sparse.spdiags(xscale, 0, ndv, ndv)
 
         # ----------------------------------------
         # Step 3. Determine if dense return is OK
@@ -1104,7 +1105,6 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
         else:
             if self.nCon > 0:
                 fcon = fcon[self.jacIndices]
-
                 fcon = self.fact.dot(fcon) - self.offset
                 return fcon
             else:
@@ -1195,7 +1195,7 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
                 
         # Finally scale the objective gradient based on the scaling
         # data for the design variables
-        gobj /= self.xscale
+        gobj = self.invXScale.dot(gobj)
 
         # Also apply the objective scaling
         gobj *= self.objectives[obj].scale
@@ -1248,19 +1248,18 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
             if gcon.shape == (self.nCon, self.ndvs):
                 # Check that we are actually allowed a dense return:
                 if self.denseJacobianOK:
-
                     # Replce any zero entries with a small value
                     gcon[numpy.where(gcon==0)] = 1e-50
 
+                    # Now make it sparse
+                    gcon = sparse.csr_matrix(gcon)
+
                     # Do columing scaling (dv scaling)
-                    for i in range(self.ndvs):
-                        gcon[:, i] /= self.xscale[i]
+                    gcon = gcon.dot(self.invXScale)
 
                     # Do the row scaling (constraint scaling)
-                    gcon = self.conScale*gcon
+                    gcon = self.conScale.dot(gcon)
 
-                    # Now make it sparse and return
-                    gcon = sparse.csr_matrix(gcon)
                     return gcon
                     
                 else:
@@ -1285,7 +1284,8 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
         data = []
         row  = []
         col  = []
-
+        tmpJac = sparse.lil_matrix((self.nCon, self.ndvs))
+        ii = 0
         # Otherwise, process constraints in the dictionary form. 
         # Loop over all constraints:
         for iCon in self.constraints:
@@ -1326,7 +1326,7 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
                         # before converting to csr format
                         tmp = numpy.atleast_2d(gcon[iCon][key])
                         tmp[numpy.where(tmp==0)] = 1e-50
-                        tmp = sparse.csr_matrix(tmp.copy())
+                        #tmp = sparse.csr_matrix(tmp.copy())
                 else:
                     # This key is not returned. Just use the
                     # stored jacobian that contains zeros
@@ -1347,21 +1347,29 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
                     constraint group \'%s\' was not the correct size. \
                     The supplied jacobian has  %d nonzero entries, \
                     but must contain %d nonzero entries.' % (
-                                    con.name, tmp.nnz, con.jac[key].nnz))
+                            con.name, tmp.nnz, con.jac[key].nnz))
 
-                # Loop over the number of row in this constraint
-                # jacobain group:
-                for iRow in range(con.ncon):
-                    # Loop over the number of nonzero entries in this row:
-                    for ii in range(con.jac[key].indptr[iRow],
-                                    con.jac[key].indptr[iRow+1]):
-                        row.append(con.rs + iRow)
-                        icol = self.dvOffset[key]['n'][0] + \
-                               con.jac[key].indices[ii]
-                        col.append(icol)
+                # Recall that wrt is actually sorted. This ensures
+                # that we are actually assembling the jacobian in
+                # precisely the correct "natural" order here. 
+                tmpJac[ii:ii+con.ncon, ss[0]:ss[1]] = con.jac[key]
+            # end for (key in constraint)
+            ii += con.ncon
+        # end for (constraint loop)
+            
+                # # Loop over the number of row in this constraint
+                # # jacobain group:
+                # for iRow in range(con.ncon):
+                #     # Loop over the number of nonzero entries in this row:
+                #     for ii in range(con.jac[key].indptr[iRow],
+                #                     con.jac[key].indptr[iRow+1]):
+                #         row.append(con.rs + iRow)
+                #         icol = self.dvOffset[key]['n'][0] + \
+                #                con.jac[key].indices[ii]
+                #         col.append(icol)
 
-                        # The next line performs the column (dv scaling)
-                        data.append(tmp.data[ii]/self.xscale[icol])
+                #         # The next line performs the column (dv scaling)
+                #         data.append(tmp.data[ii])#/self.xscale[icol])
                             
                     # end for loop over local columns
                 # end for local loop over constraint keys
@@ -1370,10 +1378,20 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
 
         # Finally, the coo matrix and scale the rows (constraint scaling)
 
-        gcon = sparse.coo_matrix((data, (row, col)), (self.nCon, self.ndvs))
-        gcon = self.conScale*gcon
-        gcon = gcon.tocsr()
+        #gcon = sparse.coo_matrix((data, (row, col)), (self.nCon, self.ndvs))
+
+        # Convert to csr and sort
+        gcon = tmpJac.tocsr()
         gcon.sort_indices()
+
+        # Perform row scaling
+        gcon = self.conScale.dot(gcon)
+
+        # Perform column scaling (dv scaling)
+        gcon = gcon.dot(self.invXScale)
+
+        # gcon = gcon.tocsr()
+        # gcon.sort_indices()
 
         return gcon
 
