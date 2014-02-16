@@ -838,9 +838,9 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
             for dvGroup in self.variables[dvSet]:
                 for var in self.variables[dvSet][dvGroup]:
                     xscale.append(var.scale)
-        self.xscale = numpy.array(xscale)
+        xscale = numpy.array(xscale)
         ndv = len(xscale)
-        self.invXScale = sparse.spdiags(1.0/self.xscale, 0, ndv, ndv)
+        self.invXScale = sparse.spdiags(1.0/xscale, 0, ndv, ndv)
         # ----------------------------------------
         # Step 3. Determine if dense return is OK
         # ----------------------------------------

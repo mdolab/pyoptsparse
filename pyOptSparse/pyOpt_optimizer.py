@@ -240,7 +240,6 @@ match the number in the current optimization. Ignorning coldStart file')
                 fail = data['fail']
 
                 returns = []
-                #xscaled = x/self.optProb.xscale
                 xscaled = self.optProb.invXScale.dot(x)
                 # Process objective if we have one (them)
                 if fobj is not None:
