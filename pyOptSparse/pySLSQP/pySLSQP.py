@@ -262,7 +262,7 @@ class SLSQP(Optimizer):
             #sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
-            sol = Solution(self.optProb, optTime, 1, sol_inform)
+            sol = self._createSolution(optTime, sol_inform, ff)
 
             # Now set the x-values:
             i = 0

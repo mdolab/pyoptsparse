@@ -40,7 +40,7 @@ class Solution(Optimization):
         The inform code from the optimization.
         """
     
-    def __init__(self, optProb, optTime, optEvals, optInform):
+    def __init__(self, optProb, optTime, optInform):
         
         Optimization.__init__(self, optProb.name, None)
 
@@ -52,7 +52,6 @@ class Solution(Optimization):
         self.varGroupNames = copy.deepcopy(optProb.varGroupNames)
         self.conGroupNames = copy.deepcopy(optProb.conGroupNames)
         self.optTime = optTime
-        self.optEvals = optEvals
         self.optInform = optInform
 
     def __str__(self):
@@ -70,7 +69,12 @@ class Solution(Optimization):
         text1 += '\n    Solution: \n'
         text1 += ('-'*80) + '\n'
         text1 += '    Total Time: %25.4f\n' % self.optTime
-        text1 += '    Total Function Evaluations: %9.0i\n' % self.optEvals
+        text1 += '       User Objective Time :   %10.4f\n' % self.userObjTime
+        text1 += '       User Sensitivity Time : %10.4f\n' % self.userSensTime
+        text1 += '       Interface Time :        %10.4f\n' % self.interfaceTime
+        text1 += '       Opt Solver Time:        %10.4f\n' % self.optCodeTime
+        text1 += '    Calls to Objective Function : %7d\n' % self.userObjCalls
+        text1 += '    Calls to Sens Function :      %7d\n' % self.userSensCalls
     
         for i in range(5, len(lines)):
             text1 += lines[i] + '\n'

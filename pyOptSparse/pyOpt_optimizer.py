@@ -71,11 +71,23 @@ class Optimizer(object):
         self.appendLinearConstraints = False
         self.jacType = 'dense'
         self.unconstrained = False
-
+        self.userObjTime = 0.0
+        self.userSensTime = 0.0
+        self.interfaceTime = 0.0
+        self.userObjCalls = 0
+        self.userSensCalls = 0
         # Cache storage
         self.cache = {'x': None, 'fobj': None, 'fcon': None,
                       'gobj': None, 'gcon': None}
 
+    def _clearTimings(self):
+        """Clear timings and call counters"""
+        self.userObjTime = 0.0
+        self.userSensTime = 0.0
+        self.interfaceTime = 0.0
+        self.userObjCalls = 0
+        self.userSensCalls = 0
+        
     def _setSens(self, sens, sensStep, sensMode):
         """
         Common function to setup sens function
@@ -201,7 +213,7 @@ match the number in the current optimization. Ignorning coldStart file')
         # We are hot starting, we should be able to read the required
         # information out of the hot start file, process it and then
         # fire it back to the specific optimizer
-
+        timeA = time.time()
         if self.hotStart:
 
             if self.hotStart.validPoint(self.callCounter, x):
@@ -253,7 +265,7 @@ match the number in the current optimization. Ignorning coldStart file')
                 # We can now safely increment the call counter
                 self.callCounter += 1
                 returns.append(fail)
-
+                self.interfaceTime += time.time()-timeA
                 return returns
             # end if (valid hot start point)
 
@@ -276,7 +288,9 @@ match the number in the current optimization. Ignorning coldStart file')
             # Now broadcast out the required arguments:
             self.optProb.comm.bcast(args)
 
-        return self.masterFunc2(*args)
+        result = self.masterFunc2(*args)
+        self.interfaceTime += time.time()-timeA
+        return result
 
     def masterFunc2(self, x, evaluate, writeHist=True):
         """
@@ -305,7 +319,10 @@ match the number in the current optimization. Ignorning coldStart file')
 
         if 'fobj' in evaluate:
             if numpy.linalg.norm(x-self.cache['x']) > eps:
+                timeA = time.time()
                 fobj, fcon, fail = self.optProb.objFun(xuser)
+                self.userObjTime += time.time()-timeA
+                self.userObjCalls += 1
                 # User values stored is immediately
                 self.cache['fobj_user'] = copy.deepcopy(fobj)
                 self.cache['fcon_user'] = copy.deepcopy(fcon)
@@ -331,7 +348,10 @@ match the number in the current optimization. Ignorning coldStart file')
 
         if 'fcon' in evaluate:
             if numpy.linalg.norm(x-self.cache['x']) > eps:
+                timeA = time.time()
                 fobj, fcon, fail = self.optProb.objFun(xuser)
+                self.userObjTime += time.time()-timeA
+                self.userObjCalls += 1
                 # User values stored is immediately
                 self.cache['fobj_user'] = copy.deepcopy(fobj)
                 self.cache['fcon_user'] = copy.deepcopy(fcon)
@@ -366,8 +386,11 @@ match the number in the current optimization. Ignorning coldStart file')
             # determine if we have to run the sens calc:
 
             if self.cache['gobj'] is None:
+                timeA = time.time()
                 gobj, gcon, fail = self.sens(
                     xuser, self.cache['fobj'], self.cache['fcon_user'])
+                self.userSensTime += time.time()-timeA
+                self.userSensCalls += 1
                 # User values are stored is immediately
                 self.cache['gobj_user'] = copy.deepcopy(gobj)
                 self.cache['gcon_user'] = copy.deepcopy(gcon)
@@ -399,8 +422,11 @@ match the number in the current optimization. Ignorning coldStart file')
             # Now, the point has been evaluated correctly so we
             # determine if we have to run the sens calc:
             if self.cache['gcon'] is None:
+                timeA = time.time()
                 gobj, gcon, fail = self.sens(
                     xuser, self.cache['fobj'], self.cache['fcon_user'])
+                self.userSensTime += time.time()-timeA
+                self.userSensCalls += 1
                 # User values stored is immediately
                 self.cache['gobj_user'] = copy.deepcopy(gobj)
                 self.cache['gcon_user'] = copy.deepcopy(gcon)
@@ -581,12 +607,18 @@ match the number in the current optimization. Ignorning coldStart file')
 
         return ff
 
-    def _createSolution(self, optTime, funcEval, sol_inform, obj):
+    def _createSolution(self, optTime, sol_inform, obj):
         """
         Generic routine to create the solution after an optimizer
         finishes.
         """
-        sol = Solution(self.optProb, optTime, funcEval, sol_inform)
+        sol = Solution(self.optProb, optTime, sol_inform)
+        sol.userObjTime = self.userObjTime
+        sol.userSensTime = self.userSensTime
+        sol.userObjCalls = self.userObjCalls
+        sol.userSensCalls = self.userSensCalls
+        sol.interfaceTime = self.interfaceTime - self.userSensTime - self.userObjTime
+        sol.optCodeTime = sol.optTime - self.interfaceTime 
 
         # # Now set the x-values:
         # i = 0
@@ -605,6 +637,7 @@ match the number in the current optimization. Ignorning coldStart file')
         have to be a little careful since we can't in general
         broadcast the function so we have to set manually after the broadcast.
         """
+
         sol = self.optProb.comm.bcast(sol)
         sol.objFun = self.optProb.objFun
 

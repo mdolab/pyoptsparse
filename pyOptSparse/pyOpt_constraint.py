@@ -79,6 +79,10 @@ class Constraint(object):
             raise Error('The length of the \'scale\' argument to \
             addCon or addConGroup is %d, but the number of constraints \
             is %d.'%(len(scale), nCon))
+
+        # Save lower and upper...they are only used for printing however
+        self.lower = lower
+        self.upper = upper
         
         # Now we determine what kind of constraint this is: 
         # 1. An equality constraint
@@ -201,9 +205,16 @@ class Constraint(object):
         Documentation last updated:  April. 30, 2008 - Peter W. Jansen
         """
         res = ''
-        # for i in range(self.ncon):
-        #     res += '	 '+str(self.name).center(9) + \
-        #            '	  i %15.2e <= %8f <= %8.2e\n' %(
-        #         self.lower[i],self.value[i],self.upper[i])
+        for i in range(self.ncon):
+            lower = self.lower[i]
+            upper = self.upper[i]
+            if lower is None:
+                lower = 1e-20
+            if upper is None:
+                upper = 1e20
+                
+            res += '	 '+str(self.name).center(9) + \
+                   '	  i %15.2e <= %8f <= %8.2e\n' %(
+                lower, 0.0, upper)
        
         return res

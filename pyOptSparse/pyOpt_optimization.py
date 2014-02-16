@@ -1402,7 +1402,7 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
             text += lines[1] + '\n'
 
         text += """\n	Variables (c - continuous, i - integer, d - discrete):
-        Name    Type       Value       Lower Bound  Upper Bound\n"""
+           Name      Type       Value       Lower Bound  Upper Bound\n"""
 
         for dvSet in self.variables:
             for dvGroup in self.variables[dvSet]:
