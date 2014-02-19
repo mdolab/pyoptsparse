@@ -18,9 +18,11 @@ History
 # =============================================================================
 # External Python modules
 # =============================================================================
+import copy
 import numpy
-#from pyOpt_optimization import INFINITY
-INFINITY=1e20
+from scipy import sparse
+from .pyOpt_error import Error
+INFINITY = 1e20
 eps = numpy.finfo(1.0).eps
 # =============================================================================
 # Constraint Class
@@ -29,21 +31,17 @@ class Constraint(object):
     """
     Constraint Class Initialization
     """
-    def __init__(self, name, nCon, linear, wrt, jac, partialReturnOk,
-                 lower, upper, scale):
+    def __init__(self, name, nCon, linear, wrt, jac, lower, upper, scale):
 
         self.name = name
         self.ncon = nCon
         self.linear = linear
         self.wrt = wrt
         self.jac = jac
-        self.partialReturnOk = partialReturnOk
-
-        # Indices of this constraint. rs='row start', re='row end'. 
+        self.partialReturnOk = None
+        self.scale = scale
         self.rs = None
         self.re = None
-        self.scale = scale # Unused, just store for reference
-
         # Before we can do the processing below we need to have lower
         # and upper arguments expanded:
 
@@ -197,6 +195,157 @@ class Constraint(object):
         self.equalityConstraints = equalityConstraints
         self.oneSidedConstraints = oneSidedConstraints
         self.twoSidedConstraints = twoSidedConstraints
+
+    def finialize(self, variables, dvOffset, index):
+        """ **This function should not need to be called by the user**
+        
+        After the design variables have been finialized and the order
+        is known we can check the constraint for consistency. 
+
+        Parameters
+        ----------
+        variables : Ordered Dict
+            The pyOpt variable list after they have been finialized.
+
+        dvOffset : dict
+            Design variable offsets from pyOpt_optimization
+
+        index : int
+            The starting index of this constraint in natural order
+
+        """
+        
+        # Set the row start and end
+        self.rs = index
+        self.re = index + self.ncon
+
+        # First check if 'wrt' is supplied...if not we just take all
+        # the dvSet
+        if self.wrt is None:
+            self.wrt = list(variables.keys())
+        else:
+            # Sanitize the wrt input:
+            if isinstance(self.wrt, str):
+                self.wrt = [self.wrt.lower()]
+            else: 
+                try:
+                    self.wrt = list(self.wrt)
+                except:
+                    raise Error("The 'wrt' argument to constraint '%s' must \
+                    be an iterable list'"% self.name)
+
+            # We allow 'None' to be in the list...they are null so
+            # just pop them out:
+            self.wrt = [dvSet for dvSet in self.wrt if dvSet != None]
+                    
+            # Now, make sure that each dvSet the user supplied list
+            # *actually* are DVsets
+            for dvSet in self.wrt:
+                if not dvSet in variables:
+                    raise Error('The supplied dvSet \'%s\' in \'wrt\' \
+for the %s constraint, does not exist. It must be added with a call to \
+addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'% (
+                            dvSet, self.name, dvSet))
+
+        # Last thing for wrt is to reorder them such that dvsets are
+        # in order. This way when the jacobian is assembled in
+        # processDerivatives() the coorindate matrix will in the right
+        # order.
+        dvStart = []
+        for dvSet in self.wrt:
+            dvStart.append(dvOffset[dvSet]['n'][0])
+
+        # This sort wrt using the keys in dvOffset
+        self.wrt = [x for (y, x) in sorted(zip(dvStart, self.wrt))]
+
+        # Now we know which DVsets this constraint will have a
+        # derivative with respect to (i.e. what is in the wrt list)
+            
+        # Now, it is possible that jacobians were given for none, some
+        # or all the dvSets defined in wrt. 
+        if self.jac is None:
+
+            # If the constraint is linear we have to *Force* the user to
+            # supply a constraint jacobian for *each* of the values in
+            # wrt. Otherwise, a matrix of zeros isn't meaningful for the
+            # sparse constraints.
+
+            if self.linear:
+                raise Error('The \'jac\' keyword to argument to addConGroup()\
+                must be supplied for a linear constraint. The constraint in \
+                error is %s.'% self.name)
+
+            # without any additional information about the jacobian
+            # structure, we must assume they are all dense. 
+            self.jac = {}
+            for dvSet in self.wrt:
+                ss = dvOffset[dvSet]['n']                 
+                ndvs = ss[1]-ss[0]
+                self.jac[dvSet] = sparse.csr_matrix(numpy.ones((self.ncon, ndvs)))
+                self.jac[dvSet].data[:] = 1e-50
+                
+            # Set a flag for the constraint object, that not returning
+            # them all is ok.
+            self.partialReturnOk = True
+
+        else:
+            # First sanitize input:
+            if not isinstance(self.jac, dict):
+                raise Error('The \'jac\' keyword argument to \
+                addConGroup() must be a dictionary. The constraint in error \
+                is %s.'% self.name)
+
+            # Now loop over the set we *know* we need and see if any
+            # are in jac. We will actually pop them out, and that way
+            # if there is anything left at the end, we can tell the
+            # user supplied information was unused. 
+            tmp = copy.deepcopy(self.jac)
+            self.jac = {}
+            for dvSet in self.wrt:
+                ss = dvOffset[dvSet]['n']                 
+                ndvs = ss[1]-ss[0]
+
+                try:
+                    self.jac[dvSet] = tmp.pop(dvSet)
+                    # Check that this user-supplied jacobian is in
+                    # fact the right size
+                except:
+                    # No big deal, just make a dense component...and
+                    # set to zero
+                    self.jac[dvSet] = sparse.csr_matrix(numpy.ones((self.ncon, ndvs)))
+                    self.jac[dvSet].data[:] = 1e-50
+                    
+                if (self.jac[dvSet].shape[0] != self.ncon or 
+                    self.jac[dvSet].shape[1] != ndvs):
+                    raise Error('The supplied jacobian for dvSet \'%s\'\
+ in constraint %s, was the incorrect size. Expecting a jacobian\
+ of size (%d, %d) but received a jacobian of size (%d, %d).'%(
+                            dvSet, self.name, self.ncon, ndvs, 
+                            self.jac[dvSet].shape[0], self.jac[dvSet].shape[1]))
+
+                # Now check that the supplied jacobian is sparse of not:
+                if sparse.issparse(self.jac[dvSet]):
+                    # Excellent, the user supplied a sparse matrix or
+                    # we just created one above. Convert to csr format
+                    # if not already in that format.
+                    self.jac[dvSet] = self.jac[dvSet].tocsr()
+                else:
+                    # Supplied jacobian is dense, replace any zero, 
+                    # before converting to csr format
+                    self.jac[dvSet][numpy.where(self.jac[dvSet]==0)] = 1e-50
+                    self.jac[dvSet] = sparse.csr_matrix(self.jac[dvSet])
+            # end for (dvSet)
+
+            # If there is anything left in jac print a warning:
+            for dvSet in tmp:
+                print('pyOptSparse Warning: A jacobian with \
+dvSet key of \'%s\' was unused in constraint %s. This will be ignored.'% (
+                        dvSet, self.name))
+
+            # Finally partial returns NOT ok, since the user has
+            # supplied information about the sparsity:
+            self.partialReturnOk = False
+        # end if (if Jac)
         
     def __str__(self):
         """
