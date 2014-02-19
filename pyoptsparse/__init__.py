@@ -10,32 +10,32 @@ from .pyOpt_optimizer import Optimizer
 
 # Now try to import all the individual optimizers
 try:
-    from .pyOptSparse.pySNOPT.pySNOPT import SNOPT
+    from .pySNOPT.pySNOPT import SNOPT
 except ImportError:
     pass
 
 try:
-    from .pyOptSparse.pyIPOPT.pyIPOPT import IPOPT
+    from .pyIPOPT.pyIPOPT import IPOPT
 except ImportError:
     pass
 
 try:
-    from .pyOptSparse.pySLSQP.pySLSQP import SLSQP
+    from .pySLSQP.pySLSQP import SLSQP
 except ImportError:
     pass
 
 try:
-    from .pyOptSparse.pyCONMIN.pyCONMIN import CONMIN
+    from .pyCONMIN.pyCONMIN import CONMIN
 except ImportError:
     pass
 
 try:
-    from .pyOptSparse.pyFSQP.pyFSQP import FSQP
+    from .pyFSQP.pyFSQP import FSQP
 except ImportError:
     pass
 
 try:
-    from .pyOptSparse.pyNLPQL.pyNLPQL import NLPQL
+    from .pyNLPQL.pyNLPQL import NLPQL
 except ImportError:
     pass
 
