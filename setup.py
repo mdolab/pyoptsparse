@@ -82,7 +82,7 @@ def configuration(parent_package='',top_path=None):
                        delegate_options_to_subpackages=True,
                        quiet=True)
     
-    config.add_subpackage('pyOptSparse')
+    config.add_subpackage('pyoptsparse')
     
     return config
     
@@ -90,16 +90,14 @@ def configuration(parent_package='',top_path=None):
 if __name__ == '__main__':
     from numpy.distutils.core import setup
     setup(
-        name             = 'pyOptSparse',
+        name             = 'pyoptsparse',
         version          = '1.0.0',
         author           = 'Dr. Gaetan Kenway',
         author_email     = 'gaetank@gmail.com',
         maintainer       = 'Dr. Gaetan Kenway',
         maintainer_email = 'gaetank@gmail.com',
-        url              = 'http://pyopt.org/',
-        download_url     = 'http://pyopt.org/',
         description      = 'Python package for formulating and solving nonlinear constrained optimization problems',
-        long_description = 'pyOpt is a Python package for formulating and solving nonlinear constrained optimization problems',
+        long_description = 'pyOptSparse is a Python package for formulating and solving nonlinear constrained optimization problems',
         keywords         = 'optimization',
         license          = 'GNU LGPL',
         platforms        = ['Windows','Linux','Solaris','Mac OS-X','Unix'],
