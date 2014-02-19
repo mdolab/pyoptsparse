@@ -23,7 +23,7 @@ from __future__ import print_function
 # =============================================================================
 # Standard Python modules
 # =============================================================================
-import os, sys, time, copy
+import copy
 
 try:
     from collections import OrderedDict
@@ -98,7 +98,6 @@ class Optimization(object):
         self.conGroupNames = set()
 
         # Flag to determine if adding variables is legal. 
-        self.ableToAddVariables = True
         self.denseJacobianOK = True
         
         # Variables to be set in finalizeConstraints
@@ -116,7 +115,7 @@ class Optimization(object):
         when specifiying the sparsity structure of the constraint
         jacobian
         """
-        self.checkOkToAddVariables()
+
         if name in self.varSetNames:
             raise Error('The supplied name \'%s\' for a variable set \
             has already been used.'% name)
@@ -206,8 +205,6 @@ class Optimization(object):
         author. The type, value, lower, upper and scale should be
         given for all variables even if the default value is used. 
         """
-
-        self.checkOkToAddVariables()
 
         if name in self.varGroupNames:
             raise Error('The supplied name \'%s\' for a variable group \
@@ -366,41 +363,6 @@ addVarGroup is %d, but the number of variables in nVars is %d.'% (
 
         return variables
     
-    def finalizeDesignVariables(self):
-        """
-        This function **MUST** be called by all the processors in the
-        communicator given to this function. The reason for this, is
-        that we allow design variables to be added on any of the
-        processors in this comm. This function is therefore collective
-        and combines the variables added on each of processors to come
-        up with a consistent set. Note that adding a variable group
-        with the SAME name but DIFFERENT parameters is undefined and
-        may result in very strange behaviour. 
-         """
-
-        # First thing we need is to determine the consistent set of
-        # variables from all processors.
-        self.variables = self._reduceDict(self.variables)
-
-        dvCounter = 0
-        for dvSet in self.variables:
-            # Check that varSet *actually* has variables in it:
-            if len(self.variables[dvSet]) > 0:
-                self.dvOffset[dvSet] = OrderedDict()
-                self.dvOffset[dvSet]['n'] = [dvCounter, -1]
-                for dvGroup in self.variables[dvSet]:
-                    n = len(self.variables[dvSet][dvGroup])
-                    self.dvOffset[dvSet][dvGroup] = [
-                        dvCounter, dvCounter + n, 
-                        self.variables[dvSet][dvGroup][0].scalar]
-                    dvCounter += n
-                self.dvOffset[dvSet]['n'][1] = dvCounter
-            else:
-                # Get rid of the dvSet since it has no variable groups
-                self.variables.pop(dvSet)
-
-        self.ndvs = dvCounter
-        self.ableToAddVariables = False
 
     def addObj(self, name, *args, **kwargs):
         """
@@ -483,146 +445,15 @@ addVarGroup is %d, but the number of variables in nVars is %d.'% (
             stipulation is automatically checked internally. 
             """
 
-        # If this is the first constraint, finalize the variables to
-        # ensure no more variables can be added. 
-        if self.ableToAddVariables:
-            raise Error('The user MUST call finalizeDesignVariables on all\
-            processors of the optProb communicator before constraints can \
-            be added.')
-
         if name in self.conGroupNames:
             raise Error('The supplied name \'%s\' for a constraint group \
 has already been used.'% name)
 
         self.conGroupNames.add(name)
-        
-        # First check if 'wrt' is supplied...if not we just take all
-        # the dvSet
-        if wrt is None:
-            wrt = list(self.variables.keys())
-        else:
-            # Sanitize the wrt input:
-            if isinstance(wrt, str):
-                wrt = [wrt.lower()]
-            else: 
-                try:
-                    wrt = list(wrt)
-                except:
-                    raise Error('\'wrt\' must be a iterable list')
 
-            # We allow 'None' to be in the list...they are null so
-            # just pop them out:
-            wrt = [dvSet for dvSet in wrt if dvSet != None]
-                    
-            # Now, make sure that each dvSet the user supplied list
-            # *actually* are DVsets
-            for dvSet in wrt:
-                if not dvSet in self.variables:
-                    raise Error('The supplied dvSet \'%s\' in \'wrt\' \
-for the %s constraint, does not exist. It must be added with a call to \
-addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'% (
-                            dvSet, name, dvSet))
-
-        # Last thing for wrt is to reorder them such that dvsets are
-        # in order. This way when the jacobian is assembled in
-        # processDerivatives() the coorindate matrix will in the right
-        # order.
-        dvStart = []
-        for dvSet in wrt:
-            dvStart.append(self.dvOffset[dvSet]['n'][0])
-
-        # This sort wrt using the keys in dvOffset
-        wrt = [x for (y, x) in sorted(zip(dvStart, wrt))]
-
-        # Now we know which DVsets this constraint will have a
-        # derivative with respect to (i.e. what is in the wrt list)
-            
-        # Now, it is possible that jacobians were given for none, some
-        # or all the dvSets defined in wrt. 
-        if jac is None:
-
-            # If the constraint is linear we have to *Force* the user to
-            # supply a constraint jacobian for *each* of the values in
-            # wrt. Otherwise, a matrix of zeros isn't meaningful for the
-            # sparse constraints.
-
-            if linear:
-                raise Error('The \'jac\' keyword argument to addConGroup()\
-                must be supplied for a linear constraint')
-
-            # without any additional information about the jacobian
-            # structure, we must assume they are all dense. 
-            jac = {}
-            for dvSet in wrt:
-                ss = self.dvOffset[dvSet]['n']                 
-                ndvs = ss[1]-ss[0]
-                jac[dvSet] = sparse.csr_matrix(numpy.ones((nCon, ndvs)))
-                jac[dvSet].data[:] = 1e-50
-                
-            # Set a flag for the constraint object, that not returning
-            # them all is ok.
-            partialReturnOk = True
-
-        else:
-            # First sanitize input:
-            if not isinstance(jac, dict):
-                raise Error('The \'jac\' keyword argument to \
-                addConGroup() must be a dictionary')
-
-            # Now loop over the set we *know* we need and see if any
-            # are in jac. We will actually pop them out, and that way
-            # if there is anything left at the end, we can tell the
-            # user supplied information was unused. 
-            tmp = copy.deepcopy(jac)
-            jac = {}
-            for dvSet in wrt:
-                ss = self.dvOffset[dvSet]['n']                 
-                ndvs = ss[1]-ss[0]
-
-                try:
-                    jac[dvSet] = tmp.pop(dvSet)
-                    # Check that this user-supplied jacobian is in
-                    # fact the right size
-                except:
-                    # No big deal, just make a dense component...and
-                    # set to zero
-                    jac[dvSet] = sparse.csr_matrix(numpy.ones((nCon, ndvs)))
-                    jac[dvSet].data[:] = 1e-50
-                    
-                if jac[dvSet].shape[0] != nCon or jac[dvSet].shape[1] != ndvs:
-                    raise Error('The supplied jacobian for dvSet \'%s\'\
- in constraint %s, was the incorrect size. Expecting a jacobian\
- of size (%d, %d) but received a jacobian of size (%d, %d).'%(
-                            dvSet, name, nCon, ndvs, jac[dvSet].shape[0], 
-                            jac[dvSet].shape[1]))
-
-                # Now check that the supplied jacobian is sparse of not:
-                if sparse.issparse(jac[dvSet]):
-                    # Excellent, the user supplied a sparse matrix or
-                    # we just created one above. Convert to csr format
-                    # if not already in that format.
-                    jac[dvSet] = jac[dvSet].tocsr()
-                else:
-                    # Supplied jacobian is dense, replace any zero, 
-                    # before converting to csr format
-                    jac[dvSet][numpy.where(jac[dvSet]==0)] = 1e-50
-                    jac[dvSet] = sparse.csr_matrix(jac[dvSet])
-            # end for (dvSet)
-
-            # If there is anything left in jac print a warning:
-            for dvSet in tmp:
-                print('pyOptSparse Warning: An unused jacobian with \
-dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
-
-            # Finally partial returns NOT ok, since the user has
-            # supplied information about the sparsity:
-            partialReturnOk = False
-        # end if (if Jac)
-        
-        # Finally! Create constraint object
+        # Simply add constraint object
         self.constraints[name] = Constraint(
-            name, nCon, linear, wrt, jac, partialReturnOk,
-            lower, upper, scale)
+            name, nCon, linear, wrt, jac, lower, upper, scale)
 
     def getDVs(self):
         """
@@ -777,14 +608,35 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
 #       optimizers need to be able to call them
 #=======================================================================
 
-    def checkOkToAddVariables(self):
+    def finalizeDesignVariables(self):
         """
-        **This function should not need to be called by the user**
-        Internal check if it is safe to add more variables"""
-        
-        if not self.ableToAddVariables:
-            raise Error('No more variables can be added at this time. \
-            All variables must be added before constraints can be added.')
+        Communicate design variables potentially from different
+        processors and form the DVOffset dict.  This routine should be
+        called from the individual optimizers
+        """
+
+        # First thing we need is to determine the consistent set of
+        # variables from all processors.
+        self.variables = self._reduceDict(self.variables)
+
+        dvCounter = 0
+        for dvSet in self.variables:
+            # Check that varSet *actually* has variables in it:
+            if len(self.variables[dvSet]) > 0:
+                self.dvOffset[dvSet] = OrderedDict()
+                self.dvOffset[dvSet]['n'] = [dvCounter, -1]
+                for dvGroup in self.variables[dvSet]:
+                    n = len(self.variables[dvSet][dvGroup])
+                    self.dvOffset[dvSet][dvGroup] = [
+                        dvCounter, dvCounter + n, 
+                        self.variables[dvSet][dvGroup][0].scalar]
+                    dvCounter += n
+                self.dvOffset[dvSet]['n'][1] = dvCounter
+            else:
+                # Get rid of the dvSet since it has no variable groups
+                self.variables.pop(dvSet)
+
+        self.ndvs = dvCounter
     
     def finalizeConstraints(self):
         """
@@ -821,11 +673,11 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
         conScale = numpy.zeros(self.nCon)
         for iCon in self.constraints:
             con = self.constraints[iCon]
-            con.rs = rowCounter
+            con.finialize(self.variables, self.dvOffset, rowCounter)
             rowCounter += con.ncon
-            con.re = rowCounter
             conScale[con.rs:con.re] = con.scale
-        if self.nCon >0:
+
+        if self.nCon > 0:
             self.conScale = sparse.spdiags(conScale, 0, self.nCon, self.nCon)
         else:
             self.conScale = None
@@ -868,12 +720,32 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
                     tmp[:, ss[0]:ss[1]] = con.jac[key]
                 # Now save
                 con.linearJacobian = tmp
-            
-        
-
 
     def getOrdering(self, conOrder, oneSided, noEquality=False):
-                    
+        """
+        Internal function that is used to produce a index list that 
+        reorders the constraints the way a particular optimizer needs. 
+
+        Parameters
+        ----------
+        conOrder : list
+            This must contain the following 4 strings: 'ni', 'li',
+            'ne', 'le' whcih stand for nonlinear inequality, linear
+            inequality, nonlinear equality and linear equality. This
+            defines the order that the optimizer wants the constraints
+
+        oneSided : bool
+           Flag to do all constraints as one-sided instead of two
+           sided. Most optimzers need this but some can deal with the
+           two-sided constraints properly (snopt and ipopt for
+           example)
+
+        noEquality : bool
+           Flag to split equality constraints into two inequality
+           constraints. Some optimizers (CONMIN for example) can't do
+           equality constraints explictly. 
+           """
+
         # Now for the fun part determine what *actual* order the
         # constraints need to be in: We recongize the following
         # constraint types:
@@ -1068,10 +940,6 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
             computations will call this function with 'D' to ensure
             that the complex peturbations pass through correctly.
             """
-
-        # We will actually be a little leniant here; the user CAN
-        # return an iterable of the correct length and we will accept
-        # that. Otherwise we will use the dictionary formulation
 
         if self.dummyConstraint:
             return numpy.array([0])
@@ -1320,7 +1188,7 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
                     # The key is actually returned:
                     if sparse.issparse(gcon[iCon][key]):
                         # Excellent, the user supplied a sparse matrix
-                        # Convert to csr format if not already in that
+                        # Convert to coo format if not already in that
                         # format.
                         tmp = gcon[iCon][key].copy().tocoo()
                     else:
@@ -1365,19 +1233,10 @@ dvSet key of \'%s\' was unused. This will be ignored'% dvSet)
         gcon = sparse.coo_matrix((data, (row, col)), (self.nCon, self.ndvs)).tocsr()
         gcon = self.conScale*gcon
         gcon = gcon.dot(self.invXScale)
-        gcon.sort_indices()
+        if not gcon.has_sorted_indices:
+            gcon.sort_indices()
 
         return gcon
-
-    def _csrRowScale(self, mat, vec):
-        """
-        Scale rows in csr matrix. Amazingly enough this is effectively
-        impossible with scipy.sparse if you want to keep the nonzero
-        structure. So we will brute force it here.
-        """
-        assert mat.shape[0] == len(vec)
-        for iRow in range(mat.shape[0]):
-            mat.data[mat.indptr[iRow]:mat.indptr[iRow+1]] *= vec[iRow]
 
     def __str__(self):
         """
