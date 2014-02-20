@@ -50,3 +50,8 @@ try:
     from .pyOptSparse.pyNLPQL.pyNLPQL import NLPQL
 except ImportError:
     pass
+
+try:
+    from .pyOptSparse.pyNLPY_AUGLAG.pyNLPY_AUGLAG import NLPY_AUGLAG
+except ImportError:
+    pass
