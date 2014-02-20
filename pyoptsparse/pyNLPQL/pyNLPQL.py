@@ -203,7 +203,7 @@ class NLPQL(Optimizer):
             # NLPQL - Objective/Constraint Values Function (Real Valued) 
             #======================================================================
             def nlfunc(m, me, mmax, n, f, g, x, active):
-                fobj, fcon, fail = self.masterFunc(x, ['fobj', 'fcon'])
+                fobj, fcon, fail = self._masterFunc(x, ['fobj', 'fcon'])
                 f = fobj
                 g[0:m] = -fcon
                 return f,g
@@ -212,7 +212,7 @@ class NLPQL(Optimizer):
             # NLPQL - Objective/Constraint Gradients Function
             #======================================================================
             def nlgrad(m, me, mmax, n, f, g, df, dg, x, active, wa):
-                gobj, gcon, fail = self.masterFunc(x, ['gobj', 'gcon'])
+                gobj, gcon, fail = self._masterFunc(x, ['gobj', 'gcon'])
                 df[0:n] = gobj.copy()
                 dg[0:m,0:n] = -gcon.copy()
                 return df, dg
@@ -309,7 +309,7 @@ class NLPQL(Optimizer):
             sol.fStar = ff
 
         else:  # We are not on the root process so go into waiting loop:
-            self.waitLoop()
+            self._waitLoop()
             sol = None
 
         # Communication solution and return

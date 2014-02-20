@@ -21,15 +21,14 @@ History
 # =============================================================================
 # IPOPT Library
 # =============================================================================
-#from . import pyipoptcore
-import pyipoptcore
-# try:
-#     import pyipoptcore
-# except:
-#     raise ImportError('IPOPT shared library failed to import')
+
+try:
+    from . import pyipoptcore
+except:
+    raise ImportError('IPOPT shared library failed to import')
 
 # =============================================================================
-# Standard Python modules
+# standard Python modules
 # =============================================================================
 import os
 import copy
@@ -224,22 +223,22 @@ class IPOPT(Optimizer):
 
             # Define the 4 call back functions that ipopt needs:
             def eval_f(x, user_data=None):
-                fobj, fail = self.masterFunc(x, ['fobj'])
+                fobj, fail = self._masterFunc(x, ['fobj'])
                 return fobj
 
             def eval_g(x, user_data = None):
-                fcon, fail = self.masterFunc(x, ['fcon'])
+                fcon, fail = self._masterFunc(x, ['fcon'])
                 return fcon.copy()
 
             def eval_grad_f(x, user_data= None):
-                gobj, fail = self.masterFunc(x, ['gobj'])
+                gobj, fail = self._masterFunc(x, ['gobj'])
                 return gobj.copy()
 
             def eval_jac_g(x, flag, user_data = None):
                 if flag:
                     return copy.deepcopy(matStruct)
                 else:
-                    gcon, fail = self.masterFunc(x, ['gcon'])
+                    gcon, fail = self._masterFunc(x, ['gcon'])
                     return gcon.copy()
 
             timeA = time.time()
@@ -268,7 +267,7 @@ class IPOPT(Optimizer):
             # Indicate solution finished
             self.optProb.comm.bcast(-1, root=0)
         else:
-            self.waitLoop()
+            self._waitLoop()
             sol = None
 
         # Communication solution and return

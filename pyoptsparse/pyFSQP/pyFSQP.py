@@ -160,7 +160,7 @@ class FSQP(Optimizer):
         # Determine all the constraint information, numbers etc. 
         if self.optProb.nCon > 0:
             # We need to reorder this full jacobian...so get ordering:
-            indices, blc, buc, fact = self.optProb.getOrdering(
+            indices, blc, buc, fact = self.optProb._getOrdering(
                 ['ni','li','ne','le'], oneSided=True)
             ncon = len(indices)
 
@@ -202,7 +202,7 @@ class FSQP(Optimizer):
             #======================================================================
             def internalEval(x):
 
-                fobj, fcon, gobj, gcon, fail = self.masterFunc(
+                fobj, fcon, gobj, gcon, fail = self._masterFunc(
                     x, ['fobj', 'fcon', 'gobj', 'gcon'])
 
                 self.storedData['x'] = x.copy()
@@ -350,7 +350,7 @@ class FSQP(Optimizer):
             sol.fStar = ff
 
         else:  # We are not on the root process so go into waiting loop:
-            self.waitLoop()
+            self._waitLoop()
             sol = None
 
         # Communication solution and return

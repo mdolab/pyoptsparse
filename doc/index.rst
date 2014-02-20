@@ -7,10 +7,7 @@ pyOptSparse - PYthon OPTimization (Sparse) Framework
 ====================================================
 
 
-`pyOptSparseSparse` is a helper module for doing multipoint
-optimizations. A tutorial explains the how MultiPointSparse is meant
-to be used and the API documentaion for the main class module `pyOptSparse` is
-on the API reference page.
+`pyOptSparseSparse` is a replacement for pyOpt.
 
 .. toctree::
    :maxdepth: 2
@@ -19,6 +16,8 @@ on the API reference page.
    changes
    install
    tutorial
+   optimizers
+   
 
 Indices and tables
 ==================

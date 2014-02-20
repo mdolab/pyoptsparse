@@ -188,7 +188,7 @@ match the number in the current optimization. Ignorning coldStart file')
             self.hist = History(storeHistory)
             self.storeHistory = True
 
-    def masterFunc(self, x, evaluate):
+    def _masterFunc(self, x, evaluate):
         """
         This is the master function that **ALL** optimizers call from
         the specific signature functions. The reason for this is that
@@ -291,7 +291,7 @@ match the number in the current optimization. Ignorning coldStart file')
         self.interfaceTime += time.time()-timeA
         return result
 
-    def masterFunc2(self, x, evaluate, writeHist=True):
+    def _masterFunc2(self, x, evaluate, writeHist=True):
         """
         Another shell function. This function is now actually called
         on all the processors.
@@ -464,7 +464,7 @@ match the number in the current optimization. Ignorning coldStart file')
 
         return returns
 
-    def convertJacobian(self, gcon):
+    def _convertJacobian(self, gcon):
         """
         Convert gcon which is a coo matrix into the format we need
         """
@@ -500,7 +500,7 @@ match the number in the current optimization. Ignorning coldStart file')
         
         return gcon
 
-    def waitLoop(self):
+    def _waitLoop(self):
         """Non-root processors go into this waiting loop while the
         root proc does all the work in the optimization algorithm"""
 

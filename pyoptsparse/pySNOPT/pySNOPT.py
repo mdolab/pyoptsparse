@@ -515,7 +515,7 @@ class SNOPT(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
         else:  # We are not on the root process so go into waiting loop:
-            self.waitLoop()
+            self._waitLoop()
             sol = None
 
         # Communication solution and return
@@ -538,13 +538,13 @@ class SNOPT(Optimizer):
 
         fail = False
         if mode == 0 or mode == 2:
-            fobj, fcon, fail = self.masterFunc(x, ['fobj', 'fcon'])
+            fobj, fcon, fail = self._masterFunc(x, ['fobj', 'fcon'])
         if mode == 1:
             if self.getOption('Derivative level') != 0:
-                gobj, gcon, fail = self.masterFunc(x, ['gobj', 'gcon'])
+                gobj, gcon, fail = self._masterFunc(x, ['gobj', 'gcon'])
         if mode == 2:
             if self.getOption('Derivative level') != 0:
-                gobj, gcon, fail2 = self.masterFunc(x, ['gobj', 'gcon'])
+                gobj, gcon, fail2 = self._masterFunc(x, ['gobj', 'gcon'])
                 fail = fail or fail2
 
         # Flush the files to the buffer for all the people who like to

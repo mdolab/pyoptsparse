@@ -179,7 +179,7 @@ class CONMIN(Optimizer):
             # CONMIN - Objective/Constraint Values Function
             #=================================================================
             def cnmnfun(n1, n2, x, f, g):
-                fobj, fcon, fail = self.masterFunc(x[0:ndv], ['fobj', 'fcon'])
+                fobj, fcon, fail = self._masterFunc(x[0:ndv], ['fobj', 'fcon'])
                 f = fobj
                 g[0:ncn] = fcon
 
@@ -190,7 +190,7 @@ class CONMIN(Optimizer):
             #=================================================================
             def cnmngrad(n1, n2, x, f, g, ct, df, a, ic, nac):
             
-                gobj, gcon, fail = self.masterFunc(x[0:ndv], ['gobj', 'gcon'])
+                gobj, gcon, fail = self._masterFunc(x[0:ndv], ['gobj', 'gcon'])
 		df[0:ndv] = gobj.copy()
 
 		# Only assign the gradients for constraints that are
@@ -277,7 +277,7 @@ class CONMIN(Optimizer):
             sol.fStar = ff
 
         else:  # We are not on the root process so go into waiting loop:
-            self.waitLoop()
+            self._waitLoop()
             sol = None
 
         # Communication solution and return

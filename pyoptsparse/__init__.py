@@ -16,9 +16,10 @@ except ImportError:
 
 try:
     from .pyIPOPT.pyIPOPT import IPOPT
-except ImportError:
-    pass
-
+except ImportError as E:
+    print E
+    print 'IPOPT SCREWED'
+    
 try:
     from .pySLSQP.pySLSQP import SLSQP
 except ImportError:

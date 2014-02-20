@@ -195,7 +195,7 @@ class SLSQP(Optimizer):
             # SLSQP - Objective/Constraint Values Function
             #=================================================================
             def slfunc(m, me, la, n, f, g, x):
-                fobj, fcon, fail = self.masterFunc(x, ['fobj', 'fcon'])
+                fobj, fcon, fail = self._masterFunc(x, ['fobj', 'fcon'])
                 f = fobj
                 g[0:m] = -fcon
                 return f, g
@@ -204,7 +204,7 @@ class SLSQP(Optimizer):
             # SLSQP - Objective/Constraint Gradients Function
             #=================================================================
             def slgrad(m, me, la, n, f, g, df, dg, x):
-                gobj, gcon, fail = self.masterFunc(x, ['gobj', 'gcon'])
+                gobj, gcon, fail = self._masterFunc(x, ['gobj', 'gcon'])
                 df[0:n] = gobj.copy()
                 dg[0:m,0:n] = -gcon.copy()
                 return df, dg
@@ -275,7 +275,7 @@ class SLSQP(Optimizer):
             sol.fStar = ff
 
         else:  # We are not on the root process so go into waiting loop:
-            self.waitLoop()
+            self._waitLoop()
             sol = None
 
         # Communication solution and return

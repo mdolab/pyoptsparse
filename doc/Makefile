@@ -77,17 +77,17 @@ qthelp:
 	@echo
 	@echo "Build finished; now you can run "qcollectiongenerator" with the" \
 	      ".qhcp project file in $(BUILDDIR)/qthelp, like this:"
-	@echo "# qcollectiongenerator $(BUILDDIR)/qthelp/multiPoint.qhcp"
+	@echo "# qcollectiongenerator $(BUILDDIR)/qthelp/pyoptsparse.qhcp"
 	@echo "To view the help file:"
-	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/multiPoint.qhc"
+	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/pyoptsparse.qhc"
 
 devhelp:
 	$(SPHINXBUILD) -b devhelp $(ALLSPHINXOPTS) $(BUILDDIR)/devhelp
 	@echo
 	@echo "Build finished."
 	@echo "To view the help file:"
-	@echo "# mkdir -p $$HOME/.local/share/devhelp/multiPoint"
-	@echo "# ln -s $(BUILDDIR)/devhelp $$HOME/.local/share/devhelp/multiPoint"
+	@echo "# mkdir -p $$HOME/.local/share/devhelp/pyoptsparse"
+	@echo "# ln -s $(BUILDDIR)/devhelp $$HOME/.local/share/devhelp/pyoptsparse"
 	@echo "# devhelp"
 
 epub:
