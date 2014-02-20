@@ -5,6 +5,7 @@ from pyoptsparse import Optimization
 import os, argparse
 import numpy
 import sys
+import pdb
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--sens",help="sensitivity mode",type=str, default='FD')
@@ -42,6 +43,9 @@ elif args.opt.lower() == 'fsqp':
 elif args.opt.lower() == 'nlpql':
     from pyoptsparse import NLPQL as OPT
     optOptions = {}
+elif args.opt.lower() == 'nlpy_auglag':
+    from pyoptsparse import NLPY_AUGLAG as OPT
+    optOptions = {}
 
 def objfunc(xx):
     x = xx['x'] # Extract array
@@ -67,10 +71,50 @@ def sensfunc(xx, fobj, fcon):
 
     return gobj, gcon, fail
 
+
+# Matrix-free algorithm return functions
+def objgrad(xx):
+    # x = xx['x']
+    x = xx
+
+    gobj = numpy.array([2*100*(x[1]-x[0]**2)*(-2*x[0]) - 2*(1-x[0]),
+                    2*100*(x[1]-x[0]**2)])
+
+    return gobj
+
+
+def jprod(xx,p,sparse_only):
+    # x = xx['x']
+    x = xx
+
+    if constrained:
+        q = numpy.zeros(1)
+        gcon = numpy.array([-3*(x[0]-1)**2, -1])
+        q = numpy.dot(gcon,p)
+    else:
+        q = numpy.zeros(0)
+
+    return q
+
+
+def jtprod(xx,q,sparse_only):
+    # x = xx['x']
+    x = xx
+
+    p = numpy.zeros(len(x))
+    if constrained:
+        gcon = numpy.array([-3*(x[0]-1)**2, -1])
+        p = q*gcon
+
+    return p
+
+
 if sens == 'none':
     sens = None
 if sens == 'user':
     sens = sensfunc
+if sens == 'matrix-free':
+    sens = [objgrad,jprod,jtprod]
 
 # Instantiate Optimization Problem
 optProb = Optimization('Rosenbrock function', objfunc)
