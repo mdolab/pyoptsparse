@@ -6,6 +6,11 @@
 pyOptSparse - PYthon OPTimization (Sparse) Framework
 ====================================================
 
+.. _introduction:
+
+Introduction
+============
+
 
 `pyOptSparseSparse` is a replacement for pyOpt.
 
