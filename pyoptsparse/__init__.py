@@ -39,4 +39,8 @@ try:
 except ImportError:
     pass
 
+try:
+    from .pyNLPY_AUGLAG.pyNLPY_AUGLAG import NLPY_AUGLAG
+except ImportError:
+    pass
 
