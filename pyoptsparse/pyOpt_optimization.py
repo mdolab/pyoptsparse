@@ -125,8 +125,9 @@ class Optimization(object):
 
     def addVar(self, name, *args, **kwargs):
         """
-        This is a convience function. See addVarGroup for the
-        appropriate list of parameters.
+        This is a convience function. It simply calls addVarGroup()
+        with nVars=1. Variables added with addVar() are returned as
+        *scalars*. 
         """
         self.addVarGroup(name, 1, *args, scalar=True, **kwargs)
 
@@ -135,7 +136,9 @@ class Optimization(object):
                     varSet=None, choices=None, **kwargs):
         """
         Add a group of variables into a variable set. This is the main
-        function used for adding variables to pyOptSparse.
+        function used for adding variables to pyOptSparse. If the
+        varSet keyword is not given, a varSet will be created using
+        the "name" arguement.
 
         Parameters
         ----------
@@ -194,6 +197,7 @@ class Optimization(object):
         
         Notes
         -----
+
         Calling addVar() and addVarGroup(..., nVars=1, ...) are
         **NOT** equilivant! The variable added with addVar() will be
         returned as scalar, while variable returned from addVarGroup
@@ -457,7 +461,8 @@ has already been used.'% name)
 
     def getDVs(self):
         """
-        Return a dictionary of the design variables
+        Return a dictionary of the design variables. In most common
+        usage, this function is not required. 
         """ 
 
         outDVs = {}
@@ -473,8 +478,8 @@ has already been used.'% name)
 
     def setDVs(self, inDVs):
         """
-        set the problem design variables from a dictionary. Set only the
-        values that are in the dictionary. add in some type checking as well
+        set the problem design variables from a dictionary. In most
+        common usage, this function is not required.
         """
         for dvSet in set(inDVs.keys()) & set(self.variables.keys()):
             for dvGroup in set(inDVs[dvSet])&set(self.variables[dvSet]):
@@ -490,7 +495,16 @@ has already been used.'% name)
         user expected. It is highly recommended this function be
         called before the start of every optimization to verify the
         optimization problem setup.
+
+        Warnings
+        --------
+        This function is **collective** on the optProb comm. It is
+        therefore necessary to call this function on **all**
+        processors of the optProb comm. 
+
         """
+        self.finalizeDesignVariables()
+        self.finalizeConstraints()
 
         if self.comm.rank != 0:
             return
@@ -512,12 +526,8 @@ has already been used.'% name)
             nRow += 1 # Name
             con = self.constraints[iCon]
             maxConNameLen = max(maxConNameLen,
-                                len(con.name)+3+int(numpy.log10(con.ncon))+1)
+                                len(con.name)+6+int(numpy.log10(con.ncon))+1)
             nRow += 1 # Line
-            if self.constraints[iCon].linear:
-                hasLinear = True
-        if hasLinear:
-            nRow += 1 # Extra line to separate linear constraints
 
         # And now the columns:
         nCol = maxConNameLen
@@ -551,54 +561,34 @@ has already been used.'% name)
         # Print the constraint names;
         iRow = 2
 
-        # Do the nonlinear ones first:
         for iCon in self.constraints:
             con = self.constraints[iCon]
-            if not con.linear:
-                name = con.name + ' (%d)'% con.ncon
-                l = len(name)
-                # The name
-                txt[iRow, maxConNameLen-l:maxConNameLen] = list(name)
-
-                # Now we write a 'D' for dense, 'S' for sparse or nothing. 
-                varKeys = list(self.variables.keys())
-                for iVar in range(len(varKeys)):
-                    if varKeys[iVar] in con.wrt:
-                        txt[iRow, varCenters[iVar]] = 'X'
-
-                # The separator
-                txt[iRow+1, maxConNameLen+1:] = '-'
-                iRow += 2
-            
-        # Print an extra '---' to distinguish:
-        if hasLinear:
-            txt[iRow, maxConNameLen+1:] = '-'
-            iRow += 1
-
-        # Do the nonlinear ones first and then the linear ones:
-        for iCon in self.constraints:
-            con = self.constraints[iCon]
+            name = con.name
             if con.linear:
-                name = con.name + ' (%d)'% con.ncon
-                l = len(name)
-                # The name
-                txt[iRow, maxConNameLen-l:maxConNameLen] = list(name)
+                name = name + '(L)'
 
-                # Now we write a 'D' for dense, 'S' for sparse or nothing. 
-                varKeys = list(self.variables.keys())
-                for iVar in range(len(varKeys)):
-                    if varKeys[iVar] in con.wrt:
-                        txt[iRow, varCenters[iVar]] = 'X'
+            name = name + ' (%d)'% con.ncon
+            l = len(name)
+            # The name
+            txt[iRow, maxConNameLen-l:maxConNameLen] = list(name)
 
-                # The separator
-                txt[iRow+1, maxConNameLen+1:] = '-'
-                iRow += 2
+            # Now we write a 'X' if there is something there:
+            varKeys = list(self.variables.keys())
+            for iVar in range(len(varKeys)):
+                if varKeys[iVar] in con.wrt:
+                    txt[iRow, varCenters[iVar]] = 'X'
+
+            # The separator
+            txt[iRow+1, maxConNameLen+1:] = '-'
+            iRow += 2
+            
 
         # Corners - just to make it nice :-)
         txt[1, maxConNameLen+1] = '+'
         txt[-1, maxConNameLen+1] = '+'
         txt[1, -1] = '+'
         txt[-1, -1] = '+'
+
         for i in range(len(txt)):
             print(''.join(txt[i]))
 
@@ -1267,7 +1257,7 @@ has already been used.'% name)
         Name    Type                    Bounds\n"""
             for iCon in self.constraints:
                 text += str(self.constraints[iCon])
-        
+
         return text
  
 #==============================================================================

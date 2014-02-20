@@ -26,62 +26,48 @@ Solves Schittkowski's TP109 constraint problem.
     f*1 = 0.536206927538e+04
     x*1 = [0.674888100445e+03, 0.113417039470e+04, 0.133569060261e+00, -0.371152592466e+00, 0.252e+03, 0.252e+03, 0.201464535316e+03, 0.426660777226e+03, 0.368494083867e+03]
 """
-import numpy, sys
+import numpy
+import argparse
 from numpy import sin, cos
 from pyoptsparse import Optimization
-if 'IPOPT' in sys.argv:
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--opt",help="optimizer",type=str, default='SNOPT')
+args = parser.parse_args()
+
+optOptions = {}
+if args.opt.lower() == 'ipopt':
     from pyoptsparse import IPOPT as OPT
-    optOptions={'max_iter':150,
-                'tol': 1e-6,
-                'derivative_test':'first-order',
-                'derivative_test_print_all':'no',
-                'derivative_test_tol':1e-4,
-                'output_file':'testoutIPOPT.out'}
-elif 'SLSQP' in sys.argv:
-    from pyoptsparse import SLSQP as OPT
-    optOptions = {}
-elif 'CONMIN' in sys.argv:
-    from pyoptsparse import CONMIN as OPT
-    optOptions = {}
-elif 'FSQP' in sys.argv:
-    from pyoptsparse import FSQP as OPT
-    optOptions = {}
-elif 'NLPQL' in sys.argv:
-    from pyoptsparse import NLPQL as OPT
-    optOptions = {}
-else:
+elif args.opt.lower() == 'snopt':
     from pyoptsparse import SNOPT as OPT
-    optOptions={}
+elif args.opt.lower() == 'slsqp':
+    from pyoptsparse import SLSQP as OPT
+elif args.opt.lower() == 'conmin':
+    from pyoptsparse import CONMIN as OPT
+elif args.opt.lower() == 'fsqp':
+    from pyoptsparse import FSQP as OPT
+elif args.opt.lower() == 'nlpql':
+    from pyoptsparse import NLPQL as OPT
 
-USE_LINEAR = False
-if 'linear' in sys.argv:
-    USE_LINEAR=True
+USE_LINEAR=True
 
-def objfunc(xx):
-    x = xx['xvars']
+def objfunc(xdict):
+    x = xdict['xvars']
     
-    a=50.1760
-    b=sin(0.250)    
-    c=cos(0.250)
+    a = 50.1760
+    b = sin(0.250)    
+    c = cos(0.250)
 
     fobj = 3.0*x[0] + (1e-6)*x[0]**3 + 0.522074e-6*x[1]**3 + 2*x[1]
     fcon = numpy.zeros(10,'D')
     fcon[0] = 2250000 - x[0]**2 - x[7]**2
-
     fcon[1] = 2250000 - x[1]**2 - x[8]**2
-
     fcon[2] = x[4]*x[5]*sin(-x[2]-0.25) + x[4]*x[6]*sin(-x[3] - 0.25) + 2*b*x[4]**2 - a*x[0] + 400*a
-    
     fcon[3] = x[4]*x[5]*sin(x[2] - 0.25) + x[5]*x[6]*sin(x[2] - x[3] - 0.25) + 2*b*x[5]**2 - a*x[1] + 400*a
-
     fcon[4] = x[4]*x[6]*sin(x[3] - 0.25) + x[5]*x[6]*sin(x[3] - x[2] - 0.25) + 2*b*x[6]**2 + 881.779*a
-
     fcon[5] = a*x[7] + x[4]*x[5]*cos(-x[2] - 0.25) + x[4]*x[6]*cos(-x[3] - 0.25) - 200*a - 2*c*x[4]**2 + 0.7533e-3*a*x[4]**2
-
     fcon[6] = a*x[8] + x[4]*x[5]*cos(x[2]-0.25) + x[5]*x[6]*cos(x[2] - x[3] - 0.25) - 2*c*x[5]**2 + 0.7533e-3*a*x[5]**2 - 200*a
-
     fcon[7] = x[4]*x[6]*cos(x[3] - 0.25) + x[5]*x[6]*cos(x[3] - x[2] - 0.25) - 2*c*x[6]**2 - 22.938*a + 0.7533e-3*a*x[6]**2
-
     fcon[8] = x[3] - x[2] + 0.55
     fcon[9] = x[2] - x[3] + 0.55
 
@@ -92,46 +78,41 @@ def objfunc(xx):
     fail = False
   
     return fobj, fcon, fail
-# 
-# ============================================================================= 
+
+# Optimization Object
 optProb = Optimization('TP109 Constraint Problem',objfunc)
+
+# Design Variables
 lower = [0.0, 0.0, -0.55, -0.55, 196, 196, 196, -400, -400]
 upper = [None, None, 0.55, 0.55,  252, 252, 252, 800, 800]
 value = [0,0,0,0,0,0,0,0,0]
-
-#value_opt = [0.7e+03, 0.1e+04, 0.1, -0.3, 200, 200, 200, 0.4e+03, 0.4e+03]
-#value=value_opt
 optProb.addVarGroup('xvars', 9, lower=lower, upper=upper, value=value)
 
+# Constraints
 lower = [0, 0      , 0, 0, 0, 0, 0, 0]
 upper = [None, None, 0, 0, 0, 0, 0, 0]
 if not USE_LINEAR:
     lower.extend([0,0])
     upper.extend([None, None])
 
-optProb.finalizeDesignVariables()
-# We separate out the 8 non-linear constraints
-
 optProb.addConGroup('con', len(lower), lower=lower, upper=upper)
+
 # And the 2 linear constriants
 if USE_LINEAR:
-    # jac = numpy.zeros((2, 9))
-    # jac[0, 3] = 1.0; jac[0, 2] = -1.0
-    # jac[1, 2] = 1.0; jac[1, 3] = -1.0
-    # optProb.addConGroup('lin_con',2, lower=[-.55,-.55], upper=[None, None],
-    #                     wrt=['xvars'], jac ={'xvars':jac}, linear=True)
-
-# OR do it with a single two-sided constraint
     jac = numpy.zeros((1, 9))
     jac[0, 3] = 1.0; jac[0, 2] = -1.0
-    optProb.addConGroup('lin_con',1, lower=[-.55], upper=[0.55],
+    optProb.addConGroup('lin_con',1, lower=-.55, upper=0.55,
                         wrt=['xvars'], jac ={'xvars':jac}, linear=True)
 
-
-
+# Check optimization problem:
 print optProb
-optProb.addObj('f')
 optProb.printSparsity()
+
+# Optimizer
 opt = OPT(options=optOptions)
+
+# Solution
 sol = opt(optProb, sens='CS')
+
+# Check Solution
 print sol

@@ -26,7 +26,7 @@ from __future__ import print_function
 try:
     from . import slsqp
 except:
-    raise ImportError('SLSQP shared library failed to import')
+    slsqp = None
 # =============================================================================
 # Standard Python modules
 # =============================================================================
@@ -42,6 +42,7 @@ from mpi4py import MPI
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_solution import Solution
+from ..pyOpt_error import Error
 # =============================================================================
 # SLSQP Optimizer Class
 # =============================================================================
@@ -73,6 +74,9 @@ class SLSQP(Optimizer):
              8 : "Positive directional derivative for linesearch",
              9 : "Iteration limit exceeded",
              }
+        if slsqp is None:
+            raise Error('There was an error importing the compiled \
+                        slsqp module')
 
         self.set_options = []
         Optimizer.__init__(self, name, category, defOpts, informs, *args,
@@ -82,8 +86,7 @@ class SLSQP(Optimizer):
         self.jacType = 'dense2d'
 
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
-                 storeHistory=None, hotStart=None, coldStart=None, 
-                 timeLimit=None):
+                 storeHistory=None, hotStart=None, coldStart=None):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -133,11 +136,6 @@ class SLSQP(Optimizer):
             restart. Here, the only requirment is that the number of
             design variables (and their order) are the same. Use this
             method if any of the optimization parameters have changed.
-
-        timeLimit : number
-            Number of seconds to run the optimization before a
-            terminate flag is given to the optimizer and a "clean"
-            exit is performed.
             """
 
         self.callCounter = 0

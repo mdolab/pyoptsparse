@@ -8,36 +8,10 @@ from .pyOpt_objective import Objective
 from .pyOpt_optimization import Optimization
 from .pyOpt_optimizer import Optimizer
 
-# Now try to import all the individual optimizers
-try:
-    from .pySNOPT.pySNOPT import SNOPT
-except ImportError:
-    pass
-
-try:
-    from .pyIPOPT.pyIPOPT import IPOPT
-except ImportError as E:
-    print E
-    print 'IPOPT SCREWED'
-    
-try:
-    from .pySLSQP.pySLSQP import SLSQP
-except ImportError:
-    pass
-
-try:
-    from .pyCONMIN.pyCONMIN import CONMIN
-except ImportError:
-    pass
-
-try:
-    from .pyFSQP.pyFSQP import FSQP
-except ImportError:
-    pass
-
-try:
-    from .pyNLPQL.pyNLPQL import NLPQL
-except ImportError:
-    pass
-
-
+# Now import all the individual optimizers
+from .pySNOPT.pySNOPT import SNOPT
+from .pyIPOPT.pyIPOPT import IPOPT
+from .pySLSQP.pySLSQP import SLSQP
+from .pyCONMIN.pyCONMIN import CONMIN
+from .pyFSQP.pyFSQP import FSQP
+from .pyNLPQL.pyNLPQL import NLPQL

@@ -1,4 +1,16 @@
-#!/usr/bin/env python
+ ## Solve test problem HS15 from the Hock & Schittkowski collection.
+ #
+ #  min   100 (x2 - x1^2)^2 + (1 - x1)^2
+ #  s.t.  x1 x2 >= 1
+ #        x1 + x2^2 >= 0
+ #        x1 <= 0.5
+ #
+ #  The standard start point (-2, 1) usually converges to the standard
+ #  minimum at (0.5, 2.0), with final objective = 306.5.
+ #  Sometimes the solver converges to another local minimum
+ #  at (-0.79212, -1.26243), with final objective = 360.4.
+ ##
+
 import numpy
 import argparse
 from pyoptsparse import Optimization
@@ -22,41 +34,50 @@ elif args.opt.lower() == 'nlpql':
     from pyoptsparse import NLPQL as OPT
 
 def objfunc(xdict):
-    x = xdict['xvars'] # Extract array
-    fobj = 100*(x[1]-x[0]**2)**2+(1-x[0])**2
-    fcon = {}
+    x = xdict['xvars']
+    fobj = 100*(x[1] - x[0]**2)**2 + (1-x[0])**2
+    conval = numpy.zeros(2, 'D')
+    conval[0] = x[0]*x[1]
+    conval[1] = x[0] + x[1]**2
+    fcon = {'con':conval}
     fail = False
-
+  
     return fobj, fcon, fail
 
 def sens(xdict, fobj, fcon):
-    x = xdict['xvars'] # Extract array
+    x = xdict['xvars']
     gobj = {}
     gobj['xvars'] = [2*100*(x[1]-x[0]**2)*(-2*x[0]) - 2*(1-x[0]),
                      2*100*(x[1]-x[0]**2)]
     gcon = {}
+    gcon['con'] = {'xvars':[[x[1], x[0]],
+                            [1   , 2*x[1]]]}
     fail = False
-
+    
     return gobj, gcon, fail
 
-
 # Optimization Object
-optProb = Optimization('TP109 Constraint Problem',objfunc)
+optProb = Optimization('HS15 Constraint Problem', objfunc)
 
 # Design Variables
-optProb.addVarGroup('xvars', 2, value=0)
+lower = [None, None]
+upper = [0.5,  None]
+value = [-2, 1]
+optProb.addVarGroup('xvars', 2, lower=lower, upper=upper, value=value)
 
-# Constraints -- None
+# Constraints
+lower = [1, 0]
+upper = [None, None]
+optProb.addConGroup('con', 2, lower=lower, upper=upper)
 
 # Check optimization problem:
 print optProb
-optProb.printSparsity()
 
 # Optimizer
 opt = OPT(options=optOptions)
 
 # Solution
-sol = opt(optProb, sens=sens, storeHistory='opt_hist')
+sol = opt(optProb, sens=sens)
 
 # Check Solution
 print sol

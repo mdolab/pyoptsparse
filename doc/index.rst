@@ -16,8 +16,9 @@ pyOptSparse - PYthon OPTimization (Sparse) Framework
    changes
    install
    tutorial
+   guide
    optimizers
-   
+   reference
 
 Indices and tables
 ==================

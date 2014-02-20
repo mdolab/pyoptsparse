@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import numpy
 import argparse
 from pyoptsparse import Optimization
@@ -22,41 +21,48 @@ elif args.opt.lower() == 'nlpql':
     from pyoptsparse import NLPQL as OPT
 
 def objfunc(xdict):
-    x = xdict['xvars'] # Extract array
-    fobj = 100*(x[1]-x[0]**2)**2+(1-x[0])**2
+    x = xdict['xvars']
+    fobj = x[0] * x[3] * (x[0] + x[1] + x[2]) + x[2]
     fcon = {}
+    fcon['con'] = [x[0] * x[1] * x[2] * x[3], 
+                   x[0]*x[0] + x[1]*x[1] + x[2]*x[2] + x[3]*x[3]]
     fail = False
-
-    return fobj, fcon, fail
+    return fobj, fcon, False
 
 def sens(xdict, fobj, fcon):
-    x = xdict['xvars'] # Extract array
-    gobj = {}
-    gobj['xvars'] = [2*100*(x[1]-x[0]**2)*(-2*x[0]) - 2*(1-x[0]),
-                     2*100*(x[1]-x[0]**2)]
+    x = xdict['xvars']
+    gobj = {};
+    gobj = numpy.array([x[0] * x[3] + x[3] * (x[0] + x[1] + x[2]) , 
+                        x[0] * x[3],
+                        x[0] * x[3] + 1.0,
+                        x[0] * (x[0] + x[1] + x[2])
+                        ])
     gcon = {}
+    jac = [[x[1]*x[2]*x[3], x[0]*x[2]*x[3], x[0]*x[1]*x[3], x[0]*x[1]*x[2]],
+           [2.0*x[0], 2.0*x[1], 2.0*x[2], 2.0*x[3]]]
+    gcon['con'] = {'xvars': jac}
     fail = False
-
     return gobj, gcon, fail
 
-
 # Optimization Object
-optProb = Optimization('TP109 Constraint Problem',objfunc)
+optProb = Optimization('HS071 Constraint Problem', objfunc)
 
 # Design Variables
-optProb.addVarGroup('xvars', 2, value=0)
+x0 = [1.0, 5.0, 5.0, 1.0]
+optProb.addVarGroup('xvars', 4, lower=1, upper=5, value=x0)
 
-# Constraints -- None
+# Constraints
+optProb.addConGroup('con', 2, lower=[25,40], upper=[1e19, 40])
 
 # Check optimization problem:
 print optProb
-optProb.printSparsity()
 
 # Optimizer
 opt = OPT(options=optOptions)
 
 # Solution
-sol = opt(optProb, sens=sens, storeHistory='opt_hist')
+sol = opt(optProb, sens=sens)
 
 # Check Solution
 print sol
+

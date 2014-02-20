@@ -26,7 +26,7 @@ from __future__ import print_function
 try:
     from . import snopt
 except:
-    raise ImportError('SNOPT shared library failed to import')
+    snopt = None
 # =============================================================================
 # Standard Python modules
 # =============================================================================
@@ -228,6 +228,11 @@ class SNOPT(Optimizer):
         142 : 'error in basis package',
         142 : 'Problem dimensions are too large'
         }
+
+        if snopt is None:
+            raise Error('There was an error importing the compiled \
+                        snopt module')
+        
         self.set_options = []
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
 
@@ -236,7 +241,7 @@ class SNOPT(Optimizer):
 
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                  storeHistory=None, hotStart=None, warmStart=None,
-                 coldStart=None, timeLimit=None):
+                 coldStart=None):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -297,11 +302,6 @@ class SNOPT(Optimizer):
             restart. Here, the only requirment is that the number of
             design variables (and their order) are the same. Use this
             method if any of the optimization parameters have changed.
-
-        timeLimit : number
-            Number of seconds to run the optimization before a
-            terminate flag is given to the optimizer and a "clean"
-            exit is performed.
             """
 
         self.callCounter = 0

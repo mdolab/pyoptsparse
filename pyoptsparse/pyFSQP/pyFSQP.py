@@ -25,7 +25,7 @@ from __future__ import print_function
 try:
     from . import ffsqp
 except:
-    raise ImportError('FSQP shared library failed to import')
+    ffsqp = None
 # =============================================================================
 # Standard Python modules
 # =============================================================================
@@ -76,6 +76,10 @@ class FSQP(Optimizer):
         8 : 'Two consecutive iterates are numerically equivalent before a stopping criterion is satisfied',
         9 : 'One of the penalty parameters exceeded bigbnd, the algorithm is having trouble satisfying a nonlinear equality constraint',
         }
+        if ffsqp is None:
+            raise Error('There was an error importing the compiled \
+                        ffsqp module')
+
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
         
         # We need jacobians in dens2d formation
@@ -83,8 +87,7 @@ class FSQP(Optimizer):
         
 
     def __call__(self, optProb, sens=None, sensStep=None, sensMode='FD',
-                 storeHistory=None, hotStart=None,  coldStart=None, 
-                 timeLimit=None):
+                 storeHistory=None, hotStart=None,  coldStart=None):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -134,11 +137,6 @@ class FSQP(Optimizer):
             restart. Here, the only requirment is that the number of
             design variables (and their order) are the same. Use this
             method if any of the optimization parameters have changed.
-
-        timeLimit : number
-            Number of seconds to run the optimization before a
-            terminate flag is given to the optimizer and a "clean"
-            exit is performed.
             """
 
         self.callCounter = 0

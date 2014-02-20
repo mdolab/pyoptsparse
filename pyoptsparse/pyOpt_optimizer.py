@@ -258,7 +258,7 @@ match the number in the current optimization. Ignorning coldStart file')
                 # Process constraint gradient
                 if gcon is not None:
                     gcon = self.optProb.processConstraintJacobian(gcon)
-                    gcon = self.convertJacobian(gcon)
+                    gcon = self._convertJacobian(gcon)
                     returns.append(gcon)
 
                 # We can now safely increment the call counter
@@ -287,7 +287,7 @@ match the number in the current optimization. Ignorning coldStart file')
             # Now broadcast out the required arguments:
             self.optProb.comm.bcast(args)
 
-        result = self.masterFunc2(*args)
+        result = self._masterFunc2(*args)
         self.interfaceTime += time.time()-timeA
         return result
 
@@ -380,7 +380,7 @@ match the number in the current optimization. Ignorning coldStart file')
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recusively call
                 # the routine with ['fobj', and 'fcon']
-                self.masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
+                self._masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
 
             # Now, the point has been evaluated correctly so we
             # determine if we have to run the sens calc:
@@ -400,7 +400,7 @@ match the number in the current optimization. Ignorning coldStart file')
 
                 # Process constraint gradients for optimizer
                 gcon = self.optProb.processConstraintJacobian(gcon)
-                gcon = self.convertJacobian(gcon)
+                gcon = self._convertJacobian(gcon)
                 # Set the cache values:
                 self.cache['gobj'] = gobj.copy()
                 self.cache['gcon'] = gcon.copy()
@@ -417,7 +417,7 @@ match the number in the current optimization. Ignorning coldStart file')
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recusively call
                 # the routine with ['fobj', and 'fcon']
-                self.masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
+                self._masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
 
             # Now, the point has been evaluated correctly so we
             # determine if we have to run the sens calc:
@@ -436,7 +436,7 @@ match the number in the current optimization. Ignorning coldStart file')
 
                 # Process constraint gradients for optimizer
                 gcon = self.optProb.processConstraintJacobian(gcon)
-                gcon = self.convertJacobian(gcon)
+                gcon = self._convertJacobian(gcon)
 
                 # Set cache values
                 self.cache['gobj'] = gobj.copy()
@@ -520,7 +520,7 @@ match the number in the current optimization. Ignorning coldStart file')
 
             # Call the generic internal function. We don't care
             # about return values on these procs
-            self.masterFunc2(*info)
+            self._masterFunc2(*info)
 
     def _setInitialCacheValues(self):
         """
