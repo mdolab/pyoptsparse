@@ -46,6 +46,7 @@ from mpi4py import MPI
 # Extension modules
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_gradient import Gradient
 # from ..pyOpt_history import History
 # from ..pyOpt_error import Error
 # =============================================================================
@@ -223,14 +224,22 @@ class NLPY_AUGLAG(Optimizer):
 
         else:
 
-            raise Error('This part of the method has yet to be implemented.')
+            def grad(x):
+                gobj, fail = self.masterFunc(x, ['gobj'])
+                return gobj.copy()
 
-            # def grad(x):
-            #     gobj, fail = self.masterFunc(x, ['gobj'])
-            #     return gobj.copy()
+            # gcon is a scipy-type sparse matrix
+            def jprod(x,p,sparse_only=False):
+                gcon, fail = self.masterFunc(x, ['gcon'])
+                q = gcon.dot(p)
+                return q
 
-            # Specialized callbacks to handle computation of gcon
-            # and products
+            def jtprod(x,q,sparse_only=False):
+                gcon, fail = self.masterFunc(x, ['gcon'])
+                p = gcon.T.dot(q)
+                return p
+
+        # end if
 
         # Step 2: Set up the optimizer with all the necessary functions
         nlpy_problem = MFModel(n=self.optProb.ndvs,m=self.optProb.nCon,name=optProb.name,x0=xs,
@@ -313,6 +322,7 @@ class NLPY_AUGLAG(Optimizer):
         Implementation of traditional derivatives has not been done yet.
         """
 
+        self.matrix_free = False
         if sens is None:
             raise Error('\'None\' value given for sens. Must be one \
 of \'FD\' or \'CS\' or a user supplied function or group of functions.')
@@ -323,7 +333,6 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
         elif hasattr(sens, '__call__'):
             # A single function has been provided, old-style sensitivities
             self.sens = sens
-            self.matrix_free = False
         elif sens.lower() in ['fd', 'cs']:
             # Create the gradient class that will operate just like if
             # the user supplied fucntion

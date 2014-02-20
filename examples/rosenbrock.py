@@ -63,10 +63,10 @@ def sensfunc(xx, fobj, fcon):
     x = xx['x'] # Extract array
 
     gobj = {}
-    gobj['xvars'] = [2*100*(x[1]-x[0]**2)*(-2*x[0]) - 2*(1-x[0]),
+    gobj['x'] = [2*100*(x[1]-x[0]**2)*(-2*x[0]) - 2*(1-x[0]),
                      2*100*(x[1]-x[0]**2)]
     gcon = {}
-    gcon['con'] = {'xvars':[-3*(x[0]-1)**2, -1]}
+    gcon['con'] = {'x':[-3*(x[0]-1)**2, -1]}
     fail = False
 
     return gobj, gcon, fail
