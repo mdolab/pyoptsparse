@@ -1,4 +1,3 @@
-#from __future__ import absolute_import
 #/bin/env python
 """
 pyIPOPT - A python wrapper to the core IPOPT compiled module.
@@ -25,7 +24,7 @@ History
 try:
     from . import pyipoptcore
 except:
-    raise ImportError('IPOPT shared library failed to import')
+    pyipoptcore = None
 
 # =============================================================================
 # standard Python modules
@@ -98,6 +97,10 @@ class IPOPT(Optimizer):
         informs = { # Don't have any of these yet either..
             }
 
+        if pyipoptcore is None:
+            raise Error('There was an error importing the compiled \
+                        IPOPT module')
+
         self.set_options = []
         Optimizer.__init__(self, name, category, def_opts, informs, *args, **kwargs)
 
@@ -106,7 +109,7 @@ class IPOPT(Optimizer):
 
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                   storeHistory=None, hotStart=None,
-                  coldStart=None, timeLimit=None):
+                  coldStart=None):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -156,13 +159,8 @@ class IPOPT(Optimizer):
             restart. Here, the only requirment is that the number of
             design variables (and their order) are the same. Use this
             method if any of the optimization parameters have changed.
-
-        timeLimit : number
-            Number of seconds to run the optimization before a
-            terminate flag is given to the optimizer and a "clean"
-            exit is performed.
             """
-
+       
         self.callCounter = 0
 
         if len(optProb.constraints) == 0:

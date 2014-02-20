@@ -26,7 +26,7 @@ from __future__ import print_function
 try:
     from . import conmin
 except:
-    raise ImportError('CONMIN shared library failed to import')
+    conmin = None
 # =============================================================================
 # Standard Python modules
 # =============================================================================
@@ -42,6 +42,7 @@ from mpi4py import MPI
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_solution import Solution
+from ..pyOpt_error import Error
 # =============================================================================
 # CONMIN Optimizer Class
 # =============================================================================
@@ -63,6 +64,9 @@ class CONMIN(Optimizer):
 		'IFILE':[str,'CONMIN.out'], # Output File Name
 		}
         informs = {}
+        if conmin is None:
+            raise Error('There was an error importing the compiled \
+                        conmin module')
 
         self.set_options = []
         Optimizer.__init__(self, name, category, defOpts, informs, *args,
@@ -72,8 +76,7 @@ class CONMIN(Optimizer):
         self.jacType = 'dense2d'
 
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
-                 storeHistory=None, hotStart=None, warmStart=None,
-                 coldStart=None, timeLimit=None):
+                 storeHistory=None, hotStart=None, coldStart=None):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -123,11 +126,6 @@ class CONMIN(Optimizer):
             restart. Here, the only requirment is that the number of
             design variables (and their order) are the same. Use this
             method if any of the optimization parameters have changed.
-
-        timeLimit : number
-            Number of seconds to run the optimization before a
-            terminate flag is given to the optimizer and a "clean"
-            exit is performed.
             """
 
         self.callCounter = 0

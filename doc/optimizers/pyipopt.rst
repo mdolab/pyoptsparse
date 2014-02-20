@@ -21,7 +21,12 @@ Install instructions for ``pyOPT``.
    ::
      $ make install
 
-7. Now the pyOptSparse builder should take care of the rest. 
+7. You must add the ``lib`` directory ``Ipopt`` to your
+   ``LD_LIBRARY_PATH`` variable for things to work right
+   ::
+     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/user/hg/pyoptsparse/pyoptsparse/pyIPOPT/Ipopt/lib
+
+8. Now the pyOptSparse builder should take care of the rest. 
 
 
 .. currentmodule:: pyoptsparse.pyoptsparse.pyIPOPT
