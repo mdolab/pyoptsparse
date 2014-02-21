@@ -208,27 +208,24 @@ class NLPY_AUGLAG(Optimizer):
         # Gradient callbacks are specialized for the matrix-free case
         if self.matrix_free == True:
 
-            # History storage is a little different for the matrix-free case
+            # Note the different tags for calling matrix-free and 
+            # standard matrix-vector product functions
 
-            # Standard case: store x, xuser, xscaled, and whatever is called for
-            # (e.g. fobj or fcon)
-            # Matrix-free case: similar for objective gradient; also store input
-            # and output vectors for constraint Jacobian
-
-            # It would be significantly cleaner if an additional 'masterFunc' 
-            # were present for this optimizer only **in progress**
+            # Also note the different 'masterFunc' call for the objective 
+            # gradient. This is necessary as the structure of the callback 
+            # functions is fundamentally different.
 
             def grad(x):
-                fgrad = self.sens[0](x)
-                return fgrad
+                gobj, fail = self.masterFunc3(x, None, ['gobj'])
+                return gobj.copy()
 
             def jprod(x,p,sparse_only=False):
-                q = self.sens[1](x,p,sparse_only)
-                return q
+                q, fail = self.masterFunc3(x, p, ['jac_prod'], sparse_only=sparse_only)
+                return q.copy()
 
             def jtprod(x,q,sparse_only=False):
-                p = self.sens[2](x,q,sparse_only)
-                return p
+                p, fail = self.masterFunc3(x, q, ['jac_T_prod'], sparse_only=sparse_only)
+                return p.copy()
 
         else:
 
@@ -236,19 +233,11 @@ class NLPY_AUGLAG(Optimizer):
                 gobj, fail = self.masterFunc(x, ['gobj'])
                 return gobj.copy()
 
-            # For the non-matrix-free matrix-vector products, call a similar 
-            # 'masterFunc' in which the full matrix is still cached, but 
-            # only input and output vectors are written to the history file
-
             def jprod(x,p,sparse_only=False):
-                # gcon, fail = self.masterFunc(x, ['gcon'], writeHist=False)
-                # q = gcon.dot(p)
                 q, fail = self.masterFunc3(x, p, ['gcon_prod'], sparse_only=sparse_only)
                 return q.copy()
 
             def jtprod(x,q,sparse_only=False):
-                # gcon, fail = self.masterFunc(x, ['gcon'], writeHist=False)
-                # p = gcon.T.dot(q)
                 p, fail = self.masterFunc3(x, q, ['gcon_T_prod'], sparse_only=sparse_only)
                 return p.copy()
 
@@ -367,6 +356,8 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
     def masterFunc3(self, x, invec, evaluate, writeHist=True, sparse_only=False):
         """
         A shell function for the matrix-free case, called on all processors.
+
+        ** Right now, we assume that the 'evaluate' list has only one element **
         """
 
         xscaled = self.optProb.invXScale.dot(x)
@@ -374,9 +365,44 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
 
         masterFail = False
 
+        # History storage is a little different for the matrix-free case.
+        # We store the sequence of input and output vectors called for in 
+        # the optimizer. Storage of the objective function gradient is 
+        # unchanged.
+
         # Set basic parameters in history
         hist = {'x': x, 'xuser': xuser, 'xscaled': xscaled}
         returns = []
+
+        # Evaluate the gradient of the objective function only
+        if 'gobj' in evaluate:
+            if numpy.linalg.norm(x-self.cache['x']) > eps:
+                # Previous evaluated point is *different* than the
+                # point requested for the derivative. Recusively call
+                # the routine with ['fobj', and 'fcon']
+                self.masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
+
+            if self.cache['gobj'] is None:
+                # Only the objective function is cached in this version
+                timeA = time.time()
+                gobj, fail = self.sens[0](xuser)
+                self.userSensTime += time.time()-timeA
+                self.userSensCalls += 1
+                # User values are stored immediately
+                self.cache['gobj_user'] = copy.deepcopy(gobj)
+
+                # Process objective gradient for optimizer
+                gobj = self.optProb.processObjectiveGradient(gobj)
+
+                # Set the cache values
+                self.cache['gobj'] = gobj.copy()
+
+                # Update fail flag
+                masterFail = masterFail or fail
+
+            # gobj is now in the cache
+            returns.append(self.cache['gobj'])
+            hist['gobj'] = self.cache['gobj_user']
 
         # Evaluate the matrix-vector products
         if 'gcon_prod' in evaluate or 'gcon_T_prod' in evaluate:
@@ -420,11 +446,31 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
             else:
                 outvec = gcon.T.dot(invec)
 
+            # Set return values and history logging
             returns.append(outvec)
             hist['invec'] = invec
             hist['outvec'] = outvec
 
-        # ** the other option is to call true matrix-vector product functions
+        elif 'jac_prod' in evaluate or 'jac_T_prod' in evaluate:
+            # call the true matrix-vector product functions, no matrix formation
+            # **need to debug variable and function scalings as well**
+            timeA = time.time()
+            if 'jac_prod' in evaluate:
+                outvec, fail = self.sens[1](xuser, invec, sparse_only=sparse_only)
+            else:
+                outvec, fail = self.sens[2](xuser, invec, sparse_only=sparse_only)
+            self.userSensTime += time.time() - timeA
+            self.userSensCalls += 1
+
+            # Update fail flag
+            masterFail = masterFail or fail
+
+            # Set return values and history logging
+            returns.append(outvec)
+            hist['invec'] = invec
+            hist['outvec'] = outvec
+
+        # end if 
 
         # Put the fail flag in the history
         hist['fail'] = masterFail
