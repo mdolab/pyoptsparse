@@ -158,7 +158,7 @@ class FSQP(Optimizer):
         # Determine all the constraint information, numbers etc. 
         if self.optProb.nCon > 0:
             # We need to reorder this full jacobian...so get ordering:
-            indices, blc, buc, fact = self.optProb._getOrdering(
+            indices, blc, buc, fact = self.optProb.getOrdering(
                 ['ni','li','ne','le'], oneSided=True)
             ncon = len(indices)
 
@@ -335,7 +335,7 @@ class FSQP(Optimizer):
             # sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
-            sol = Solution(self.optProb, optTime, sol_inform)
+            sol = self._createSolution(optTime, sol_inform, ff)
 
             # Now set the x-values:
             i = 0
