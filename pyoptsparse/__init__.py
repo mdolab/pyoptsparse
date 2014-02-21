@@ -15,3 +15,4 @@ from .pySLSQP.pySLSQP import SLSQP
 from .pyCONMIN.pyCONMIN import CONMIN
 from .pyFSQP.pyFSQP import FSQP
 from .pyNLPQL.pyNLPQL import NLPQL
+from .pyNLPY_AUGLAG.pyNLPY_AUGLAG import NLPY_AUGLAG
