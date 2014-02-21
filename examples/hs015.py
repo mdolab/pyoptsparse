@@ -17,6 +17,7 @@ from pyoptsparse import Optimization
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--opt",help="optimizer",type=str, default='SNOPT')
+parser.add_argument("--storeHistory",help="option to store history",type=int, default=0)
 args = parser.parse_args()
 
 optOptions = {}
@@ -77,7 +78,12 @@ print optProb
 opt = OPT(options=optOptions)
 
 # Solution
-sol = opt(optProb, sens=sens)
+if args.storeHistory:
+    histFileName = '%s_hs015_Hist.hst'%(args.opt.lower())
+else:
+    histFileName = None
+# end
+sol = opt(optProb, sens=sens,storeHistory=histFileName)
 
 # Check Solution
 print sol
