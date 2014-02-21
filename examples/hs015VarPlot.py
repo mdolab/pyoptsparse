@@ -5,6 +5,7 @@ db['slsqp']= shelve.open('slsqp_hs015_Hist.hst')
 db['snopt']= shelve.open('snopt_hs015_Hist.hst')
 db['fsqp']= shelve.open('fsqp_hs015_Hist.hst')
 db['conmin']= shelve.open('conmin_hs015_Hist.hst')
+db['nlpql']= shelve.open('nlpql_hs015_Hist.hst')
 
 obj = {}
 x1 = {}
@@ -58,7 +59,7 @@ xupper=[0.5,0.5]
 yupper = [-7,3.0]
 
 # Now plot the optimizer output
-styleList=['ko-','ro-','bo-','go-','mo-']
+styleList=['ko-','ro-','bo-','go-','mo-','co-']
 counter=0
 for opt in db.keys():
     plot(x1[opt],x2[opt],styleList[counter],label='%s'%(opt))
