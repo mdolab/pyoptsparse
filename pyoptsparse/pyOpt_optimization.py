@@ -702,14 +702,21 @@ has already been used.'% name)
         for iCon in self.constraints:
             con = self.constraints[iCon]
             if con.linear:
-                tmp = sparse.lil_matrix((con.ncon, self.ndvs))
+                data = []
+                row = []
+                col = []
+
                 for key in con.jac:
                     # ss means 'start - stop'
                     ss = self.dvOffset[key]['n'] 
-                    ndvs = ss[1]-ss[0]
-                    tmp[:, ss[0]:ss[1]] = con.jac[key]
-                # Now save
-                con.linearJacobian = tmp
+
+                    data.extend(con.jac[key].data)
+                    row.extend(con.jac[key].row)
+                    col.extend(con.jac[key].col +ss[0])
+
+                # Now create a coo, convert to CSR and store
+                con.linearJacobian = sparse.coo_matrix((data, (row, col)), (con.ncon, self.ndvs)).tocsr()
+
 
     def getOrdering(self, conOrder, oneSided, noEquality=False):
         """
