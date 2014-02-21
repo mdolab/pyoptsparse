@@ -36,10 +36,12 @@ from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalLsr1AdjBroyAFr
 # =============================================================================
 import os
 import time
+import copy
 # =============================================================================
 # External Python modules
 # =============================================================================
 import numpy
+eps = numpy.finfo(1.0).eps
 import logging
 from mpi4py import MPI
 # ===========================================================================
@@ -47,7 +49,7 @@ from mpi4py import MPI
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_gradient import Gradient
-# from ..pyOpt_history import History
+from ..pyOpt_history import History
 # from ..pyOpt_error import Error
 # =============================================================================
 # NLPy Optimizer Class
@@ -193,10 +195,6 @@ class NLPY_AUGLAG(Optimizer):
             buc = numpy.array([])
             # ncon = 1
 
-        if self.optProb.comm.rank == 0:
-            self._setHistory(storeHistory)
-            self._hotStart(storeHistory, hotStart)
-
         # Since this algorithm exploits parallel computing, define the 
         # callbacks on all processors
         def obj(x):
@@ -209,6 +207,16 @@ class NLPY_AUGLAG(Optimizer):
 
         # Gradient callbacks are specialized for the matrix-free case
         if self.matrix_free == True:
+
+            # History storage is a little different for the matrix-free case
+
+            # Standard case: store x, xuser, xscaled, and whatever is called for
+            # (e.g. fobj or fcon)
+            # Matrix-free case: similar for objective gradient; also store input
+            # and output vectors for constraint Jacobian
+
+            # It would be significantly cleaner if an additional 'masterFunc' 
+            # were present for this optimizer only **in progress**
 
             def grad(x):
                 fgrad = self.sens[0](x)
@@ -228,16 +236,21 @@ class NLPY_AUGLAG(Optimizer):
                 gobj, fail = self.masterFunc(x, ['gobj'])
                 return gobj.copy()
 
-            # gcon is a scipy-type sparse matrix
+            # For the non-matrix-free matrix-vector products, call a similar 
+            # 'masterFunc' in which the full matrix is still cached, but 
+            # only input and output vectors are written to the history file
+
             def jprod(x,p,sparse_only=False):
-                gcon, fail = self.masterFunc(x, ['gcon'])
-                q = gcon.dot(p)
-                return q
+                # gcon, fail = self.masterFunc(x, ['gcon'], writeHist=False)
+                # q = gcon.dot(p)
+                q, fail = self.masterFunc3(x, p, ['gcon_prod'], sparse_only=sparse_only)
+                return q.copy()
 
             def jtprod(x,q,sparse_only=False):
-                gcon, fail = self.masterFunc(x, ['gcon'])
-                p = gcon.T.dot(q)
-                return p
+                # gcon, fail = self.masterFunc(x, ['gcon'], writeHist=False)
+                # p = gcon.T.dot(q)
+                p, fail = self.masterFunc3(x, q, ['gcon_T_prod'], sparse_only=sparse_only)
+                return p.copy()
 
         # end if
 
@@ -282,6 +295,10 @@ class NLPY_AUGLAG(Optimizer):
             bqplogger.setLevel(logging.INFO)
             bqplogger.addHandler(hndlr)
             bqplogger.propagate = False
+
+            # pyOpt History logging for hot starts
+            self._setHistory(storeHistory)
+            self._hotStart(storeHistory, hotStart)
         # end if
 
         # Step 3: Pass options and solve the problem
@@ -305,6 +322,10 @@ class NLPY_AUGLAG(Optimizer):
 
         # Step 4: Collect and return solution
         optTime = time.time() - timeA
+
+        if self.storeHistory:
+            self.hist.close()
+
         sol_inform = {}
         sol_inform['value'] = solver.status
         sol_inform['text'] = self.informs[solver.status]
@@ -319,7 +340,7 @@ class NLPY_AUGLAG(Optimizer):
         of three separate functions. The order of these functions must be 
         [obj_grad, jac_prod, jac_t_prod].
 
-        Implementation of traditional derivatives has not been done yet.
+        Otherwise, this function is identical to that of the base class.
         """
 
         self.matrix_free = False
@@ -341,6 +362,84 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
         else:
             raise Error('Unknown value given for sens. Must be None, \'FD\', \
             \'CS\', a python function handle, or a list of handles')
+
+
+    def masterFunc3(self, x, invec, evaluate, writeHist=True, sparse_only=False):
+        """
+        A shell function for the matrix-free case, called on all processors.
+        """
+
+        xscaled = self.optProb.invXScale.dot(x)
+        xuser = self.optProb.processX(xscaled)
+
+        masterFail = False
+
+        # Set basic parameters in history
+        hist = {'x': x, 'xuser': xuser, 'xscaled': xscaled}
+        returns = []
+
+        # Evaluate the matrix-vector products
+        if 'gcon_prod' in evaluate or 'gcon_T_prod' in evaluate:
+            if numpy.linalg.norm(x-self.cache['x']) > eps:
+                # Previous evaluated point is *different* than the
+                # point requested for the derivative. Recusively call
+                # the routine with ['fobj', and 'fcon']
+                self.masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
+
+            # Now, the point has been evaluated correctly so we
+            # determine if we have to run the sens calc:
+            if self.cache['gcon'] is None:
+                timeA = time.time()
+                gobj, gcon, fail = self.sens(
+                    xuser, self.cache['fobj'], self.cache['fcon_user'])
+                self.userSensTime += time.time()-timeA
+                self.userSensCalls += 1
+                # User values are stored immediately
+                self.cache['gobj_user'] = copy.deepcopy(gobj)
+                self.cache['gcon_user'] = copy.deepcopy(gcon)
+
+                # Process objective gradient for optimizer
+                gobj = self.optProb.processObjectiveGradient(gobj)
+
+                # Process constraint gradients for optimizer
+                gcon = self.optProb.processConstraintJacobian(gcon)
+                gcon = self.convertJacobian(gcon)
+
+                # Set cache values
+                self.cache['gobj'] = gobj.copy()
+                self.cache['gcon'] = gcon.copy()
+
+                # Update fail flag
+                masterFail = masterFail or fail
+            else:
+                # gcon is now in the cache, so we just retrieve it
+                gcon = self.cache['gcon']
+
+            if 'gcon_prod' in evaluate:
+                outvec = gcon.dot(invec)
+            else:
+                outvec = gcon.T.dot(invec)
+
+            returns.append(outvec)
+            hist['invec'] = invec
+            hist['outvec'] = outvec
+
+        # ** the other option is to call true matrix-vector product functions
+
+        # Put the fail flag in the history
+        hist['fail'] = masterFail
+
+        # Write history if necessary
+        if self.optProb.comm.rank == 0 and writeHist and self.storeHistory:
+            self.hist.write(self.callCounter, hist)
+
+        # We can now safely increment the call counter
+        self.callCounter += 1
+
+        # Tack the fail flag on at the end
+        returns.append(masterFail)
+
+        return returns
 
 
     def _on_setOption(self, name, value):
