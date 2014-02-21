@@ -64,12 +64,12 @@ class IPOPT(Optimizer):
                     'limited_memory_max_history':[int,10],
                     'max_iter':[int,100],
                     # print options
-                    'print_level':[int, 5], # Output verbosity level. '0-12'
+                    'print_level':[int, 0], # Output verbosity level. '0-12'
                     'print_user_options':[str,'no'], #yes or no, Print all options set by the user.
                     'print_options_documentation':[str,'no'],#yes or no,Switch to print all algorithmic options.
                     'print_frequency_iter':[int,1],# Determines at which iteration frequency the summarizing iteration output line should be printed.
-                    'print_frequency_time':[int,0],# Determines at which time frequency the summarizing iteration output line should be printed. could be float??
-                    'output_file':[str,'IPOPT_print.out'],
+                    'print_frequency_time':[float, 0.0],# Determines at which time frequency the summarizing iteration output line should be printed. 
+                    'output_file':[str,'IPOPT.out'],
                     'file_print_level':[int,5],#Verbosity level for output file. '0-12'
                     'option_file_name':[str,'IPOPT_options.opt'],
                     'print_info_string':[str,'no'],#yes or no.Enables printing of additional info string at end of iteration output.
@@ -81,11 +81,11 @@ class IPOPT(Optimizer):
                     'derivative_test_tol':[float,1e-4],
                     'derivative_test_print_all':[str,'no'],#yes,no
                     'derivative_test_first_index':[int,-2],
-                    'point_perturbation_radius':[int,10], #might be a float
+                    'point_perturbation_radius':[float, 10.0],
                     # Line search
-                    'mac_soc':[int, 4], #Maximum numbero fsecond order correction trial steps at each iteration
+                    'max_soc':[int, 4], #Maximum numbero fsecond order correction trial steps at each iteration
                     'watchdog_shortened_iter_trigger':[int, 10],
-                    'watchdog_trial_inter_amx':[int,3],
+                    'watchdog_trial_iter_max':[int,3],
                     'accept_every_trial_step':[str, 'no'],
                     'corrector_type':[str,'none'],
                     'mu_init':[float, 0.1],
@@ -273,29 +273,27 @@ class IPOPT(Optimizer):
 
         return  sol
 
-    def _set_ipopt_options(self,nlp):
+    def _set_ipopt_options(self, nlp):
         """
         set all of the the options in self.set_options in the ipopt instance nlp
         """
         # Set Options from the local options dictionary
         # ---------------------------------------------
 
-        for item in self.set_options:
-            name = item[0]
-            value = item[1]
-            print 'value',name,value
-            if isinstance(value, str):
-                nlp.str_option(name,value)
-            elif isinstance(value, float):
-                nlp.num_option(name,value)
-            elif isinstance(value, int):
-                nlp.int_option(name,value)
-            else:
-                print 'invalid option type',type(value)
-            # end
-        # end for
+        for key in self.options:
+            if key != 'defaults':
+                name = key
+                value = self.getOption(key)
 
-        return
+                if isinstance(value, str):
+                    nlp.str_option(name,value)
+                elif isinstance(value, float):
+                    nlp.num_option(name,value)
+                elif isinstance(value, int):
+                    nlp.int_option(name,value)
+                else:
+                    print 'invalid option type',type(value)
+
 
     def _on_setOption(self, name, value):
         """

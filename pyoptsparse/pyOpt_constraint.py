@@ -281,7 +281,7 @@ addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'% (
             for dvSet in self.wrt:
                 ss = dvOffset[dvSet]['n']                 
                 ndvs = ss[1]-ss[0]
-                self.jac[dvSet] = sparse.csr_matrix(numpy.ones((self.ncon, ndvs)))
+                self.jac[dvSet] = sparse.coo_matrix(numpy.ones((self.ncon, ndvs)))
                 self.jac[dvSet].data[:] = 1e-50
                 
             # Set a flag for the constraint object, that not returning
@@ -312,7 +312,7 @@ addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'% (
                 except:
                     # No big deal, just make a dense component...and
                     # set to zero
-                    self.jac[dvSet] = sparse.csr_matrix(numpy.ones((self.ncon, ndvs)))
+                    self.jac[dvSet] = sparse.coo_matrix(numpy.ones((self.ncon, ndvs)))
                     self.jac[dvSet].data[:] = 1e-50
                     
                 if (self.jac[dvSet].shape[0] != self.ncon or 
@@ -328,12 +328,12 @@ addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'% (
                     # Excellent, the user supplied a sparse matrix or
                     # we just created one above. Convert to csr format
                     # if not already in that format.
-                    self.jac[dvSet] = self.jac[dvSet].tocsr()
+                    self.jac[dvSet] = self.jac[dvSet].tocoo()
                 else:
                     # Supplied jacobian is dense, replace any zero, 
                     # before converting to csr format
                     self.jac[dvSet][numpy.where(self.jac[dvSet]==0)] = 1e-50
-                    self.jac[dvSet] = sparse.csr_matrix(self.jac[dvSet])
+                    self.jac[dvSet] = sparse.coo_matrix(self.jac[dvSet])
             # end for (dvSet)
 
             # If there is anything left in jac print a warning:
