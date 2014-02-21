@@ -43,7 +43,7 @@ C
         ISC(J)=0
     6 CONTINUE
       NFDG=NFDG_
-      NSIDE=0
+      NSIDE=1
       ICNDIR=0
       NSCAL=0
       NFEASCT=NFEASCT_
