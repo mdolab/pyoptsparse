@@ -78,7 +78,7 @@ def jprod(xdict,p,sparse_only):
     if constrained:
         q = numpy.zeros(1)
         gcon = numpy.array([-3*(x[0]-1)**2, -1])
-        q = numpy.dot(gcon,p)
+        q = numpy.array([numpy.dot(gcon,p)])
     else:
         q = numpy.zeros(0)
     fail = False
