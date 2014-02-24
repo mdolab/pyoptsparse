@@ -74,8 +74,8 @@ class NSGA2(Optimizer):
             raise Error('There was an error importing the compiled \
                         nsga2 module')
 
-    def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
-                 storeHistory=None, hotStart=None, coldStart=None):
+    def __call__(self, optProb, storeHistory=None, hotStart=None, 
+                 coldStart=None):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -85,26 +85,6 @@ class NSGA2(Optimizer):
         optProb : Optimization or Solution class instance
             This is the complete description of the optimization problem
             to be solved by the optimizer
-
-        sens : str or python Function.
-            Specifiy method to compute sensitivities. To
-            explictly use pyOptSparse gradient class to do the
-            derivatives with finite differenes use \'FD\'. \'sens\'
-            may also be \'CS\' which will cause pyOptSpare to compute
-            the derivatives using the complex step method. Finally,
-            \'sens\' may be a python function handle which is expected
-            to compute the sensitivities directly. For expensive
-            function evaluations and/or problems with large numbers of
-            design variables this is the preferred method.
-
-        sensStep : float
-            Set the step size to use for design variables. Defaults to
-            1e-6 when sens is \'FD\' and 1e-40j when sens is \'CS\'.
-
-        sensMode : str
-            Use \'pgc\' for parallel gradient computations. Only
-            available with mpi4py and each objective evaluation is
-            otherwise serial
 
         storeHistory : str
             File name of the history file into which the history of
