@@ -33,6 +33,8 @@ elif args.opt.lower() == 'fsqp':
     from pyoptsparse import FSQP as OPT
 elif args.opt.lower() == 'nlpql':
     from pyoptsparse import NLPQL as OPT
+elif args.opt.lower() == 'nsga2':
+    from pyoptsparse import NSGA2 as OPT
 
 def objfunc(xdict):
     x = xdict['xvars']
@@ -42,7 +44,7 @@ def objfunc(xdict):
     conval[1] = x[0] + x[1]**2
     fcon = {'con':conval}
     fail = False
-  
+    print fobj
     return fobj, fcon, fail
 
 def sens(xdict, fobj, fcon):
@@ -61,8 +63,8 @@ def sens(xdict, fobj, fcon):
 optProb = Optimization('HS15 Constraint Problem', objfunc)
 
 # Design Variables
-lower = [None, None]
-upper = [0.5,  None]
+lower = [-5, -5]
+upper = [0.5,  5]
 value = [-2, 1]
 optProb.addVarGroup('xvars', 2, lower=lower, upper=upper, value=value)
 
