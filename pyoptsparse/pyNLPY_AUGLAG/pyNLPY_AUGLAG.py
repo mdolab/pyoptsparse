@@ -459,13 +459,22 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
             hist['outvec'] = outvec
 
         elif 'jac_prod' in evaluate or 'jac_T_prod' in evaluate:
-            # call the true matrix-vector product functions, no matrix formation
-            # **need to debug variable and function scalings as well**
+            # Call the true matrix-vector product functions, no matrix formation
+            # Convert input arrays to dictionaries before calling the callback function
+            # Also, scale vectors appropriately before and after the products are formed
             timeA = time.time()
             if 'jac_prod' in evaluate:
+                invec = self.optProb.invXScale.dot(invec)
+                invec = self.optProb.processX(invec)
                 outvec, fail = self.sens[1](xuser, invec, sparse_only=sparse_only)
+                outvec = self.optProb.processConstraints(outvec, scaled=False, natural=True)
+                outvec = self.optProb.conScale*outvec
             else:
+                invec = self.optProb.conScale*invec
+                invec = self.optProb.deProcessConstraints(invec, scaled=False, natural=True)
                 outvec, fail = self.sens[2](xuser, invec, sparse_only=sparse_only)
+                outvec = self.optProb.deProcessX(outvec)
+                outvec = self.optProb.invXScale.dot(outvec)
             self.userSensTime += time.time() - timeA
             self.userSensCalls += 1
 
