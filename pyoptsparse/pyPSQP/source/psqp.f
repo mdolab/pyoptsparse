@@ -352,7 +352,6 @@
 *
 *     INITIAL OPERATIONS WITH SIMPLE BOUNDS
 *
-      print *,'here A ix is:',IX(1:NF)
       IF (KBF.GT.0) THEN
           DO 20 I = 1,NF
               IF ((IX(I).EQ.3.OR.IX(I).EQ.4) .AND. XU(I).LE.XL(I)) THEN
@@ -367,7 +366,6 @@
               IF (IX(I).EQ.2 .OR. IX(I).EQ.3) X(I) = MIN(X(I),XU(I))
    20     CONTINUE
       END IF
-      print *,'here B ix is:',IX(1:NF)
 *     INITIAL OPERATIONS WITH GENERAL CONSTRAINTS
 *
       IF (KBC.GT.0) THEN
