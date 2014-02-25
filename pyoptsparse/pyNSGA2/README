@@ -1,0 +1,2 @@
+This directory contains the nsga2 class definition
+and the nsga2 shared library, _nsga2.so or _nsga2.pyd.

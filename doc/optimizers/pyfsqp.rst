@@ -9,7 +9,7 @@ of handling multiple competing linear and nonlinear objective
 functions (minimax), linear and nonlinear inequality constraints, as
 well as linear and nonlinear equality constraints
 
-.. currentmodule:: pyoptsparse.pyoptsparse.pyFSQP
+.. currentmodule:: pyoptsparse.pyoptsparse.pyFSQP.pyFSQP
 
 .. autoclass:: FSQP
    :members: __call__

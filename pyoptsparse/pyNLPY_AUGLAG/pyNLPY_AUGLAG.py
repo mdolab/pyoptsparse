@@ -28,9 +28,12 @@ from __future__ import print_function
 # =============================================================================
 # NLPy Library
 # =============================================================================
-from nlpy.model.mfnlp import MFModel
-from nlpy.optimize.solvers.sbmin import SBMINTotalLqnFramework
-from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalLsr1AdjBroyAFramework
+try:
+    from nlpy.model.mfnlp import MFModel
+    from nlpy.optimize.solvers.sbmin import SBMINTotalLqnFramework
+    from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalLsr1AdjBroyAFramework
+except:
+    MFModel=None
 # =============================================================================
 # Standard Python modules
 # =============================================================================
@@ -50,7 +53,7 @@ from mpi4py import MPI
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_gradient import Gradient
 from ..pyOpt_history import History
-# from ..pyOpt_error import Error
+from ..pyOpt_error import Error
 # =============================================================================
 # NLPy Optimizer Class
 # =============================================================================
@@ -147,6 +150,10 @@ class NLPY_AUGLAG(Optimizer):
             terminate flag is given to the optimizer and a "clean"
             exit is performed.
         """
+
+        if MFModel is None:
+            raise Error('There was an error importing nlpy. nlpy must \
+be installed to use NLPY_AUGLAG.')
 
         self.callCounter = 0
 

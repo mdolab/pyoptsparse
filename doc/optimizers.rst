@@ -11,6 +11,6 @@ Optimizers
    optimizers/pyslsqp
    optimizers/pynlpql
    optimizers/pyfsqp
-
-
+   optimizers/pynsga2
+   optimizers/pypsqp
 

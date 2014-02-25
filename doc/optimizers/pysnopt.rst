@@ -11,7 +11,7 @@ infeasibility in the original problem and in the quadratic programming
 subproblems. The Hessian of the Lagrangian is approximated using a
 limited-memory quasi-Newton method. 
 
-.. currentmodule:: pyoptsparse.pyoptsparse.pySNOPT
+.. currentmodule:: pyoptsparse.pyoptsparse.pySNOPT.pySNOPT
 
 .. autoclass:: SNOPT
    :members: __call__

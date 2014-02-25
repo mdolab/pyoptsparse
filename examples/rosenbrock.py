@@ -1,7 +1,7 @@
 from __future__ import print_function
 #!/usr/bin/env python
 import time, sys
-from pyoptsparse import Optimization
+from pyoptsparse import Optimization, OPT
 import os, argparse
 import numpy
 import sys
@@ -23,22 +23,7 @@ testHist = args.testHist
 groups = args.groups
 sensMode = args.sensMode
 pythonProf = args.pythonProf
-
 optOptions = {}
-if args.opt.lower() == 'ipopt':
-    from pyoptsparse import IPOPT as OPT
-elif args.opt.lower() == 'snopt':
-    from pyoptsparse import SNOPT as OPT
-elif args.opt.lower() == 'slsqp':
-    from pyoptsparse import SLSQP as OPT
-elif args.opt.lower() == 'conmin':
-    from pyoptsparse import CONMIN as OPT
-elif args.opt.lower() == 'fsqp':
-    from pyoptsparse import FSQP as OPT
-elif args.opt.lower() == 'nlpql':
-    from pyoptsparse import NLPQL as OPT
-elif args.opt.lower() == 'nlpy_auglag':
-    from pyoptsparse import NLPY_AUGLAG as OPT
 
 def objfunc(xdict):
     x = xdict['xvars'] # Extract array
@@ -119,7 +104,7 @@ if constrained:
 optProb.addObj('f')
 
 # Create optimizer
-opt = OPT(options=optOptions)
+opt = OPT(args.opt, options=optOptions)
 if testHist == 'no':
     # Just run a normal run
     sol = opt(optProb, sens=sens, sensMode=sensMode)
