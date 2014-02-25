@@ -13,26 +13,12 @@
 
 import numpy
 import argparse
-from pyoptsparse import Optimization
-
+from pyoptsparse import Optimization, OPT
 parser = argparse.ArgumentParser()
-parser.add_argument("--opt",help="optimizer",type=str, default='SNOPT')
+parser.add_argument("--opt", help="optimizer", type=str, default='SNOPT')
 parser.add_argument("--storeHistory",help="option to store history",type=int, default=0)
 args = parser.parse_args()
-
 optOptions = {}
-if args.opt.lower() == 'ipopt':
-    from pyoptsparse import IPOPT as OPT
-elif args.opt.lower() == 'snopt':
-    from pyoptsparse import SNOPT as OPT
-elif args.opt.lower() == 'slsqp':
-    from pyoptsparse import SLSQP as OPT
-elif args.opt.lower() == 'conmin':
-    from pyoptsparse import CONMIN as OPT
-elif args.opt.lower() == 'fsqp':
-    from pyoptsparse import FSQP as OPT
-elif args.opt.lower() == 'nlpql':
-    from pyoptsparse import NLPQL as OPT
 
 def objfunc(xdict):
     x = xdict['xvars']
@@ -42,7 +28,7 @@ def objfunc(xdict):
     conval[1] = x[0] + x[1]**2
     fcon = {'con':conval}
     fail = False
-  
+
     return fobj, fcon, fail
 
 def sens(xdict, fobj, fcon):
@@ -61,8 +47,8 @@ def sens(xdict, fobj, fcon):
 optProb = Optimization('HS15 Constraint Problem', objfunc)
 
 # Design Variables
-lower = [None, None]
-upper = [0.5,  None]
+lower = [-5, -5]
+upper = [0.5,  5]
 value = [-2, 1]
 optProb.addVarGroup('xvars', 2, lower=lower, upper=upper, value=value)
 
@@ -75,7 +61,7 @@ optProb.addConGroup('con', 2, lower=lower, upper=upper)
 print optProb
 
 # Optimizer
-opt = OPT(options=optOptions)
+opt = OPT(args.opt, options=optOptions)
 
 # Solution
 if args.storeHistory:
