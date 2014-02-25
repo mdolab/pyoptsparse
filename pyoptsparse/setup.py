@@ -16,6 +16,8 @@ def configuration(parent_package='',top_path=None):
     config.add_subpackage('pyFSQP')
     config.add_subpackage('pyNLPQL')
     config.add_subpackage('pyNSGA2')
+    config.add_subpackage('pyPSQP')
+    
     config.add_data_files('LICENSE','README')
     
     return config
