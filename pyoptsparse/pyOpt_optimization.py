@@ -976,6 +976,48 @@ has already been used.'% name)
             else:
                 return fcon
    
+    def deProcessConstraints(self, fcon_in, scaled=True, dtype='d', natural=False):
+        """
+        **This function should not need to be called by the user**
+
+        Parameters
+        ----------
+        fcon_in : array
+            Array of constraint values to be converted into a dictionary
+
+        scaled : bool
+            Flag specifying if the returned array should be scaled by
+            the pyOpt scaling. The only type this is not true is
+            when the automatic derivatives are used
+
+        dtype : str
+            String specifiying the data type to return. Normally this
+            is 'd' for a float. The complex-step derivative
+            computations will call this function with 'D' to ensure
+            that the complex peturbations pass through correctly.
+            """
+
+        if self.dummyConstraint:
+            return {'dummy':0}
+
+        # Perform constraint scaling
+        if scaled:
+            fcon_in = self.conScale*fcon_in
+
+        if not natural:
+            if self.nCon > 0:
+                fcon_in = fcon_in[self.jacIndices]
+                fcon_in = self.fact.dot(fcon_in) - self.offset
+
+        # We REQUIRE that fcon_in is an array:
+        fcon = {}
+        index = 0
+        for iCon in self.constraints:
+            con = self.constraints[iCon]
+            fcon[iCon] = fcon_in[con.rs:con.re]
+
+        return fcon
+
     def evaluateLinearConstraints(self, x, fcon):
         """
         This function is required for optimizers that do not explictly
