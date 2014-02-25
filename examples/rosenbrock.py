@@ -72,30 +72,34 @@ def objgrad(xdict):
     return gobj, fail
 
 
-def jprod(xdict,p,sparse_only):
+def jprod(xdict,pdict,sparse_only):
     x = xdict['xvars']
+    p = pdict['xvars']
+    qdict = {}
 
     if constrained:
-        q = numpy.zeros(1)
         gcon = numpy.array([-3*(x[0]-1)**2, -1])
-        q = numpy.array([numpy.dot(gcon,p)])
+        qdict['con'] = numpy.array([numpy.dot(gcon,p)])
     else:
         q = numpy.zeros(0)
     fail = False
 
-    return q, fail
+    return qdict, fail
 
 
-def jtprod(xdict,q,sparse_only):
+def jtprod(xdict,qdict,sparse_only):
     x = xdict['xvars']
 
-    p = numpy.zeros(len(x))
+    pdict = {}
     if constrained:
+        q = qdict['con']
         gcon = numpy.array([-3*(x[0]-1)**2, -1])
-        p = q*gcon
+        pdict['xvars'] = q*gcon
+    else:
+        pdict['xvars'] = numpy.zeros(len(x))
     fail = False
 
-    return p, fail
+    return pdict, fail
 
 
 if sens == 'none':
