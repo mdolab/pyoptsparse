@@ -29,7 +29,7 @@ Install instructions for ``pyOPT``.
 8. Now the pyOptSparse builder should take care of the rest. 
 
 
-.. currentmodule:: pyoptsparse.pyoptsparse.pyIPOPT
+.. currentmodule:: pyoptsparse.pyoptsparse.pyIPOPT.pyIPOPT
 
 .. autoclass:: IPOPT
    :members: __call__

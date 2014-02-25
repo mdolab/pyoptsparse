@@ -14,7 +14,7 @@ selection-based strategy
   you will get a seg-fault and no idea where it happened. Please make
   sure the objective is without errors before trying to nsga2. 
 
-.. currentmodule:: pyoptsparse.pyoptsparse.pyNSGA2
+.. currentmodule:: pyoptsparse.pyoptsparse.pyNSGA2.pyNSGA2
 
 .. autoclass:: NSGA2
    :members: __call__
