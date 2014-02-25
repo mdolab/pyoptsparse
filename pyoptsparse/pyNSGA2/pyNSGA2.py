@@ -75,7 +75,7 @@ class NSGA2(Optimizer):
                         nsga2 module')
 
     def __call__(self, optProb, storeHistory=None, hotStart=None, 
-                 coldStart=None):
+                 coldStart=None, **kwargs):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -105,6 +105,11 @@ class NSGA2(Optimizer):
             restart. Here, the only requirment is that the number of
             design variables (and their order) are the same. Use this
             method if any of the optimization parameters have changed.
+
+        Notes
+        -----
+        The kwargs are there such that the sens= argument can be
+        supplied (but ignored here in nsga2)
             """
 
         #======================================================================
@@ -135,7 +140,7 @@ class NSGA2(Optimizer):
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()
         self._setInitialCacheValues()
-        self._setSens(sens, sensStep, sensMode)
+
         blx, bux, xs = self._assembleContinuousVariables()
         xs = numpy.maximum(xs, blx)
         xs = numpy.minimum(xs, bux)
