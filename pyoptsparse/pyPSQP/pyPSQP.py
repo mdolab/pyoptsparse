@@ -154,7 +154,7 @@ class PSQP(Optimizer):
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
-        xi = 25*numpy.ones(len(xs), 'int')
+        xi = 3*numpy.ones(len(xs), 'int')
         xs = numpy.maximum(xs, blx)
         xs = numpy.minimum(xs, bux)
         nvar = len(xs)
