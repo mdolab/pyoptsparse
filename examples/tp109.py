@@ -29,26 +29,12 @@ Solves Schittkowski's TP109 constraint problem.
 import numpy
 import argparse
 from numpy import sin, cos
-from pyoptsparse import Optimization
+from pyoptsparse import Optimization, OPT
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--opt",help="optimizer",type=str, default='SNOPT')
 args = parser.parse_args()
-
 optOptions = {}
-if args.opt.lower() == 'ipopt':
-    from pyoptsparse import IPOPT as OPT
-elif args.opt.lower() == 'snopt':
-    from pyoptsparse import SNOPT as OPT
-elif args.opt.lower() == 'slsqp':
-    from pyoptsparse import SLSQP as OPT
-elif args.opt.lower() == 'conmin':
-    from pyoptsparse import CONMIN as OPT
-elif args.opt.lower() == 'fsqp':
-    from pyoptsparse import FSQP as OPT
-elif args.opt.lower() == 'nlpql':
-    from pyoptsparse import NLPQL as OPT
-
 USE_LINEAR=True
 
 def objfunc(xdict):
@@ -109,7 +95,7 @@ print optProb
 optProb.printSparsity()
 
 # Optimizer
-opt = OPT(options=optOptions)
+opt = OPT(args.opt, options=optOptions)
 
 # Solution
 sol = opt(optProb, sens='CS')
