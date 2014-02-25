@@ -724,3 +724,57 @@ match the number in the current optimization. Ignorning coldStart file')
             return self.informs
         else:
             return self._on_getInform(infocode)
+
+# =============================================================================
+# Generic OPT Constructor
+# =============================================================================
+
+def OPT(optName, *args, **kwargs):
+    """
+    This is a simple utility function that enables creating an
+    optimzier based on the 'optName' string. This can be useful for
+    doing optimzation studies with respect to optimizer since you
+    don't need massive if-statements. 
+
+    Parameters
+    ----------
+    optName : str
+       String identifiying the optimizer to create
+    
+    *args, **kwargs : varries
+       Passed to optimizer creation.
+
+    Returns
+    -------
+    opt : pyOpt_optimizer inherited optimizer
+       The desired optimizer
+       """
+
+    optName = optName.lower()
+    optList = ['snopt', 'ipopt', 'slsqp', 'fsqp', 'nlpql', 
+               'conmin', 'nsga2', 'nlpy_auglag', 'psqp']
+    if optName == 'snopt':
+        from .pySNOPT.pySNOPT import SNOPT as opt
+    elif optName == 'ipopt':
+        from .pyIPOPT.pyIPOPT import IPOPT as opt
+    elif optName == 'slsqp':
+        from .pySLSQP.pySLSQP import SLSQP as opt
+    elif optName == 'fsqp':
+        from .pyFSQP.pyFSQP import FSQP as opt
+    elif optName == 'nlpql':
+        from .pyNLPQL.pyNLPQL import NLPQL as opt
+    elif optName == 'psqp':
+        from .pyPSQP.pyPSQP import PSQP as opt
+    elif optName == 'conmin':
+        from .pyCONMIN.pyCONMIN import CONMIN as opt
+    elif optName == 'nsga2':
+        from .pyNSGA2.pyNSGA2 import NSGA2 as opt
+    elif optName == 'nlpy_auglag':
+        from .pyNLPY_AUGLAG import NLPY_AUGLAG as opt
+    else:
+        raise Error("The optimizer specified in 'optName' was \
+not reconginzed. The current list of supported optimizers is: %s" % 
+                    repr(optList))
+
+    # Create the optimizer and return it
+    return opt(*args, **kwargs)
