@@ -7,3 +7,6 @@ Optimzer
 
 .. autoclass:: Optimizer
    :members:
+
+.. automodule:: pyoptsparse.pyoptsparse.pyOpt_optimizer
+   :members: OPT

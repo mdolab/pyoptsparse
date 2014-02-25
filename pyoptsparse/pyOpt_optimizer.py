@@ -306,7 +306,6 @@ match the number in the current optimization. Ignorning coldStart file')
         # gobj, and gcon values such that on the next pass we can just
         # read them and return.
 
-        #xscaled = x/self.optProb.xscale
         xscaled = self.optProb.invXScale.dot(x)
         xuser = self.optProb.processX(xscaled)
 
@@ -316,7 +315,8 @@ match the number in the current optimization. Ignorning coldStart file')
         hist = {'x': x, 'xuser': xuser, 'xscaled': xscaled}
         returns = []
         # Start with fobj:
-
+        tmpObjCalls = self.userObjCalls
+        tmpSensCalls = self.userSensCalls
         if 'fobj' in evaluate:
             if numpy.linalg.norm(x-self.cache['x']) > eps:
                 timeA = time.time()
@@ -452,8 +452,12 @@ match the number in the current optimization. Ignorning coldStart file')
         # Put the fail flag in the history:
         hist['fail'] = masterFail
 
+        objCalled = not (self.userObjCalls == tmpObjCalls)
+        sensCalled = not (self.userSensCalls == tmpSensCalls)
+
         # Write history if necessary
-        if self.optProb.comm.rank == 0 and writeHist and self.storeHistory:
+        if (self.optProb.comm.rank == 0 and  writeHist and 
+            self.storeHistory and (objCalled or sensCalled)):
             self.hist.write(self.callCounter, hist)
 
         # We can now safely increment the call counter
