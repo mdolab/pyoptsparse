@@ -460,8 +460,10 @@ match the number in the current optimization. Ignorning coldStart file')
             self.storeHistory and (objCalled or sensCalled)):
             self.hist.write(self.callCounter, hist)
 
-        # We can now safely increment the call counter
-        self.callCounter += 1
+        # We can now safely increment the call counter if we analyzed
+        # something:
+        if objCalled or sensCalled:
+            self.callCounter += 1
 
         # Tack the fail flag on at the end
         returns.append(masterFail)
