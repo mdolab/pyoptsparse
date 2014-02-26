@@ -27,6 +27,7 @@ def objfunc(xdict):
     conval[0] = x[0]*x[1]
     conval[1] = x[0] + x[1]**2
     fcon = {'con':conval}
+
     fail = False
 
     return fobj, fcon, fail

@@ -1,18 +1,19 @@
 import shelve, numpy,sys
 db = {}
-db['ipopt']= shelve.open('ipopt_hs015_Hist.hst')
-db['slsqp']= shelve.open('slsqp_hs015_Hist.hst')
-db['snopt']= shelve.open('snopt_hs015_Hist.hst')
-db['fsqp']= shelve.open('fsqp_hs015_Hist.hst')
-db['conmin']= shelve.open('conmin_hs015_Hist.hst')
-db['nlpql']= shelve.open('nlpql_hs015_Hist.hst')
+opts = ['ipopt', 'slsqp', 'snopt', 'fsqp', 'conmin', 'nlpql']
+for opt in opts:
+    fileName = '%s_hs015_Hist.hst'%opt
+    try:
+        db[opt]= shelve.open(fileName, flag='r')
+    except:
+        pass
 
 obj = {}
 x1 = {}
 x2 = {}
 
 for opt in db.keys():
-    n = len(db[opt].keys())
+    n = int(db[opt]['last'])
     
     obj[opt] = []
     x1[opt] = []

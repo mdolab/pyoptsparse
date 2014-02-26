@@ -131,6 +131,62 @@ class Optimization(object):
         """
         self.addVarGroup(name, 1, *args, scalar=True, **kwargs)
 
+    def checkVarName(self, varName):
+        """
+        Check if the desired variable name varName if has already been
+        added. If it is has already been added, return a managled name
+        (a number appended) that *is* valid. This is intended to be used
+        by classes that automatically add variables to pyOptSparse
+
+        Parameters
+        ----------
+        varName : str
+            Variable name to check validity on
+
+        Returns
+        -------
+        validName : str
+            A valid variable name. May be the same as varName it that
+            was, in fact, a valid name.
+            """
+        if name not in self.varGroupNames:
+            return varName
+        else:
+            i = 0
+            validName = varName + '_%d'% i
+            while validName in self.varGroupNames:
+                i += 1
+                validName = varName + '_%d'% i
+            return validName
+
+    def checkConName(self, conName):
+        """
+        Check if the desired constraint name has already been
+        added. If it is has already been added, return a managled name
+        (a number appended) that *is* valid. This is intended to be used
+        by classes that automatically add constraints to pyOptSparse.
+
+        Parameters
+        ----------
+        conName : str
+           Constraint name to check validity on
+
+        Returns
+        -------
+        validName : str
+            A valid constraint name. May be the same as conName it that
+            was, in fact, a valid name.
+            """
+        if name not in self.conGroupNames:
+            return varName
+        else:
+            i = 0
+            validName = varName + '_%d'% i
+            while validName in self.varGroupNames:
+                i += 1
+                validName = varName + '_%d'% i
+            return validName
+
     def addVarGroup(self, name, nVars, type='c', value=0.0, 
                     lower=None, upper=None, scale=1.0, 
                     varSet=None, choices=None, **kwargs):
@@ -197,7 +253,6 @@ class Optimization(object):
         
         Notes
         -----
-
         Calling addVar() and addVarGroup(..., nVars=1, ...) are
         **NOT** equilivant! The variable added with addVar() will be
         returned as scalar, while variable returned from addVarGroup
