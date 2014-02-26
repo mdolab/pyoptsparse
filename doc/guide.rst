@@ -30,23 +30,20 @@ The optimization class is created using the following call::
 The general template of the objective function is as follows::
 
   def obj_fun(xdict):
-
-    fobj = function(x)
-    fcon = {}
-    fcon['con_name'] = function(x)
+    funcs = {}
+    funcs['obj'] = function(x)
+    funcs['con_name'] = function(x)
     fail = False # Or True if an analysis failed
 
-    return fobj, fcon, fail
+    return funcs, fail
 
 where:
 
- * ``fobj`` is the objective value to minimize
-
- * ``fcon`` is the dictionary of constraint values
+ * ``funcs`` is the dictionary of constraints and objective value(s)
 
  * ``fail`` is a Boolean. False for successful evaluation and True for unsuccessful
 
-If the Optimization problem is unconstrained, ``fcon`` can be returned as an empty dict, i.e. ``fcon={}``
+If the Optimization problem is unconstrained, ``funcs`` will contain only the objective key(s). 
 
 Design Variables
 ++++++++++++++++

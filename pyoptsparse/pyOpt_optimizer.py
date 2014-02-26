@@ -320,17 +320,16 @@ match the number in the current optimization. Ignorning coldStart file')
         if 'fobj' in evaluate:
             if numpy.linalg.norm(x-self.cache['x']) > eps:
                 timeA = time.time()
-                fobj, fcon, fail = self.optProb.objFun(xuser)
+                funcs, fail = self.optProb.objFun(xuser)
                 self.userObjTime += time.time()-timeA
                 self.userObjCalls += 1
                 # User values stored is immediately
-                self.cache['fobj_user'] = copy.deepcopy(fobj)
-                self.cache['fcon_user'] = copy.deepcopy(fcon)
+                self.cache['funcs'] = copy.deepcopy(funcs)
 
-                # Process constraints
-                self.optProb.evaluateLinearConstraints(xscaled, fcon)
-                fcon = self.optProb.processConstraints(fcon)
-
+                # Process constraints/objectives
+                self.optProb.evaluateLinearConstraints(xscaled, funcs)
+                fcon = self.optProb.processConstraints(funcs)
+                fobj = self.optProb.processObjective(funcs)
                 # Now clear out gobj and gcon in the cache since these
                 # are out of date and set the current ones
                 self.cache['gobj'] = None
@@ -344,22 +343,21 @@ match the number in the current optimization. Ignorning coldStart file')
 
             # fobj is now in cache
             returns.append(self.cache['fobj'])
-            hist['fobj'] = self.cache['fobj_user']
+            hist['funcs'] = self.cache['funcs']
 
         if 'fcon' in evaluate:
             if numpy.linalg.norm(x-self.cache['x']) > eps:
                 timeA = time.time()
-                fobj, fcon, fail = self.optProb.objFun(xuser)
+                funcs, fail = self.optProb.objFun(xuser)
                 self.userObjTime += time.time()-timeA
                 self.userObjCalls += 1
                 # User values stored is immediately
-                self.cache['fobj_user'] = copy.deepcopy(fobj)
-                self.cache['fcon_user'] = copy.deepcopy(fcon)
+                self.cache['funcs'] = copy.deepcopy(funcs)
 
-                # Process constraints
-                self.optProb.evaluateLinearConstraints(xscaled, fcon)
-                fcon = self.optProb.processConstraints(fcon)
-
+                # Process constraints/objectives
+                self.optProb.evaluateLinearConstraints(xscaled, funcs)
+                fcon = self.optProb.processConstraints(funcs)
+                fobj = self.optProb.processObjective(funcs)
                 # Now clear out gobj and gcon in the cache since these
                 # are out of date and set the current ones
                 self.cache['gobj'] = None
@@ -373,7 +371,7 @@ match the number in the current optimization. Ignorning coldStart file')
 
             # fcon is now in cache
             returns.append(self.cache['fcon'])
-            hist['fcon'] = self.cache['fcon_user']
+            hist['funcs'] = self.cache['funcs']
 
         if 'gobj' in evaluate:
             if numpy.linalg.norm(x-self.cache['x']) > eps:
@@ -387,19 +385,17 @@ match the number in the current optimization. Ignorning coldStart file')
 
             if self.cache['gobj'] is None:
                 timeA = time.time()
-                gobj, gcon, fail = self.sens(
-                    xuser, self.cache['fobj'], self.cache['fcon_user'])
+                funcsSens, fail = self.sens(xuser, self.cache['funcs'])
                 self.userSensTime += time.time()-timeA
                 self.userSensCalls += 1
                 # User values are stored is immediately
-                self.cache['gobj_user'] = copy.deepcopy(gobj)
-                self.cache['gcon_user'] = copy.deepcopy(gcon)
+                self.cache['funcsSens'] = copy.deepcopy(funcsSens)
 
                 # Process objective gradient for optimizer
-                gobj = self.optProb.processObjectiveGradient(gobj)
+                gobj = self.optProb.processObjectiveGradient(funcsSens)
 
                 # Process constraint gradients for optimizer
-                gcon = self.optProb.processConstraintJacobian(gcon)
+                gcon = self.optProb.processConstraintJacobian(funcsSens)
                 gcon = self._convertJacobian(gcon)
                 # Set the cache values:
                 self.cache['gobj'] = gobj.copy()
@@ -410,7 +406,7 @@ match the number in the current optimization. Ignorning coldStart file')
 
             # gobj is now in the cache
             returns.append(self.cache['gobj'])
-            hist['gobj'] = self.cache['gobj_user']
+            hist['funcsSens'] = self.cache['funcsSens']
 
         if 'gcon' in evaluate:
             if numpy.linalg.norm(x-self.cache['x']) > eps:
@@ -423,19 +419,17 @@ match the number in the current optimization. Ignorning coldStart file')
             # determine if we have to run the sens calc:
             if self.cache['gcon'] is None:
                 timeA = time.time()
-                gobj, gcon, fail = self.sens(
-                    xuser, self.cache['fobj'], self.cache['fcon_user'])
+                funcsSens, fail = self.sens(xuser, self.cache['funcs'])
                 self.userSensTime += time.time()-timeA
                 self.userSensCalls += 1
                 # User values stored is immediately
-                self.cache['gobj_user'] = copy.deepcopy(gobj)
-                self.cache['gcon_user'] = copy.deepcopy(gcon)
+                self.cache['funcsSens'] = copy.deepcopy(funcsSens)
 
                 # Process objective gradient for optimizer
-                gobj = self.optProb.processObjectiveGradient(gobj)
+                gobj = self.optProb.processObjectiveGradient(funcsSens)
 
                 # Process constraint gradients for optimizer
-                gcon = self.optProb.processConstraintJacobian(gcon)
+                gcon = self.optProb.processConstraintJacobian(funcsSens)
                 gcon = self._convertJacobian(gcon)
 
                 # Set cache values
@@ -447,23 +441,17 @@ match the number in the current optimization. Ignorning coldStart file')
 
             # gcon is now in the cache
             returns.append(self.cache['gcon'])
-            hist['gcon'] = self.cache['gcon_user']
+            hist['funcsSens'] = self.cache['funcsSens']
 
         # Put the fail flag in the history:
         hist['fail'] = masterFail
 
-        objCalled = not (self.userObjCalls == tmpObjCalls)
-        sensCalled = not (self.userSensCalls == tmpSensCalls)
-
         # Write history if necessary
-        if (self.optProb.comm.rank == 0 and  writeHist and 
-            self.storeHistory and (objCalled or sensCalled)):
+        if (self.optProb.comm.rank == 0 and  writeHist and self.storeHistory):
             self.hist.write(self.callCounter, hist)
 
-        # We can now safely increment the call counter if we analyzed
-        # something:
-        if objCalled or sensCalled:
-            self.callCounter += 1
+        # We can now safely increment the call counter
+        self.callCounter += 1
 
         # Tack the fail flag on at the end
         returns.append(masterFail)
@@ -604,14 +592,14 @@ match the number in the current optimization. Ignorning coldStart file')
         """
 
         nobj = len(self.optProb.objectives.keys())
+        ff = []
         if nobj == 0:
-            # NO objective, add one
-            self.optProb.addObj('f', scale=1.0)
-        elif nobj != 1:
-            raise Error('%s can only use one objective' % self.name)
-        ff = numpy.array([0.0])
+            raise Error('No objective function was supplied! One can \
+            be added using a call to optProb.addObj()')
+        for objKey in self.optProb.objectives:
+            ff.append(self.optProb.objectives[objKey].value)
 
-        return ff
+        return numpy.squeeze(ff)
 
     def _createSolution(self, optTime, sol_inform, obj):
         """

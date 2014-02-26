@@ -945,7 +945,7 @@ has already been used.'% name)
                     x_array[istart:iend] = x[dvGroup]
         return x_array
 
-    def processObjective(self, fobj_in, obj='f'):
+    def processObjective(self, funcs, scaled=False):
         """
         **This function should not need to be called by the user**
 
@@ -955,22 +955,30 @@ has already been used.'% name)
 
         Parameters
         ----------
-        obj_in : float or dict
-            Single objective is a float or a dict if multiple ones
-
-        obj : str
-            The name of the objective to process
+        funcs : dictionary of function values
 
         Returns
         -------
         obj : float or array
-            Processed objective.
+            Processed objective(s).
             """
+        fobj = []
+        for objKey in self.objectives.keys():
+            if objKey in funcs:
+                try: 
+                    f = numpy.asscalar(numpy.squeeze(funcs[objKey]))
+                except ValueError:
+                    raise Error("The objective return value, '%s' must be a \
+                    scalar!"% objKey)
+                if scaled:
+                    f *= self.objectives[objKey].scale
+                fobj.append(f)
+            else:
+                raise Error("The key for the objective, '%s' was not found." %
+                            objKey)
 
-        # Just scale the objective 
-        fobj = fobj_in * self.objectives[obj].scale
-
-        return fobj
+        # Finally squeeze back out so we get a scalar for a single objective
+        return numpy.squeeze(fobj)
 
     def processConstraints(self, fcon_in, scaled=True, dtype='d', natural=False):
         """
@@ -1097,73 +1105,60 @@ has already been used.'% name)
             if self.constraints[iCon].linear:
                 fcon[iCon] = self.constraints[iCon].linearJacobian.dot(x)
 
-    def processObjectiveGradient(self, gobj_in, obj='f'):
+    def processObjectiveGradient(self, funcsSens):
         """
         **This function should not need to be called by the user**
         
         This generic function is used to assemble the objective
-        gradient 
+        gradient(s)
 
         Parameters
         ----------
-        obj : str
-            The name of the objective to process
-        
-        gobj_in : array or dict
-            Objective gradient. Either a complete array or a
-            dictionary of gradients given with respect to the
-            dvSets. It is HIGHLY recommend to use the dictionary-based
-            return. 
+        funcsSens : dict
+            Dictionary of all function gradients. Just extract the
+            objective(s) we need here. 
         """
 
         dvSets = list(self.variables.keys())
-        
-        if isinstance(gobj_in, dict):
-            gobj = numpy.zeros(self.ndvs)
 
-            # We loop over the keys provided in gob_in, instead of the
-            # all the actual dvSet keys since dvSet keys not in
-            # gobj_in will just be left to zero. We have implictly
-            # assumed that the objective gradient is dense and any
-            # keys that are provided are simply zero. 
-            
-            for key in gobj_in:
-                # Check that the key matches something in dvSets
-                if key in dvSets:
-                    # Now check that the array is the correct length:
+        nobj = len(self.objectives)
+        gobj = numpy.zeros((nobj, self.ndvs))
 
-                    # ss = start/stop is a length 2 array of the
-                    # indices for dvSet given by key
-                    ss = self.dvOffset[key]['n'] 
-                    if len(gobj_in[key]) == ss[1]-ss[0]:
-                        # Everything checks out so set:
-                        gobj[ss[0]:ss[1]] = numpy.array(gobj_in[key])
+        iObj = 0
+        for objKey in self.objectives.keys():
+            if objKey in funcsSens:
+                for dvKey in funcsSens[objKey]:
+                    if dvKey in dvSets:
+                        # Now check that the array is the correct length:
+                        ss = self.dvOffset[dvKey]['n'] 
+                        tmp = numpy.array(funcsSens[objKey][dvKey])
+                        if tmp.shape == (ss[1]-ss[0],):
+                            # Everything checks out so set:
+                            gobj[iObj, ss[0]:ss[1]] = tmp * self.objectives[objKey].scale
+                        else:
+                            raise Error('The shape of the objective deritative \
+                            for dvSet %s is the incorrect length. Expecting a \
+                            shape of %s but received a shape of %d.'% (
+                                    dvKey, (ss[1]-ss[0],), funcsSens[objKey][dvKey].shape))
                     else:
-                        raise Error('The length of the objective deritative \
-                        for dvSet %s is the incorrect length. Expecting a \
-                        length of %d but received a length of %d.'% (
-                                        key, ss[1]-ss[0], len(gobj_in[key])))
-                else:
-                    print('Warning: The key \'%s\' in g_obj does not \
-                    match any of the added DVsets. This derivative \
-                    will be ignored'%(key))
+                        raise Error("The dvSet key '%s' is not valid"% dvKey)
+            else:
+                raise Error("The key for the objective gradient, '%s', was not found." %
+                            objKey)
+            iObj += 1
 
-        else:
-            # Otherwise we will assume it is a vector:
-            gobj = numpy.atleast_1d(gobj_in).copy()
-            if len(gobj) != self.ndvs:
-                raise Error('The length of the objective derivative for all \
-                design variables is not the correct size. Received size %d, \
-                should be size %d.'%(len(gobj), self.ndvs))
-                
-        # Finally scale the objective gradient based on the scaling
-        # data for the design variables
-        gobj = self.invXScale.dot(gobj)
+            # Note that we looped over the keys in funcsSens[objKey]
+            # and not the dvSet keys since a dvSet key not in
+            # funcsSens[objKey] will just be left to zero. We have
+            # implictly assumed that the objective gradient is dense
+            # and any keys that are provided are simply zero.
+        # end (objective keys)
 
-        # Also apply the objective scaling
-        gobj *= self.objectives[obj].scale
+        # Do columing scaling (dv scaling)
+        gobj = self.invXScale.dot(gobj.T)
 
-        return gobj
+        # Finally squeeze back out so we get a 1D vector for a single objective
+        return numpy.squeeze(gobj)
 
     def processConstraintJacobian(self, gcon):
         """
@@ -1204,38 +1199,6 @@ has already been used.'% name)
                 return sparse.csr_matrix(1e-50*numpy.ones((1, self.ndvs)))
             else:
                 return numpy.zeros((0, self.ndvs), 'd')
-
-        # Full dense return:
-        if isinstance(gcon, numpy.ndarray):
-            # Shape matches:
-            if gcon.shape == (self.nCon, self.ndvs):
-                # Check that we are actually allowed a dense return:
-                if self.denseJacobianOK:
-
-                    # Replce any zero entries with a small value
-                    gcon[numpy.where(gcon==0)] = 1e-50
-
-                    # Now make it sparse
-                    gcon = sparse.csr_matrix(gcon)
-
-                    # Do columing scaling (dv scaling)
-                    gcon = gcon.dot(self.invXScale)
-
-                    # Do the row scaling (constraint scaling)
-                    gcon = self.conScale*gcon
-
-                    return gcon
-                    
-                else:
-                    raise Error('A dense return is NOT possible since the user \
-                    has specified the \'wrt\' flag for some constraint entries. \
-                    You must use either the dictionary return OR add all \
-                    constraint groups without the \'wrt\' argument')
-            else:
-                raise Error('The dense jacobian return was the incorrect size. \
-                Expecting size of (%d, %d) but received size of (%d, %d).'% (
-                    self.nCon, self.ndvs,  gcon.shape[0], gcon.shape[1]))
-        # end if (array return)
 
         # For simplicity we just add the linear constraints into gcon
         # so they can be processed along with the rest:

@@ -16,33 +16,32 @@ import argparse
 from pyoptsparse import Optimization, OPT
 parser = argparse.ArgumentParser()
 parser.add_argument("--opt", help="optimizer", type=str, default='SNOPT')
-parser.add_argument("--storeHistory",help="option to store history",type=int, default=0)
+parser.add_argument("--storeHistory", help="option to store history",type=int, default=0)
 args = parser.parse_args()
 optOptions = {}
 
 def objfunc(xdict):
     x = xdict['xvars']
-    fobj = 100*(x[1] - x[0]**2)**2 + (1-x[0])**2
+    funcs = {}
+    funcs['obj'] = [100*(x[1] - x[0]**2)**2 + (1-x[0])**2]
     conval = numpy.zeros(2, 'D')
     conval[0] = x[0]*x[1]
     conval[1] = x[0] + x[1]**2
-    fcon = {'con':conval}
-
+    funcs['con'] = conval
     fail = False
 
-    return fobj, fcon, fail
+    return funcs, fail
 
-def sens(xdict, fobj, fcon):
+def sens(xdict, funcs):
     x = xdict['xvars']
-    gobj = {}
-    gobj['xvars'] = [2*100*(x[1]-x[0]**2)*(-2*x[0]) - 2*(1-x[0]),
-                     2*100*(x[1]-x[0]**2)]
-    gcon = {}
-    gcon['con'] = {'xvars':[[x[1], x[0]],
-                            [1   , 2*x[1]]]}
+    funcsSens = {}
+    funcsSens['obj'] = {'xvars': [2*100*(x[1]-x[0]**2)*(-2*x[0]) - 2*(1-x[0]),
+                                  2*100*(x[1]-x[0]**2)]}
+    funcsSens['con'] = {'xvars': [[x[1], x[0]],
+                                  [1   , 2*x[1]]]}
     fail = False
     
-    return gobj, gcon, fail
+    return funcsSens, fail
 
 # Optimization Object
 optProb = Optimization('HS15 Constraint Problem', objfunc)
@@ -57,6 +56,9 @@ optProb.addVarGroup('xvars', 2, lower=lower, upper=upper, value=value)
 lower = [1, 0]
 upper = [None, None]
 optProb.addConGroup('con', 2, lower=lower, upper=upper)
+
+# Objective
+optProb.addObj('obj')
 
 # Check optimization problem:
 print optProb

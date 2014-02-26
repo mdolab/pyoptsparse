@@ -9,27 +9,27 @@ optOptions = {}
 
 def objfunc(xdict):
     x = xdict['xvars']
-    fobj = x[0] * x[3] * (x[0] + x[1] + x[2]) + x[2]
-    fcon = {}
-    fcon['con'] = [x[0] * x[1] * x[2] * x[3], 
+    funcs = {}
+    funcs['obj'] = x[0] * x[3] * (x[0] + x[1] + x[2]) + x[2]
+    funcs['con'] = [x[0] * x[1] * x[2] * x[3], 
                    x[0]*x[0] + x[1]*x[1] + x[2]*x[2] + x[3]*x[3]]
     fail = False
-    return fobj, fcon, False
+    return funcs, fail
 
-def sens(xdict, fobj, fcon):
+def sens(xdict, funcs):
     x = xdict['xvars']
-    gobj = {};
-    gobj = numpy.array([x[0] * x[3] + x[3] * (x[0] + x[1] + x[2]) , 
-                        x[0] * x[3],
-                        x[0] * x[3] + 1.0,
-                        x[0] * (x[0] + x[1] + x[2])
-                        ])
-    gcon = {}
+    funcsSens = {}
+    funcsSens['obj'] = {'xvars': numpy.array(
+            [x[0] * x[3] + x[3] * (x[0] + x[1] + x[2]) , 
+             x[0] * x[3],
+             x[0] * x[3] + 1.0,
+             x[0] * (x[0] + x[1] + x[2])
+             ])}
     jac = [[x[1]*x[2]*x[3], x[0]*x[2]*x[3], x[0]*x[1]*x[3], x[0]*x[1]*x[2]],
            [2.0*x[0], 2.0*x[1], 2.0*x[2], 2.0*x[3]]]
-    gcon['con'] = {'xvars': jac}
+    funcsSens['con'] = {'xvars': jac}
     fail = False
-    return gobj, gcon, fail
+    return funcsSens, fail
 
 # Optimization Object
 optProb = Optimization('HS071 Constraint Problem', objfunc)
@@ -40,6 +40,9 @@ optProb.addVarGroup('xvars', 4, lower=1, upper=5, value=x0)
 
 # Constraints
 optProb.addConGroup('con', 2, lower=[25,40], upper=[1e19, 40])
+
+# Objective
+optProb.addObj('obj')
 
 # Check optimization problem:
 print optProb

@@ -1,6 +1,6 @@
 import shelve, numpy,sys
 db = {}
-opts = ['ipopt', 'slsqp', 'snopt', 'fsqp', 'conmin', 'nlpql']
+opts = ['ipopt', 'slsqp', 'snopt', 'fsqp', 'conmin', 'nlpql', 'psqp']
 for opt in opts:
     fileName = '%s_hs015_Hist.hst'%opt
     try:
@@ -19,10 +19,8 @@ for opt in db.keys():
     x1[opt] = []
     x2[opt] = []
     for i in xrange(n):
-       
         try:
-            obj[opt].append(db[opt]['%d'%i]['fobj'])
-
+            obj[opt].append(db[opt]['%d'%i]['funcs']['obj'])
             x1[opt].append(db[opt]['%d'%i]['x'][0])
             x2[opt].append(db[opt]['%d'%i]['x'][1])
         except:
@@ -60,7 +58,7 @@ xupper=[0.5,0.5]
 yupper = [-7,3.0]
 
 # Now plot the optimizer output
-styleList=['ko-','ro-','bo-','go-','mo-','co-']
+styleList=['ko-','ro-','bo-','go-','mo-','co-','ks--']
 counter=0
 for opt in db.keys():
     plot(x1[opt],x2[opt],styleList[counter],label='%s'%(opt))
