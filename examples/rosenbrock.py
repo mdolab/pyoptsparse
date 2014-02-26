@@ -33,7 +33,7 @@ def objfunc(xdict):
     fail = False
     return funcs, fail
 
-def sensfunc(xdict, fobj, fcon):
+def sensfunc(xdict, funcsDict):
     x = xdict['xvars'] # Extract array
     funcsSens = {}
     funcsSens['obj'] = {'xvars': [2*100*(x[1]-x[0]**2)*(-2*x[0]) - 2*(1-x[0]),
