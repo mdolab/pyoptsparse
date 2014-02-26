@@ -40,17 +40,18 @@ def sensfunc(xdict, fobj, fcon):
                                   2*100*(x[1]-x[0]**2)]}
     funcsSens['con'] = {'xvars':[-3*(x[0]-1)**2, -1]}
     fail = False
-    return funs, fail
+    return funcsSens, fail
 
 # Matrix-free algorithm return functions
 def objgrad(xdict):
     x = xdict['xvars']
 
-    gobj = numpy.array([2*100*(x[1]-x[0]**2)*(-2*x[0]) - 2*(1-x[0]),
-                    2*100*(x[1]-x[0]**2)])
+    objsens = {}
+    objsens['obj'] = {'xvars': numpy.array([2*100*(x[1]-x[0]**2)*(-2*x[0]) - 2*(1-x[0]),
+                    2*100*(x[1]-x[0]**2)])}
     fail = False
 
-    return gobj, fail
+    return objsens, fail
 
 def jprod(xdict,pdict,sparse_only):
     x = xdict['xvars']
