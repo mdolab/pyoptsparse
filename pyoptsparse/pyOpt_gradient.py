@@ -66,7 +66,7 @@ class Gradient(object):
             self.mydvs = list(range(ndvs))
         return
 
-    def __call__(self, x, fobj, fcon):
+    def __call__(self, x, funcs):
         """
         We need to make this object "look" the same as a user supplied
         function handle. That way, the optimizers need not care how
@@ -77,13 +77,8 @@ class Gradient(object):
         x : array
             Optimization variables from optimizer
 
-        fobj : float
-            Function value for the point about which we are computing
-            the gradient
-
-        fcon : array or dict
-            Constraint values for the point about which we are computing
-            the gradient
+        funcs : dict
+            Dictionary of all the function values
 
         Returns
         -------
@@ -113,19 +108,18 @@ class Gradient(object):
         gcon = numpy.zeros((ncon, ndvs), 'd')
 
         if self.sensMode == 'pgc':
-            fobjBase = self.comm.bcast(fobj)
-            fconBase = self.comm.bcast(fcon)
+            funcsBase = self.comm.bcast(funcs)
         else:
-            fobjBase = fobj
-            fconBase = fcon
+            funcsBase = funcs
 
         # We DO NOT want the constraints scaled here....the constraint
         # scaling will be taken into account when the derivatives are
         # processed as per normal.
         xBase = self.optProb.deProcessX(x)
-        self.optProb.evaluateLinearConstraints(xBase, fconBase)
-        fconBase = self.optProb.processConstraints(fconBase, scaled=False,
-                                                   dtype='D', natural=True)
+        self.optProb.evaluateLinearConstraints(xBase, funcsBase)
+        fconBase = self.optProb.processConstraints(
+            funcsBase, scaled=False, dtype='D', natural=True)
+        fobjBase = self.optProb.processObjective(funcsBase, scaled=False)
 
         # Convert to complex if necessary:
         if self.sensType == 'cs':
@@ -139,14 +133,15 @@ class Gradient(object):
           
             xCall = self.optProb.processX(xph)
             # Call objective    
-            [fobj_ph, fcon_ph, fail] = self.optProb.objFun(xCall)
+            [funcs_ph, fail] = self.optProb.objFun(xCall)
 
             if fail:
                 masterFail = True
                 
             # Process constraint in case they are in dict form
-            self.optProb.evaluateLinearConstraints(xph, fcon_ph)
-            fcon_ph = self.optProb.processConstraints(fcon_ph, scaled=False,
+            self.optProb.evaluateLinearConstraints(xph, funcs_ph)
+            fobj_ph = self.optProb.processObjective(funcs_ph, scaled=False)
+            fcon_ph = self.optProb.processConstraints(funcs_ph, scaled=False,
                                                       dtype='D', natural=True)
 
             if self.sensType == 'fd':
@@ -167,5 +162,21 @@ class Gradient(object):
         if self.comm is not None:
             masterFail = self.comm.allreduce(masterFail, op=MPI.LOR)
 
-        return gobj, gcon, masterFail
+        # Finally, we have to convert everything **back** to a
+        # dictionary so the rest of the code works:
+        funcs = {}
+        for objKey in self.optProb.objectives:
+            funcs[objKey] = {}
+            for varKey in self.optProb.variables:
+                ss = self.optProb.dvOffset[varKey]['n']
+                funcs[objKey][varKey] = gobj[ss[0]:ss[1]]
+
+        for conKey in self.optProb.constraints:
+            con = self.optProb.constraints[conKey]
+            funcs[conKey] = {}
+            for varKey in self.optProb.variables:
+                ss = self.optProb.dvOffset[varKey]['n']
+                funcs[conKey][varKey] = gcon[con.rs:con.re,ss[0]:ss[1]]
+
+        return funcs, masterFail
         

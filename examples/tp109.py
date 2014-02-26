@@ -43,8 +43,8 @@ def objfunc(xdict):
     a = 50.1760
     b = sin(0.250)    
     c = cos(0.250)
-
-    fobj = 3.0*x[0] + (1e-6)*x[0]**3 + 0.522074e-6*x[1]**3 + 2*x[1]
+    funcs = {}
+    funcs['obj'] = 3.0*x[0] + (1e-6)*x[0]**3 + 0.522074e-6*x[1]**3 + 2*x[1]
     fcon = numpy.zeros(10,'D')
     fcon[0] = 2250000 - x[0]**2 - x[7]**2
     fcon[1] = 2250000 - x[1]**2 - x[8]**2
@@ -58,12 +58,12 @@ def objfunc(xdict):
     fcon[9] = x[2] - x[3] + 0.55
 
     if USE_LINEAR:
-        fcon = {'con':fcon[0:8]}
+        funcs['con'] = fcon[0:8]
     else:
-        fcon = {'con':fcon[0:10]}
+        funcs['con'] = fcon[0:10]
     fail = False
   
-    return fobj, fcon, fail
+    return funcs, fail
 
 # Optimization Object
 optProb = Optimization('TP109 Constraint Problem',objfunc)
@@ -89,6 +89,9 @@ if USE_LINEAR:
     jac[0, 3] = 1.0; jac[0, 2] = -1.0
     optProb.addConGroup('lin_con',1, lower=-.55, upper=0.55,
                         wrt=['xvars'], jac ={'xvars':jac}, linear=True)
+
+# Objective
+optProb.addObj('obj')
 
 # Check optimization problem:
 print optProb

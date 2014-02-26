@@ -10,18 +10,20 @@ program listing and then go through each statement line by line::
   import pyoptsparse
   def objfunc(xx):
       x = xx['xvars']
-      fobj = -x[0]*x[1]*x[2]
+      funcs = {}
+      funcs['obj'] = -x[0]*x[1]*x[2]
       conval = [0]*2
       conval[0] = x[0] + 2.*x[1] + 2.*x[2] - 72.0
       conval[1] = -x[0] - 2.*x[1] - 2.*x[2]
-      fcon = {'con':conval}
+      funcs['con'] = conval
       fail = False
 
-      return fobj, fcon, fail
+      return funcs, fail
 
   optProb = pyoptsparse.Optimization('TP037', objfunc)
   optProb.addVarGroup('xvars',3, 'c',lower=[0,0,0], upper=[42,42,42], value=10)
   optProb.addConGroup('con',2, lower=None, upper=0.0)
+  opProb.addObj('obj')
   print optProb
   opt = pyoptsparse.SLSQP()
   sol = opt(optProb, sens='FD')
@@ -32,21 +34,22 @@ Start by importing the pyOptSparse package::
   >>> import pyoptsparse
 
 Next we define the objective function that takes in the design
-variable *dictionary* and returns the objective function value (a
-scalar), a *dictionary* of constraints and a (boolean) flag indicating
-if the objective function evaluation was successful. For the TP37, the
+variable *dictionary* and returns a *dictionary* containing the
+constraints and objective, as well as a (boolean) flag indicating if
+the objective function evaluation was successful. For the TP37, the
 objective function is a simple analytic function::
 
   def objfunc(xx):
       x = xx['xvars']
-      fobj = -x[0]*x[1]*x[2]
+      funcs = {}
+      funcs['obj'] = -x[0]*x[1]*x[2]
       conval = [0]*2
       conval[0] = x[0] + 2.*x[1] + 2.*x[2] - 72.0
       conval[1] = -x[0] - 2.*x[1] - 2.*x[2]
-      fcon = {'con':conval}
+      funcs['con'] = conval
       fail = False
 
-      return fobj, fcon, fail
+      return funcs, fail
 
 Notes:
 
@@ -63,12 +66,13 @@ Notes:
        conval = [0]*2
 
      creates a list of length 2, which stores the numerical values of
-     the two constraints. The constraint return, 'fcon' must be a
-     dictionary whose keys much match the constraint names given in
-     ``addCon()`` and ``addConGroup()`` calls.  This is done in the
-     following call::
-       
-       fcon = {'con':conval}
+     the two constraints. The ``funcs`` dictionary return must contain
+     keys that match the constraint names from ``addCon`` and
+     ``addConGroup``  as well as the objectives from ``addObj`` calls. This 
+     is done in the following calls::
+
+       funcs['obj'] = -x[0]*x[1]*x[2]
+       funcs['con'] = conval
 
 Now the optimization problem can be initialized::
 
@@ -96,6 +100,11 @@ constraints are added by group where possible::
 
 This call adds two variables with name 'con'. There is no lower bound
 for the variables and the upper bound is 0.0. 
+
+We must also assign the the key value for the objective using the
+``addObj()`` call::
+
+  >>> optProb.addObj('obj')
 
 The optimization problem can be printed to verify that it is setup correctly::
 

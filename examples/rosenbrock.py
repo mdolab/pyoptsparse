@@ -27,24 +27,20 @@ optOptions = {}
 
 def objfunc(xdict):
     x = xdict['xvars'] # Extract array
-    fobj = 100*(x[1]-x[0]**2)**2+(1-x[0])**2
-    fcon = {}
-    fcon['con'] = 0.1-(x[0]-1)**3 - (x[1]-1)
+    funcs = {}
+    funcs['obj'] = 100*(x[1]-x[0]**2)**2+(1-x[0])**2
+    funcs['con'] = 0.1-(x[0]-1)**3 - (x[1]-1)
     fail = False
-
-    return fobj, fcon, fail
+    return funcs, fail
 
 def sensfunc(xdict, fobj, fcon):
     x = xdict['xvars'] # Extract array
-    gobj = {}
-    gobj['xvars'] = [2*100*(x[1]-x[0]**2)*(-2*x[0]) - 2*(1-x[0]),
-                     2*100*(x[1]-x[0]**2)]
-    gcon = {}
-    gcon['con'] = {'xvars':[-3*(x[0]-1)**2, -1]}
+    funcsSens = {}
+    funcsSens['obj'] = {'xvars': [2*100*(x[1]-x[0]**2)*(-2*x[0]) - 2*(1-x[0]),
+                                  2*100*(x[1]-x[0]**2)]}
+    funcsSens['con'] = {'xvars':[-3*(x[0]-1)**2, -1]}
     fail = False
-
-    return gobj, gcon, fail
-
+    return funs, fail
 
 # Matrix-free algorithm return functions
 def objgrad(xdict):
@@ -55,7 +51,6 @@ def objgrad(xdict):
     fail = False
 
     return gobj, fail
-
 
 def jprod(xdict,pdict,sparse_only):
     x = xdict['xvars']
@@ -71,7 +66,6 @@ def jprod(xdict,pdict,sparse_only):
 
     return qdict, fail
 
-
 def jtprod(xdict,qdict,sparse_only):
     x = xdict['xvars']
 
@@ -85,7 +79,6 @@ def jtprod(xdict,qdict,sparse_only):
     fail = False
 
     return pdict, fail
-
 
 if sens == 'none':
     sens = None
@@ -101,7 +94,7 @@ optProb.addVarGroup('xvars', 2, 'c', value=[3,-3], lower=-5.12, upper=5.12,
 optProb.finalizeDesignVariables()
 if constrained:
     optProb.addCon('con',upper=0, scale=1.0)
-optProb.addObj('f')
+optProb.addObj('obj')
 
 # Create optimizer
 opt = OPT(args.opt, options=optOptions)
