@@ -1063,15 +1063,17 @@ has already been used.'% name)
         if self.dummyConstraint:
             return {'dummy':0}
 
-        # Perform constraint scaling
-        if scaled:
-            fcon_in = self.conScale*fcon_in
-
-        # **This block needs to be double-checked at some point for un-natural orderings**
         if not natural:
             if self.nCon > 0:
-                fcon_in = fcon_in[self.jacIndices]
-                fcon_in = self.fact.dot(fcon_in) - self.offset
+                fcon_in += self.offset
+                # Since self.fact elements are unit magnitude ...
+                fcon_in = self.fact.dot(fcon_in) 
+                # Undo the ordering
+                fcon_in = fcon_in[self.jacIndicesInv]
+
+        # Perform constraint scaling
+        if scaled:
+            fcon_in = fcon_in/self.conScale
 
         # We REQUIRE that fcon_in is an array:
         fcon = {}
