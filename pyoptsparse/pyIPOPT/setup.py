@@ -32,7 +32,7 @@ def configuration(parent_package='',top_path=None):
     config.add_extension('pyipoptcore',
                          FILES,
                          library_dirs=[IPOPT_LIB],
-                         libraries=['ipopt', 'blas','coinhsl','lapack','dl','m'],
+                         libraries=['ipopt', 'coinblas','coinhsl','coinlapack','dl','m'],
                          extra_link_args=['-Wl,--rpath -Wl,%s -L%s'% (IPOPT_LIB,IPOPT_LIB)],
                          include_dirs=[numpy_include, IPOPT_INC])
     return config

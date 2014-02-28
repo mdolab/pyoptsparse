@@ -3,30 +3,48 @@
 IPOPT
 -----
 
-Install instructions for ``pyOPT``.
+Install instructions for ``pyIPOPT``.
 
-1. Download ``IPopt-3.11.7.tar.gz`` and put in the ``/pyoptsparse/pyoptsparse/pyIPOPT`` directory
+#. Download ``IPopt-3.11.7.tar.gz`` and put in the ``/pyoptsparse/pyoptsparse/pyIPOPT`` directory
 
-2. Untar
+#. Untar
 
-3. Rename the directory from ``Ipopt-x.x.x`` to ``Ipopt``
+#. Rename the directory from ``Ipopt-x.x.x`` to ``Ipopt``
 
-4. Copy ``ma27ad.f`` into the ``Ipopt/ThirdParty/HSLold/`` directory
+#. Copy ``ma27ad.f`` from the ``pyOptSparse`` bitbucket page into the ``Ipopt/ThirdParty/HSLold/`` directory
 
-5. Run in the root directory
+#. Go to::
+
+     Ipopt/ThirdParty/Blas/
+
+   and run::
+
+      sh ./get.Blas
+
+   This will download a blas copy and ``Ipopt`` will use that.
+
+#. Go to::
+
+     Ipopt/ThirdParty/Lapack/
+
+   and run::
+
+      sh ./get.Lapack
+
+#. Run in the root directory
    ::
      $ ./configure --disable-linear-solver-loader
 
-6. Now make
+#. Now make
    ::
      $ make install
 
-7. You must add the ``lib`` directory ``Ipopt`` to your
+#. You must add the ``lib`` directory ``Ipopt`` to your
    ``LD_LIBRARY_PATH`` variable for things to work right
    ::
      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/user/hg/pyoptsparse/pyoptsparse/pyIPOPT/Ipopt/lib
 
-8. Now the pyOptSparse builder should take care of the rest. 
+#. Now the pyOptSparse builder (run from the root directory) should take care of the rest. 
 
 
 .. currentmodule:: pyoptsparse.pyoptsparse.pyIPOPT.pyIPOPT
