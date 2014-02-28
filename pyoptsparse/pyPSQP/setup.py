@@ -10,7 +10,8 @@ def configuration(parent_package='',top_path=None):
     config = Configuration('pyPSQP',parent_package,top_path)
     
     config.add_library('psqp',
-        sources=[os.path.join('source', '*.f')])
+        sources=[os.path.join('source', '*.f'),
+                 os.path.join('source', '*.f90')]),
     config.add_extension('psqp',
         sources=['source/f2py/psqp.pyf'],
         libraries=['psqp'])
