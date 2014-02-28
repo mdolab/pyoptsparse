@@ -25,7 +25,7 @@ optimizer.
 
 The optimization class is created using the following call::
 
-  >>> opt_prob = Optimization('name', objFun)
+  >>> optProb = Optimization('name', objFun)
 
 The general template of the objective function is as follows::
 
@@ -51,7 +51,7 @@ Design Variables
 The simplest way to add a single continuous variable with no bounds
 (side constraints) and initial value of 0.0 is::
 
-   >>> opt_prob.addVar('var_name')
+   >>> optProb.addVar('var_name')
 
 This will result in a scalar variable included in the ``x`` dictionary
 call to ``obj_fun`` which can be accessed by doing::
@@ -61,7 +61,7 @@ call to ``obj_fun`` which can be accessed by doing::
 A more complex example will include lower bounds, upper bounds and a
 non-zero initial value::
 
-  >>> opt_prob.addVar('var_name',lower=-10, upper=5, value=-2)
+  >>> optProb.addVar('var_name',lower=-10, upper=5, value=-2)
 
 The ``lower`` or ``upper`` keywords may be specified as ``None`` to
 signify there is no bound on the variable. 
@@ -82,7 +82,31 @@ a group of 1 or more variables. These variables are then returned as a
 numpy array within the x-dictionary. For example, to add 10 variables
 with no lower bound, and a scale factor of 0.1::
 
-  >>> opt_prob.addVarGroup('con_group', 10, upper=2.5, scale=0.1)
+  >>> optProb.addVarGroup('con_group', 10, upper=2.5, scale=0.1)
+
+``pyOptSparse`` has an additional concept related to design variables,
+known as a ``variableSet`` or ``varSet``. The idea is that multiple
+design variables groups can be associated with a single variable
+set. The purpose of this is that the objective and constraint
+derivatives are actually given with respect to the variable
+sets. Unless the ``varSet`` is explictly given in a call to ``addVar``
+to add ``addVarGroup`` a variable set is automatically added with the
+same name as the variable. In certain cases, it can be beneficial to
+group derivatives together. For example::
+
+  optProb.addVar('varA', varSet='x')
+  optProb.addVarGroup('varsB', 5, varSet='x')
+  optProb.addVar('varC', varSet='x')
+  ...
+
+  # In objective function
+  funcs['obj'] = {'x':numpy.ones[7]}
+
+In this case, the derivative of 'obj' is given with respect to the
+user supplied ``varSet`` ``x``, **not** with respect to ``varA``,
+``varsB`` and ``varC``. For this case, the **order** of the ``addVar``
+is significant.
+  
 
 Constraints
 +++++++++++
@@ -90,20 +114,20 @@ Constraints
 The simplest way to add a single constraint with no bounds (ie not a
 very useful constraint!) is::
 
-  >>> opt_prob.addCon('not_a_real_constraint')
+  >>> optProb.addCon('not_a_real_constraint')
 
 To include bounds on the constraints, use the ``lower`` and ``upper``
 keyword arguments. If ``lower`` and ``upper`` are the same, it will be
 treated as an equality constraint::
 
-  >>> opt_prob.addCon('inequality_constraint', upper=10)
-  >>> opt_prob.addCOn('equality_constraint', lower=5, upper=5)
+  >>> optProb.addCon('inequality_constraint', upper=10)
+  >>> optProb.addCOn('equality_constraint', lower=5, upper=5)
 
 Like design variables, it is often necessary to scale constraints such
 that all constraint values are approximately the same order of
 magnitude. This can be specified using the ``scale`` keyword::
 
-  >>> opt_prob.addCon('scaled_constraint', upper=10000, scale=1.0/10000)
+  >>> optProb.addCon('scaled_constraint', upper=10000, scale=1.0/10000)
 
 Even if the ``scale`` keyword is given, the ``lower`` and ``upper``
 bounds are given in their un-scaled form. Internally, ``pyOptSparse``
@@ -198,3 +222,17 @@ Also note, that the ``wrt`` and ``jac`` keyword arguments are only
 supported when user-supplied sensitivity is used. If one used the
 automatic gradient in ``pyOptSparse`` the constraint jacobian will
 necessarily be dense. 
+
+Objectives
+++++++++++
+
+Each optimization will require at least one objective to be
+added. This is accomplished using a the call::
+
+  otpProb.addObj('obj')
+
+What this does is tell ``pyOptSparse`` that the key ``obj`` in the
+function returns will be taken as the objective. For optimizers that
+can do multi-objective optimization, (NSGA2 for example) multiple
+objectives can be added. Optimizers that can only handle one objective
+enforce that only a single objective is added to the optimization description. 
