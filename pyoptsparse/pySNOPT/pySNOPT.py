@@ -60,7 +60,6 @@ class SNOPT(Optimizer):
         category = 'Local Optimizer'
         defOpts = {
         # SNOPT Printing Options
-        'outputDirectory':[str, './'], # Directory to put files in.
         'Major print level':[int,1], # Majors Print (1 - line major iteration log)
         'Minor print level':[int,1], # Minors Print (1 - line minor iteration log)
         'Print file':[str,'SNOPT_print.out'],# Print File Name (specified by subroutine snInit)
@@ -372,8 +371,7 @@ class SNOPT(Optimizer):
             # Initialize the Print and Summary files
             # --------------------------------------
             iPrint = self.getOption('iPrint')
-            PrintFile = os.path.join(self.getOption('outputDirectory'),
-                                     self.getOption('Print file'))
+            PrintFile = os.path.join(self.getOption('Print file'))
             if iPrint != 0:
                 ierror = snopt.openunit(iPrint, PrintFile, "replace",
                                         "sequential")
@@ -382,8 +380,7 @@ class SNOPT(Optimizer):
                                 (PrintFile,ierror))
 
             iSumm = self.getOption('iSumm')
-            SummFile = os.path.join(self.getOption('outputDirectory'),
-                                    self.getOption('Summary file'))
+            SummFile = os.path.join(self.getOption('Summary file'))
             if iSumm != 0:
                 ierror = snopt.openunit(iSumm, SummFile, "replace",
                                         "sequential")
