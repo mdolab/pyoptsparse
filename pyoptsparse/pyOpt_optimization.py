@@ -1067,6 +1067,7 @@ has already been used.'% name)
         if scaled:
             fcon_in = self.conScale*fcon_in
 
+        # **This block needs to be double-checked at some point for un-natural orderings**
         if not natural:
             if self.nCon > 0:
                 fcon_in = fcon_in[self.jacIndices]

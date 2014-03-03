@@ -423,19 +423,21 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
             # determine if we have to run the sens calc:
             if self.cache['gcon'] is None:
                 timeA = time.time()
-                gobj, gcon, fail = self.sens(
-                    xuser, self.cache['fobj'], self.cache['fcon_user'])
+                # gobj, gcon, fail = self.sens(
+                #     xuser, self.cache['fobj'], self.cache['fcon_user'])
+                funcsSens, fail = self.sens(xuser, self.cache['funcs'])
                 self.userSensTime += time.time()-timeA
                 self.userSensCalls += 1
                 # User values are stored immediately
-                self.cache['gobj_user'] = copy.deepcopy(gobj)
-                self.cache['gcon_user'] = copy.deepcopy(gcon)
+                # self.cache['gobj_user'] = copy.deepcopy(gobj)
+                # self.cache['gcon_user'] = copy.deepcopy(gcon)
+                self.cache['funcsSens'] = copy.deepcopy(funcsSens)
 
                 # Process objective gradient for optimizer
-                gobj = self.optProb.processObjectiveGradient(gobj)
+                gobj = self.optProb.processObjectiveGradient(funcsSens)
 
                 # Process constraint gradients for optimizer
-                gcon = self.optProb.processConstraintJacobian(gcon)
+                gcon = self.optProb.processConstraintJacobian(funcsSens)
                 gcon = self._convertJacobian(gcon)
 
                 # Set cache values
