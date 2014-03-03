@@ -39,8 +39,8 @@ constraints and objective, as well as a (boolean) flag indicating if
 the objective function evaluation was successful. For the TP37, the
 objective function is a simple analytic function::
 
-  def objfunc(xx):
-      x = xx['xvars']
+  def objfunc(xdict):
+      x = xdict['xvars']
       funcs = {}
       funcs['obj'] = -x[0]*x[1]*x[2]
       conval = [0]*2
