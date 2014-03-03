@@ -8,8 +8,8 @@ Schittkowski’s TP37 constrained problem. First, we show the complete
 program listing and then go through each statement line by line::
 
   import pyoptsparse
-  def objfunc(xx):
-      x = xx['xvars']
+  def objfunc(xdict):
+      x = xdict['xvars']
       funcs = {}
       funcs['obj'] = -x[0]*x[1]*x[2]
       conval = [0]*2
@@ -23,7 +23,7 @@ program listing and then go through each statement line by line::
   optProb = pyoptsparse.Optimization('TP037', objfunc)
   optProb.addVarGroup('xvars',3, 'c',lower=[0,0,0], upper=[42,42,42], value=10)
   optProb.addConGroup('con',2, lower=None, upper=0.0)
-  opProb.addObj('obj')
+  optProb.addObj('obj')
   print optProb
   opt = pyoptsparse.SLSQP()
   sol = opt(optProb, sens='FD')
@@ -123,7 +123,7 @@ This initializes an instance of ``SLSQP`` with the default options. The
 setOption() method can be used to change any optimizer specific option,
 for example the internal output flag of ``SLSQP``::
 
-  >>> slsqp.setOption('IPRINT', -1)
+  >>> opt.setOption('IPRINT', -1)
 
 Now TP37 can be solved using  ``SLSQP`` and for example, ``pyOptSparse``’s automatic
 finite difference for the gradients::
