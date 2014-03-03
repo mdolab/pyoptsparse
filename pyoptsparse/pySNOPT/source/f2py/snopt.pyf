@@ -1,0 +1,210 @@
+!    -*- f90 -*-
+!
+! Originally written by Joaquim R. R. A. Martins 2000
+! Updates by Patrick LeGresley 2003-2005
+! Last updated: February 13, 2005
+! Tested to work with F2PY Version 2.45.241_1926 on:
+!         Mac OS X with xlf
+! Modified for Snopt 7 by C. Marriage 2007
+!
+python module snoptc__user__routines
+    interface snoptc_user_interface
+	    subroutine userfg( mode, nnObj, nnCon, nnJac, nnL, neJac, x, fObj, gObj, fCon, gCon, nState, cu, lencu, iu, leniu, ru, lenru )
+		integer intent(in,out) :: mode
+		integer intent(in) :: nnObj
+                integer intent(in) :: nnCon
+                integer intent(in) :: nnJac
+                integer intent(in) :: nnL
+                integer intent(in) :: neJac
+                integer intent(in) :: nState
+		double precision intent(in) :: x(nnL)
+                double precision intent(in, out) :: fObj
+                double precision intent(in, out) :: gObj(nnObj)
+                double precision intent(in, out) :: fCon(nnCon)
+                double precision intent(in, out) :: gCon(neJac)
+		character*8 intent(in) :: cu(lencu)
+                integer intent(in) :: lencu
+                integer intent(in) :: iu(leniu)
+                integer intent(in) :: leniu
+                double precision intent(in) :: ru(lenru)
+                integer intent(in) :: lenru
+	    end subroutine userfg
+    end interface snoptc_user_interface
+end python module snoptc__user__routines
+python module snopt ! in 
+    interface  ! in :snopt
+        subroutine openunit(unitnum,filename,filestatus,fileaction,ierror) ! in :snopt:openunit.f
+            integer intent(in) :: unitnum
+            character*(*) intent(in) :: filename
+            character*(*) intent(in) :: filestatus
+            character*(*) intent(in) :: fileaction
+            integer intent(out) :: ierror
+        end subroutine openunit
+        subroutine pyflush(unitnum)
+          integer unitnum
+          return
+        end subroutine pyflush
+        subroutine closeunit(unitnum) ! in :snopt:closeunit.f
+            integer intent(in) :: unitnum
+        end subroutine closeunit
+        subroutine sninit(iprint,isumm,cw,lencw,iw,leniw,rw,lenrw) ! in :snopt:sn02lib.f
+            integer :: iprint
+            integer :: isumm
+            character*8 intent(in,out), dimension(lencw) :: cw
+            !integer optional,check(shape(cw,1)==lencw),depend(cw) :: lencw=shape(cw,1)
+            integer optional,check(len(cw)==lencw),depend(cw) :: lencw=len(cw)
+            integer intent(inout), dimension(leniw) :: iw
+            integer optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
+            double precision dimension(lenrw) :: rw
+            integer optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
+        end subroutine sninit
+        subroutine snspec(ispecs,inform,cw,lencw,iw,leniw,rw,lenrw) ! in :snopt:sn02lib.f
+            integer :: ispecs
+            integer intent(out) :: inform
+            character*8 intent(in,out), dimension(lencw) :: cw
+            integer optional,check(len(cw)==lencw),depend(cw) :: lencw=len(cw)
+            integer intent(inout), dimension(leniw) :: iw
+            integer optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
+            double precision dimension(lenrw) :: rw
+            integer optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
+        end subroutine snspec
+        subroutine snmemb(iexit,m,n,ne,negcon,nncon,nnjac,nnobj,mincw,miniw,minrw,cw,lencw,iw,leniw,rw,lenrw) ! in :snopt:sn02lib.f
+            integer :: iexit
+            integer :: m
+            integer :: n
+            integer :: ne
+            integer :: negcon
+            integer :: nncon
+            integer :: nnjac
+            integer :: nnobj 
+            integer intent(out) :: mincw
+            integer intent(out) :: miniw
+            integer intent(out) :: minrw
+            character*8 intent(in,out), dimension(lencw) :: cw
+            integer optional,check(len(cw)==lencw),depend(cw) :: lencw=len(cw)
+            integer intent(inout), dimension(leniw) :: iw
+            integer optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
+            double precision dimension(lenrw) :: rw
+            integer optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
+        end subroutine snmemb
+        subroutine snset(buffer,iprint,isumm,inform,cw,lencw,iw,leniw,rw,lenrw) ! in :snopt:sn02lib.f
+            character*(*) :: buffer
+            integer :: iprint
+            integer :: isumm
+            integer :: inform
+            character*8 intent(in,out), dimension(lencw) :: cw
+            integer optional,check(len(cw)==lencw),depend(cw) :: lencw=len(cw)
+            integer intent(inout), dimension(leniw) :: iw
+            integer optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
+            double precision dimension(lenrw) :: rw
+            integer optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
+        end subroutine snset
+        subroutine snseti(buffer,ivalue,iprint,isumm,inform,cw,lencw,iw,leniw,rw,lenrw) ! in :snopt:sn02lib.f
+            character*(*) :: buffer
+            integer :: ivalue
+            integer :: iprint
+            integer :: isumm
+            integer :: inform
+            character*8 intent(in,out), dimension(lencw) :: cw
+            integer optional,check(len(cw)==lencw),depend(cw) :: lencw=len(cw)
+            integer intent(inout), dimension(leniw) :: iw
+            integer optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
+            double precision dimension(lenrw) :: rw
+            integer optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
+        end subroutine snseti
+        subroutine snsetr(buffer,rvalue,iprint,isumm,inform,cw,lencw,iw,leniw,rw,lenrw) ! in :snopt:sn02lib.f
+            character*(*) :: buffer
+            double precision :: rvalue
+            integer :: iprint
+            integer :: isumm
+            integer :: inform
+            character*8 intent(in,out), dimension(lencw) :: cw
+            integer optional,check(len(cw)==lencw),depend(cw) :: lencw=len(cw)
+            integer intent(inout), dimension(leniw) :: iw
+            integer optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
+            double precision dimension(lenrw) :: rw
+            integer optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
+        end subroutine snsetr
+        subroutine sngetc(buffer,cvalue,inform,cw,lencw,iw,leniw,rw,lenrw) ! in :snopt:sn02lib.f
+            character*(*) :: buffer
+            character*8 intent(out) :: cvalue
+            integer :: inform
+            character*8 intent(in,out), dimension(lencw) :: cw
+            integer optional,check(len(cw)==lencw),depend(cw) :: lencw=len(cw)
+            integer intent(inout), dimension(leniw) :: iw
+            integer optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
+            double precision dimension(lenrw) :: rw
+            integer optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
+        end subroutine sngetc
+        subroutine sngeti(buffer,ivalue,inform,cw,lencw,iw,leniw,rw,lenrw) ! in :snopt:sn02lib.f
+            character*(*) :: buffer
+            integer intent(out) :: ivalue 
+            integer :: inform
+            character*8 intent(in,out), dimension(lencw) :: cw
+            integer optional,check(len(cw)==lencw),depend(cw) :: lencw=len(cw)
+            integer intent(inout), dimension(leniw) :: iw
+            integer optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
+            double precision dimension(lenrw) :: rw
+            integer optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
+        end subroutine sngeti
+        subroutine sngetr(buffer,rvalue,inform,cw,lencw,iw,leniw,rw,lenrw) ! in :snopt:sn02lib.f
+            character*(*) :: buffer
+            double precision intent(out) :: rvalue
+            integer :: inform
+            character*8 intent(in,out), dimension(lencw) :: cw
+            integer optional,check(len(cw)==lencw),depend(cw) :: lencw=len(cw)
+            integer intent(inout), dimension(leniw) :: iw
+            integer optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
+            double precision dimension(lenrw) :: rw
+            integer optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
+        end subroutine sngetr
+        subroutine snoptc(start,m,n,ne,nname,nncon,nnobj,nnjac,iobj,objadd,prob,userfg,jcol,indj,locj,bl,bu,names,hs,x,pi,rc,inform,mincw,miniw,minrw,ns,ninf,sinf,obj,cu,lencu,iu,leniu,ru,lenru,cw,lencw,iw,leniw,rw,lenrw) ! in :snopt:snoptc.f
+            use snoptc__user__routines
+            character*(*) intent(inout) :: start
+            integer optional,check(len(pi)>=m),depend(pi) :: m=len(pi)
+            integer optional,check((len(locj)-1)>=n),depend(locj) :: n=(len(locj)-1)
+            integer optional,check(len(jcol)>=ne),depend(jcol) :: ne=len(jcol)
+            integer :: nncon 
+            integer :: nnobj
+            integer :: nnjac
+            integer :: iobj
+            double precision :: objadd
+            character*8 :: prob
+            external userfg
+            double precision dimension(ne) :: jcol
+            integer intent(inout), dimension(ne),depend(ne) :: indj
+            integer intent(inout), dimension(n + 1) :: locj
+            double precision intent(inout), dimension(n+m),depend(m,n) :: bl
+            double precision intent(inout), dimension(n+m),depend(m,n) :: bu
+            character*8 intent(in), dimension(nname) :: names
+            integer optional,check(len(names)==nname),depend(names) :: nname=len(names)
+            integer intent(inout), dimension(n+m),depend(m,n) :: hs
+            double precision intent(inout), dimension(n+m),depend(m,n) :: x
+            double precision intent(inout), dimension(m) :: pi
+            double precision intent(inout), dimension(n+m),depend(m,n) :: rc 
+            integer intent(inout) :: inform
+            integer intent(inout) :: mincw
+            integer intent(inout) :: miniw
+            integer intent(inout) :: minrw
+            integer :: ns
+            integer :: ninf
+            double precision :: sinf
+            double precision intent(inout) :: obj
+            character*8 intent(in,out), dimension(lencu) :: cu
+            integer optional,check(len(cu)==lencu),depend(cu) :: lencu=len(cu)
+            integer dimension(leniu) :: iu
+            integer optional,check(len(iu)>=leniu),depend(iu) :: leniu=len(iu)
+            double precision dimension(lenru) :: ru
+            integer optional,check(len(ru)>=lenru),depend(ru) :: lenru=len(ru)
+            character*8 intent(in,out), dimension(lencw) :: cw
+            integer optional,check(len(cw)==lencw),depend(cw) :: lencw=len(cw)
+            integer intent(inout), dimension(leniw) :: iw
+            integer optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
+            double precision dimension(lenrw) :: rw
+            integer optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
+        end subroutine snoptc
+    end interface 
+end python module snopt
+
+! This file was auto-generated with f2py (version:2.37.233-1545).
+! See http://cens.ioc.ee/projects/f2py2e/
