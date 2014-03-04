@@ -945,7 +945,7 @@ has already been used.'% name)
                     x_array[istart:iend] = x[dvGroup]
         return x_array
 
-    def processObjective(self, funcs, scaled=False):
+    def processObjective(self, funcs, scaled=True):
         """
         **This function should not need to be called by the user**
 
@@ -1132,15 +1132,15 @@ has already been used.'% name)
                     if dvKey in dvSets:
                         # Now check that the array is the correct length:
                         ss = self.dvOffset[dvKey]['n'] 
-                        tmp = numpy.array(funcsSens[objKey][dvKey])
-                        if tmp.shape == (ss[1]-ss[0],):
+                        tmp = numpy.array(funcsSens[objKey][dvKey]).squeeze()
+                        if tmp.size == ss[1]-ss[0]:
                             # Everything checks out so set:
                             gobj[iObj, ss[0]:ss[1]] = tmp * self.objectives[objKey].scale
                         else:
-                            raise Error('The shape of the objective deritative \
-                            for dvSet %s is the incorrect length. Expecting a \
-                            shape of %s but received a shape of %d.'% (
-                                    dvKey, (ss[1]-ss[0],), funcsSens[objKey][dvKey].shape))
+                            raise Error("The shape of the objective derivative \
+                            for dvSet '%s' is the incorrect length. Expecting a \
+                            shape of %s but received a shape of %s."% (
+                            dvKey, (ss[1]-ss[0],), funcsSens[objKey][dvKey].shape))
                     else:
                         raise Error("The dvSet key '%s' is not valid"% dvKey)
             else:
@@ -1155,7 +1155,7 @@ has already been used.'% name)
             # and any keys that are provided are simply zero.
         # end (objective keys)
 
-        # Do columing scaling (dv scaling)
+        # Do column scaling (dv scaling)
         gobj = self.invXScale.dot(gobj.T)
 
         # Finally squeeze back out so we get a 1D vector for a single objective
