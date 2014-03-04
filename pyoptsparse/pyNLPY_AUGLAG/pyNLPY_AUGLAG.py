@@ -83,7 +83,8 @@ class NLPY_AUGLAG(Optimizer):
         'Number of Quasi-Newton Pairs':[int,5],
         'Use N-Y Backtracking':[bool,True],
         'Use Magical Steps':[bool,True],
-        'Use Quasi-Newton Jacobian':[bool,True]
+        'Use Quasi-Newton Jacobian':[bool,True],
+        'Penalty Parameter':[float,10.]
         }
         # Inform/Status codes go here
         informs = {
@@ -311,7 +312,8 @@ be installed to use NLPY_AUGLAG.')
                 qn_pairs=self.options['Number of Quasi-Newton Pairs'][1],
                 data_prefix=self.options['Prefix'][1],
                 save_data=self.options['Save Current Point'][1],
-                sparse_index=sparse_index)
+                sparse_index=sparse_index,
+                rho_init=self.options['Penalty Parameter'][1])
                 # data_prefix=prefix, save_data=False)
         else:
             # Try matrix-vector products with the exact Jacobian
@@ -324,7 +326,8 @@ be installed to use NLPY_AUGLAG.')
                 eta_rel=self.options['Relative Feasibility Tolerance'][1],
                 qn_pairs=self.options['Number of Quasi-Newton Pairs'][1],
                 data_prefix=self.options['Prefix'][1],
-                save_data=self.options['Save Current Point'][1])
+                save_data=self.options['Save Current Point'][1],
+                rho_init=self.options['Penalty Parameter'][1])
                 # sparse_index=struct_opt.num_dense_con,
                 # data_prefix=prefix, save_data=False)            
 
