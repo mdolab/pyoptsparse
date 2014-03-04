@@ -1,0 +1,4 @@
+This directory contains the Fortran 77 source for CONMIN 
+modified for pyOpt interfacing by Dr. Ruben E. Perez, 
+plus two helper files called openunit.f and closeunit.f 
+to manipulate Fortran units from Python.
