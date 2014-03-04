@@ -5,32 +5,40 @@ from numpy.distutils.command.build_ext import build_ext
 
 if os.path.exists('MANIFEST'): 
     os.remove('MANIFEST')
-#end
 
-if sys.version_info[:2] < (2, 5):
-    print('pyOptSparse requires Python version 2.5 or later (%d.%d detected).' %sys.version_info[:2])
+if sys.version_info[:2] < (2, 6):
+    print('pyOptSparse requires Python version 2.6 or later (%d.%d detected).' %sys.version_info[:2])
     sys.exit(-1)
-#end
 
 try:                  
     import numpy
     if int(numpy.__version__.split('.')[0]) < 1:
         print('pyOptSparse requires NumPy version 1.0 or later (%s detected).' %numpy.__version__)
         sys.exit(-1)
-    #end
 except ImportError as e:
     print('NumPy version 1.0 or later must be installed to build pyOptSparse')
     sys.exit(-1)
-#end
 
 if sys.argv[-1].endswith('setup.py'):
     print('\nTo install, run "python setup.py install"\n\nTo build, run "python setup.py inplace"\n')
     sys.exit(-1)
-#end
 
 if sys.argv[1] == 'inplace':
-    sys.argv[1:2] = ['build_src','--inplace','build_ext','--inplace','build']
-#end
+    print sys.argv
+    arg = []
+    i = 2
+    while i < len(sys.argv):
+        if (sys.argv[i].startswith('--compiler=') or sys.argv[i].startswith('--fcompiler=')):
+            arg.append(sys.argv[i])
+            del sys.argv[i]
+        else:
+            i += 1
+
+    del sys.argv[1]
+    sys.argv.append('build')
+    sys.argv.extend(arg)
+    sys.argv.extend(['build_src', '--inplace'])
+    sys.argv.extend(['build_ext', '--inplace'])
 
 if sys.argv[1] == 'install':
     arg = []
@@ -41,13 +49,9 @@ if sys.argv[1] == 'install':
             del sys.argv[i]
         else:
             i += 1
-        #end
-    #end
     if arg != []:
         arg.insert(0,'build')
         sys.argv[1:1] = arg
-    #end
-#end
 
 if sys.argv[1] == 'compilers':
     del sys.argv[1]
@@ -57,8 +61,6 @@ if sys.argv[1] == 'compilers':
     from numpy.distutils.ccompiler import show_compilers
     show_compilers()
     sys.exit()
-#end
-
 
 class build_opt(build_ext):
     def build_extension(self, ext):
@@ -67,10 +69,6 @@ class build_opt(build_ext):
         except:
             self.announce('*** WARNING: Building of optimizer "%s" '
             'failed: %s' %(ext.name, sys.exc_info()[1]))
-        #end
-    #end
-#end
-
 
 def configuration(parent_package='',top_path=None):
     
@@ -81,11 +79,8 @@ def configuration(parent_package='',top_path=None):
                        assume_default_configuration=True,
                        delegate_options_to_subpackages=True,
                        quiet=True)
-    
     config.add_subpackage('pyoptsparse')
-    
     return config
-    
 
 if __name__ == '__main__':
     from numpy.distutils.core import setup

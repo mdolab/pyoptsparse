@@ -94,45 +94,45 @@
 *         FUNCTION, X(NF) IS A VECTOR OF VARIABLES AND GC(NF) IS THE
 *         GRADIENT OF THE CONSTRAINT FUNCTION.
 *
-      SUBROUTINE PSQPN(NF,NB,NC,X,IX,XL,XU,CF,IC,CL,CU,IPAR,RPAR,
-     +                 F,GMAX,CMAX,IPRNT,ITERM)
-*
-*     POINTERS FOR AUXILIARY ARRAYS
-*
-      DOUBLE PRECISION F,CMAX,GMAX
-      INTEGER          IPRNT,ITERM,NB,NC,NF
-      DOUBLE PRECISION CF(*),CL(*),CU(*),RPAR(5),X(*),XL(*),XU(*)
-      INTEGER          IC(*),IPAR(6),IX(*)
-      INTEGER          NADD,NDEC,NFG,NFH,NFV,NIT,NREM,NRES
-      INTEGER          LCFD,LCFO,LCG,LCP,LCR,LCZ,LG,LGC,LGF,LGO,LH,LIA,
-     +                 LS,LXO
-      COMMON           /STAT/NRES,NDEC,NREM,NADD,NIT,NFV,NFG,NFH
-      INTEGER IA(:)
-      DOUBLE PRECISION RA(:)
-      ALLOCATABLE IA,RA
-      ALLOCATE (IA(NF),RA((NF+NC+8)*NF+3*NC+1))
-      LCG = 1
-      LCFO = LCG + NF*NC
-      LCFD = LCFO + NC + 1
-      LGC = LCFD + NC
-      LCR = LGC + NF
-      LCZ = LCR + NF*(NF+1)/2
-      LCP = LCZ + NF
-      LGF = LCP + NC
-      LG = LGF + NF
-      LH = LG + NF
-      LS = LH + NF* (NF+1)/2
-      LXO = LS + NF
-      LGO = LXO + NF
-      LIA = 1
-      CALL PSQP(NF,NB,NC,X,IX,XL,XU,CF,IC,CL,CU,RA,RA(LCFO),RA(LCFD),
-     +          RA(LGC),IA,RA(LCR),RA(LCZ),RA(LCP),RA(LGF),RA(LG),
-     +          RA(LH),RA(LS),RA(LXO),RA(LGO),RPAR(1),RPAR(2),RPAR(3),
-     +          RPAR(4),RPAR(5),CMAX,GMAX,F,IPAR(1),IPAR(2),IPAR(5),
-     +          IPAR(6),IPRNT,ITERM)
-      DEALLOCATE(IA,RA)
-      RETURN
-      END
+c$$$      SUBROUTINE PSQPN(NF,NB,NC,X,IX,XL,XU,CF,IC,CL,CU,IPAR,RPAR,
+c$$$     +                 F,GMAX,CMAX,IPRNT,ITERM)
+c$$$*
+c$$$*     POINTERS FOR AUXILIARY ARRAYS
+c$$$*
+c$$$      DOUBLE PRECISION F,CMAX,GMAX
+c$$$      INTEGER          IPRNT,ITERM,NB,NC,NF
+c$$$      DOUBLE PRECISION CF(*),CL(*),CU(*),RPAR(5),X(*),XL(*),XU(*)
+c$$$      INTEGER          IC(*),IPAR(6),IX(*)
+c$$$      INTEGER          NADD,NDEC,NFG,NFH,NFV,NIT,NREM,NRES
+c$$$      INTEGER          LCFD,LCFO,LCG,LCP,LCR,LCZ,LG,LGC,LGF,LGO,LH,LIA,
+c$$$     +                 LS,LXO
+c$$$      COMMON           /STAT/NRES,NDEC,NREM,NADD,NIT,NFV,NFG,NFH
+c$$$      INTEGER IA(:)
+c$$$      DOUBLE PRECISION RA(:)
+c$$$      ALLOCATABLE IA,RA
+c$$$      ALLOCATE (IA(NF),RA((NF+NC+8)*NF+3*NC+1))
+c$$$      LCG = 1
+c$$$      LCFO = LCG + NF*NC
+c$$$      LCFD = LCFO + NC + 1
+c$$$      LGC = LCFD + NC
+c$$$      LCR = LGC + NF
+c$$$      LCZ = LCR + NF*(NF+1)/2
+c$$$      LCP = LCZ + NF
+c$$$      LGF = LCP + NC
+c$$$      LG = LGF + NF
+c$$$      LH = LG + NF
+c$$$      LS = LH + NF* (NF+1)/2
+c$$$      LXO = LS + NF
+c$$$      LGO = LXO + NF
+c$$$      LIA = 1
+c$$$      CALL PSQP(NF,NB,NC,X,IX,XL,XU,CF,IC,CL,CU,RA,RA(LCFO),RA(LCFD),
+c$$$     +          RA(LGC),IA,RA(LCR),RA(LCZ),RA(LCP),RA(LGF),RA(LG),
+c$$$     +          RA(LH),RA(LS),RA(LXO),RA(LGO),RPAR(1),RPAR(2),RPAR(3),
+c$$$     +          RPAR(4),RPAR(5),CMAX,GMAX,F,IPAR(1),IPAR(2),IPAR(5),
+c$$$     +          IPAR(6),IPRNT,ITERM)
+c$$$      DEALLOCATE(IA,RA)
+c$$$      RETURN
+c$$$      END
 ************************************************************************
 * SUBROUTINE PSQP               ALL SYSTEMS                   97/01/22
 * PURPOSE :

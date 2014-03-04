@@ -20,7 +20,7 @@ def objfunc(xx):
     return funcs, fail
 
 # Optimization Object
-optProb = Optimization('HS15 Constraint Problem', objfunc)
+optProb = Optimization('TP037 Constraint Problem', objfunc)
 
 # Design Variables
 optProb.addVarGroup('xvars', 3, 'c',lower=[0,0,0], upper=[42,42,42], value=10)
