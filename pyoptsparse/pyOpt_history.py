@@ -53,6 +53,10 @@ class History(object):
     def __init__(self, fileName, temp=False, flag=''):
 
         if flag == '':
+            # If we are writing, we expliclty remove the file to
+            # prevent old keys from "polluting" the new histrory
+            if os.path.exists(fileName):
+                os.remove(fileName)
             self.db = shelve.open(fileName, protocol=2, writeback=True)
         else:
             self.db = shelve.open(fileName, protocol=2, flag=flag)

@@ -33,8 +33,9 @@ from pyoptsparse import Optimization, OPT
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--opt",help="optimizer",type=str, default='SNOPT')
+parser.add_argument('--optOptions', type=str, help='Options for the optimizer', default="{}")
 args = parser.parse_args()
-optOptions = {}
+exec('optOptions=%s'% args.optOptions)
 USE_LINEAR=True
 
 def objfunc(xdict):
