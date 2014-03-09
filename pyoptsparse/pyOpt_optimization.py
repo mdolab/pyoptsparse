@@ -1012,7 +1012,8 @@ has already been used.'% name)
                     
                 # Make sure it is at least 1dimension:
                 c = numpy.atleast_1d(fcon_in[iCon])
-                        
+                if dtype == 'd':
+                    c = numpy.real(c)
                 # Make sure it is the correct size:
                 if len(c) == self.constraints[iCon].ncon:
                     fcon[con.rs:con.re] = c
