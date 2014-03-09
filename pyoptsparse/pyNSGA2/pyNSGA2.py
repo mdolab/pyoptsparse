@@ -207,27 +207,20 @@ class NSGA2(Optimizer):
                         opt('pCross_bin'), opt('pMut_bin'), printout,seed, opt('xinit'))
             optTime = time.time() - t0
 
-            if MPI:
-                # Broadcast a -1 to indcate NSGA2 has finished
-                self.optProb.comm.bcast(-1, root=0)
+            # Broadcast a -1 to indcate NSGA2 has finished
+            self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
             sol_inform = {}
             #sol_inform['value'] = inform
             #sol_inform['text'] = self.informs[inform[0]]
 
+            xstar = [0.]*n
+            for i in xrange(n):
+                xstar[i] = nsga2.doubleArray_getitem(x,i)
+
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff)
-
-            # Now set the x-values:
-            i = 0
-            for dvSet in sol.variables.keys():
-                for dvGroup in sol.variables[dvSet]:
-                    for var in sol.variables[dvSet][dvGroup]:
-                        var.value = xs[i]
-                        i += 1
-
-            sol.fStar = ff
+            sol = self._createSolution(optTime, sol_inform, ff, xstar)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
@@ -243,19 +236,3 @@ class NSGA2(Optimizer):
 
     def _on_getOption(self, name, value):
         pass
-
-        # fstar = [0.]*l
-        # for i in xrange(l):
-        #     fstar[i] = nsga2.doubleArray_getitem(f,i)
-        #     i += 1
-        # #end
-        
-        # xstar = [0.]*n
-        # for i in xrange(n):
-        #     xstar[i] = nsga2.doubleArray_getitem(x,i)
-        # #end
-        
-        # inform = {}
-        
-        # return fstar, xstar, {'fevals':nfeval,'time':sol_time,'inform':inform}
-        
