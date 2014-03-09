@@ -629,11 +629,12 @@ match the number in the current optimization. Ignorning coldStart file')
         """
         Broadcast the solution from the root proc back to everyone. We
         have to be a little careful since we can't in general
-        broadcast the function so we have to set manually after the broadcast.
+        broadcast the function and commso we have to set manually after the broadcast.
         """
 
         sol = self.optProb.comm.bcast(sol)
         sol.objFun = self.optProb.objFun
+        sol.comm = self.optProb.comm
 
         return sol
 
@@ -745,8 +746,8 @@ def OPT(optName, *args, **kwargs):
        """
 
     optName = optName.lower()
-    optList = ['snopt', 'ipopt', 'slsqp', 'fsqp', 'nlpql', 
-               'conmin', 'nsga2', 'nlpy_auglag', 'psqp']
+    optList = ['snopt', 'ipopt', 'slsqp', 'fsqp', 'nlpql', 'conmin',
+               'nsga2', 'nlpy_auglag', 'psqp', 'alpso']
     if optName == 'snopt':
         from .pySNOPT.pySNOPT import SNOPT as opt
     elif optName == 'ipopt':
@@ -764,7 +765,9 @@ def OPT(optName, *args, **kwargs):
     elif optName == 'nsga2':
         from .pyNSGA2.pyNSGA2 import NSGA2 as opt
     elif optName == 'nlpy_auglag':
-        from .pyNLPY_AUGLAG import NLPY_AUGLAG as opt
+        from .pyNLPY_AUGLAG.pyNLPY_AUGLAG import NLPY_AUGLAG as opt
+    elif optName == 'alpso':
+        from .pyALPSO.pyALPSO import ALPSO as opt
     else:
         raise Error("The optimizer specified in 'optName' was \
 not reconginzed. The current list of supported optimizers is: %s" % 

@@ -1,6 +1,6 @@
 #/bin/env python
 """
-pySLSQP - A variation of the pySLSQP wrapper specificially designed to
+pyNSGA2 - A variation of the pyNSGA2 wrapper specificially designed to
 work with sparse optimization problems.
 
 Copyright (c) 2013-2014 by Dr. Gaetan Kenway
@@ -21,7 +21,7 @@ History
 from __future__ import absolute_import
 from __future__ import print_function
 # =============================================================================
-# SLSQP Library
+# NSGA2 Library
 # =============================================================================
 try:
     from . import nsga2
