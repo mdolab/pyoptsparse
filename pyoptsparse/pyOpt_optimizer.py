@@ -22,7 +22,6 @@ import copy
 import shelve
 import numpy
 from scipy import sparse
-from mpi4py import MPI
 from .pyOpt_gradient import Gradient
 from .pyOpt_error import Error
 from .pyOpt_history import History
@@ -280,12 +279,12 @@ match the number in the current optimization. Ignorning coldStart file')
         # broadcast to know what to do.
 
         args = [x, evaluate]
-        if MPI:
-            # Broadcast the type of call (0 means regular call)
-            self.optProb.comm.bcast(0, root=0)
 
-            # Now broadcast out the required arguments:
-            self.optProb.comm.bcast(args)
+        # Broadcast the type of call (0 means regular call)
+        self.optProb.comm.bcast(0, root=0)
+
+        # Now broadcast out the required arguments:
+        self.optProb.comm.bcast(args)
 
         result = self._masterFunc2(*args)
         self.interfaceTime += time.time()-timeA
@@ -601,7 +600,7 @@ match the number in the current optimization. Ignorning coldStart file')
 
         return numpy.squeeze(ff)
 
-    def _createSolution(self, optTime, sol_inform, obj):
+    def _createSolution(self, optTime, sol_inform, obj, xopt):
         """
         Generic routine to create the solution after an optimizer
         finishes.
@@ -613,15 +612,16 @@ match the number in the current optimization. Ignorning coldStart file')
         sol.userSensCalls = self.userSensCalls
         sol.interfaceTime = self.interfaceTime - self.userSensTime - self.userObjTime
         sol.optCodeTime = sol.optTime - self.interfaceTime 
-
-        # # Now set the x-values:
-        # i = 0
-        # for dvSet in sol.variables.keys():
-        #     for dvGroup in sol.variables[dvSet]:
-        #         for var in sol.variables[dvSet][dvGroup]:
-        #             var.value = xs[i]
-        #             i += 1
         sol.fStar = obj
+        
+        # Now set the x-values:
+        i = 0
+        for dvSet in sol.variables.keys():
+            for dvGroup in sol.variables[dvSet]:
+                for var in sol.variables[dvSet][dvGroup]:
+                    var.value = xopt[i]
+                    i += 1
+
 
         return sol
 

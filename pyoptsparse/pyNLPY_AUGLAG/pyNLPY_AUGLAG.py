@@ -46,7 +46,6 @@ import copy
 import numpy
 eps = numpy.finfo(1.0).eps
 import logging
-from mpi4py import MPI
 # ===========================================================================
 # Extension modules
 # ===========================================================================
@@ -325,7 +324,8 @@ be installed to use NLPY_AUGLAG.')
         sol_inform = {}
         sol_inform['value'] = solver.status
         sol_inform['text'] = self.informs[solver.status]
-        sol = self._createSolution(optTime, sol_inform, solver.f)
+        xopt = numpy.zeros_like(xs) # This needs to be replaced with actual x*
+        sol = self._createSolution(optTime, sol_inform, solver.f, xopt)
 
         return sol
 

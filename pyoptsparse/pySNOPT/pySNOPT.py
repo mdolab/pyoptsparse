@@ -488,6 +488,9 @@ class SNOPT(Optimizer):
                          nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
             optTime = time.time()-timeA
 
+            # Indicate solution finished
+            self.optProb.comm.bcast(-1, root=0)
+            
             if self.storeHistory:
                 # Record the full state of variables, xs and hs such
                 # that we could perform a warm start.
@@ -506,10 +509,8 @@ class SNOPT(Optimizer):
             sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff)
+            sol = self._createSolution(optTime, sol_inform, ff, xs)
 
-            # Indicate solution finished
-            self.optProb.comm.bcast(-1, root=0)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()

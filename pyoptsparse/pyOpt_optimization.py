@@ -40,7 +40,6 @@ use:\n pip install ordereddict')
 import numpy
 # pylint: disable-msg=E0611
 from scipy import sparse
-from mpi4py import MPI
 # =============================================================================
 # Extension modules
 # =============================================================================
@@ -48,6 +47,7 @@ from .pyOpt_variable import Variable
 from .pyOpt_objective import Objective
 from .pyOpt_constraint import Constraint
 from .pyOpt_error import Error
+from .pyOpt_MPI import MPI
 # =============================================================================
 # Misc Definitions
 # =============================================================================
@@ -421,7 +421,6 @@ addVarGroup is %d, but the number of variables in nVars is %d.'% (
         variables = self.comm.bcast(variables, root=0)
 
         return variables
-    
 
     def addObj(self, name, *args, **kwargs):
         """
@@ -710,7 +709,7 @@ has already been used.'% name)
         self.nCon = 0
         for iCon in self.constraints:
             self.nCon += self.constraints[iCon].ncon
-
+            
         # Loop over the constraints assigning the row start (rs) and
         # row end (re) values. The actual ordering depends on if
         # constraints are reordered or not.
@@ -1012,7 +1011,8 @@ has already been used.'% name)
                     
                 # Make sure it is at least 1dimension:
                 c = numpy.atleast_1d(fcon_in[iCon])
-                        
+                if dtype == 'd':
+                    c = numpy.real(c)
                 # Make sure it is the correct size:
                 if len(c) == self.constraints[iCon].ncon:
                     fcon[con.rs:con.re] = c

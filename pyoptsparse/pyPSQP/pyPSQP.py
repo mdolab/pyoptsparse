@@ -35,7 +35,6 @@ import time
 # External Python modules
 # =============================================================================
 import numpy
-from mpi4py import MPI
 # ===========================================================================
 # Extension modules
 # ===========================================================================
@@ -264,9 +263,8 @@ Must be <= 2')
             if opt('IPRINT') > 0:
                 psqp.closeunit(opt('IPRINT'))
                 
-            if MPI:
-                # Broadcast a -1 to indcate SLSQP has finished
-                self.optProb.comm.bcast(-1, root=0)
+            # Broadcast a -1 to indcate SLSQP has finished
+            self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
             sol_inform = {}
@@ -274,17 +272,7 @@ Must be <= 2')
             # sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff)
-
-            # Now set the x-values:
-            i = 0
-            for dvSet in sol.variables.keys():
-                for dvGroup in sol.variables[dvSet]:
-                    for var in sol.variables[dvSet][dvGroup]:
-                        var.value = xs[i]
-                        i += 1
-
-            sol.fStar = ff
+            sol = self._createSolution(optTime, sol_inform, ff, xs)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
