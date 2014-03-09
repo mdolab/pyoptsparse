@@ -36,7 +36,6 @@ import time
 # External Python modules
 # =============================================================================
 import numpy
-from mpi4py import MPI
 # ===========================================================================
 # Extension modules
 # ===========================================================================
@@ -252,9 +251,8 @@ class CONMIN(Optimizer):
             if iprint > 0:
                 conmin.closeunit(self.getOption('IOUT'))
 
-            if MPI:
-                # Broadcast a -1 to indcate SLSQP has finished
-                self.optProb.comm.bcast(-1, root=0)
+            # Broadcast a -1 to indcate SLSQP has finished
+            self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
             sol_inform = {}
