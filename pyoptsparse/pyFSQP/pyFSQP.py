@@ -335,17 +335,7 @@ class FSQP(Optimizer):
             # sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff)
-
-            # Now set the x-values:
-            i = 0
-            for dvSet in sol.variables.keys():
-                for dvGroup in sol.variables[dvSet]:
-                    for var in sol.variables[dvSet][dvGroup]:
-                        var.value = xs[i]
-                        i += 1
-
-            sol.fStar = ff
+            sol = self._createSolution(optTime, sol_inform, ff, xs)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()

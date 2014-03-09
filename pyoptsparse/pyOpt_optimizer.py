@@ -601,7 +601,7 @@ match the number in the current optimization. Ignorning coldStart file')
 
         return numpy.squeeze(ff)
 
-    def _createSolution(self, optTime, sol_inform, obj):
+    def _createSolution(self, optTime, sol_inform, obj, xopt):
         """
         Generic routine to create the solution after an optimizer
         finishes.
@@ -613,15 +613,16 @@ match the number in the current optimization. Ignorning coldStart file')
         sol.userSensCalls = self.userSensCalls
         sol.interfaceTime = self.interfaceTime - self.userSensTime - self.userObjTime
         sol.optCodeTime = sol.optTime - self.interfaceTime 
-
-        # # Now set the x-values:
-        # i = 0
-        # for dvSet in sol.variables.keys():
-        #     for dvGroup in sol.variables[dvSet]:
-        #         for var in sol.variables[dvSet][dvGroup]:
-        #             var.value = xs[i]
-        #             i += 1
         sol.fStar = obj
+        
+        # Now set the x-values:
+        i = 0
+        for dvSet in sol.variables.keys():
+            for dvGroup in sol.variables[dvSet]:
+                for var in sol.variables[dvSet][dvGroup]:
+                    var.value = xopt[i]
+                    i += 1
+
 
         return sol
 
