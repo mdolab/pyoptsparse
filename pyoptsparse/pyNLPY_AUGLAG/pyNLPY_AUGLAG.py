@@ -46,7 +46,6 @@ import copy
 import numpy
 eps = numpy.finfo(1.0).eps
 import logging
-from mpi4py import MPI
 # ===========================================================================
 # Extension modules
 # ===========================================================================
