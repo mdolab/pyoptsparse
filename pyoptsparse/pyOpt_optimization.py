@@ -541,6 +541,33 @@ has already been used.'% name)
                 for i in range(groupLength):
                     self.variables[dvSet][dvGroup][i].value = inDVs[dvSet][dvGroup][i]
 
+    def setDVsFromHistory(self, histFile, key=None):
+        """
+        Set optimization variables from a previous optimization. This
+        is like a cold start, but some variables may have been added
+        or removed from the previous optimization. This will try to
+        set all variables it can.
+
+        Parameters
+        ----------
+        histFile : str
+            Filename of the history file to read
+        key : str
+            Key of the history file to use for the x values. The
+            default is None which will use the last x-value stored in
+            the dictionary.
+        """
+        
+        if os.path.exists(histFile):
+            hist = shelve.open(histFile, flag='r')
+            if key is None:
+                key = hist['last']
+                
+            self.setDVs(hist[key]['xuser'])
+            hist.close()
+        else:
+            raise Error("History file '%s' not found!."% histHist)
+        
     def printSparsity(self):
         """
         This function prints an (ascii) visualization of the jacobian
