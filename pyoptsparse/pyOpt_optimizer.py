@@ -224,41 +224,36 @@ match the number in the current optimization. Ignorning coldStart file')
 
                 # Since we know it is a valid point, we can be sure
                 # that it contains the information we need
-                fobj = None
-                fcon = None
-                gobj = None
-                gcon = None
-                if 'fobj' in evaluate:
-                    fobj = data['fobj']
-                if 'fcon' in evaluate:
-                    fcon = data['fcon']
-                if 'gobj' in evaluate:
-                    gobj = data['gobj']
-                if 'gcon' in evaluate:
-                    gcon = data['gcon']
+                funcs = None
+                funcsSens = None
+                if 'fobj' in evaluate or 'fcon' in evaluate:
+                    funcs = data['funcs']
+                if 'gobj' in evaluate or 'gcon' in evaluate:
+                    funcsSens = data['funcsSens']
                 fail = data['fail']
 
                 returns = []
                 xscaled = self.optProb.invXScale.dot(x)
-                # Process objective if we have one (them)
-                if fobj is not None:
-                    returns.append(self.optProb.processObjective(fobj))
 
-                # Process constraints if we have them
-                if fcon is not None:
-                    self.optProb.evaluateLinearConstraints(xscaled, fcon)
-                    fcon = self.optProb.processConstraints(fcon)
-                    returns.append(fcon)
-
-                # Process objective gradient
-                if gobj is not None:
-                    returns.append(self.optProb.processObjectiveGradient(gobj))
-
-                # Process constraint gradient
-                if gcon is not None:
-                    gcon = self.optProb.processConstraintJacobian(gcon)
+                # Process constraints/objectives
+                if funcs is not None:
+                    self.optProb.evaluateLinearConstraints(xscaled, funcs)
+                    fcon = self.optProb.processConstraints(funcs)
+                    fobj = self.optProb.processObjective(funcs)
+                    if 'fobj' in evaluate:
+                        returns.append(fobj)
+                    if 'fcon' in evaluate:
+                        returns.append(fcon)
+                        
+                # Process gradients if we have them
+                if funcsSens is not None:
+                    gobj = self.optProb.processObjectiveGradient(funcsSens)
+                    gcon = self.optProb.processConstraintJacobian(funcsSens)
                     gcon = self._convertJacobian(gcon)
-                    returns.append(gcon)
+                    if 'gobj' in evaluate:
+                        returns.append(gobj)
+                    if 'gcon' in evaluate:
+                        returns.append(gcon)
 
                 # We can now safely increment the call counter
                 self.callCounter += 1
