@@ -147,16 +147,6 @@ class NSGA2(Optimizer):
         ff = self._assembleObjective()
         oneSided = True
 
-        # Variables Handling
-        n = len(xs)
-        x = nsga2.new_doubleArray(n)
-        xl = nsga2.new_doubleArray(n)
-        xu = nsga2.new_doubleArray(n)
-        for i in range(n):
-            nsga2.doubleArray_setitem(x, i, xs[i])
-            nsga2.doubleArray_setitem(xl, i, blx[i])
-            nsga2.doubleArray_setitem(xu, i, bux[i])
-
         # Set the number of nonlinear constraints snopt *thinks* we have:
         if self.unconstrained:
             m = 0
@@ -174,16 +164,18 @@ class NSGA2(Optimizer):
         f = nsga2.new_doubleArray(1)
 
         if self.optProb.comm.rank == 0:
-            # Set history
-            self._setHistory(storeHistory)
+            # Set history/hotstart/coldstart
+            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
 
-            if coldStart is not None:
-                res1 = self._coldStart(coldStart)
-                if res1 is not None:
-                    xs[0:n] = res1
-
-            # Setup hot start if necessary
-            self._hotStart(storeHistory, hotStart)
+            # Variables Handling
+            n = len(xs)
+            x = nsga2.new_doubleArray(n)
+            xl = nsga2.new_doubleArray(n)
+            xu = nsga2.new_doubleArray(n)
+            for i in range(n):
+                nsga2.doubleArray_setitem(x, i, xs[i])
+                nsga2.doubleArray_setitem(xl, i, blx[i])
+                nsga2.doubleArray_setitem(xu, i, bux[i])
 
             # Setup argument list values
             nfeval = 0

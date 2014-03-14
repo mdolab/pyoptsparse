@@ -438,8 +438,6 @@ class SNOPT(Optimizer):
                 # Set them again!
                 self._set_snopt_options(iPrint, iSumm, cw, iw, rw)
 
-            # end if
-
             # Setup argument list values
             start = numpy.array(self.options['Start'][1])
             ObjAdd = numpy.array([0.], numpy.float)
@@ -466,8 +464,8 @@ class SNOPT(Optimizer):
             ninf = numpy.array([0], numpy.intc)
             sinf = numpy.array([0.], numpy.float)
 
-            # Set history
-            self._setHistory(storeHistory)
+            # Set history/hotstart/coldstart
+            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
 
             # Check for warm/cold start --- this is snopt specific so
             # we have a special function for this:
@@ -476,9 +474,6 @@ class SNOPT(Optimizer):
                 xs[0:nvar] = res1
             if res2 is not None:
                 hs = res2.copy()
-
-            # Setup hot start if necessary
-            self._hotStart(storeHistory, hotStart)
 
             # The snopt c interface
             timeA = time.time()

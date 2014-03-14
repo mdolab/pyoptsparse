@@ -148,9 +148,8 @@ class ALPSO(Optimizer):
         nobj = 1
         
         if self.optProb.comm.rank == 0:
-            # Set history
-            self._setHistory(storeHistory)
-            self.hotStart = None
+            # Set history/hotstart/coldstart
+            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
             
             # Setup argument list values
             opt = self.getOption

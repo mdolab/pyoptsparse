@@ -17,13 +17,14 @@ from __future__ import print_function
 # Imports
 # =============================================================================
 import os
+import sys
 import time
 import copy
 import shelve
 import numpy
 from scipy import sparse
 from .pyOpt_gradient import Gradient
-from .pyOpt_error import Error
+from .pyOpt_error import Error, pyOptSparseWarning
 from .pyOpt_history import History
 from .pyOpt_solution import Solution
 from .pyOpt_optimization import INFINITY
@@ -142,7 +143,7 @@ match the number in the current optimization. Ignorning coldStart file')
 
         return xCold
 
-    def _hotStart(self, storeHistory, hotStart):
+    def _setHistory(self, storeHistory, hotStart, coldStart, xs):
         """
         Generic routine for setting up the hot start information
 
@@ -153,8 +154,18 @@ match the number in the current optimization. Ignorning coldStart file')
 
         hotStart : str
             Filename for history file for hot start
-            """
 
+        coldStart : str
+            Filename for cold file start. You can have a hot and cold
+            start at the same time. 
+        xs : array
+            Array of variables to potentially update for a cold start
+
+        Returns
+        -------
+        xs : array
+            Possibly updated design variables
+        """
         # By default no hot start
         self.hotStart = None
 
@@ -171,22 +182,24 @@ match the number in the current optimization. Ignorning coldStart file')
                     shutil.copyfile(storeHistory, fname)
                     self.hotStart = History(fname, temp=True, flag='r')
             else:
-                self.hotStart = History(hotStart, temp=False, flag='r')
-
-    def _setHistory(self, storeHistory):
-        """Generic routine for setting history file if required
-
-        Parameters
-        ----------
-        storeHistory : str
-            Filename for history file for this optimization
-            """
+                if os.path.exists(hotStart):
+                    self.hotStart = History(hotStart, temp=False, flag='r')
+                else:
+                    pyOptSparseWarning('Hot start file does not exist. \
+                    Performning a regular start')
+                    
+        if coldStart is not None:
+            res1 = self._coldStart(coldStart)
+            if res1 is not None:
+                xs[0:n] = res1
 
         self.storeHistory = False
         if storeHistory:
             self.hist = History(storeHistory)
             self.storeHistory = True
 
+        return xs
+    
     def _masterFunc(self, x, evaluate):
         """
         This is the master function that **ALL** optimizers call from
@@ -214,14 +227,14 @@ match the number in the current optimization. Ignorning coldStart file')
         # fire it back to the specific optimizer
         timeA = time.time()
         if self.hotStart:
-
+           
             if self.hotStart.validPoint(self.callCounter, x):
                 data = self.hotStart.read(self.callCounter)
 
                 if self.storeHistory:
                     # Just dump the (exact) dictionary back out:
                     self.hist.write(self.callCounter, data)
-
+                    
                 # Since we know it is a valid point, we can be sure
                 # that it contains the information we need
                 funcs = None
@@ -230,6 +243,7 @@ match the number in the current optimization. Ignorning coldStart file')
                     funcs = data['funcs']
                 if 'gobj' in evaluate or 'gcon' in evaluate:
                     funcsSens = data['funcsSens']
+
                 fail = data['fail']
 
                 returns = []
@@ -373,7 +387,9 @@ match the number in the current optimization. Ignorning coldStart file')
                 # point requested for the derivative. Recusively call
                 # the routine with ['fobj', and 'fcon']
                 self._masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
-
+                # We *don't* count that extra call, since that will
+                # screw up the numbering...so we subtract the last call.
+                self.callCounter -= 1
             # Now, the point has been evaluated correctly so we
             # determine if we have to run the sens calc:
 
@@ -408,7 +424,9 @@ match the number in the current optimization. Ignorning coldStart file')
                 # point requested for the derivative. Recusively call
                 # the routine with ['fobj', and 'fcon']
                 self._masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
-
+                # We *don't* count that extra call, since that will
+                # screw up the numbering...so we subtract the last call.
+                self.callCounter -= 1
             # Now, the point has been evaluated correctly so we
             # determine if we have to run the sens calc:
             if self.cache['gcon'] is None:
