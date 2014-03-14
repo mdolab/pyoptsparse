@@ -180,13 +180,8 @@ class SLSQP(Optimizer):
             meq = len(tmp0)
 
         if self.optProb.comm.rank == 0:
-            # Set history
-            self._setHistory(storeHistory)
-
-            if coldStart is not None:
-                res1 = self._coldStart(coldStart)
-                if res1 is not None:
-                    xs[0:n] = res1
+            # Set history/hotstart/coldstart
+            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
 
             #=================================================================
             # SLSQP - Objective/Constraint Values Function
@@ -205,9 +200,6 @@ class SLSQP(Optimizer):
                 df[0:n] = gobj.copy()
                 dg[0:m,0:n] = -gcon.copy()
                 return df, dg
-
-            # Setup hot start if necessary
-            self._hotStart(storeHistory, hotStart)
 
             # Setup argument list values
             la = max(m, 1)

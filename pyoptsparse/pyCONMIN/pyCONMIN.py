@@ -164,13 +164,8 @@ class CONMIN(Optimizer):
             self.optProb.offset = buc
 
         if self.optProb.comm.rank == 0:
-            # Set history
-            self._setHistory(storeHistory)
-
-            if coldStart is not None:
-                res1 = self._coldStart(coldStart)
-                if res1 is not None:
-                    xs[0:nvar] = res1
+            # Set history/hotstart/coldstart
+            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
 
             #=================================================================
             # CONMIN - Objective/Constraint Values Function
@@ -200,9 +195,6 @@ class CONMIN(Optimizer):
 			nac += 1
 
                 return df, a, ic, nac
-
-            # Setup hot start if necessary
-            self._hotStart(storeHistory, hotStart)
 
             # Setup argument list values
             ndv = len(xs)

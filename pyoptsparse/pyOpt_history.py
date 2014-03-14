@@ -24,7 +24,7 @@ import os
 import shelve
 import numpy
 eps = numpy.finfo(1.0).eps
-
+from .pyOpt_error import Error, pyOptSparseWarning
 # =============================================================================
 # History Class
 # =============================================================================
@@ -59,7 +59,11 @@ class History(object):
                 os.remove(fileName)
             self.db = shelve.open(fileName, protocol=2, writeback=True)
         else:
-            self.db = shelve.open(fileName, protocol=2, flag=flag)
+            if os.path.exists(fileName):
+                self.db = shelve.open(fileName, protocol=2, flag=flag)
+            else:
+                raise Error('The requested history file %s to open in read-only\
+                mode does not exist.'% fileName)
 
         self.temp = temp
         self.fileName = fileName
@@ -101,10 +105,16 @@ class History(object):
 
         if key not in self.keys:
             return False
-
-        if numpy.linalg.norm(x-self.db[key]['x']) < eps:
-            return True
+        if len(x) == len(self.db[key]['x']):
+            if numpy.linalg.norm(x-self.db[key]['x']) < eps:
+                return True
+            else:
+                return False
         else:
+            pyOptSparseWarning("The number of x-variables in the\
+            history file '%s' was %d, but the number of variables\
+            in the current optimization is %d. Continuing without\
+            hot starting."% (self.fileName, len(self.db[key]['x']), len(x)))
             return False
 
     def read(self, callCounter):

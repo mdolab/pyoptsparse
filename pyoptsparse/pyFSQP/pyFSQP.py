@@ -153,7 +153,6 @@ class FSQP(Optimizer):
         blx, bux, xs = self._assembleContinuousVariables()
         ff = self._assembleObjective()
    
-
         # Determine all the constraint information, numbers etc. 
         if self.optProb.nCon > 0:
             # We need to reorder this full jacobian...so get ordering:
@@ -192,8 +191,9 @@ class FSQP(Optimizer):
         # We make a split here: If the rank is zero we setup the
         # problem and run SNOPT, otherwise we go to the waiting loop:
         if self.optProb.comm.rank == 0:
-            # Set history
-            self._setHistory(storeHistory)
+            # Set history/hotstart/coldstart
+            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
+
             #======================================================================
             # FSQP - Objective/Constraint Values Storage 
             #======================================================================
@@ -266,9 +266,6 @@ class FSQP(Optimizer):
 
                 return gradgj
 
-            blx, bux, xs = self._assembleContinuousVariables()
-            ff = self._assembleObjective()        
-
             # Setup argument list values
             nparam = len(xs)
             nvar = nparam
@@ -303,15 +300,6 @@ class FSQP(Optimizer):
             # Storage Arrays 
             self.storedData = {}
             self.storedData['x'] = None
-
-            # Do coldstart if necessary
-            if coldStart is not None:
-                res1 = self._coldStart(coldStart)
-                if res1 is not None:
-                    xs[0:nvar] = res1
-
-            # Setup hot start if necessary
-            self._hotStart(storeHistory, hotStart)
 
             # Run FSQP
             t0 = time.time()

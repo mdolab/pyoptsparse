@@ -190,13 +190,9 @@ class NLPQL(Optimizer):
             meq = len(tmp0)
 
         if self.optProb.comm.rank == 0:
-            # Set history
-            self._setHistory(storeHistory)
+            # Set history/hotstart/coldstart
+            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
 
-            if coldStart is not None:
-                res1 = self._coldStart(coldStart)
-                if res1 is not None:
-                    xs[0:nvar] = res1
             #======================================================================
             # NLPQL - Objective/Constraint Values Function (Real Valued) 
             #======================================================================
@@ -214,9 +210,6 @@ class NLPQL(Optimizer):
                 df[0:n] = gobj.copy()
                 dg[0:m,0:n] = -gcon.copy()
                 return df, dg
-
-            # Setup hot start if necessary
-            self._hotStart(storeHistory, hotStart)
 
             ncon = m
             neqc = meq

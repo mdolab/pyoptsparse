@@ -192,14 +192,8 @@ class PSQP(Optimizer):
             ic[0:len(tmp0)] = 5
 
         if self.optProb.comm.rank == 0:
-            # Set history
-            self._setHistory(storeHistory)
-
-            if coldStart is not None:
-                res1 = self._coldStart(coldStart)
-                if res1 is not None:
-                    xs[0:n] = res1
-
+            # Set history/hotstart/coldstart
+            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
 
             #======================================================================
             # PSQP - Objective Values Function
@@ -231,9 +225,6 @@ class PSQP(Optimizer):
                 gobj, gcon, fail = self._masterFunc(x, ['gobj', 'gcon'])
                 dg = gcon[k-1].copy()
                 return dg
-
-            # Setup hot start if necessary
-            self._hotStart(storeHistory, hotStart)
 
             # Setup argument list values
             iterm = 0
