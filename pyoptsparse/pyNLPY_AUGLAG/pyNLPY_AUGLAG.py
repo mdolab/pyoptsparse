@@ -75,7 +75,8 @@ class NLPY_AUGLAG(Optimizer):
         defOpts = {
         'Logger Name':[str,'nlpy_logging'],
         'Prefix':[str,'./'],
-        'Save Current Point':[bool,False],
+        'Save Current Point':[bool,True],
+        'Warm Restart':[bool,False],
         'Absolute Optimality Tolerance':[float,1.0e-6],
         'Relative Optimality Tolerance':[float,1.0e-6],
         'Absolute Feasibility Tolerance':[float,1.0e-6],
@@ -84,7 +85,8 @@ class NLPY_AUGLAG(Optimizer):
         'Use N-Y Backtracking':[bool,True],
         'Use Magical Steps':[bool,True],
         'Use Quasi-Newton Jacobian':[bool,True],
-        'Penalty Parameter':[float,10.]
+        'Penalty Parameter':[float,10.],
+        'Maximum Iterations':[int, 5000]
         }
         # Inform/Status codes go here
         informs = {
@@ -291,10 +293,13 @@ be installed to use NLPY_AUGLAG.')
             bqplogger.addHandler(hndlr)
             bqplogger.propagate = False
 
-            # pyOpt History logging for hot starts
-            self._setHistory(storeHistory)
-            self._hotStart(storeHistory, hotStart)
         # end if
+
+        # pyOpt History logging 
+        self._setHistory(storeHistory)
+
+        # This optimizer has no hot start capability (too many vectors)
+        self._hotStart(storeHistory, hotStart)
 
         # Step 3: Pass options and solve the problem
         timeA = time.time()
@@ -312,8 +317,10 @@ be installed to use NLPY_AUGLAG.')
                 qn_pairs=self.options['Number of Quasi-Newton Pairs'][1],
                 data_prefix=self.options['Prefix'][1],
                 save_data=self.options['Save Current Point'][1],
+                warmstart=self.options['Warm Restart'][1],
                 sparse_index=sparse_index,
-                rho_init=self.options['Penalty Parameter'][1])
+                rho_init=self.options['Penalty Parameter'][1],
+                max_inner_iter=self.options['Maximum Iterations'][1])
                 # data_prefix=prefix, save_data=False)
         else:
             # Try matrix-vector products with the exact Jacobian
@@ -327,7 +334,9 @@ be installed to use NLPY_AUGLAG.')
                 qn_pairs=self.options['Number of Quasi-Newton Pairs'][1],
                 data_prefix=self.options['Prefix'][1],
                 save_data=self.options['Save Current Point'][1],
-                rho_init=self.options['Penalty Parameter'][1])
+                warmstart=self.options['Warm Restart'][1],
+                rho_init=self.options['Penalty Parameter'][1],
+                max_inner_iter=self.options['Maximum Iterations'][1])
                 # sparse_index=struct_opt.num_dense_con,
                 # data_prefix=prefix, save_data=False)            
 
@@ -390,9 +399,9 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
         masterFail = False
 
         # History storage is a little different for the matrix-free case.
-        # We store the sequence of input and output vectors called for in 
-        # the optimizer. Storage of the objective function gradient is 
-        # unchanged.
+
+        # Storing the whole set of input and output vectors is ridiculously 
+        # expensive, so we only store function information.
 
         # Set basic parameters in history
         hist = {'x': x, 'xuser': xuser, 'xscaled': xscaled}
@@ -426,7 +435,7 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
 
             # gobj is now in the cache
             returns.append(self.cache['gobj'])
-            hist['gobj'] = self.cache['gobj_user']
+            # hist['gobj'] = self.cache['gobj_user']
 
         # Evaluate the matrix-vector products
         if 'gcon_prod' in evaluate or 'gcon_T_prod' in evaluate:
@@ -474,8 +483,8 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
 
             # Set return values and history logging
             returns.append(outvec)
-            hist['invec'] = invec
-            hist['outvec'] = outvec
+            # hist['invec'] = invec
+            # hist['outvec'] = outvec
 
         elif 'jac_prod' in evaluate or 'jac_T_prod' in evaluate:
             # Call the true matrix-vector product functions, no matrix formation
@@ -502,8 +511,8 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
 
             # Set return values and history logging
             returns.append(outvec)
-            hist['invec'] = invec
-            hist['outvec'] = outvec
+            # hist['invec'] = invec
+            # hist['outvec'] = outvec
 
         # end if 
 
