@@ -17,14 +17,14 @@ from __future__ import print_function
 # Imports
 # =============================================================================
 import os
+import sys
 import time
 import copy
 import shelve
 import numpy
 from scipy import sparse
-from mpi4py import MPI
 from .pyOpt_gradient import Gradient
-from .pyOpt_error import Error
+from .pyOpt_error import Error, pyOptSparseWarning
 from .pyOpt_history import History
 from .pyOpt_solution import Solution
 from .pyOpt_optimization import INFINITY
@@ -143,7 +143,7 @@ match the number in the current optimization. Ignorning coldStart file')
 
         return xCold
 
-    def _hotStart(self, storeHistory, hotStart):
+    def _setHistory(self, storeHistory, hotStart, coldStart, xs):
         """
         Generic routine for setting up the hot start information
 
@@ -154,8 +154,18 @@ match the number in the current optimization. Ignorning coldStart file')
 
         hotStart : str
             Filename for history file for hot start
-            """
 
+        coldStart : str
+            Filename for cold file start. You can have a hot and cold
+            start at the same time. 
+        xs : array
+            Array of variables to potentially update for a cold start
+
+        Returns
+        -------
+        xs : array
+            Possibly updated design variables
+        """
         # By default no hot start
         self.hotStart = None
 
@@ -172,22 +182,24 @@ match the number in the current optimization. Ignorning coldStart file')
                     shutil.copyfile(storeHistory, fname)
                     self.hotStart = History(fname, temp=True, flag='r')
             else:
-                self.hotStart = History(hotStart, temp=False, flag='r')
-
-    def _setHistory(self, storeHistory):
-        """Generic routine for setting history file if required
-
-        Parameters
-        ----------
-        storeHistory : str
-            Filename for history file for this optimization
-            """
+                if os.path.exists(hotStart):
+                    self.hotStart = History(hotStart, temp=False, flag='r')
+                else:
+                    pyOptSparseWarning('Hot start file does not exist. \
+                    Performning a regular start')
+                    
+        if coldStart is not None:
+            res1 = self._coldStart(coldStart)
+            if res1 is not None:
+                xs[0:n] = res1
 
         self.storeHistory = False
         if storeHistory:
             self.hist = History(storeHistory)
             self.storeHistory = True
 
+        return xs
+    
     def _masterFunc(self, x, evaluate):
         """
         This is the master function that **ALL** optimizers call from
@@ -215,51 +227,47 @@ match the number in the current optimization. Ignorning coldStart file')
         # fire it back to the specific optimizer
         timeA = time.time()
         if self.hotStart:
-
+           
             if self.hotStart.validPoint(self.callCounter, x):
                 data = self.hotStart.read(self.callCounter)
 
                 if self.storeHistory:
                     # Just dump the (exact) dictionary back out:
                     self.hist.write(self.callCounter, data)
-
+                    
                 # Since we know it is a valid point, we can be sure
                 # that it contains the information we need
-                fobj = None
-                fcon = None
-                gobj = None
-                gcon = None
-                if 'fobj' in evaluate:
-                    fobj = data['fobj']
-                if 'fcon' in evaluate:
-                    fcon = data['fcon']
-                if 'gobj' in evaluate:
-                    gobj = data['gobj']
-                if 'gcon' in evaluate:
-                    gcon = data['gcon']
+                funcs = None
+                funcsSens = None
+                if 'fobj' in evaluate or 'fcon' in evaluate:
+                    funcs = data['funcs']
+                if 'gobj' in evaluate or 'gcon' in evaluate:
+                    funcsSens = data['funcsSens']
+
                 fail = data['fail']
 
                 returns = []
                 xscaled = self.optProb.invXScale.dot(x)
-                # Process objective if we have one (them)
-                if fobj is not None:
-                    returns.append(self.optProb.processObjective(fobj))
 
-                # Process constraints if we have them
-                if fcon is not None:
-                    self.optProb.evaluateLinearConstraints(xscaled, fcon)
-                    fcon = self.optProb.processConstraints(fcon)
-                    returns.append(fcon)
-
-                # Process objective gradient
-                if gobj is not None:
-                    returns.append(self.optProb.processObjectiveGradient(gobj))
-
-                # Process constraint gradient
-                if gcon is not None:
-                    gcon = self.optProb.processConstraintJacobian(gcon)
+                # Process constraints/objectives
+                if funcs is not None:
+                    self.optProb.evaluateLinearConstraints(xscaled, funcs)
+                    fcon = self.optProb.processConstraints(funcs)
+                    fobj = self.optProb.processObjective(funcs)
+                    if 'fobj' in evaluate:
+                        returns.append(fobj)
+                    if 'fcon' in evaluate:
+                        returns.append(fcon)
+                        
+                # Process gradients if we have them
+                if funcsSens is not None:
+                    gobj = self.optProb.processObjectiveGradient(funcsSens)
+                    gcon = self.optProb.processConstraintJacobian(funcsSens)
                     gcon = self._convertJacobian(gcon)
-                    returns.append(gcon)
+                    if 'gobj' in evaluate:
+                        returns.append(gobj)
+                    if 'gcon' in evaluate:
+                        returns.append(gcon)
 
                 # We can now safely increment the call counter
                 self.callCounter += 1
@@ -280,12 +288,12 @@ match the number in the current optimization. Ignorning coldStart file')
         # broadcast to know what to do.
 
         args = [x, evaluate]
-        if MPI:
-            # Broadcast the type of call (0 means regular call)
-            self.optProb.comm.bcast(0, root=0)
 
-            # Now broadcast out the required arguments:
-            self.optProb.comm.bcast(args)
+        # Broadcast the type of call (0 means regular call)
+        self.optProb.comm.bcast(0, root=0)
+
+        # Now broadcast out the required arguments:
+        self.optProb.comm.bcast(args)
 
         result = self._masterFunc2(*args)
         self.interfaceTime += time.time()-timeA
@@ -379,7 +387,9 @@ match the number in the current optimization. Ignorning coldStart file')
                 # point requested for the derivative. Recusively call
                 # the routine with ['fobj', and 'fcon']
                 self._masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
-
+                # We *don't* count that extra call, since that will
+                # screw up the numbering...so we subtract the last call.
+                self.callCounter -= 1
             # Now, the point has been evaluated correctly so we
             # determine if we have to run the sens calc:
 
@@ -414,7 +424,9 @@ match the number in the current optimization. Ignorning coldStart file')
                 # point requested for the derivative. Recusively call
                 # the routine with ['fobj', and 'fcon']
                 self._masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
-
+                # We *don't* count that extra call, since that will
+                # screw up the numbering...so we subtract the last call.
+                self.callCounter -= 1
             # Now, the point has been evaluated correctly so we
             # determine if we have to run the sens calc:
             if self.cache['gcon'] is None:
@@ -601,7 +613,7 @@ match the number in the current optimization. Ignorning coldStart file')
 
         return numpy.squeeze(ff)
 
-    def _createSolution(self, optTime, sol_inform, obj):
+    def _createSolution(self, optTime, sol_inform, obj, xopt):
         """
         Generic routine to create the solution after an optimizer
         finishes.
@@ -613,15 +625,16 @@ match the number in the current optimization. Ignorning coldStart file')
         sol.userSensCalls = self.userSensCalls
         sol.interfaceTime = self.interfaceTime - self.userSensTime - self.userObjTime
         sol.optCodeTime = sol.optTime - self.interfaceTime 
-
-        # # Now set the x-values:
-        # i = 0
-        # for dvSet in sol.variables.keys():
-        #     for dvGroup in sol.variables[dvSet]:
-        #         for var in sol.variables[dvSet][dvGroup]:
-        #             var.value = xs[i]
-        #             i += 1
         sol.fStar = obj
+        
+        # Now set the x-values:
+        i = 0
+        for dvSet in sol.variables.keys():
+            for dvGroup in sol.variables[dvSet]:
+                for var in sol.variables[dvSet][dvGroup]:
+                    var.value = xopt[i]
+                    i += 1
+
 
         return sol
 
@@ -629,11 +642,12 @@ match the number in the current optimization. Ignorning coldStart file')
         """
         Broadcast the solution from the root proc back to everyone. We
         have to be a little careful since we can't in general
-        broadcast the function so we have to set manually after the broadcast.
+        broadcast the function and commso we have to set manually after the broadcast.
         """
 
         sol = self.optProb.comm.bcast(sol)
         sol.objFun = self.optProb.objFun
+        sol.comm = self.optProb.comm
 
         return sol
 
@@ -745,8 +759,8 @@ def OPT(optName, *args, **kwargs):
        """
 
     optName = optName.lower()
-    optList = ['snopt', 'ipopt', 'slsqp', 'fsqp', 'nlpql', 
-               'conmin', 'nsga2', 'nlpy_auglag', 'psqp']
+    optList = ['snopt', 'ipopt', 'slsqp', 'fsqp', 'nlpql', 'conmin',
+               'nsga2', 'nlpy_auglag', 'psqp', 'alpso']
     if optName == 'snopt':
         from .pySNOPT.pySNOPT import SNOPT as opt
     elif optName == 'ipopt':
@@ -764,7 +778,9 @@ def OPT(optName, *args, **kwargs):
     elif optName == 'nsga2':
         from .pyNSGA2.pyNSGA2 import NSGA2 as opt
     elif optName == 'nlpy_auglag':
-        from .pyNLPY_AUGLAG import NLPY_AUGLAG as opt
+        from .pyNLPY_AUGLAG.pyNLPY_AUGLAG import NLPY_AUGLAG as opt
+    elif optName == 'alpso':
+        from .pyALPSO.pyALPSO import ALPSO as opt
     else:
         raise Error("The optimizer specified in 'optName' was \
 not reconginzed. The current list of supported optimizers is: %s" % 

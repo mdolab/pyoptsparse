@@ -36,7 +36,6 @@ import time
 # External Python modules
 # =============================================================================
 import numpy
-from mpi4py import MPI
 # ===========================================================================
 # Extension modules
 # ===========================================================================
@@ -181,13 +180,8 @@ class SLSQP(Optimizer):
             meq = len(tmp0)
 
         if self.optProb.comm.rank == 0:
-            # Set history
-            self._setHistory(storeHistory)
-
-            if coldStart is not None:
-                res1 = self._coldStart(coldStart)
-                if res1 is not None:
-                    xs[0:n] = res1
+            # Set history/hotstart/coldstart
+            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
 
             #=================================================================
             # SLSQP - Objective/Constraint Values Function
@@ -206,9 +200,6 @@ class SLSQP(Optimizer):
                 df[0:n] = gobj.copy()
                 dg[0:m,0:n] = -gcon.copy()
                 return df, dg
-
-            # Setup hot start if necessary
-            self._hotStart(storeHistory, hotStart)
 
             # Setup argument list values
             la = max(m, 1)
@@ -247,12 +238,14 @@ class SLSQP(Optimizer):
                         ngrad, slfunc, slgrad)
             optTime = time.time() - t0
 
+            if self.storeHistory:
+                self.hist.close()
+
             if iprint > 0:
                 slsqp.closeunit(self.getOption('IOUT'))
 
-            if MPI:
-                # Broadcast a -1 to indcate SLSQP has finished
-                self.optProb.comm.bcast(-1, root=0)
+            # Broadcast a -1 to indcate SLSQP has finished
+            self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
             sol_inform = {}
@@ -260,17 +253,7 @@ class SLSQP(Optimizer):
             #sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff)
-
-            # Now set the x-values:
-            i = 0
-            for dvSet in sol.variables.keys():
-                for dvGroup in sol.variables[dvSet]:
-                    for var in sol.variables[dvSet][dvGroup]:
-                        var.value = xs[i]
-                        i += 1
-
-            sol.fStar = ff
+            sol = self._createSolution(optTime, sol_inform, ff, xs)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()

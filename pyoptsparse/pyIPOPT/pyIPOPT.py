@@ -216,8 +216,9 @@ class IPOPT(Optimizer):
             # .col attributes of the fullJacobian array
             matStruct = (jac.row.copy().astype('int_'),
                          jac.col.copy().astype('int_'))
-            self._setHistory(storeHistory)
-            self._hotStart(storeHistory, hotStart)
+
+            # Set history/hotstart/coldstart
+            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
 
             # Define the 4 call back functions that ipopt needs:
             def eval_f(x, user_data=None):
@@ -260,7 +261,7 @@ class IPOPT(Optimizer):
             # sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, obj)
+            sol = self._createSolution(optTime, sol_inform, obj, x)
 
             # Indicate solution finished
             self.optProb.comm.bcast(-1, root=0)
