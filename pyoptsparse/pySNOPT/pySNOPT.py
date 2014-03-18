@@ -438,8 +438,6 @@ class SNOPT(Optimizer):
                 # Set them again!
                 self._set_snopt_options(iPrint, iSumm, cw, iw, rw)
 
-            # end if
-
             # Setup argument list values
             start = numpy.array(self.options['Start'][1])
             ObjAdd = numpy.array([0.], numpy.float)
@@ -466,8 +464,8 @@ class SNOPT(Optimizer):
             ninf = numpy.array([0], numpy.intc)
             sinf = numpy.array([0.], numpy.float)
 
-            # Set history
-            self._setHistory(storeHistory)
+            # Set history/hotstart/coldstart
+            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
 
             # Check for warm/cold start --- this is snopt specific so
             # we have a special function for this:
@@ -477,9 +475,6 @@ class SNOPT(Optimizer):
             if res2 is not None:
                 hs = res2.copy()
 
-            # Setup hot start if necessary
-            self._hotStart(storeHistory, hotStart)
-
             # The snopt c interface
             timeA = time.time()
             snopt.snoptc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
@@ -488,6 +483,9 @@ class SNOPT(Optimizer):
                          nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
             optTime = time.time()-timeA
 
+            # Indicate solution finished
+            self.optProb.comm.bcast(-1, root=0)
+            
             if self.storeHistory:
                 # Record the full state of variables, xs and hs such
                 # that we could perform a warm start.
@@ -506,10 +504,8 @@ class SNOPT(Optimizer):
             sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff)
+            sol = self._createSolution(optTime, sol_inform, ff, xs)
 
-            # Indicate solution finished
-            self.optProb.comm.bcast(-1, root=0)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()

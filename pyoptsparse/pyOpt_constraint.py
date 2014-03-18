@@ -52,9 +52,9 @@ class Constraint(object):
         elif len(lower) == self.ncon:
             pass  # Some iterable object
         else:
-            raise Error('The \'lower\' argument to addCon or addConGroup is \
-            invalid. It must be None, a scalar, or a list/array or length \
-            ncon=%d.' %(nCon))
+            raise Error("The 'lower' argument to addCon or addConGroup is "
+                        "invalid. It must be None, a scalar, or a "
+                        "list/array or length ncon=%d." % nCon)
 
         if upper is None:
             upper = [None for i in range(self.ncon)]
@@ -63,9 +63,9 @@ class Constraint(object):
         elif len(upper) == self.ncon:
             pass  # Some iterable object
         else:
-            raise Error('The \'upper\' argument to addCon or addConGroup is \
-            invalid. It must be None, a scalar, or a list/array or length \
-            ncon=%d.' %(nCon))
+            raise Error("The 'upper' argument to addCon or addConGroup is "
+                        "invalid. It must be None, a scalar, or a "
+                        "list/array or length ncon=%d." %nCon)
 
         # ------ Process the scale argument
         scale = numpy.atleast_1d(scale)
@@ -74,9 +74,9 @@ class Constraint(object):
         elif len(scale) == nCon:
             pass
         else:
-            raise Error('The length of the \'scale\' argument to \
-            addCon or addConGroup is %d, but the number of constraints \
-            is %d.'%(len(scale), nCon))
+            raise Error("The length of the 'scal\' argument to "
+                        "addCon or addConGroup is %d, but the number of "
+                        "constraints is %d."% (len(scale), nCon))
 
         # Save lower and upper...they are only used for printing however
         self.lower = lower
@@ -231,8 +231,8 @@ class Constraint(object):
                 try:
                     self.wrt = list(self.wrt)
                 except:
-                    raise Error("The 'wrt' argument to constraint '%s' must \
-                    be an iterable list'"% self.name)
+                    raise Error("The 'wrt' argument to constraint '%s' must "
+                                "be an iterable list"% self.name)
 
             # We allow 'None' to be in the list...they are null so
             # just pop them out:
@@ -242,10 +242,11 @@ class Constraint(object):
             # *actually* are DVsets
             for dvSet in self.wrt:
                 if not dvSet in variables:
-                    raise Error('The supplied dvSet \'%s\' in \'wrt\' \
-for the %s constraint, does not exist. It must be added with a call to \
-addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'% (
-                            dvSet, self.name, dvSet))
+                    raise Error("The supplied dvSet '%s' in 'wrt' "
+                                "for the %s constraint, does not exist. It "
+                                "must be added with a call to addVar() or "
+                                "addVarGroup() with a dvSet='%s' keyword "
+                                "argument."% (dvSet, self.name, dvSet))
 
         # Last thing for wrt is to reorder them such that dvsets are
         # in order. This way when the jacobian is assembled in
@@ -264,16 +265,15 @@ addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'% (
         # Now, it is possible that jacobians were given for none, some
         # or all the dvSets defined in wrt. 
         if self.jac is None:
-
             # If the constraint is linear we have to *Force* the user to
             # supply a constraint jacobian for *each* of the values in
             # wrt. Otherwise, a matrix of zeros isn't meaningful for the
             # sparse constraints.
 
             if self.linear:
-                raise Error('The \'jac\' keyword to argument to addConGroup()\
-                must be supplied for a linear constraint. The constraint in \
-                error is %s.'% self.name)
+                raise Error("The 'jac' keyword to argument to addConGroup() "
+                            "must be supplied for a linear constraint. "
+                            "The constraint in error is %s."% self.name)
 
             # without any additional information about the jacobian
             # structure, we must assume they are all dense. 
@@ -291,9 +291,9 @@ addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'% (
         else:
             # First sanitize input:
             if not isinstance(self.jac, dict):
-                raise Error('The \'jac\' keyword argument to \
-                addConGroup() must be a dictionary. The constraint in error \
-                is %s.'% self.name)
+                raise Error("The 'jac' keyword argument to addConGroup() "
+                            "must be a dictionary. The constraint in error "
+                            "is %s."% self.name)
 
             # Now loop over the set we *know* we need and see if any
             # are in jac. We will actually pop them out, and that way
@@ -317,11 +317,13 @@ addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'% (
                     
                 if (self.jac[dvSet].shape[0] != self.ncon or 
                     self.jac[dvSet].shape[1] != ndvs):
-                    raise Error('The supplied jacobian for dvSet \'%s\'\
- in constraint %s, was the incorrect size. Expecting a jacobian\
- of size (%d, %d) but received a jacobian of size (%d, %d).'%(
-                            dvSet, self.name, self.ncon, ndvs, 
-                            self.jac[dvSet].shape[0], self.jac[dvSet].shape[1]))
+                    raise Error("The supplied jacobian for dvSet \%s' "
+                                "in constraint %s, was the incorrect size. "
+                                "Expecting a jacobian of size (%d, %d) but "
+                                "received a jacobian of size (%d, %d)."%(
+                                    dvSet, self.name, self.ncon, ndvs, 
+                                    self.jac[dvSet].shape[0],
+                                    self.jac[dvSet].shape[1]))
 
                 # Now check that the supplied jacobian is sparse of not:
                 if sparse.issparse(self.jac[dvSet]):
@@ -338,15 +340,19 @@ addVar() or addVarGroup() with a dvSet=\'%s\' keyword argument.'% (
 
             # If there is anything left in jac print a warning:
             for dvSet in tmp:
-                print('pyOptSparse Warning: A jacobian with \
-dvSet key of \'%s\' was unused in constraint %s. This will be ignored.'% (
-                        dvSet, self.name))
+                print("pyOptSparse Warning: A jacobian with dvSet key of "
+                      "'%s' was unused in constraint %s. This will be "
+                      "ignored."% ( dvSet, self.name))
 
-            # Finally partial returns NOT ok, since the user has
-            # supplied information about the sparsity:
-            self.partialReturnOk = False
+            # Since this function *may* be called multiple times, only
+            # set paritalReturnOk if it was the first pass:
+            if self.partialReturnOk is None:
+                # Finally partial returns NOT ok, since the user has
+                # supplied information about the sparsity:
+                self.partialReturnOk = False
+
         # end if (if Jac)
-        
+
     def __str__(self):
         """
         Print Constraint

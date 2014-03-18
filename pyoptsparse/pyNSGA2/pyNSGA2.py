@@ -1,6 +1,6 @@
 #/bin/env python
 """
-pySLSQP - A variation of the pySLSQP wrapper specificially designed to
+pyNSGA2 - A variation of the pyNSGA2 wrapper specificially designed to
 work with sparse optimization problems.
 
 Copyright (c) 2013-2014 by Dr. Gaetan Kenway
@@ -21,7 +21,7 @@ History
 from __future__ import absolute_import
 from __future__ import print_function
 # =============================================================================
-# SLSQP Library
+# NSGA2 Library
 # =============================================================================
 try:
     from . import nsga2
@@ -36,7 +36,6 @@ import time
 # External Python modules
 # =============================================================================
 import numpy
-from mpi4py import MPI
 # ===========================================================================
 # Extension modules
 # ===========================================================================
@@ -148,16 +147,6 @@ class NSGA2(Optimizer):
         ff = self._assembleObjective()
         oneSided = True
 
-        # Variables Handling
-        n = len(xs)
-        x = nsga2.new_doubleArray(n)
-        xl = nsga2.new_doubleArray(n)
-        xu = nsga2.new_doubleArray(n)
-        for i in range(n):
-            nsga2.doubleArray_setitem(x, i, xs[i])
-            nsga2.doubleArray_setitem(xl, i, blx[i])
-            nsga2.doubleArray_setitem(xu, i, bux[i])
-
         # Set the number of nonlinear constraints snopt *thinks* we have:
         if self.unconstrained:
             m = 0
@@ -175,16 +164,18 @@ class NSGA2(Optimizer):
         f = nsga2.new_doubleArray(1)
 
         if self.optProb.comm.rank == 0:
-            # Set history
-            self._setHistory(storeHistory)
+            # Set history/hotstart/coldstart
+            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
 
-            if coldStart is not None:
-                res1 = self._coldStart(coldStart)
-                if res1 is not None:
-                    xs[0:n] = res1
-
-            # Setup hot start if necessary
-            self._hotStart(storeHistory, hotStart)
+            # Variables Handling
+            n = len(xs)
+            x = nsga2.new_doubleArray(n)
+            xl = nsga2.new_doubleArray(n)
+            xu = nsga2.new_doubleArray(n)
+            for i in range(n):
+                nsga2.doubleArray_setitem(x, i, xs[i])
+                nsga2.doubleArray_setitem(xl, i, blx[i])
+                nsga2.doubleArray_setitem(xu, i, bux[i])
 
             # Setup argument list values
             nfeval = 0
@@ -207,27 +198,20 @@ class NSGA2(Optimizer):
                         opt('pCross_bin'), opt('pMut_bin'), printout,seed, opt('xinit'))
             optTime = time.time() - t0
 
-            if MPI:
-                # Broadcast a -1 to indcate NSGA2 has finished
-                self.optProb.comm.bcast(-1, root=0)
+            # Broadcast a -1 to indcate NSGA2 has finished
+            self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
             sol_inform = {}
             #sol_inform['value'] = inform
             #sol_inform['text'] = self.informs[inform[0]]
 
+            xstar = [0.]*n
+            for i in xrange(n):
+                xstar[i] = nsga2.doubleArray_getitem(x,i)
+
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff)
-
-            # Now set the x-values:
-            i = 0
-            for dvSet in sol.variables.keys():
-                for dvGroup in sol.variables[dvSet]:
-                    for var in sol.variables[dvSet][dvGroup]:
-                        var.value = xs[i]
-                        i += 1
-
-            sol.fStar = ff
+            sol = self._createSolution(optTime, sol_inform, ff, xstar)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
@@ -243,19 +227,3 @@ class NSGA2(Optimizer):
 
     def _on_getOption(self, name, value):
         pass
-
-        # fstar = [0.]*l
-        # for i in xrange(l):
-        #     fstar[i] = nsga2.doubleArray_getitem(f,i)
-        #     i += 1
-        # #end
-        
-        # xstar = [0.]*n
-        # for i in xrange(n):
-        #     xstar[i] = nsga2.doubleArray_getitem(x,i)
-        # #end
-        
-        # inform = {}
-        
-        # return fstar, xstar, {'fevals':nfeval,'time':sol_time,'inform':inform}
-        
