@@ -295,10 +295,10 @@ be installed to use NLPY_AUGLAG.')
         # end if
 
         # pyOpt History logging 
-        self._setHistory(storeHistory)
+        dummy = self._setHistory(storeHistory,hotStart,coldStart,None)
 
         # This optimizer has no hot start capability (too many vectors)
-        self._hotStart(storeHistory, hotStart)
+        # self._hotStart(storeHistory, hotStart)
 
         # Step 3: Pass options and solve the problem
         timeA = time.time()
