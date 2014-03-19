@@ -24,7 +24,8 @@ from __future__ import print_function
 # Standard Python modules
 # =============================================================================
 import copy
-
+import os
+import shelve
 try:
     from collections import OrderedDict
 except ImportError:
@@ -517,17 +518,23 @@ class Optimization(object):
     def getDVs(self):
         """
         Return a dictionary of the design variables. In most common
-        usage, this function is not required. 
+        usage, this function is not required.
+
+        Returns
+        -------
+        outDVs : dict
+            The dictionary of variables. This is the same as 'x' that
+            would be used to call the user objective function. 
         """ 
 
         outDVs = {}
         for dvSet in self.variables:
-            outDVs[dvSet] = {}
             for dvGroup in self.variables[dvSet]:
-                temp = []
-                for var in self.variables[dvSet][dvGroup]:
-                    temp.append(var.value)
-                outDVs[dvSet][dvGroup] = numpy.array(temp)
+                nvar = len(self.variables[dvSet][dvGroup])
+                outDVs[dvGroup] = numpy.zeros(nvar)
+                for i in range(nvar):
+                    var = self.variables[dvSet][dvGroup][i]
+                    outDVs[dvGroup][i] = var.value/var.scale
 
         return outDVs
 
@@ -535,13 +542,23 @@ class Optimization(object):
         """
         set the problem design variables from a dictionary. In most
         common usage, this function is not required.
+        
+        Parameters
+        ----------
+        inDVs : dict
+            The dictionary of variables. This dictionary is like the
+            'x' that would be used to call the user objective
+            function.
         """
-        for dvSet in set(inDVs.keys()) & set(self.variables.keys()):
-            for dvGroup in set(inDVs[dvSet])&set(self.variables[dvSet]):
-                groupLength = len(dvGroup)
-                for i in range(groupLength):
-                    self.variables[dvSet][dvGroup][i].value = inDVs[dvSet][dvGroup][i]
 
+        for dvSet in self.variables:
+            for dvGroup in self.variables[dvSet]:
+                if dvGroup in inDVs:
+                    nvar = len(self.variables[dvSet][dvGroup])
+                    for i in range(nvar):
+                        var = self.variables[dvSet][dvGroup][i]
+                        var.value = inDVs[dvSet][i]*var.scale
+                        
     def setDVsFromHistory(self, histFile, key=None):
         """
         Set optimization variables from a previous optimization. This
