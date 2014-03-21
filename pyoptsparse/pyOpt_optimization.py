@@ -117,8 +117,8 @@ class Optimization(object):
         """
 
         if name in self.varSetNames:
-            raise Error('The supplied name \'%s\' for a variable set \
-            has already been used.'% name)
+            raise Error("The supplied name '%s' for a variable set"
+                        "has already been used."% name)
 
         self.varSetNames.add(name)
         self.variables[name] = OrderedDict()
@@ -231,7 +231,7 @@ class Optimization(object):
         varSet : str. 
             Specify which variable set this design variable group
             belongs. If this is not specified, it will be added to a
-            varSet whose name is the sanme as \'name\'. 
+            varSet whose name is the same as 'name'. 
             
         choices : list
             Specify a list of choices for discrete design variables
@@ -266,8 +266,8 @@ class Optimization(object):
         """
 
         if name in self.varGroupNames:
-            raise Error('The supplied name \'%s\' for a variable group \
-            has already been used.'% name)
+            raise Error("The supplied name '%s' for a variable group "
+                        "has already been used."% name)
         else:
             self.varGroupNames.add(name)
 
@@ -278,8 +278,8 @@ class Optimization(object):
 
         # Check that the type is ok:
         if type not in ['c', 'i', 'd']:
-            raise Error('Type must be one of \'c\' for continuous, \
-            \'i\' for integer or \'d\' for discrete.')
+            raise Error("Type must be one of 'c' for continuous, "
+                        "'i' for integer or 'd' for discrete.")
                     
         # ------ Process the value arguement
         value = numpy.atleast_1d(value).real
@@ -288,9 +288,9 @@ class Optimization(object):
         elif len(value) == nVars:
             pass
         else:
-            raise Error('The length of the \'value\' argument to \
-            addVarGroup is %d, but the number of variables in nVars \
-            is %d.'% (len(value), nVars))
+            raise Error("The length of the 'value' argument to "
+                        "addVarGroup is %d, but the number of "
+                        "variables in nVars is %d."% (len(value), nVars))
 
         if lower is None:
             lower = [None for i in range(nVars)]
@@ -299,9 +299,9 @@ class Optimization(object):
         elif len(lower) == nVars:
             pass  # Some iterable object
         else:
-            raise Error('The \'lower\' argument to addVarGroup is \
-            invalid. It must be None, a scalar, or a list/array or length \
-            nVars=%d.' %(nVars))
+            raise Error("The 'lower' argument to addVarGroup is "
+                        "invalid. It must be None, a scalar, or a "
+                        "list/array or length nVars=%d." %(nVars))
 
         if upper is None:
             upper = [None for i in range(nVars)]
@@ -310,9 +310,9 @@ class Optimization(object):
         elif len(upper) == nVars:
             pass  # Some iterable object
         else:
-            raise Error('The \'upper\' argument to addVarGroup is \
-            invalid. It must be None, a scalar, or a list/array or length \
-            nVars=%d.' %(nVars))
+            raise Error("The 'upper' argument to addVarGroup is "
+                        "invalid. It must be None, a scalar, or a "
+                        "list/array or length nVars=%d." %(nVars))
 
         # ------ Process the scale bound argument
         if scale is None:
@@ -324,9 +324,10 @@ class Optimization(object):
             elif len(scale) == nVars:
                 pass
             else:
-                raise Error('The length of the \'scale\' argument to \
-addVarGroup is %d, but the number of variables in nVars is %d.'% (
-                        len(scale), nVars))
+                raise Error("The length of the 'scale' argument to "
+                            "addVarGroup is %d, but the number of "
+                            "variables in nVars is %d."% (
+                                len(scale), nVars))
 
         # Determine if scalar i.e. it was called from addVar():
         scalar = kwargs.pop('scalar', False)
@@ -504,8 +505,8 @@ addVarGroup is %d, but the number of variables in nVars is %d.'% (
             """
 
         if name in self.conGroupNames:
-            raise Error('The supplied name \'%s\' for a constraint group \
-has already been used.'% name)
+            raise Error("The supplied name '%s' for a constraint group "
+                        "has already been used."% name)
 
         self.conGroupNames.add(name)
 
@@ -997,8 +998,8 @@ has already been used.'% name)
                 try: 
                     f = numpy.asscalar(numpy.squeeze(funcs[objKey]))
                 except ValueError:
-                    raise Error("The objective return value, '%s' must be a \
-                    scalar!"% objKey)
+                    raise Error("The objective return value, '%s' must be a "
+                                "scalar!"% objKey)
                 if scaled:
                     f *= self.objectives[objKey].scale
                 fobj.append(f)
@@ -1047,12 +1048,13 @@ has already been used.'% name)
                 if len(c) == self.constraints[iCon].ncon:
                     fcon[con.rs:con.re] = c
                 else:
-                    raise Error('%d constraint values were returned in \
-                    %s, but expected %d.' % (len(fcon_in[iCon]), iCon,
-                                            self.constraints[iCon].ncon))
+                    raise Error("%d constraint values were returned in "
+                                "%s, but expected %d." % (
+                                    len(fcon_in[iCon]), iCon,
+                                    self.constraints[iCon].ncon))
             else:
-                raise Error('No constraint values were found for the \
-                constraint \'%s\'.'%(iCon))
+                raise Error("No constraint values were found for the "
+                            "constraint '%s'."% iCon)
 
         # Perform scaling on the original jacobian:
         if scaled:
@@ -1093,15 +1095,17 @@ has already been used.'% name)
         if self.dummyConstraint:
             return {'dummy':0}
 
-        # Perform constraint scaling
-        if scaled:
-            fcon_in = self.conScale*fcon_in
-
-        # **This block needs to be double-checked at some point for un-natural orderings**
         if not natural:
             if self.nCon > 0:
-                fcon_in = fcon_in[self.jacIndices]
-                fcon_in = self.fact.dot(fcon_in) - self.offset
+                fcon_in += self.offset
+                # Since self.fact elements are unit magnitude ...
+                fcon_in = self.fact.dot(fcon_in) 
+                # Undo the ordering
+                fcon_in = fcon_in[self.jacIndicesInv]
+
+        # Perform constraint scaling
+        if scaled:
+            fcon_in = fcon_in/self.conScale
 
         # We REQUIRE that fcon_in is an array:
         fcon = {}
@@ -1167,10 +1171,12 @@ has already been used.'% name)
                             # Everything checks out so set:
                             gobj[iObj, ss[0]:ss[1]] = tmp * self.objectives[objKey].scale
                         else:
-                            raise Error("The shape of the objective derivative \
-                            for dvSet '%s' is the incorrect length. Expecting a \
-                            shape of %s but received a shape of %s."% (
-                            dvKey, (ss[1]-ss[0],), funcsSens[objKey][dvKey].shape))
+                            raise Error("The shape of the objective derivative "
+                                        "for dvSet '%s' is the incorrect "
+                                        "length. Expecting a shape of %s but "
+                                        "received a shape of %s."% (
+                                            dvKey, (ss[1]-ss[0],),
+                                            funcsSens[objKey][dvKey].shape))
                     else:
                         raise Error("The dvSet key '%s' is not valid"% dvKey)
             else:
@@ -1250,8 +1256,9 @@ has already been used.'% name)
             con = self.constraints[iCon]
 
             if not con.name in gcon:
-                raise Error('The jacobian for the constraint \'%s\' was \
-                not found in the returned dictionary.'% con.name)
+                raise Error("The jacobian for the constraint '%s' was "
+                            "not found in the returned dictionary."%
+                            con.name)
 
             if not con.partialReturnOk:
                 # The keys in gcon[iCon] MUST match PRECISELY
@@ -1260,12 +1267,13 @@ has already been used.'% name)
                 # then didn't, so scold them. 
                 for dvSet in con.jac:
                     if dvSet not in gcon[iCon]:
-                        raise Error('Constraint \'%s\' was expecting \
-                        a jacobain with respect to dvSet \'%s\' as was \
-                        supplied in addConGroup(). This was not found in \
-                        the constraint jacobian dictionary'% (
+                        raise Error(
+                            "Constraint '%s' was expecting a jacobain with "
+                            "respect to dvSet '%s' as was supplied in "
+                            "addConGroup(). This was not found in the "
+                            "constraint jacobian dictionary"% (
                                         con.name, dvSet))
-
+                    
             # Now loop over all required keys for this constraint:
             for key in con.wrt:
                 # ss means 'start - stop'
@@ -1292,20 +1300,22 @@ has already been used.'% name)
 
                 # Now check that the jacobian is the correct shape
                 if not(tmp.shape[0] == con.ncon and tmp.shape[1] == ndvs):
-                    raise Error('The shape of the supplied constraint \
-                    jacobian for constraint %s is incorrect. Expected \
-                    an array of shape (%d, %d), but received an array \
-                    of shape (%d, %d).'% (con.name, con.ncon, ndvs, 
-                                          tmp.shape[0], tmp.shape[1]))
+                    raise Error("The shape of the supplied constraint "
+                                "jacobian for constraint %s is incorrect. "
+                                "Expected an array of shape (%d, %d), but "
+                                "received an array of shape (%d, %d)."% (
+                                    con.name, con.ncon, ndvs, 
+                                    tmp.shape[0], tmp.shape[1]))
 
                 # Now check that the csr matrix has the correct
                 # number of non zeros:
                 if tmp.nnz != con.jac[key].nnz:
-                    raise Error('The number of nonzero elements for \
-                    constraint group \'%s\' was not the correct size. \
-                    The supplied jacobian has  %d nonzero entries, \
-                    but must contain %d nonzero entries.' % (
-                                    con.name, tmp.nnz, con.jac[key].nnz))
+                    raise Error("The number of nonzero elements for "
+                                "constraint group '%s' was not the correct "
+                                "size. The supplied jacobian has %d nonzero "
+                                "entries, but must contain %d nonzero "
+                                "entries." % (con.name, tmp.nnz,
+                                              con.jac[key].nnz))
 
                 # Include data from this jacobian chunk
                 data.extend(tmp.data)

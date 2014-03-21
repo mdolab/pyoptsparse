@@ -71,10 +71,16 @@ class Solution(Optimization):
         text1 += '    Total Time: %25.4f\n' % self.optTime
         text1 += '       User Objective Time :   %10.4f\n' % self.userObjTime
         text1 += '       User Sensitivity Time : %10.4f\n' % self.userSensTime
+        if hasattr(self, 'userJProdTime'):
+            text1 += '       User J-Product Time :   %10.4f\n' % self.userJProdTime
+            text1 += '       User J^T-Product Time : %10.4f\n' % self.userJTProdTime
         text1 += '       Interface Time :        %10.4f\n' % self.interfaceTime
         text1 += '       Opt Solver Time:        %10.4f\n' % self.optCodeTime
         text1 += '    Calls to Objective Function : %7d\n' % self.userObjCalls
         text1 += '    Calls to Sens Function :      %7d\n' % self.userSensCalls
+        if hasattr(self, 'userJProdCalls'):
+            text1 += '    Calls to JProd Function :     %7d\n' % self.userJProdCalls
+            text1 += '    Calls to JTProd Function :    %7d\n' % self.userJTProdCalls
     
         for i in range(5, len(lines)):
             text1 += lines[i] + '\n'
