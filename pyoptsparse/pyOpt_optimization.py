@@ -380,7 +380,7 @@ class Optimization(object):
         This is a specialized function that is used to communicate
         variables from dictionaries across the comm to ensure that all
         processors end up with the same dictionary. It is used for
-        communicating the design variables and constrainted, which may
+        communicating the design variables and constraints, which may
         be specified on different processors independently.
         """
         
