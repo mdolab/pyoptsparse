@@ -535,11 +535,12 @@ has already been used.'% name)
         set the problem design variables from a dictionary. In most
         common usage, this function is not required.
         """
+
         for dvSet in set(inDVs.keys()) & set(self.variables.keys()):
-            for dvGroup in set(inDVs[dvSet])&set(self.variables[dvSet]):
-                groupLength = len(dvGroup)
-                for i in range(groupLength):
-                    self.variables[dvSet][dvGroup][i].value = inDVs[dvSet][dvGroup][i]
+            for dvGroup in set(self.variables[dvSet]):
+                dvLength = len(inDVs[dvSet])
+                for i in range(dvLength):
+                    self.variables[dvSet][dvGroup][i].value = inDVs[dvSet][i]
 
     def setDVsFromHistory(self, histFile, key=None):
         """
@@ -557,7 +558,9 @@ has already been used.'% name)
             default is None which will use the last x-value stored in
             the dictionary.
         """
-        
+
+        import os, shelve
+
         if os.path.exists(histFile):
             hist = shelve.open(histFile, flag='r')
             if key is None:
