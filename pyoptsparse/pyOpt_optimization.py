@@ -1014,6 +1014,8 @@ class Optimization(object):
                 except ValueError:
                     raise Error("The objective return value, '%s' must be a "
                                 "scalar!"% objKey)
+                # Store objective for printing later
+                self.objectives[objKey].value = f
                 if scaled:
                     f *= self.objectives[objKey].scale
                 fobj.append(f)
@@ -1031,7 +1033,7 @@ class Optimization(object):
         Parameters
         ----------
         fcon_in : dict
-            Dictionary of constraint values values
+            Dictionary of constraint values
 
         scaled : bool
             Flag specifying if the returned array should be scaled by
@@ -1066,6 +1068,9 @@ class Optimization(object):
                                 "%s, but expected %d." % (
                                     len(fcon_in[iCon]), iCon,
                                     self.constraints[iCon].ncon))
+
+                # Store constraint values for printing later
+                con.value = copy.copy(c)
             else:
                 raise Error("No constraint values were found for the "
                             "constraint '%s'."% iCon)
