@@ -541,7 +541,7 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
                 outvec = self.optProb.deProcessX(outvec)
                 outvec = self.optProb.invXScale.dot(outvec)
                 
-            prodTime += time.time() - timeA
+            prodTime = time.time() - timeA
             if 'jac_prod' in evaluate:
                 self.userJProdTime += prodTime
                 self.userJProdCalls += 1
