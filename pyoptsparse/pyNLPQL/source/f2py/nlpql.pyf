@@ -1,0 +1,119 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module nlpql__user__routines
+    interface nlpql_user_interface
+        subroutine nlfunc(m,me,mmax,n,f,g,x,active)
+          integer intent(in) :: m
+          integer intent(in) :: me
+          integer intent(in) :: mmax
+          integer intent(in) :: n
+          double precision intent(in,out) :: f
+          double precision dimension(mmax),intent(in,out),depend(mmax) :: g
+          double precision dimension(n),intent(in),depend(n) :: x
+          logical dimension(mmax),depend(mmax) :: active
+        end subroutine nlfunc
+        subroutine nlgrad(m,me,mmax,n,f,g,df,dg,x,active,wa)
+          integer intent(in) :: m
+          integer intent(in) :: me
+          !integer optional,check(len(g)>=mmax),depend(g) :: mmax=len(g)
+          !integer optional,check(len(x)>=n),depend(x) :: n=len(x)
+          integer intent(in) :: mmax
+          integer intent(in) :: n
+          double precision intent(in) :: f
+          double precision dimension(mmax),intent(in),depend(mmax) :: g
+          double precision dimension(n),depend(n),intent(in,out) :: df
+          double precision dimension(mmax,n),depend(mmax,n),intent(in,out) :: dg
+          double precision dimension(n),depend(n) :: x
+          logical dimension(mmax),depend(mmax) :: active
+          double precision dimension(mmax),depend(mmax) :: wa
+        end subroutine nlgrad
+    end interface nlpql_user_interface
+end python module nlpql__user__routines
+python module nlpql ! in 
+    interface  ! in :nlpql
+          subroutine nlpql1(m,me,mmax,n,nmax,mnn2,x,f,g,df,dg,u,xl,xu,c,d,acc,scbou,maxfun,maxit,iprint,mode,iout,ifile,ifail,wa,lwa,kwa,lkwa,active,lactiv,lmerit,lql,eps,nlfunc,nlgrad) ! in :nlpql:source/nlpql1.f
+            use nlpql__user__routines
+            integer intent(in) :: m
+            integer intent(in) :: me
+            integer intent(in) :: mmax
+            integer intent(in) :: n
+            integer intent(in) :: nmax
+            integer intent(in) :: mnn2
+            double precision dimension(n),depend(n) :: x
+            double precision intent(inout) :: f
+            double precision dimension(mmax),depend(mmax),intent(inout) :: g
+            double precision dimension(nmax),depend(nmax),intent(inout) :: df
+            double precision dimension(mmax,nmax),depend(mmax,nmax),intent(in,out) :: dg
+            double precision dimension(mnn2),depend(mnn2),intent(in,out) :: u
+            double precision dimension(n),depend(n),intent(in) :: xl
+            double precision dimension(n),depend(n),intent(in) :: xu
+            double precision dimension(nmax,nmax),depend(nmax,nmax),intent(in,out) :: c
+            double precision dimension(nmax),depend(nmax),intent(in,out) :: d
+            double precision intent(in) :: acc
+            double precision intent(in) :: scbou
+            integer intent(in) :: maxfun
+            integer intent(in) :: maxit
+            integer intent(in) :: iprint
+            integer intent(in) :: mode
+            integer intent(in) :: iout
+            character*(*) intent(in) :: ifile
+            integer intent(inout) :: ifail
+            integer intent (in) :: lwa
+            double precision dimension(lwa),intent(inout),depend(lwa) :: wa
+            integer intent(in) :: lkwa
+            integer dimension(lkwa),intent(inout),depend(lkwa) :: kwa
+            integer intent(in) :: lactiv
+            logical dimension(lactiv),intent(in,out),depend(lactiv) :: active
+            logical intent(in) :: lmerit
+            logical intent(in) :: lql
+            double precision intent(in) :: eps
+            external nlfunc
+            external nlgrad
+            double precision :: f1
+            double precision :: acc1
+            double precision :: scbou1
+            double precision :: dbdfac
+            double precision :: zefac
+            double precision :: rpeno
+            double precision :: rpens
+            double precision :: rpenu
+            double precision :: zefacu
+            double precision :: delta
+            double precision :: beta
+            double precision :: amue
+            double precision :: alm
+            integer :: mm1
+            integer :: me1
+            integer :: maxfu1
+            integer :: maxit1
+            integer :: iprin1
+            integer :: mode1
+            integer :: ifail1
+            logical :: llise1
+            logical :: lql1
+            logical :: lmer
+            integer :: iout1
+            double precision :: eps0
+            common /nlpql3/ f1,acc1,scbou1,dbdfac,zefac,rpeno,rpens,rpenu,zefacu,delta,beta,amue,alm,mm1,me1,maxfu1,maxit1,iprin1,mode1,ifail1,llise1,lql1,lmer,iout1
+            common /cmache/ eps0
+        end subroutine nlpql1
+        subroutine openunit(unitnum,filename,filestatus,fileaction,ierror) ! in :nlpql:source/openunit.f
+            integer intent(in) :: unitnum
+            character*(*) intent(in) :: filename
+            character*(*) intent(in) :: filestatus
+            character*(*) intent(in) :: fileaction
+            integer intent(out) :: ierror
+        end subroutine openunit
+        subroutine pyflush(unitnum)
+          integer unitnum
+          return
+        end subroutine pyflush
+        subroutine closeunit(unitnum) ! in :nlpql:source/closeunit.f
+            integer intent(in) :: unitnum
+        end subroutine closeunit
+    end interface
+end python module nlpql
+
+! This file was auto-generated with f2py (version:2_3974).
+! See http://cens.ioc.ee/projects/f2py2e/
