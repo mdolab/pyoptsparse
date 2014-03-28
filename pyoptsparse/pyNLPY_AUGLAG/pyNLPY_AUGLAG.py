@@ -586,6 +586,9 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
         sol.userJProdCalls = self.userJProdCalls
         sol.userJTProdTime = self.userJTProdTime
         sol.userJTProdCalls = self.userJTProdCalls
+        # Since NLPy optimizers exploit MPI, we have to add the objective 
+        # function here since the broadcasting of the base class is not done
+        sol.objFun = self.optProb.objFun
 
         return sol
 
