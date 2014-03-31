@@ -378,7 +378,8 @@ be installed to use NLPY_AUGLAG.')
         sol_inform = {}
         sol_inform['value'] = solver.status
         sol_inform['text'] = self.informs[solver.status]
-        xopt = numpy.zeros_like(xs) # This needs to be replaced with actual x*
+        # xopt = numpy.zeros_like(xs) # This needs to be replaced with actual x*
+        xopt = solver.x.copy()
         sol = self._createSolution(optTime, sol_inform, solver.f, xopt)
 
         return sol
@@ -429,6 +430,8 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
 
         ** Right now, we assume that the 'evaluate' list has only one element **
         """
+
+        timeAA = time.time()
 
         xscaled = self.optProb.invXScale.dot(x)
         xuser = self.optProb.processX(xscaled)
@@ -527,27 +530,28 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
             # Call the true matrix-vector product functions, no matrix formation
             # Convert input arrays to dictionaries before calling the callback function
             # Also, scale vectors appropriately before and after the products are formed
-            timeA = time.time()
             if 'jac_prod' in evaluate:
                 invec = self.optProb.invXScale.dot(invec)
                 invec = self.optProb.processX(invec)
+                timeA = time.time()
                 outvec, fail = self.sens[1](xuser, invec, sparse_only=sparse_only)
+                self.userJProdTime += time.time() - timeA
+                self.userJProdCalls += 1
                 outvec = self.optProb.processConstraints(outvec, scaled=False)
                 outvec = self.optProb.conScale*outvec
             else:
                 invec = self.optProb.conScale*invec
                 invec = self.optProb.deProcessConstraints(invec, scaled=False)
+                timeA = time.time()
                 outvec, fail = self.sens[2](xuser, invec, sparse_only=sparse_only)
+                self.userJTProdTime += time.time() - timeA
+                self.userJTProdCalls += 1
                 outvec = self.optProb.deProcessX(outvec)
                 outvec = self.optProb.invXScale.dot(outvec)
                 
-            prodTime = time.time() - timeA
-            if 'jac_prod' in evaluate:
-                self.userJProdTime += prodTime
-                self.userJProdCalls += 1
-            else:
-                self.userJTProdTime += prodTime
-                self.userJTProdCalls += 1
+            # prodTime = time.time() - timeA
+            # if 'jac_prod' in evaluate:
+            # else:
 
             # Update fail flag
             masterFail = masterFail or fail
@@ -571,6 +575,8 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
 
         # Tack the fail flag on at the end
         returns.append(masterFail)
+        # Interface time specific to the Jacobian vector products
+        self.interfaceTime += time.time() - timeAA
 
         return returns
 
@@ -586,6 +592,12 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
         sol.userJProdCalls = self.userJProdCalls
         sol.userJTProdTime = self.userJTProdTime
         sol.userJTProdCalls = self.userJTProdCalls
+
+        # Recompute the interface time and optimizer code time to account for the 
+        # separate matrix-vector product interface
+        sol.interfaceTime = sol.interfaceTime - self.userJProdTime - self.userJTProdTime
+        sol.optCodeTime = sol.optTime - self.interfaceTime
+
         # Since NLPy optimizers exploit MPI, we have to add the objective 
         # function here since the broadcasting of the base class is not done
         sol.objFun = self.optProb.objFun

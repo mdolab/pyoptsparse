@@ -367,7 +367,7 @@ class Constraint(object):
             upper = self.upper[i]
             value = self.value[i]
             if lower is None:
-                lower = 1e-20
+                lower = -1e20
             if upper is None:
                 upper = 1e20
                 
