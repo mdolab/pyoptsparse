@@ -102,7 +102,8 @@ opt = OPT(args.opt, options=optOptions)
 if testHist == 'no':
     # Just run a normal run
     sol = opt(optProb, sens=sens, sensMode=sensMode)
-    print(sol.fStar)
+    # print(sol.fStar)
+    print(sol)
 else:
     # First call just does 10 iterations
     if args.opt.lower() == 'snopt':
