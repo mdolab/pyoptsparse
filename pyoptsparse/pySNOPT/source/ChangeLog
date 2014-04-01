@@ -1,0 +1,810 @@
+2007-05-19  Philip E. Gill  <peg@ljna2>
+
+	* sn25bfac.f (s2Bmap):  Saved identical values for  maxLUi  and  maxLUr.
+                                Fixes bug reported by Rocky Nelson at Boeing.
+
+	* sn70nobj.f (s7chkA):  Added stand-alone routine to check derivatives
+	                        for snOptA.
+
+	* sn02lib.f (snRetH):   Added auxiliary routine to compute the QN Hessian.
+
+	* sn85hess.f (s8getH):  Does the work for snRetH.
+
+	* sn60srch.f (s6usrf):  length of step (damper) added as an argument.
+
+	* sn30spec.f (s3opt):   Fixed bug that prevented the recognition of a
+	                        "  *" as the starting string of a line of input
+                                Fixes bug reported by Holly Jin at Stanford.
+
+2007-04-24  Philip E. Gill  <peg@ljna2>
+
+        * sntoyb.f (program):   Changed the example to reflect the problem
+                                described in the User's Guide.
+                                Added a second call with the problem defined with
+                                a sparse Jacobian.
+
+2007-04-02  Philip E. Gill  <peg@optimal.ucsd.edu>
+
+        * SampleMake (csntoya): Added explicit path to f2c include files
+                                Fixes bug reported by Holly Jin at Stanford.
+
+2007-03-01  Philip E. Gill  <peg@optimal.ucsd.edu>
+
+        * snoptc.f (snKerC):    Missing assignment iw( 24) = nnH added.
+                                Fixes bug reported by Rocky Nelson at Boeing HB.
+
+2006-05-18  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn55qp.f (s5QP):      itQPmax and itQPTgt added. These are maximum and target
+                                values of  itQP added in s5LP and s5QP (and all routines calling
+                                them). This fixes a bug that sometimes incorrectly limited
+                                the number of minor iterations.
+
+2006-05-07  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn55qp.f (s5QPit):    s5Zp added.
+
+        * sn40bfil.f (s4soln):  Use of raw writes to file iPrint eliminated.
+
+        * sn03prnt.f (snREAD):  Added to file sn03prnt
+
+        * sn57qopt.f (s5dflt):  Reference to lvlTim removed.
+
+        * sn87sopt.f (s8dflt):  Reference to lvlTim removed.
+
+2006-03-20  Philip E. Gill  <peg@optimal.ucsd.edu>
+
+        * sn87sopt.f (s8solv):  Fx initialized for s8savB.
+                                Fixes bug found by Mat Cross and Mick Pont at NAG.
+        * sn70nobj.f (s7chkG):  Calculation of the relative error is now based
+                                on both exact and estimated values of the derivatives
+                                Fixes feature observed by Mat Cross and Mick Pont at NAG.
+
+2006-02-07  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn57qopt.f (s5dflt):  Set tolQP as either tolQP or tolNP
+
+2005-12-20  Philip E. Gill  <peg@ljna7.newmind.com>
+
+        * sn02lib.f (snLog2):   dj column heading made consistent
+        * sq02lib.f (sqLog):    dj column heading made consistent
+
+2005-12-19  Philip E. Gill  <peg@ljna7.newmind.com>
+
+        * sn30spec.f (s3file):  INFO 131, 132, 133 and 134 cleaned up
+
+2005-10-05  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn20amat.f (s2Amat):  Matrix statistics moved from system log
+
+2005-09-01  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn55qp.f (s5Hfac):    Changed sign of iExit values.
+
+2005-07-17  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn37wrap.f (s3outA):  fObj assigned to F instead of ObjTru (bug).
+
+        * snoptb.f (snKerB):    Obj set to ObjQP instead of ObjTru (bug)
+
+        * snoptc.f (snKerC):    The same bug fix
+
+        * sn40bfil.f (s4newB):  Blanks printed for undefined problem names
+                     (s4dump):  Dump default names if nName = 1
+
+2005-07-16  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn57qopt.f (s5sLP):   test for "feasible point found"  added
+                     (s5sQP):   test for "feasible point found"  added
+
+2005-07-13  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn30spec.f (s3file):  Added INFO 131, 132, 133 and 134
+
+2005-07-09  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * snoptq.f (snKerQ):    Obj set to ObjQP instead of ObjTru (bug)
+
+2005-07-08  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn57qopt.f (s5solv):  Changed "linear objective" to "objective row"
+                                in printed output.
+
+2005-07-05  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * snopta.f (snKerA):    Fixed the argument for "start" in the call to s3inA
+
+2005-07-04  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn87sopt.f (s8SQP):   Switched to vanilla CG for QN with nS > maxR.
+
+2005-07-02  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn87sopt.f (s8dflt):  Default singularity tolerance reduced to eps1 from eps2.
+                                This seems to give performance comparable to SNOPT 6 on
+                                Boeing and Draper models.
+
+        * sn25bfac.f (s2Bfac):  Added call to s2sb to avoid loop stepping in gdb
+
+2005-07-01  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn25bfac.f (s2Bkbs):  Added the loading of basics from the left.
+
+2005-06-30  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn55qp.f (s5chzq):    Fixed faulty format in error print.
+                                Added scaled tolpiv as argument to avoid
+                                all pivots being rejected.
+                   (s5QPit):    saved scaled tolpiv for use in s5chzq.
+
+2005-06-27  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn87sopt.f (s8SQP):   Start in CG mode if nS > maxR.
+                    (s8dflt):   default tolpiv as in s5solv
+
+2004-12-21  Michael A. Saunders  <saunders@ljna2.newmind.com>
+
+        * sn57qopt.f (s5dflt):  Default LU tols fixed up
+                                Default Reduced Hessian dimension 2000
+
+        * sn87sopt.f (s8dflt):  Reduce default LU tols (tolDpp, tolDrp, tolDcp)
+                                Default LU tols fixed up
+                                Default Reduced Hessian dimension 2000
+
+        * sn25bfac.f (s2Bfac):  Tighten LU tols after any B is singular
+                                (after BR fac is done)
+
+2004-12-05  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn50lp.f   (s5getB):  moved code to save bl and bu to the front.
+                     (s5getB):  Initialize scale factors.
+
+        * sn70nobj.f  (s7Jac):  Ensure iExit = 91 (lena or leng too small)
+                                does not get overwritten.
+
+        * npopt.f    (npKerN):  fixed bug by setting neGcon  = max(ncnln*n,1)
+
+2004-12-04  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn35mps.f (MPSinp):   Overlong comment fixed
+                    (s3inpt):   Overlong comment fixed
+
+        * sn40bfil.f (s4oldB):  id(20) changed to char*4
+                     (s4solp):  data statement form1 changed to assignment
+
+        * sn56qncg.f (s5Msolv): added in call to SYMMLQ
+
+        * sn85hess.f (s8HQN):   added s8qpHx in call to s5QP
+
+        * sn80ncon.f (s8qpHx):  added as the argument qpHx for s5solv when s5solv
+                                is called from one of the snOpt wrappers.
+                                snopta, snoptb, snoptc and npopt updated.
+                     (s8feas):  added s8qpHx in call to s5QP
+
+2004-10-19  Philip E. Gill  <peg@optimal.ucsd.edu>
+
+        * sn55qp.f (s5QP):      Preparation of Summary and Print information no longer
+                                controlled by iSumm and iPrint
+
+        * sn50lp.f (s5LP):      Preparation of Summary and Print information no longer
+                                controlled by iSumm and iPrint
+
+2004-10-17  Philip Gill  <peg@ljna2.newmind.com>
+
+        * snopta.f (snopta):    Kernel function snKerA called to hide arguments
+                                snLog, snLog2  and  snSTOP.
+                                kernels added for snopta, snoptb, snoptc and npopt.
+
+2004-10-15  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn02lib.f (snSTOP):   Added default snSTOP, which can be set by the user to
+                                terminate the optimization.
+
+2004-09-02  Philip E. Gill  <peg@optimal.ucsd.edu>
+
+        * sn37wrap.f (s3argA):  str length increased to 132.
+
+2004-06-23  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn87sopt.f (s8dflt):  Added lvlSys to toggle the printing of system information.
+                     (s8dflt):  Default option changed as follows:
+                                Zcndbd = 1.0d+7    (was   1.0d+4)
+
+2004-06-22  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn25bfac.f (s2Bmod2): Wrapper for s2Bmod that loads Utol1m and Utol2m.
+
+        * sn87sopt.f (s8dflt):  Added separate LU singularity tols Utol1m and Utol2m
+                                for the LU update.
+
+2004-06-21  Philip E. Gill  <peg@optimal.ucsd.edu>
+
+        * sn87sopt.f (s8dflt):  Default options changed as follows:
+                                mQNmod = 10     (was     20)
+                                etarg  = 0.1d+0 (was 0.5d+0)
+
+2004-06-20  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn56qncg.f (s5QNit):  Set pivot correctly after a step.
+
+        * sn65rmod.f (s6Rprd):  Fixed bug in main loop of the transpose product.
+                      (s6Rqn):  Added gtp as an argument.
+
+2003-12-28  Philip E. Gill  <peg@ljna3.newmind.com>
+
+        * sn50lp.f (s5step):    Added the argument infpiv, which gives the number of
+                                indices for which  |pBS(i)| < tolpiv and
+                *               xBS(i) + alphap*pBS(i) is infeasible.
+
+
+        * sn80ncon.f (s8getR):  targtH and targtZ added as arguments.
+                                This allows the values of targtH and targtZ associated
+                                with the first factize to be used in s5QP.
+
+        * sn50lp.f (s5setp):    Changed so that only NaN's and Infs are checked.
+                                Large pi's are handled elsewhere and depend on the
+                                right-hand side
+
+2003-12-26  Philip E. Gill  <peg@ljna3.newmind.com>
+
+        * sn25bfac.f (s2tryLU): Added to eliminate some spagetti code.
+
+2003-12-24  Philip E. Gill  <peg@ljna3.newmind.com>
+
+        * sn50lp.f (s5setp):   Check pi for NaN's and Inf's
+
+        * sn17util.f (jdamax): Included and recognized dnormj and jdamax
+                               to detect NaNs and Infs.
+
+2003-12-23  Philip E. Gill  <peg@ljna3.newmind.com>
+
+        * sn55qp.f (s5Hfac):   increased size of the print sting.
+
+        * sn87sopt.f (s8dflt): tolDrp initialized in workspace.
+
+2003-12-19  Philip E. Gill  <peg@ljna3.newmind.com>
+
+        * sn02lib.f (snGet):   First version of snGet.  Needed because
+                               snGetc, snGeti, snGetr were not well defined
+                               for strings that had no numerical value.
+
+2003-11-22  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn80ncon.f (s8iQP):  Bailed out of QP if nS > maxS and the inelastics are infeasible
+
+2003-11-05  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn87sopt.f (s8SQP):  1. squared the backtrack factor when violation limit
+                                  is reached.
+                               2. boosted infeasibility weight is violation limit is
+                                  reached and nInf > 0.
+
+2003-11-01  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn87sopt.f (s8SQP):  Added gotR to allow HOT starts
+
+2003-10-29  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn60srch.f (s6fdG1): Refined the feasible perturbations
+
+2003-10-14  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn60srch.f (s6fdG1): Added feasible perturbations
+
+2003-09-28  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn02lib.f (snJac):   Fixed infeasibility bug in snJac.
+                               snPRNT statements added.
+
+2003-10-27  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn35mps.f (MPSinp):  mincw, minrw and miniw added.
+
+2003-10-16  Philip Gill  <peg@ljna2.newmind.com>
+
+        * np02lib.f (npMem):   iExit added as a parameter to all memory management
+                               routines.
+
+2003-10-14  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn60srch.f (s6fdG1): Feasible perturbations
+
+2003-10-14  Philip E. Gill  <peg@optimal.ucsd.edu>
+
+        * sn85hess.f (s8HQN):  Added upper and lower bounds for differencing
+
+2003-07-31  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn75qn.f (s7QN):     Superbasic slacks are no longer swapped out.
+        * sn55qp.f (s5QP):     Superbasic slacks are no longer swapped out.
+
+2003-07-30  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn80ncon.f (s8sOpt): Test hEstat for slacks that are allowed to move.
+
+        * sn50lp.f (s5setx):   Use dnormj and jdamax to replace critical calls of
+                               dnormi and idamax.
+
+        * sn17util.f (dnormj): Implemented jdamax and dnormj to test more carefully
+                               for NAN and INF.
+
+2003-07-29  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn75qn.f (s7QNit):   Incremented nInf to account for new elastic superbasic.
+
+        * sqopt.f (sqOpt):     Saved values needed for correct classification of
+                               variables for final printing.
+
+2003-07-28  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn50lp.f (s5setx):   Realized dx can sometimes be a NAN (or INF) but
+            *                  norm(NAN) > 1/eps is always false.
+
+        * sn40bfil.f (s4savB): Print max elements of x and pi (and which ones).
+                               This is more helpful than piNorm >= 1.
+
+2003-07-16  Philip Gill  <peg@ljna4>
+
+        * snworkspace.doc:     standard output iWrite defined.
+                               Swapped positions of iRead and iWrite in iw.
+
+2003-07-06  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn87sopt.f (s8SQP):  Start QN QP subproblem on exit from s8iqp with
+                               iError = 5 (maxNS).
+
+2003-07-02  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn75qn.f (s7iqp):    First version with SYMMLQ properly installed.
+
+2003-06-29  Philip Gill  <peg@ljna2.newmind.com>
+
+        * sn30spec.f (s3optc): Removed statement function "SOLID" from opscan.
+
+        * sn05wrpn.f (s0fgN):  The objective is no longer computed in FP mode.
+                               Printing added for FP objective gradients.
+
+        * npopt.f (npOpt):     nGobj used as local nnObj for feasible-point calculations.
+
+2003-01-02  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * snopta.f (snOptA):   Call s5solv if the problem is an LP.
+
+        * snoptc.f (snOptC):   Call s5solv if the problem is an LP.
+
+2002-12-31  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn87sopt.f (s8dflt): obj, bnd, rhs and rng names given default values
+
+2002-12-24  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * snopta.f (snOptA):   snoptb and snoptc created
+
+2002-12-19  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn05wrpm.f (s0fgM):  Added nnL to argument list for usrfun.
+
+2002-12-10  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn30spec.f (s3tie):  Recognize LU Rook Pivoting and LU Diagonal Pivoting
+
+2002-11-23  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * snoptA.f (SnoptA):   All wrappers now save the user-defined options
+                               and reset them after the run.  This prevents
+                               weird side effects with options that depend upon
+                               the problem dimension.
+
+        * sn87sopt.f (s8dflt): Default stop columns set to n to fix up
+                               snoptA reordering.
+
+Fri Nov  8 20:28:23 2002  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn70nobj.f (s7chkG): Output modified for snoptA.
+
+        * sn30spec.f (s3opt):  "Feasible exit" designated as an obsolete option.
+
+Tue Oct 29 22:30:56 2002  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn05wrpA.f (s0fgA1): Zero linear components of x before calling
+                               userfn.
+
+Sun Oct 13 15:10:13 2002  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn05wrpf.f (s0fgF):  Fixed bug that prevented user termination
+                               via Status parameter.
+
+2002-09-04  Philip E. Gill  <peg@psdi4.nag.co.uk>
+
+        * sn55qp.f (s5QPit):   Fixed bug in calculation of pNorm.
+                               (The length of pBS should be nBS).
+
+        * sn57qopt.f (s5dflt): Fixed uninitialized value of toldj3.
+
+        * sn87sopt.f (s8dflt): Fixed uninitialized value of toldj3.
+
+Fri Jun 28 18:47:42 2002  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn27lu.f (lu1fac):   Rook pivoting added to LUSOL, thanks to
+                               Michael Saunders.
+
+2002-06-13  Philip E. Gill  <peg@optimal.ucsd.edu>
+
+        * sn50lp.f (s5LP):     Printing of rgnorm suppressed unless klog = 1.
+
+        * sn55qp.f (s5QP):     Printing of rgnorm suppressed unless klog = 1.
+
+Fri May 31 18:54:08 2002  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn27lu.f (lu1fac):   New LUsol uses TCP with heaps.
+
+Thu May  2 22:41:41 2002  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sq02lib.f (sqInit):  lvlTim address changed to iw(182) from iw(77).
+                               Prevents it being overwritten when defaults are set.
+
+        * sn57qopt.f (s5SQP):  Status set correctly for call to Hprod.
+                               fixing bug reported by Kenneth Holmstrom.
+
+Wed May  1 22:08:34 2002  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sq02lib.f (sqlog):   No declaration of feasibility if print level < 10.
+
+        * sn57qopt.f (s5SQP):  New version to reflect changes associated with
+                               updated LU routines.
+
+Sun Mar 10 10:18:45 2002  Philip E. Gill  <peg@optimal.ucsd.edu>
+
+        * sn25bfac.f (s2Bmap): Fixed bug that cause LU to run out of memory on
+                               small problems.
+
+Mon Nov 19 10:14:41 2001  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn25bfac.f (s2Bfac): Briefer printed output from singular case.
+
+        * sn27lu.f (lu1fac):   Briefer printed output from the LU routines.
+
+Sat Nov 17 11:39:47 2001  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * snopt.f (snopt):     Added definition of nnL so that it can be saved in iw.
+
+Fri Nov 16 16:32:34 2001  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn17util.f (dnormi): Added and used in place of dnrm1s.
+
+        * sn57qopt.f (s5solv): dnrm1s( nb,... ) replaced by dnormi( n,... ).
+
+        * sn50lp.f (s5setp):   Infinity norm used for piNorm (no longer dnrm1s).
+                               This may change the convergence test.
+
+Sun Nov  4 21:01:00 2001  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * snoptf.f (snoptf):   Call to s5solv now solves LP's explicitly.
+
+Wed Oct 31 21:41:07 2001  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * snopt.f (snopt):     Use nObj to hold current number of nonlinear variables.
+                               We need this for the FPonly case.
+
+        * sn87sopt.f (s8dflt): Select correct lvlDer for FPonly with differences.
+
+        * sn05wrps.f (s0fgS):  Fix printing of # gradients for FPonly.
+
+Tue Oct 30 22:52:39 2001  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn55qp.f (s5QPit):   Fixed bug that occurred when an LP is solved as an NLP.
+                               Jamming variables with state -1 on their bounds caused
+                               the QP to think that the resulting direction is not a
+                               descent direction.  Thanks to Tom Aird at Frontline for
+                               providing the data needed to track this one down.
+
+Mon Oct  8 21:22:22 2001  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * sn70nobj.f (s7chkG): Fixed printing of checked Jacobian elements.
+                               Bug reported by Mike Saunders.
+
+Wed Sep  5 15:17:30 2001  Philip E. Gill  <peg@optimal.ucsd.edu>
+
+        * sq02lib.f (sqMem):   Reordered arguments in call to s5Mem,
+                               fixing bug reported by Mike Saunders.
+
+Fri Aug 31 08:45:43 2001  Philip E. Gill  <peg@ljna2.newmind.com>
+
+        * snoptf.f (snoptf):   Temp fix for assignment of ObjSpc.
+
+        * sn20amat.f (s2Mem):  Fixed bug in the definition of fixdup.
+
+Sat Jul 28 15:45:36 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn05wrpf.f (s0fgF):  Derivative pattern assigned to Gconu, fixing
+                               bug reported by Tom Aird of Frontline Systems.
+
+Wed Jul 18 15:28:18 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn10mach.f (s1cpu):  Added timer calls for f95 compilers.
+
+Thu Jul 12 11:06:51 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn55qp.f (s5fixS):   Don't try to fix variables if nS = 0.
+
+Sun Jun 17 21:10:54 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn55qp.f (s5QPit):   Call to s5del now shifts vectors in BS-order.
+
+Fri Jun 15 23:17:28 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn37wrap.f (s3bldJ): Elements of Jcol now counted correctly, fixing
+                               bug reported by Tom Aird of Frontline Systems.
+
+Sun Jun 10 19:54:25 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn40bfil.f (s4soln): Print variables and constraints in the order
+                               determined by the list kx.  This fixes a bug
+                               (reported by Liz Dolan) that caused printing
+                               in a dumb order.
+
+        * sn37wrap.f (s3bldJ): Removed argument rw(lenrw).
+
+        * sn50lp.f (s5LP):     Same change as for s5QP below.
+
+        * sn55qp.f (s5QP):     New routine s3finE computes the final
+                               sum of infeasibilites.  This call removes any
+                               degenerate feasible elastic variables for the
+                               next call to s5QP.  This change eliminates cases in
+                               which nInf > 0, but there are no infeasibilites.
+
+Thu Jun  7 22:49:02 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn87sopt.f (s8dflt): Removed LUprnt (it is set by s2Bfac).
+
+Sun Jun  3 22:21:26 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * snopt.f (snopt):     Addresses for kx and kxN made equivalent
+                               (same for  snoptm  and  npopt).
+
+        * sn37wrap.f (s3Perm): Replaced iy by kxN, the inverse of kx.
+                     (s3Map):  kxN added.
+                     (s3InF):  kx replaced by kxN.
+                     (s3OutF): kx replaced by kxN.
+
+        * sn05wrpf.f (s0fgF): Changed kx to kxN.
+
+        * snopt.f (snopt):   Added array kxN (formerly defined by kx).
+
+Fri May 25 19:20:16 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn87sopt.f (s8dflt): Default violation limit changed to 1.0e+6.
+
+Sun May 20 11:08:45 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn87sopt.f (s8SQP): User-defined step limited signaled.
+
+        * sn55qp.f (s5QPit): In singular case, set p(nS) = plus or minus 1 instead
+                             of djq.  This fixes bug that occurred when hs(j) = -1.
+
+Sat May 19 12:49:09 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn80ncon.f (s8iqp): Reset xQP0 if nonelastics become infeasible during
+                              the QP optimality phase.
+
+        * sn55qp.f (s5chkp): itn count added to printout. "small" replaced by "bad".
+                   (s5QP):   LUreq = 23 added.
+                   (s5QP):   newx initialized to avoid undefined test
+                             (bug found by Mike Friedlander).
+                   (s5QP):   Reduce tols if point is infeasible after a refactorize.
+                             Reset gotR on infeasibility.
+                   (s5QP):   Use tolFP for statpt test when infeasible.
+                   (s5QP):   Set gotE after switch to elastic mode.
+                   (s5QP):   Moved post-s5QPit  error correction to calling routine.
+                   (s5QPit): Bad directional derivative now forces refactorization.
+                   (s5QPit): Successively reduce pivot tolerance on unbounded phase 1 problems.
+
+        * sn25bfac.f (s2Bfac): Call to s2tols for LUreq 5 & 6 removed.
+
+Wed May 16 11:12:40 2001  Philip E. Gill  <peg@optimal.ucsd.edu>
+
+        * sn10mach.f (s1open):  Default method 2 has the getfnm invocation
+        activated.  Method 4 and getfnm.f now has the old method = 2 logic.
+        When non-AMPL programs link against libsnopt.a (or libsnopt.so),
+        they will get the same behavior as with the old sn10mach.f,
+        and when ampl/solvers/snopt/snopt.c links against libsnopt.a,
+        by supplying its own getfnm it will get the behavior it needs.
+
+        * sn12gtfn.f (getfnm): Added sn12gtfn.f to the distribution
+
+        * Submakefile ($(LIBDIR)/libsnopt.so): consolidated Ampl and Cute libraries in libsnopt.a
+
+Fri May 11 09:21:37 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn25bfac.f (s2Bfac): Increased mtry to 30 to handle larger problems.
+
+        * sn50lp.f (s5dgen):   Removed summary file output.
+
+        * sn25bfac.f (s2Bfac): Revised ordering of B, BS and BR and
+                               factorization types.
+                               Fixed up printing (the hardest part!).
+
+Thu May 10 08:53:34 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn25bfac.f (s2Bfac): Fixed exit when storage limits exceeded.
+                     (s2Bfac): For BRfac, force Lmax1 = 2.5 (with TCP).
+                               This Lmax1 is now set in s2Bfac so that
+                               the next factor is done with the default
+                               Lmax1.
+
+Wed May  9 21:38:23 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn87sopt.f (s8SQP):  Reset original TPP or TCP after first factor
+
+        * sn25bfac.f (s2BLU):  For BRfac, force Lmax1 = 3.99 (with TCP).
+
+Tue May  8 11:25:30 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn87sopt.f (s8dflt): Moved definition of epsrf so that it only a user-defined
+                               value sets tolNLP.
+                               Default tolNLP = 2.0*c6.
+                               Default tolQP  = tolNLP/2.0.
+
+Mon May  7 09:41:51 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn55qp.f (s5QP):     rgtol now scaled by max(piNorm, normgBS)
+
+        * sn87sopt.f (s8dflt): Default tolpiv =  ten*eps.
+
+        * sn55qp.f (s5QP):     Relaxed rgtol = min( tolQP, c6).
+
+        * sn87sopt.f (s8dflt): Default tolQP <= 0.2*tolNLP.
+
+Sun May  6 21:31:02 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn55qp.f (s5QPit):   EXPAND used on every step, not just at a vertex.
+
+        * sn50lp.f (s5setE):   Elastic states only checked for basic variables.
+                               Variables feasible to within tol are left in elastic
+                               state. This cures bug exhibited on KISSING.SIF.
+
+Fri May  4 20:39:21 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn87sopt.f (s8SQP):  "z" iterations terminated when feasible.
+
+Tue May  1 21:17:35 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn87sopt.f (s8dflt): Default tolpiv = eps0 (MARINE.SIF)
+
+Mon Apr 30 18:48:00 2001  Michael A Saunders  <saunders@sol1.stanford.edu>
+
+        * sn30spec.f (s3key):  New option: Elastic WeightMax
+
+Mon Apr 30 17:45:00 2001  Michael P. Friedlander  <mpf@stanford.edu>
+
+        * sn80ncon.f (s8wInf): wtMax introduced as a parameter instead of
+                               a local variable.  Max increase in
+                               infeasibility weight can now be set via SPECS.
+
+        * sn87sopt.f (s8dflt): wtMax introduced; default value is 1.0d+10.
+        (s8sqp):               wtMax added to parameter list of s8wInf.
+
+        * snworkspace.f:       wtMax added to rw(90) as an option.
+
+Mon Apr 30 08:21:17 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn55qp.f (s5QPit):   Switched to inf norm for pnorm to give sensible scaling
+                               for tolpiv on COPS problem MARINE.
+
+Sat Apr 28 16:50:00 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn87sopt.f (s8dflt): Zcndbd added as an optional parameter.
+        (s8solv):              Bugfix: nx0 = nb for PP2.
+
+        * sn57qopt.f (s5dflt): Zcndbd added as an optional parameter.
+
+        * sn55qp.f (s5HZ):     targtZ added as argument
+        (s5QP):                targtZ assigned from Zcndbd.
+        (s5QP):                refactor conditions for unbounded case rationalized.
+
+        * snworkspace.f:       Targtz removed from rw(188).
+                               Zcndbd added to rw(86) as an option.
+
+        * sn80ncon.f (s8getR): TargtZ set from Zcndbd
+
+Wed Apr 25 08:58:40 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn25bfac.f (s2tols): User tolFac and tolUpd reset correctly.
+
+Mon Apr 23 21:41:38 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn55qp.f (s5QPit):   Permanent warning on bad new SB direction.
+        (s5QP):                Impose stringent rgtol after hitcon.
+
+Sun Apr 22 08:44:09 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn55qp.f (s5QP):     s5grdE called only if nInfE > 0.
+
+        * sn80ncon.f (s8feas): No fatal exit when minimizing the one-norm of (x - x0).
+
+        * sn87sopt.f (s8SQP):  Lmul set to QP multipliers on entry to elastic mode.
+
+        * sn80ncon.f (s8Infs): Included equality constraints in computation of duInf.
+
+Fri Apr 20 20:08:40 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn50lp.f (s5setE):  Fixed bug in the definition of an elastic infeasibility
+                              that caused phantom infeasibility.
+
+Thu Apr 19 08:40:49 2001  Philip E. Gill  <peg@optimal.ucsd.edu>
+
+        * sn80ncon.f (s8iqp): lvlInf initialized properly.
+                              (Bug found by Mike Friedlander).
+
+Wed Apr 18 08:13:17 2001  Philip E. Gill  <peg@optimal.ucsd.edu>
+
+        * sn87sopt.f (s8Map): Initialized lHd correctly for lvlHess == FM.
+                              (Bug found by Mike Friedlander).
+
+Fri Apr 13 20:11:48 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn87sopt.f (s8SQP): For a hot-start, prevent a loose singularity tolerance on
+                              the first QP starting basis.
+
+Thu Apr 12 07:50:01 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn90lmqn.f (s9LMup): dx updated to match the last column of S.
+
+        * snworkspace.f: Addresses for BFGS S and V matrices shifted down one to fill
+                         the gap from Hd.
+
+        * sn85Hess.f (s8Hupd): Current Hessian diagonal Hd made common to both dense and
+                               limited memory updates.
+
+Wed Apr 11 22:00:57 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn95fmqn.f (s9FMup): Corrected the update for LC problems when Hessian is dense.
+
+
+Sun Apr  8 20:27:59 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn50lp.f (s5LPit): Write statement for jq protected.
+
+Sun Apr  1 10:36:28 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn50lp.f (s5pric): After problems with channel.sif, true free variables are freed only if they
+                             are nonzero and we are about to declare the problem infeasible.
+
+Sat Mar 31 12:51:51 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn50lp.f (s5pric): Made temporarily fixed true free variables eligible to be jammed in the basis.
+
+        * sn87sopt.f (s8SQP): Changed EXIT message for low accuracy optimality
+        (s8SQP): Allowed slight constraint violation for low accuracy optimality
+
+        * sn02lib.f (snlog): Set bracketed quantities correctly
+
+        * sn55qp.f (s5Rsng): iSumm printing eliminated for indefinite case
+
+        * sn80ncon.f (s8iqp): nnH and ngQP used as arguments to feasible point QP
+
+Thu Mar 29 15:24:05 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn80ncon.f (s8iqp): On error exit from the QP, Hessian is now reset first
+
+        * sn55qp.f (s5QP): On newSB check that the new superbasic moves in the right direction
+
+Sun Mar 25 23:43:47 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn02lib.f (snlog): added underscore to print file line
+
+        * sn65rmod.f (s6chol): Bug in s6chol.  dmax not set properly for threshold pivoting
+
+Mon Mar 19 22:13:48 2001  Philip E. Gill  <peg@feasible.ucsd.edu>
+
+        * sn02lib.f (snlog): Bug in alphabet soup fixed
+
+        * sn80ncon.f (s8step): steplm limited by 1/normp
+
+        * sn55qp.f (s5QP): set mUncon = 0
+        (s5QP): used eps2 to test for statpt (was eps1)
+
+        * sn87sopt.f (s8dflt): changed default PP to PP2
+        (s8SQP): recompute  R  if newLU is true (not newB)
+
+        * sn80ncon.f (s8feas): Fixed bug in printing for PP2
