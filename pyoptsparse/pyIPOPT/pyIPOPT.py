@@ -59,40 +59,118 @@ class IPOPT(Optimizer):
 
         name = 'IPOPT'
         category = 'Local Optimizer'
+
+        # These options are documented on the website:
+        # http://www.coin-or.org/Ipopt/documentation/node39.html
+        # accessed on March 26, 2014.
+
         def_opts = {'tol':[float,1e-6],
                     'hessian_approximation':[str,'limited-memory'],
                     'limited_memory_max_history':[int,10],
                     'max_iter':[int,100],
-                    # print options
+
+                    # Print options
                     'print_level':[int, 0], # Output verbosity level. '0-12'
-                    'print_user_options':[str,'no'], #yes or no, Print all options set by the user.
-                    'print_options_documentation':[str,'no'],#yes or no,Switch to print all algorithmic options.
-                    'print_frequency_iter':[int,1],# Determines at which iteration frequency the summarizing iteration output line should be printed.
-                    'print_frequency_time':[float, 0.0],# Determines at which time frequency the summarizing iteration output line should be printed. 
-                    'output_file':[str,'IPOPT.out'],
-                    'file_print_level':[int,5],#Verbosity level for output file. '0-12'
+                    
+                    # Print all options set by the user.
+                    'print_user_options':[str, 'no'], # yes or no, 
+                    
+                    # Switch to print all algorithmic options.
+                    'print_options_documentation':[str, 'no'], # yes or no
+
+                    # Determines at which iteration frequency the
+                    # summarizing iteration output line should be
+                    # printed.
+                    'print_frequency_iter':[int, 1],
+
+                    # Determines at which time frequency the
+                    # summarizing iteration output line should be
+                    # printed.
+                    'print_frequency_time':[float, 0.0],
+                    'output_file':[str, 'IPOPT.out'],
+
+                    #Verbosity level for output file. '0-12'
+                    'file_print_level':[int,5],
+
                     'option_file_name':[str,'IPOPT_options.opt'],
-                    'print_info_string':[str,'no'],#yes or no.Enables printing of additional info string at end of iteration output.
-                    'inf_pr_output':[str,'original'],#Determines what value is printed in the "inf_pr" output column. 'internal' or 'original'
-                    'print_timing_statistics':[str,'no'],#yes or no
+
+                    # Enables printing of additional info string at
+                    # end of iteration output.
+                    'print_info_string':[str,'no'],#yes or no.
+                    
+                    # Determines what value is printed in the "inf_pr"
+                    # output column. 'internal' or 'original'
+                    'inf_pr_output':[str, 'original'],
+                    'print_timing_statistics':[str, 'no'], # yes or no
+                    
                     # Derivative Testing options
-                    'derivative_test':[str,'none'], # none,first-order,second-order,only-second-order
-                    'derivative_test_perturbation':[float,1e-8],
-                    'derivative_test_tol':[float,1e-4],
-                    'derivative_test_print_all':[str,'no'],#yes,no
-                    'derivative_test_first_index':[int,-2],
+                    # none, first-order, second-order, only-second-order
+                    'derivative_test':[str,'none'], 
+
+                    'derivative_test_perturbation':[float, 1e-8],
+                    'derivative_test_tol':[float, 1e-4],
+                    'derivative_test_print_all':[str, 'no'], # yes, no
+                    'derivative_test_first_index':[int, -2],
                     'point_perturbation_radius':[float, 10.0],
-                    # Line search
-                    'max_soc':[int, 4], #Maximum numbero fsecond order correction trial steps at each iteration
+
+                    # Line search options
+
+                    # Maximum number of second order correction trial
+                    # steps at each iteration
+                    'max_soc':[int, 4], 
                     'watchdog_shortened_iter_trigger':[int, 10],
-                    'watchdog_trial_iter_max':[int,3],
+                    'watchdog_trial_iter_max':[int, 3],
                     'accept_every_trial_step':[str, 'no'],
-                    'corrector_type':[str,'none'],
+                    'corrector_type':[str, 'none'],
+
+                    # Options for the barrier strategy in IPOPT -
+                    # these can make a big difference in the
+                    # performance of the IP algorithm.
+                    
+                    # The initial value of mu
                     'mu_init':[float, 0.1],
-                    'mu_strategy':[str,'monotone'],
-                    'start_with_resto':[str,'no'],
-                    'required_infeasibility_reduction':[float,0.9],
-                    'expect_infeasible_problem':[str,'no'],
+
+                    # Use the mu update strategy: Defaults to
+                    # Fiacco-McCormick monotone, the other option is
+                    # 'adaptive'
+                    'mu_strategy':[str, 'monotone'], 
+                    
+                    # For the monotone strategy, decrease the value of
+                    # mu by this fixed fraction after each barrrier
+                    # problem is solved
+                    'mu_linear_decrease_factor':[float, 0.2],
+
+                    # Use the min of the linear decrease factor and
+                    # mu**(mu_superlinear_decrease_power) for the next
+                    # barrier value: enables superlinear rates of
+                    # convergence
+                    'mu_superlinear_decrease_power':[float, 1.5],
+
+                    # Parameter that controls how tightly each barrier 
+                    # problem is solved before the next mu update. A scaled
+                    # version of: ||KKT||_{infty} < mu*barrier_tol_factor
+                    'barrier_tol_factor':[float, 10.0],
+
+                    # Select the method used to pick the next mu in
+                    # the adaptive strategy: Other options: 'loqo':
+                    # the LOQO adaptive barrier strategy and
+                    # 'probing': Mehrotra's probing method
+                    'mu_oracle':[str, 'quality-function'],
+
+                    # Controls how the globalization strategy is applied
+                    # when the adaptive mu strategy is employed. This
+                    # controls what quantity is used to control the switch back
+                    # to monotone mode. Other options are: 'kkt-error', and
+                    # 'never-monotone-mode' which disables globalization
+                    'adaptive_mu_globalization':[str, 'obj-constr-filter'],
+
+                    # Use Mehrotra's predictor-corrector algorithm -
+                    # warning: no globalization
+                    'mehrotra_algorithm':[str, 'no'],
+                    
+                    'start_with_resto':[str, 'no'],
+                    'required_infeasibility_reduction':[float, 0.9],
+                    'expect_infeasible_problem':[str, 'no'],
                     }
         informs = { # Don't have any of these yet either..
             }
