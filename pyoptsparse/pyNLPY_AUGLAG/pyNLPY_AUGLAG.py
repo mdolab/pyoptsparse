@@ -307,10 +307,15 @@ be installed to use NLPY_AUGLAG.')
             tronlogger.addHandler(hndlr)
             tronlogger.addHandler(hndlr2)
             tronlogger.propagate = False
-        # end if
 
-        # pyOpt History logging 
-        dummy = self._setHistory(storeHistory,hotStart,coldStart,None)
+            # pyOpt History logging - only do this on one processor?
+            # dummy = self._setHistory(storeHistory,hotStart,coldStart,None)
+            xs = self._setHistory(storeHistory,hotStart,coldStart,xs)
+
+        else:
+            # Only the root proc stores the history
+            xs = self._setHistory("",hotStart,coldStart,xs)
+        # end if
 
         # This optimizer has no hot start capability (too many vectors)
         # self._hotStart(storeHistory, hotStart)
@@ -378,8 +383,7 @@ be installed to use NLPY_AUGLAG.')
         sol_inform = {}
         sol_inform['value'] = solver.status
         sol_inform['text'] = self.informs[solver.status]
-        # xopt = numpy.zeros_like(xs) # This needs to be replaced with actual x*
-        xopt = solver.x.copy()
+        xopt = solver.x[:self.optProb.ndvs].copy()
         sol = self._createSolution(optTime, sol_inform, solver.f, xopt)
 
         return sol
@@ -564,11 +568,11 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
         # end if 
 
         # Put the fail flag in the history
-        hist['fail'] = masterFail
+        # hist['fail'] = masterFail
 
         # Write history if necessary
-        if self.optProb.comm.rank == 0 and writeHist and self.storeHistory:
-            self.hist.write(self.callCounter, hist)
+        # if self.optProb.comm.rank == 0 and writeHist and self.storeHistory:
+        #     self.hist.write(self.callCounter, hist)
 
         # We can now safely increment the call counter
         self.callCounter += 1
