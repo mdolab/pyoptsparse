@@ -196,13 +196,6 @@ match the number in the current optimization. Ignorning coldStart file')
         self.storeHistory = False
         if storeHistory:
             self.hist = History(storeHistory)
-            # Right after we create the history, write in the optProb
-            # for reference. Note we have to disable the objective
-            # function and comm since these cannot be pickled
-            optProb_copy = copy.deepcopy(self.optProb)
-            optProb_copy.objFun = None
-            optProb_copy.comm = None
-            self.hist.writeData('optProb', optProb_copy)
             self.storeHistory = True
 
         return xs
