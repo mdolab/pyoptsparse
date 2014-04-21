@@ -528,17 +528,17 @@ class SNOPT(Optimizer):
         All we do here is call the generic masterFunc in the baseclass
         which will take care of everything else.
         """
-
         fail = False
         if mode == 0 or mode == 2:
             fobj, fcon, fail = self._masterFunc(x, ['fobj', 'fcon'])
-        if mode == 1:
-            if self.getOption('Derivative level') != 0:
-                gobj, gcon, fail = self._masterFunc(x, ['gobj', 'gcon'])
-        if mode == 2:
-            if self.getOption('Derivative level') != 0:
-                gobj, gcon, fail2 = self._masterFunc(x, ['gobj', 'gcon'])
-                fail = fail or fail2
+        if not fail:
+            if mode == 1:
+                if self.getOption('Derivative level') != 0:
+                    gobj, gcon, fail = self._masterFunc(x, ['gobj', 'gcon'])
+            if mode == 2:
+                if self.getOption('Derivative level') != 0:
+                    gobj, gcon, fail2 = self._masterFunc(x, ['gobj', 'gcon'])
+                    fail = fail or fail2
 
         # Flush the files to the buffer for all the people who like to
         # monitor the residual
