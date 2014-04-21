@@ -88,7 +88,8 @@ class NLPY_AUGLAG(Optimizer):
         'Use Tron':[bool,False],
         'Use Quasi-Newton Jacobian':[bool,True],
         'Penalty Parameter':[float,10.],
-        'Maximum Iterations':[int, 5000]
+        'Maximum Inner Iterations':[int, 500],
+        'Maximum Outer Iterations':[int, 20]
         }
         # Inform/Status codes go here
         informs = {
@@ -307,10 +308,21 @@ be installed to use NLPY_AUGLAG.')
             tronlogger.addHandler(hndlr)
             tronlogger.addHandler(hndlr2)
             tronlogger.propagate = False
-        # end if
 
-        # pyOpt History logging 
-        dummy = self._setHistory(storeHistory,hotStart,coldStart,None)
+            # This logger is only used for debugging
+            # sr1logger = logging.getLogger('nlpy.lsr1')
+            # sr1logger.setLevel(logging.DEBUG)
+            # sr1logger.addHandler(hndlr)
+            # sr1logger.propagate = False
+
+            # pyOpt History logging - only do this on one processor?
+            # dummy = self._setHistory(storeHistory,hotStart,coldStart,None)
+            xs = self._setHistory(storeHistory,hotStart,coldStart,xs)
+
+        else:
+            # Only the root proc stores the history
+            xs = self._setHistory("",hotStart,coldStart,xs)
+        # end if
 
         # This optimizer has no hot start capability (too many vectors)
         # self._hotStart(storeHistory, hotStart)
@@ -333,7 +345,8 @@ be installed to use NLPY_AUGLAG.')
                 save_data=self.options['Save Current Point'][1],
                 warmstart=self.options['Warm Restart'][1],
                 rho_init=self.options['Penalty Parameter'][1],
-                max_inner_iter=self.options['Maximum Iterations'][1])            
+                max_inner_iter=self.options['Maximum Inner Iterations'][1],
+                max_outer_iter=self.options['Maximum Outer Iterations'][1])            
         elif self.options['Use Quasi-Newton Jacobian'][1]:
             solver = AugmentedLagrangianTotalLsr1AdjBroyAFramework(nlpy_problem, 
                 SBMINTotalLqnFramework, 
@@ -347,7 +360,8 @@ be installed to use NLPY_AUGLAG.')
                 warmstart=self.options['Warm Restart'][1],
                 sparse_index=sparse_index,
                 rho_init=self.options['Penalty Parameter'][1],
-                max_inner_iter=self.options['Maximum Iterations'][1])
+                max_inner_iter=self.options['Maximum Inner Iterations'][1],
+                max_outer_iter=self.options['Maximum Outer Iterations'][1])
                 # data_prefix=prefix, save_data=False)
         else:
             # Try matrix-vector products with the exact Jacobian
@@ -363,10 +377,13 @@ be installed to use NLPY_AUGLAG.')
                 save_data=self.options['Save Current Point'][1],
                 warmstart=self.options['Warm Restart'][1],
                 rho_init=self.options['Penalty Parameter'][1],
-                max_inner_iter=self.options['Maximum Iterations'][1])
+                max_inner_iter=self.options['Maximum Inner Iterations'][1],
+                max_outer_iter=self.options['Maximum Outer Iterations'][1])
                 # sparse_index=struct_opt.num_dense_con,
                 # data_prefix=prefix, save_data=False)            
 
+        # if self.optProb.comm.rank == 0:
+        #     print("Starting solve")
         solver.solve(ny=self.options['Use N-Y Backtracking'], magic_steps_agg=self.options['Use Magical Steps'])
 
         # Step 4: Collect and return solution
@@ -378,8 +395,7 @@ be installed to use NLPY_AUGLAG.')
         sol_inform = {}
         sol_inform['value'] = solver.status
         sol_inform['text'] = self.informs[solver.status]
-        # xopt = numpy.zeros_like(xs) # This needs to be replaced with actual x*
-        xopt = solver.x.copy()
+        xopt = solver.x[:self.optProb.ndvs].copy()
         sol = self._createSolution(optTime, sol_inform, solver.f, xopt)
 
         return sol
@@ -449,6 +465,9 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
 
         # Evaluate the gradient of the objective function only
         if 'gobj' in evaluate:
+            # if self.optProb.comm.rank == 0:
+            # print("userObjCalls = %d"%self.userObjCalls)
+            # print("userSensCalls = %d"%self.userSensCalls)
             if numpy.linalg.norm(x-self.cache['x']) > eps:
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recusively call
@@ -527,6 +546,9 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
             # hist['outvec'] = outvec
 
         elif 'jac_prod' in evaluate or 'jac_T_prod' in evaluate:
+            # if self.optProb.comm.rank == 0:
+            # print("userJProdCalls = %d"%self.userJProdCalls)
+            # print("userJTProdCalls = %d"%self.userJTProdCalls)
             # Call the true matrix-vector product functions, no matrix formation
             # Convert input arrays to dictionaries before calling the callback function
             # Also, scale vectors appropriately before and after the products are formed
@@ -564,11 +586,11 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
         # end if 
 
         # Put the fail flag in the history
-        hist['fail'] = masterFail
+        # hist['fail'] = masterFail
 
         # Write history if necessary
-        if self.optProb.comm.rank == 0 and writeHist and self.storeHistory:
-            self.hist.write(self.callCounter, hist)
+        # if self.optProb.comm.rank == 0 and writeHist and self.storeHistory:
+        #     self.hist.write(self.callCounter, hist)
 
         # We can now safely increment the call counter
         self.callCounter += 1
