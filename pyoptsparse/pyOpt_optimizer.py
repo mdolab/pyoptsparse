@@ -475,7 +475,7 @@ match the number in the current optimization. Ignorning coldStart file')
 
         return returns
 
-    def _internalEval(x):
+    def _internalEval(self, x):
         """
         Special internal evaluation for optimizers that have a
         separate callback for each constraint"""
@@ -489,7 +489,7 @@ match the number in the current optimization. Ignorning coldStart file')
         self.storedData['gobj'] = gobj.copy()
         self.storedData['gcon'] = gcon.copy()
 
-    def _checkEval(x):
+    def _checkEval(self, x):
         """Special check to be used with _internalEval()"""
         if self.storedData['x'] is None:
             return True
