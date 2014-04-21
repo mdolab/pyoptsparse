@@ -178,14 +178,14 @@ class Optimization(object):
             A valid constraint name. May be the same as conName it that
             was, in fact, a valid name.
             """
-        if name not in self.conGroupNames:
-            return varName
+        if conName not in self.conGroupNames:
+            return conName
         else:
             i = 0
-            validName = varName + '_%d'% i
-            while validName in self.varGroupNames:
+            validName = conName + '_%d'% i
+            while validName in self.conGroupNames:
                 i += 1
-                validName = varName + '_%d'% i
+                validName = conName + '_%d'% i
             return validName
 
     def addVarGroup(self, name, nVars, type='c', value=0.0, 
@@ -1320,20 +1320,22 @@ class Optimization(object):
                 # Now check that the jacobian is the correct shape
                 if not(tmp.shape[0] == con.ncon and tmp.shape[1] == ndvs):
                     raise Error("The shape of the supplied constraint "
-                                "jacobian for constraint %s is incorrect. "
+                                "jacobian for constraint %s with respect to %s "
+                                "is incorrect. "
                                 "Expected an array of shape (%d, %d), but "
                                 "received an array of shape (%d, %d)."% (
-                                    con.name, con.ncon, ndvs, 
+                                    con.name, key, con.ncon, ndvs, 
                                     tmp.shape[0], tmp.shape[1]))
 
                 # Now check that the csr matrix has the correct
                 # number of non zeros:
                 if tmp.nnz != con.jac[key].nnz:
                     raise Error("The number of nonzero elements for "
-                                "constraint group '%s' was not the correct "
-                                "size. The supplied jacobian has %d nonzero "
+                                "constraint group '%s' with respect to %s "
+                                "was not the correct size. The supplied "
+                                "jacobian has %d nonzero "
                                 "entries, but must contain %d nonzero "
-                                "entries." % (con.name, tmp.nnz,
+                                "entries." % (con.name, key, tmp.nnz,
                                               con.jac[key].nnz))
 
                 # Include data from this jacobian chunk
