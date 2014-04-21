@@ -317,6 +317,7 @@ class Constraint(object):
                     self.jac[dvSet] = sparse.coo_matrix(numpy.ones((self.ncon, ndvs)))
                     self.jac[dvSet].data[:] = 1e-50
                     
+
                 if (self.jac[dvSet].shape[0] != self.ncon or 
                     self.jac[dvSet].shape[1] != ndvs):
                     raise Error("The supplied jacobian for dvSet \%s' "
