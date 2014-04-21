@@ -584,7 +584,7 @@ class Optimization(object):
             self.setDVs(hist[key]['xuser'])
             hist.close()
         else:
-            raise Error("History file '%s' not found!."% histHist)
+            raise Error("History file '%s' not found!."% histFile)
         
     def printSparsity(self):
         """
