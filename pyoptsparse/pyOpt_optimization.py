@@ -266,17 +266,6 @@ class Optimization(object):
         given for all variables even if the default value is used. 
         """
 
-        if name in self.varGroupNames:
-            raise Error("The supplied name '%s' for a variable group "
-                        "has already been used."% name)
-        else:
-            self.varGroupNames.add(name)
-
-        if varSet is None:
-            varSet = name
-        if not varSet in self.variables:
-            self.addVarSet(varSet)
-
         # Check that the type is ok:
         if type not in ['c', 'i', 'd']:
             raise Error("Type must be one of 'c' for continuous, "
@@ -334,13 +323,41 @@ class Optimization(object):
         scalar = kwargs.pop('scalar', False)
 
         # Now create all the variable objects
-        self.variables[varSet][name] = []
+        varList = []
         for iVar in range(nVars):
             varName = name + '_%d'% iVar
-            self.variables[varSet][name].append(
-                Variable(varName, type=type, value=value[iVar],
-                         lower=lower[iVar], upper=upper[iVar],
-                         scale=scale[iVar], scalar=scalar, choices=choices))
+            varList.append(Variable(varName, type=type, value=value[iVar],
+                                    lower=lower[iVar], upper=upper[iVar],
+                                    scale=scale[iVar], scalar=scalar, 
+                                    choices=choices))
+
+        # We have created the list of variables according to the
+        # specification of the user. It is possible however, that the
+        # user has already added *EXACTLY* the same DV. This will be
+        # ok.
+        if varSet is None:
+            varSet = name
+        if not varSet in self.variables:
+            self.addVarSet(varSet)
+
+        if name in self.varGroupNames:
+            # Check that the variables happen to be the same
+            err = False
+            if not len(self.variables[varSet][name]) == len(varList):
+                raise Error("The supplied name '%s' for a variable group "
+                            "has already been used!"% name)
+            for i in range(len(varList)):
+                if not varList[i] == self.variables[varSet][name][i]:
+                    raise Error("The supplied name '%s' for a variable group "
+                                "has already been used!"% name)
+            # We we got here, we know that the variables we wanted to
+            # add are **EXACTLY** the same so that's cool. We'll just
+            # overwrite with the varList below. 
+        else:
+            self.varGroupNames.add(name)
+
+        # Finally we set the variable list
+        self.variables[varSet][name] = varList
 
     def delVar(self, name):
         """
