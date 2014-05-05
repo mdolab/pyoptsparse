@@ -574,8 +574,11 @@ class Optimization(object):
                     nvar = len(self.variables[dvSet][dvGroup])
                     for i in range(nvar):
                         var = self.variables[dvSet][dvGroup][i]
-                        var.value = inDVs[dvSet][i]*var.scale
-                        
+                        if numpy.isscalar(inDVs[dvGroup]):
+                            var.value = inDVs[dvGroup]*var.scale
+                        else:
+                            var.value = inDVs[dvGroup][i]*var.scale
+
     def setDVsFromHistory(self, histFile, key=None):
         """
         Set optimization variables from a previous optimization. This
