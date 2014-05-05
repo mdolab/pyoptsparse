@@ -98,6 +98,7 @@ class NLPY_AUGLAG(Optimizer):
         }
         # Inform/Status codes go here
         informs = {
+        1: 'Current point could not be improved',
         0: 'Successfully converged',
         -1: 'Maximum number of iterations reached',
         -2: 'Problem appears to be infeasible',
