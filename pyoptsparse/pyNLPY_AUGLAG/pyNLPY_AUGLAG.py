@@ -46,6 +46,8 @@ except:
 import os
 import time
 import copy
+import signal
+from contextlib import contextmanager
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -59,6 +61,23 @@ from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_gradient import Gradient
 from ..pyOpt_history import History
 from ..pyOpt_error import Error
+
+# =============================================================================
+# Timeout Class
+# =============================================================================
+class TimeoutException(Exception): pass
+
+@contextmanager
+def time_limit(seconds):
+    def signal_handler(signum, frame):
+        raise TimeoutException, "Timed out!"
+    signal.signal(signal.SIGALRM, signal_handler)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
+
 # =============================================================================
 # NLPy Optimizer Class
 # =============================================================================
@@ -94,7 +113,8 @@ class NLPY_AUGLAG(Optimizer):
         'Use Limited-Memory Approach':[bool,False],
         'Penalty Parameter':[float,10.],
         'Maximum Inner Iterations':[int, 500],
-        'Maximum Outer Iterations':[int, 20]
+        'Maximum Outer Iterations':[int, 20],
+        'Maximum Time':[int,172000]
         }
         # Inform/Status codes go here
         informs = {
@@ -103,6 +123,7 @@ class NLPY_AUGLAG(Optimizer):
         -1: 'Maximum number of iterations reached',
         -2: 'Problem appears to be infeasible',
         -3: 'Solver stopped on user request',
+        -5: 'Maximum run time exceeded'
         }
         self.set_options = []
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
@@ -392,7 +413,12 @@ be installed to use NLPY_AUGLAG.')
 
         # if self.optProb.comm.rank == 0:
         #     print("Starting solve")
-        solver.solve(ny=self.options['Use N-Y Backtracking'], magic_steps_agg=self.options['Use Magical Steps'])
+        try:
+            with time_limit(self.options['Maximum Time'][1]):
+                solver.solve(ny=self.options['Use N-Y Backtracking'], magic_steps_agg=self.options['Use Magical Steps'])
+        except TimeoutException:
+            solver.status = -5
+            solver.tsolve = float(self.options['Maximum Time'][1])
 
         # Step 4: Collect and return solution
         optTime = time.time() - timeA
