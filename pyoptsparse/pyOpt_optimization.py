@@ -1305,8 +1305,8 @@ class Optimization(object):
                         # Supplied jacobian is dense, replace any zero, 
                         # before converting to csr format
                         tmp = numpy.atleast_2d(gcon[iCon][key])
-                        tmp[numpy.where(tmp==0)] = 1e-50
-                        tmp = sparse.coo_matrix(tmp.copy())
+                        tmp[numpy.where(tmp==0.0)] = 1e-50    
+                        tmp = sparse.coo_matrix(tmp.copy()) 
                 else:
                     # This key is not returned. Just use the
                     # stored jacobian that contains zeros
@@ -1342,6 +1342,12 @@ class Optimization(object):
         # Finally, construct coo matrix, convert to csr and perform
         # row and column scaling. Also sort the indices to ensure
         # consistent ordering
+        data = numpy.array(data)
+        
+        # Brutal hack to prevent scipy from deleting temporarily zero,
+        # non-zero entries. Scipy get your crap together.
+        data[numpy.where(data==0.0)] = 1e-50
+
         gcon = sparse.coo_matrix((data, (row, col)), (self.nCon, self.ndvs)).tocsr()
         gcon = self.conScale*gcon
         gcon = gcon.dot(self.invXScale)

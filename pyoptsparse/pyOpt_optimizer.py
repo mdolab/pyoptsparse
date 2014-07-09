@@ -405,6 +405,7 @@ match the number in the current optimization. Ignorning coldStart file')
                 funcsSens, fail = self.sens(xuser, self.cache['funcs'])
                 self.userSensTime += time.time()-timeA
                 self.userSensCalls += 1
+
                 # User values are stored is immediately
                 self.cache['funcsSens'] = copy.deepcopy(funcsSens)
 
@@ -414,6 +415,7 @@ match the number in the current optimization. Ignorning coldStart file')
                 # Process constraint gradients for optimizer
                 gcon = self.optProb.processConstraintJacobian(funcsSens)
                 gcon = self._convertJacobian(gcon)
+
                 # Set the cache values:
                 self.cache['gobj'] = gobj.copy()
                 self.cache['gcon'] = gcon.copy()
