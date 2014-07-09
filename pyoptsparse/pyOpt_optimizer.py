@@ -80,6 +80,11 @@ class Optimizer(object):
         self.cache = {'x': None, 'fobj': None, 'fcon': None,
                       'gobj': None, 'gcon': None}
 
+        # A second-level cache for optimizers that require callcbacks
+        # for each constraint. (eg. PSQP, FSQP, etc)
+        self.storedData = {}
+        self.storedData['x'] = None
+        
     def _clearTimings(self):
         """Clear timings and call counters"""
         self.userObjTime = 0.0
@@ -196,13 +201,6 @@ match the number in the current optimization. Ignorning coldStart file')
         self.storeHistory = False
         if storeHistory:
             self.hist = History(storeHistory)
-            # Right after we create the history, write in the optProb
-            # for reference. Note we have to disable the objective
-            # function and comm since these cannot be pickled
-            optProb_copy = copy.deepcopy(self.optProb)
-            optProb_copy.objFun = None
-            optProb_copy.comm = None
-            self.hist.writeData('optProb', optProb_copy)
             self.storeHistory = True
 
         return xs
@@ -478,6 +476,29 @@ match the number in the current optimization. Ignorning coldStart file')
         returns.append(masterFail)
 
         return returns
+
+    def _internalEval(self, x):
+        """
+        Special internal evaluation for optimizers that have a
+        separate callback for each constraint"""
+        
+        fobj, fcon, gobj, gcon, fail = self._masterFunc(
+            x, ['fobj', 'fcon', 'gobj', 'gcon'])
+
+        self.storedData['x'] = x.copy()
+        self.storedData['fobj'] = fobj
+        self.storedData['fcon'] = fcon.copy()
+        self.storedData['gobj'] = gobj.copy()
+        self.storedData['gcon'] = gcon.copy()
+
+    def _checkEval(self, x):
+        """Special check to be used with _internalEval()"""
+        if self.storedData['x'] is None:
+            return True
+        elif (self.storedData['x'] == x).all():
+            return False
+        else:
+            return True
 
     def _convertJacobian(self, gcon):
         """

@@ -195,33 +195,11 @@ class FSQP(Optimizer):
             xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
 
             #======================================================================
-            # FSQP - Objective/Constraint Values Storage 
-            #======================================================================
-            def internalEval(x):
-
-                fobj, fcon, gobj, gcon, fail = self._masterFunc(
-                    x, ['fobj', 'fcon', 'gobj', 'gcon'])
-
-                self.storedData['x'] = x.copy()
-                self.storedData['fobj'] = fobj
-                self.storedData['fcon'] = fcon.copy()
-                self.storedData['gobj'] = gobj.copy()
-                self.storedData['gcon'] = gcon.copy()
-
-            def checkEval(x):
-                if self.storedData['x'] is None:
-                    return True
-                elif (self.storedData['x'] == x).all():
-                    return False
-                else:
-                    return True
-
-            #======================================================================
             # FSQP - Objective Values Function
             #======================================================================
             def obj(nparam, j, x, fj):
-                if checkEval(x):
-                    internalEval(x)
+                if self._checkEval(x):
+                    self._internalEval(x)
 
                 fj = self.storedData['fobj']
 
@@ -233,8 +211,8 @@ class FSQP(Optimizer):
             def cntr(nparam, j, x, gj):
 
                 # for given j, assign to gj the value of the jth constraint evaluated at x
-                if checkEval(x):
-                    internalEval(x)
+                if self._checkEval(x):
+                    self._internalEval(x)
 
                 gj = self.storedData['fcon'][j-1]
 
@@ -246,8 +224,8 @@ class FSQP(Optimizer):
             def gradobj(nparam, j, x, gradfj, obj):
 
                 # assign to gradfj the gradient of the jth objective function evaluated at x
-                if checkEval(x):
-                    internalEval(x)
+                if self._checkEval(x):
+                    self._internalEval(x)
 
                 gradfj[0:nparam] = self.storedData['gobj']
 
@@ -259,8 +237,8 @@ class FSQP(Optimizer):
             def gradcntr(nparam, j, x, gradgj, obj):
 
                 # assign to gradgj the gradient of the jth constraint evaluated at x
-                if checkEval(x):
-                    internalEval(x)
+                if self._checkEval(x):
+                    self._internalEval(x)
 
                 gradgj[0:nparam] = self.storedData['gcon'][j-1]
 
@@ -296,10 +274,6 @@ class FSQP(Optimizer):
             nwsize = (4*nvar**2 + 5*max([1,ncon])*nvar + 3*max([1,nobj])*nvar + 
                       26*(nvar+max([1,nobj])) + 45*max([1,ncon]) + 100)
             w = numpy.zeros([nwsize], numpy.float)
-
-            # Storage Arrays 
-            self.storedData = {}
-            self.storedData['x'] = None
 
             # Run FSQP
             t0 = time.time()

@@ -81,6 +81,8 @@ class Constraint(object):
         # Save lower and upper...they are only used for printing however
         self.lower = lower
         self.upper = upper
+        # The current value of the constraint (for printing purposes)
+        self.value = numpy.zeros(self.ncon)
         
         # Now we determine what kind of constraint this is: 
         # 1. An equality constraint
@@ -315,6 +317,7 @@ class Constraint(object):
                     self.jac[dvSet] = sparse.coo_matrix(numpy.ones((self.ncon, ndvs)))
                     self.jac[dvSet].data[:] = 1e-50
                     
+
                 if (self.jac[dvSet].shape[0] != self.ncon or 
                     self.jac[dvSet].shape[1] != ndvs):
                     raise Error("The supplied jacobian for dvSet \%s' "
@@ -363,13 +366,14 @@ class Constraint(object):
         for i in range(self.ncon):
             lower = self.lower[i]
             upper = self.upper[i]
+            value = self.value[i]
             if lower is None:
-                lower = 1e-20
+                lower = -1e20
             if upper is None:
                 upper = 1e20
                 
             res += '	 '+str(self.name).center(9) + \
                    '	  i %15.2e <= %8f <= %8.2e\n' %(
-                lower, 0.0, upper)
+                lower, value, upper)
        
         return res
