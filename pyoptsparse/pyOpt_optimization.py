@@ -178,14 +178,14 @@ class Optimization(object):
             A valid constraint name. May be the same as conName it that
             was, in fact, a valid name.
             """
-        if name not in self.conGroupNames:
-            return varName
+        if conName not in self.conGroupNames:
+            return conName
         else:
             i = 0
-            validName = varName + '_%d'% i
-            while validName in self.varGroupNames:
+            validName = conName + '_%d'% i
+            while validName in self.conGroupNames:
                 i += 1
-                validName = varName + '_%d'% i
+                validName = conName + '_%d'% i
             return validName
 
     def addVarGroup(self, name, nVars, type='c', value=0.0, 
@@ -266,17 +266,6 @@ class Optimization(object):
         given for all variables even if the default value is used. 
         """
 
-        if name in self.varGroupNames:
-            raise Error("The supplied name '%s' for a variable group "
-                        "has already been used."% name)
-        else:
-            self.varGroupNames.add(name)
-
-        if varSet is None:
-            varSet = name
-        if not varSet in self.variables:
-            self.addVarSet(varSet)
-
         # Check that the type is ok:
         if type not in ['c', 'i', 'd']:
             raise Error("Type must be one of 'c' for continuous, "
@@ -334,13 +323,41 @@ class Optimization(object):
         scalar = kwargs.pop('scalar', False)
 
         # Now create all the variable objects
-        self.variables[varSet][name] = []
+        varList = []
         for iVar in range(nVars):
             varName = name + '_%d'% iVar
-            self.variables[varSet][name].append(
-                Variable(varName, type=type, value=value[iVar],
-                         lower=lower[iVar], upper=upper[iVar],
-                         scale=scale[iVar], scalar=scalar, choices=choices))
+            varList.append(Variable(varName, type=type, value=value[iVar],
+                                    lower=lower[iVar], upper=upper[iVar],
+                                    scale=scale[iVar], scalar=scalar, 
+                                    choices=choices))
+
+        # We have created the list of variables according to the
+        # specification of the user. It is possible however, that the
+        # user has already added *EXACTLY* the same DV. This will be
+        # ok.
+        if varSet is None:
+            varSet = name
+        if not varSet in self.variables:
+            self.addVarSet(varSet)
+
+        if name in self.varGroupNames:
+            # Check that the variables happen to be the same
+            err = False
+            if not len(self.variables[varSet][name]) == len(varList):
+                raise Error("The supplied name '%s' for a variable group "
+                            "has already been used!"% name)
+            for i in range(len(varList)):
+                if not varList[i] == self.variables[varSet][name][i]:
+                    raise Error("The supplied name '%s' for a variable group "
+                                "has already been used!"% name)
+            # We we got here, we know that the variables we wanted to
+            # add are **EXACTLY** the same so that's cool. We'll just
+            # overwrite with the varList below. 
+        else:
+            self.varGroupNames.add(name)
+
+        # Finally we set the variable list
+        self.variables[varSet][name] = varList
 
     def delVar(self, name):
         """
@@ -557,8 +574,11 @@ class Optimization(object):
                     nvar = len(self.variables[dvSet][dvGroup])
                     for i in range(nvar):
                         var = self.variables[dvSet][dvGroup][i]
-                        var.value = inDVs[dvSet][i]*var.scale
-                        
+                        if numpy.isscalar(inDVs[dvGroup]):
+                            var.value = inDVs[dvGroup]*var.scale
+                        else:
+                            var.value = inDVs[dvGroup][i]*var.scale
+
     def setDVsFromHistory(self, histFile, key=None):
         """
         Set optimization variables from a previous optimization. This
@@ -584,7 +604,7 @@ class Optimization(object):
             self.setDVs(hist[key]['xuser'])
             hist.close()
         else:
-            raise Error("History file '%s' not found!."% histHist)
+            raise Error("History file '%s' not found!."% histFile)
         
     def printSparsity(self):
         """
@@ -1014,6 +1034,8 @@ class Optimization(object):
                 except ValueError:
                     raise Error("The objective return value, '%s' must be a "
                                 "scalar!"% objKey)
+                # Store objective for printing later
+                self.objectives[objKey].value = f
                 if scaled:
                     f *= self.objectives[objKey].scale
                 fobj.append(f)
@@ -1031,7 +1053,7 @@ class Optimization(object):
         Parameters
         ----------
         fcon_in : dict
-            Dictionary of constraint values values
+            Dictionary of constraint values
 
         scaled : bool
             Flag specifying if the returned array should be scaled by
@@ -1066,6 +1088,9 @@ class Optimization(object):
                                 "%s, but expected %d." % (
                                     len(fcon_in[iCon]), iCon,
                                     self.constraints[iCon].ncon))
+
+                # Store constraint values for printing later
+                con.value = copy.copy(c)
             else:
                 raise Error("No constraint values were found for the "
                             "constraint '%s'."% iCon)
@@ -1315,20 +1340,22 @@ class Optimization(object):
                 # Now check that the jacobian is the correct shape
                 if not(tmp.shape[0] == con.ncon and tmp.shape[1] == ndvs):
                     raise Error("The shape of the supplied constraint "
-                                "jacobian for constraint %s is incorrect. "
+                                "jacobian for constraint %s with respect to %s "
+                                "is incorrect. "
                                 "Expected an array of shape (%d, %d), but "
                                 "received an array of shape (%d, %d)."% (
-                                    con.name, con.ncon, ndvs, 
+                                    con.name, key, con.ncon, ndvs, 
                                     tmp.shape[0], tmp.shape[1]))
 
                 # Now check that the csr matrix has the correct
                 # number of non zeros:
                 if tmp.nnz != con.jac[key].nnz:
                     raise Error("The number of nonzero elements for "
-                                "constraint group '%s' was not the correct "
-                                "size. The supplied jacobian has %d nonzero "
+                                "constraint group '%s' with respect to %s "
+                                "was not the correct size. The supplied "
+                                "jacobian has %d nonzero "
                                 "entries, but must contain %d nonzero "
-                                "entries." % (con.name, tmp.nnz,
+                                "entries." % (con.name, key, tmp.nnz,
                                               con.jac[key].nnz))
 
                 # Include data from this jacobian chunk

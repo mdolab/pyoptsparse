@@ -32,9 +32,11 @@ try:
     from nlpy.model.mfnlp import MFModel
     from nlpy.optimize.solvers.sbmin import SBMINTotalLqnFramework
     from nlpy.optimize.solvers.sbmin import SBMINPartialLqnFramework
+    from nlpy.optimize.solvers.sbmin import SBMINSplitLqnFramework
     from nlpy.optimize.solvers.tron import TronPartialLqnFramework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalLsr1AdjBroyAFramework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianPartialLsr1Framework
+    from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianSplitLsr1Framework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianPartialLsr1TronFramework
 except:
     MFModel=None
@@ -44,6 +46,8 @@ except:
 import os
 import time
 import copy
+import signal
+from contextlib import contextmanager
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -57,6 +61,23 @@ from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_gradient import Gradient
 from ..pyOpt_history import History
 from ..pyOpt_error import Error
+
+# =============================================================================
+# Timeout Class
+# =============================================================================
+class TimeoutException(Exception): pass
+
+@contextmanager
+def time_limit(seconds):
+    def signal_handler(signum, frame):
+        raise TimeoutException, "Timed out!"
+    signal.signal(signal.SIGALRM, signal_handler)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
+
 # =============================================================================
 # NLPy Optimizer Class
 # =============================================================================
@@ -83,19 +104,26 @@ class NLPY_AUGLAG(Optimizer):
         'Absolute Feasibility Tolerance':[float,1.0e-6],
         'Relative Feasibility Tolerance':[float,1.0e-6],
         'Number of Quasi-Newton Pairs':[int,5],
+        'Feasibility Quasi-Newton Pairs':[int,5],
         'Use N-Y Backtracking':[bool,True],
         'Use Magical Steps':[bool,True],
-        'Use Tron':[bool,False],
+        # 'Use Tron':[bool,False],
+        'Use Least-Squares Multipliers':[bool,False],
         'Use Quasi-Newton Jacobian':[bool,True],
+        'Use Limited-Memory Approach':[bool,False],
         'Penalty Parameter':[float,10.],
-        'Maximum Iterations':[int, 5000]
+        'Maximum Inner Iterations':[int, 500],
+        'Maximum Outer Iterations':[int, 20],
+        'Maximum Time':[int,172000]
         }
         # Inform/Status codes go here
         informs = {
+        1: 'Current point could not be improved',
         0: 'Successfully converged',
         -1: 'Maximum number of iterations reached',
         -2: 'Problem appears to be infeasible',
         -3: 'Solver stopped on user request',
+        -5: 'Maximum run time exceeded'
         }
         self.set_options = []
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
@@ -307,10 +335,21 @@ be installed to use NLPY_AUGLAG.')
             tronlogger.addHandler(hndlr)
             tronlogger.addHandler(hndlr2)
             tronlogger.propagate = False
-        # end if
 
-        # pyOpt History logging 
-        dummy = self._setHistory(storeHistory,hotStart,coldStart,None)
+            # This logger is only used for debugging
+            # sr1logger = logging.getLogger('nlpy.lsr1')
+            # sr1logger.setLevel(logging.DEBUG)
+            # sr1logger.addHandler(hndlr)
+            # sr1logger.propagate = False
+
+            # pyOpt History logging - only do this on one processor?
+            # dummy = self._setHistory(storeHistory,hotStart,coldStart,None)
+            xs = self._setHistory(storeHistory,hotStart,coldStart,xs)
+
+        else:
+            # Only the root proc stores the history
+            xs = self._setHistory("",hotStart,coldStart,xs)
+        # end if
 
         # This optimizer has no hot start capability (too many vectors)
         # self._hotStart(storeHistory, hotStart)
@@ -321,20 +360,7 @@ be installed to use NLPY_AUGLAG.')
         # Also need to pass the number of dense constraints
         # Assume the dense block is listed first in the problem definition
         # ** Simple sol'n: assume dense block is all nonlinear constraints **
-        if self.options['Use Tron'][1]:
-            solver = AugmentedLagrangianPartialLsr1TronFramework(nlpy_problem, 
-                TronPartialLqnFramework, 
-                omega_abs=self.options['Absolute Optimality Tolerance'][1], 
-                eta_abs=self.options['Absolute Feasibility Tolerance'][1], 
-                omega_rel=self.options['Relative Optimality Tolerance'][1],
-                eta_rel=self.options['Relative Feasibility Tolerance'][1],
-                qn_pairs=self.options['Number of Quasi-Newton Pairs'][1],
-                data_prefix=self.options['Prefix'][1],
-                save_data=self.options['Save Current Point'][1],
-                warmstart=self.options['Warm Restart'][1],
-                rho_init=self.options['Penalty Parameter'][1],
-                max_inner_iter=self.options['Maximum Iterations'][1])            
-        elif self.options['Use Quasi-Newton Jacobian'][1]:
+        if self.options['Use Quasi-Newton Jacobian'][1]:
             solver = AugmentedLagrangianTotalLsr1AdjBroyAFramework(nlpy_problem, 
                 SBMINTotalLqnFramework, 
                 omega_abs=self.options['Absolute Optimality Tolerance'][1], 
@@ -342,32 +368,57 @@ be installed to use NLPY_AUGLAG.')
                 omega_rel=self.options['Relative Optimality Tolerance'][1],
                 eta_rel=self.options['Relative Feasibility Tolerance'][1],
                 qn_pairs=self.options['Number of Quasi-Newton Pairs'][1],
+                least_squares_pi=self.options['Use Least-Squares Multipliers'][1],
                 data_prefix=self.options['Prefix'][1],
                 save_data=self.options['Save Current Point'][1],
                 warmstart=self.options['Warm Restart'][1],
                 sparse_index=sparse_index,
                 rho_init=self.options['Penalty Parameter'][1],
-                max_inner_iter=self.options['Maximum Iterations'][1])
-                # data_prefix=prefix, save_data=False)
-        else:
-            # Try matrix-vector products with the exact Jacobian
-            # Useful for comparisons, but not recommended for larger problems
-            solver = AugmentedLagrangianPartialLsr1Framework(nlpy_problem, 
-                SBMINPartialLqnFramework, 
+                max_inner_iter=self.options['Maximum Inner Iterations'][1],
+                max_outer_iter=self.options['Maximum Outer Iterations'][1])
+        elif self.options['Use Limited-Memory Approach'][1]:
+            solver = AugmentedLagrangianSplitLsr1Framework(nlpy_problem, 
+                SBMINSplitLqnFramework, 
                 omega_abs=self.options['Absolute Optimality Tolerance'][1], 
                 eta_abs=self.options['Absolute Feasibility Tolerance'][1], 
                 omega_rel=self.options['Relative Optimality Tolerance'][1],
                 eta_rel=self.options['Relative Feasibility Tolerance'][1],
                 qn_pairs=self.options['Number of Quasi-Newton Pairs'][1],
+                least_squares_pi=self.options['Use Least-Squares Multipliers'][1],
+                feas_qn_pairs=self.options['Feasibility Quasi-Newton Pairs'][1],
+                data_prefix=self.options['Prefix'][1],
+                save_data=self.options['Save Current Point'][1],
+                warmstart=self.options['Warm Restart'][1],
+                sparse_index=sparse_index,
+                rho_init=self.options['Penalty Parameter'][1],
+                max_inner_iter=self.options['Maximum Inner Iterations'][1],
+                max_outer_iter=self.options['Maximum Outer Iterations'][1])            
+        else:
+            # Try matrix-vector products with the exact Jacobian
+            # Useful for comparisons, but not recommended for larger problems
+            solver = AugmentedLagrangianPartialLsr1TronFramework(nlpy_problem, 
+                TronPartialLqnFramework, 
+                omega_abs=self.options['Absolute Optimality Tolerance'][1], 
+                eta_abs=self.options['Absolute Feasibility Tolerance'][1], 
+                omega_rel=self.options['Relative Optimality Tolerance'][1],
+                eta_rel=self.options['Relative Feasibility Tolerance'][1],
+                qn_pairs=self.options['Number of Quasi-Newton Pairs'][1],
+                least_squares_pi=self.options['Use Least-Squares Multipliers'][1],
                 data_prefix=self.options['Prefix'][1],
                 save_data=self.options['Save Current Point'][1],
                 warmstart=self.options['Warm Restart'][1],
                 rho_init=self.options['Penalty Parameter'][1],
-                max_inner_iter=self.options['Maximum Iterations'][1])
-                # sparse_index=struct_opt.num_dense_con,
-                # data_prefix=prefix, save_data=False)            
+                max_inner_iter=self.options['Maximum Inner Iterations'][1],
+                max_outer_iter=self.options['Maximum Outer Iterations'][1])
 
-        solver.solve(ny=self.options['Use N-Y Backtracking'], magic_steps_agg=self.options['Use Magical Steps'])
+        # if self.optProb.comm.rank == 0:
+        #     print("Starting solve")
+        try:
+            with time_limit(self.options['Maximum Time'][1]):
+                solver.solve(ny=self.options['Use N-Y Backtracking'], magic_steps_agg=self.options['Use Magical Steps'])
+        except TimeoutException:
+            solver.status = -5
+            solver.tsolve = float(self.options['Maximum Time'][1])
 
         # Step 4: Collect and return solution
         optTime = time.time() - timeA
@@ -378,7 +429,7 @@ be installed to use NLPY_AUGLAG.')
         sol_inform = {}
         sol_inform['value'] = solver.status
         sol_inform['text'] = self.informs[solver.status]
-        xopt = numpy.zeros_like(xs) # This needs to be replaced with actual x*
+        xopt = solver.x[:self.optProb.ndvs].copy()
         sol = self._createSolution(optTime, sol_inform, solver.f, xopt)
 
         return sol
@@ -430,6 +481,8 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
         ** Right now, we assume that the 'evaluate' list has only one element **
         """
 
+        timeAA = time.time()
+
         xscaled = self.optProb.invXScale.dot(x)
         xuser = self.optProb.processX(xscaled)
 
@@ -446,6 +499,9 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
 
         # Evaluate the gradient of the objective function only
         if 'gobj' in evaluate:
+            # if self.optProb.comm.rank == 0:
+            # print("userObjCalls = %d"%self.userObjCalls)
+            # print("userSensCalls = %d"%self.userSensCalls)
             if numpy.linalg.norm(x-self.cache['x']) > eps:
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recusively call
@@ -524,30 +580,34 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
             # hist['outvec'] = outvec
 
         elif 'jac_prod' in evaluate or 'jac_T_prod' in evaluate:
+            # if self.optProb.comm.rank == 0:
+            # print("userJProdCalls = %d"%self.userJProdCalls)
+            # print("userJTProdCalls = %d"%self.userJTProdCalls)
             # Call the true matrix-vector product functions, no matrix formation
             # Convert input arrays to dictionaries before calling the callback function
             # Also, scale vectors appropriately before and after the products are formed
-            timeA = time.time()
             if 'jac_prod' in evaluate:
                 invec = self.optProb.invXScale.dot(invec)
                 invec = self.optProb.processX(invec)
+                timeA = time.time()
                 outvec, fail = self.sens[1](xuser, invec, sparse_only=sparse_only)
+                self.userJProdTime += time.time() - timeA
+                self.userJProdCalls += 1
                 outvec = self.optProb.processConstraints(outvec, scaled=False)
                 outvec = self.optProb.conScale*outvec
             else:
                 invec = self.optProb.conScale*invec
                 invec = self.optProb.deProcessConstraints(invec, scaled=False)
+                timeA = time.time()
                 outvec, fail = self.sens[2](xuser, invec, sparse_only=sparse_only)
+                self.userJTProdTime += time.time() - timeA
+                self.userJTProdCalls += 1
                 outvec = self.optProb.deProcessX(outvec)
                 outvec = self.optProb.invXScale.dot(outvec)
                 
-            prodTime += time.time() - timeA
-            if 'jac_prod' in evaluate:
-                self.userJProdTime += prodTime
-                self.userJProdCalls += 1
-            else:
-                self.userJTProdTime += prodTime
-                self.userJTProdCalls += 1
+            # prodTime = time.time() - timeA
+            # if 'jac_prod' in evaluate:
+            # else:
 
             # Update fail flag
             masterFail = masterFail or fail
@@ -560,17 +620,19 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
         # end if 
 
         # Put the fail flag in the history
-        hist['fail'] = masterFail
+        # hist['fail'] = masterFail
 
         # Write history if necessary
-        if self.optProb.comm.rank == 0 and writeHist and self.storeHistory:
-            self.hist.write(self.callCounter, hist)
+        # if self.optProb.comm.rank == 0 and writeHist and self.storeHistory:
+        #     self.hist.write(self.callCounter, hist)
 
         # We can now safely increment the call counter
         self.callCounter += 1
 
         # Tack the fail flag on at the end
         returns.append(masterFail)
+        # Interface time specific to the Jacobian vector products
+        self.interfaceTime += time.time() - timeAA
 
         return returns
 
@@ -586,6 +648,15 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
         sol.userJProdCalls = self.userJProdCalls
         sol.userJTProdTime = self.userJTProdTime
         sol.userJTProdCalls = self.userJTProdCalls
+
+        # Recompute the interface time and optimizer code time to account for the 
+        # separate matrix-vector product interface
+        sol.interfaceTime = sol.interfaceTime - self.userJProdTime - self.userJTProdTime
+        sol.optCodeTime = sol.optTime - self.interfaceTime
+
+        # Since NLPy optimizers exploit MPI, we have to add the objective 
+        # function here since the broadcasting of the base class is not done
+        sol.objFun = self.optProb.objFun
 
         return sol
 

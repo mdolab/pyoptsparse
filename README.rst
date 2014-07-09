@@ -1,11 +1,6 @@
 pyOptSparse - PYthon OPTimization (Sparse) Framework
 ====================================================
 
-.. include:: doc/introduction.rst
-.. include:: doc/changes.rst
-.. include:: doc/install.rst
-.. include:: doc/tutorial.rst
-
 Licensing
 ---------
 Distributed using the GNU Lesser General Public License (LGPL); see 

@@ -199,31 +199,40 @@ class PSQP(Optimizer):
             # PSQP - Objective Values Function
             #======================================================================
             def pobj(n, x, f):
-                fobj, fcon, fail = self._masterFunc(x, ['fobj', 'fcon'])
-                return fobj
+                if self._checkEval(x):
+                    self._internalEval(x)
+
+                f = self.storedData['fobj']
+                return f
 
             #======================================================================
             # PSQP - Constraint Values Function
             #======================================================================
             def pcon(n, k, x, g):
-                fobj, fcon, fail = self._masterFunc(x, ['fobj', 'fcon'])
-                g = fcon[k-1]
+                if self._checkEval(x):
+                    self._internalEval(x)
+
+                g = self.storedData['fcon'][k-1]
                 return g
 
             #======================================================================
             # PSQP - Objective Gradients Function
             #======================================================================
             def pdobj(n, x, df):
-                gobj, gcon, fail = self._masterFunc(x, ['gobj', 'gcon'])
-                df = gobj.copy()
+                if self._checkEval(x):
+                    self._internalEval(x)
+
+                df = self.storedData['gobj']
                 return df
 
             #======================================================================
             # PSQP - Constraint Gradients Function
             #======================================================================
             def pdcon(n, k, x, dg):
-                gobj, gcon, fail = self._masterFunc(x, ['gobj', 'gcon'])
-                dg = gcon[k-1].copy()
+                if self._checkEval(x):
+                    self._internalEval(x)
+                
+                dg = self.storedData['gcon'][k-1]
                 return dg
 
             # Setup argument list values
