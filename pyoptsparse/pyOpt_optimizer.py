@@ -196,7 +196,7 @@ match the number in the current optimization. Ignorning coldStart file')
         if coldStart is not None:
             res1 = self._coldStart(coldStart)
             if res1 is not None:
-                xs[0:n] = res1
+                xs[0:self.optProb.ndvs] = res1
 
         self.storeHistory = False
         if storeHistory:
