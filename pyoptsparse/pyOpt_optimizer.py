@@ -154,21 +154,6 @@ class Optimizer(object):
                 else:
                     pyOptSparseWarning('Hot start file does not exist. \
                     Performning a regular start')
-                    
-        if coldStart is not None:
-            res1 = self._coldStart(coldStart)
-            if res1 is not None:
-                xs[0:n] = res1
-
-                    pyOptSparseWarning("Hot start file does not exist. "
-                                        "Performning a regular start")
-                    pyOptSparseWarning('Hot start file does not exist. \
-                    Performning a regular start')
-                    
-        if coldStart is not None:
-            res1 = self._coldStart(coldStart)
-            if res1 is not None:
-                xs[0:self.optProb.ndvs] = res1
 
         self.storeHistory = False
         if storeHistory:
