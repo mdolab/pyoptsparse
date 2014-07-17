@@ -152,8 +152,24 @@ class Optimizer(object):
                 if os.path.exists(hotStart):
                     self.hotStart = History(hotStart, temp=False, flag='r')
                 else:
+                    pyOptSparseWarning('Hot start file does not exist. \
+                    Performning a regular start')
+                    
+        if coldStart is not None:
+            res1 = self._coldStart(coldStart)
+            if res1 is not None:
+                xs[0:n] = res1
+
                     pyOptSparseWarning("Hot start file does not exist. "
                                         "Performning a regular start")
+                    pyOptSparseWarning('Hot start file does not exist. \
+                    Performning a regular start')
+                    
+        if coldStart is not None:
+            res1 = self._coldStart(coldStart)
+            if res1 is not None:
+                xs[0:self.optProb.ndvs] = res1
+
         self.storeHistory = False
         if storeHistory:
             self.hist = History(storeHistory)
@@ -373,6 +389,7 @@ class Optimizer(object):
                 funcsSens, fail = self.sens(xuser, self.cache['funcs'])
                 self.userSensTime += time.time()-timeA
                 self.userSensCalls += 1
+
                 # User values are stored is immediately
                 self.cache['funcsSens'] = copy.deepcopy(funcsSens)
 
@@ -382,6 +399,7 @@ class Optimizer(object):
                 # Process constraint gradients for optimizer
                 gcon = self.optProb.processConstraintJacobian(funcsSens)
                 gcon = self._convertJacobian(gcon)
+
                 # Set the cache values:
                 self.cache['gobj'] = gobj.copy()
                 self.cache['gcon'] = gcon.copy()
@@ -782,11 +800,9 @@ def OPT(optName, *args, **kwargs):
         from .pyNLPY_AUGLAG.pyNLPY_AUGLAG import NLPY_AUGLAG as opt
     elif optName == 'alpso':
         from .pyALPSO.pyALPSO import ALPSO as opt
-    elif optName == 'simpleopt':
-        from .pySIMPLEOPT.pySIMPLEOPT import SIMPLEOPT as opt
     else:
-        raise Error("The optimizer specified in 'optName' was not reconginzed."
-                    " The current list of supported optimizers is: %s" % 
+        raise Error("The optimizer specified in 'optName' was \
+not reconginzed. The current list of supported optimizers is: %s" % 
                     repr(optList))
 
     # Create the optimizer and return it
