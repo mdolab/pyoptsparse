@@ -60,7 +60,7 @@ import logging
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_gradient import Gradient
 from ..pyOpt_history import History
-from ..pyOpt_error import Error
+from ..pyOpt_error import *
 
 # =============================================================================
 # Timeout Class
@@ -134,10 +134,10 @@ class NLPY_AUGLAG(Optimizer):
         self.userJProdCalls = 0
         self.userJTProdCalls = 0
 
-
+    @callDeprecations
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
-                  storeHistory=None, hotStart=None,
-                  coldStart=None, timeLimit=None):
+                  storeHistory=None, hotStart=None, timeLimit=None,
+                  storeSens=True):
         """
         This is the main routine used to call the optimizer.
 
@@ -181,18 +181,19 @@ class NLPY_AUGLAG(Optimizer):
             not match the history, function and gradient evaluations
             revert back to normal evaluations.
 
-        coldStart : str
-            Filename of the history file to use for "cold"
-            restart. Here, the only requirment is that the number of
-            design variables (and their order) are the same. Use this
-            method if any of the optimization parameters have changed.
-
         timeLimit : number
             Number of seconds to run the optimization before a
             terminate flag is given to the optimizer and a "clean"
             exit is performed.
-        """
 
+        storeSens : bool
+            Flag sepcifying if sensitivities are to be stored in hist.
+            This is necessay for hot-starting only.
+            """
+
+        self.callCounter = 0
+        self.storeSens = storeSens
+        
         if MFModel is None:
             raise Error('There was an error importing nlpy. nlpy must \
 be installed to use NLPY_AUGLAG.')
@@ -344,11 +345,11 @@ be installed to use NLPY_AUGLAG.')
 
             # pyOpt History logging - only do this on one processor?
             # dummy = self._setHistory(storeHistory,hotStart,coldStart,None)
-            xs = self._setHistory(storeHistory,hotStart,coldStart,xs)
+            self._setHistory(storeHistory, hotStart)
 
         else:
             # Only the root proc stores the history
-            xs = self._setHistory("",hotStart,coldStart,xs)
+            self._setHistory("", hotStart, coldStart)
         # end if
 
         # This optimizer has no hot start capability (too many vectors)
@@ -494,7 +495,7 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
         # expensive, so we only store function information.
 
         # Set basic parameters in history
-        hist = {'x': x, 'xuser': xuser, 'xscaled': xscaled}
+        hist = {'xuser': xuser}
         returns = []
 
         # Evaluate the gradient of the objective function only

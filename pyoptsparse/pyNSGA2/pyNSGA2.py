@@ -41,7 +41,7 @@ import numpy
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_solution import Solution
-from ..pyOpt_error import Error
+from ..pyOpt_error import *
 # =============================================================================
 # NSGA2 Optimizer Class
 # =============================================================================
@@ -72,9 +72,8 @@ class NSGA2(Optimizer):
         if nsga2 is None:
             raise Error('There was an error importing the compiled \
                         nsga2 module')
-
-    def __call__(self, optProb, storeHistory=None, hotStart=None, 
-                 coldStart=None, **kwargs):
+    @callDeprecations
+    def __call__(self, optProb, storeHistory=None, hotStart=None, *kwargs):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -98,12 +97,6 @@ class NSGA2(Optimizer):
             IDENTICAL**. As soon as he requested evaluation point
             from NSGA2 does not match the history, function and
             gradient evaluations revert back to normal evaluations.
-
-        coldStart : str
-            Filename of the history file to use for "cold"
-            restart. Here, the only requirment is that the number of
-            design variables (and their order) are the same. Use this
-            method if any of the optimization parameters have changed.
 
         Notes
         -----
@@ -164,8 +157,8 @@ class NSGA2(Optimizer):
         f = nsga2.new_doubleArray(1)
 
         if self.optProb.comm.rank == 0:
-            # Set history/hotstart/coldstart
-            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
+            # Set history/hotstart
+            self._setHistory(storeHistory, hotStart)
 
             # Variables Handling
             n = len(xs)

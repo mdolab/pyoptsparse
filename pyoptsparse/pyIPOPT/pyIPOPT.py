@@ -43,7 +43,7 @@ from scipy import sparse
 # # =============================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_history import History
-from ..pyOpt_error import Error
+from ..pyOpt_error import *
 # =============================================================================
 # IPOPT Optimizer Class
 # =============================================================================
@@ -185,9 +185,9 @@ class IPOPT(Optimizer):
         # IPOPT needs jacobians in coo format
         self.jacType = 'coo'
 
+    @callDeprecations
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
-                  storeHistory=None, hotStart=None,
-                  coldStart=None):
+                  storeHistory=None, hotStart=None, storeSens=True):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -232,14 +232,13 @@ class IPOPT(Optimizer):
             not match the history, function and gradient evaluations
             revert back to normal evaluations.
 
-        coldStart : str
-            Filename of the history file to use for "cold"
-            restart. Here, the only requirment is that the number of
-            design variables (and their order) are the same. Use this
-            method if any of the optimization parameters have changed.
+        storeSens : bool
+            Flag sepcifying if sensitivities are to be stored in hist.
+            This is necessay for hot-starting only.
             """
-       
+
         self.callCounter = 0
+        self.storeSens = storeSens
 
         if len(optProb.constraints) == 0:
             # If the user *actually* has an unconstrained problem,
@@ -295,8 +294,8 @@ class IPOPT(Optimizer):
             matStruct = (jac.row.copy().astype('int_'),
                          jac.col.copy().astype('int_'))
 
-            # Set history/hotstart/coldstart
-            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
+            # Set history/hotstart
+            self._setHistory(storeHistory, hotStart)
 
             # Define the 4 call back functions that ipopt needs:
             def eval_f(x, user_data=None):

@@ -30,7 +30,7 @@ import numpy
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_solution import Solution
-from ..pyOpt_error import Error
+from ..pyOpt_error import *
 # =============================================================================
 # ALPSO Optimizer Class
 # =============================================================================
@@ -82,7 +82,9 @@ class ALPSO(Optimizer):
         }
         informs = {}
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
-    def __call__(self, optProb, storeHistory=None, coldStart=None, **kwargs):
+
+    @callDeprecations
+    def __call__(self, optProb, storeHistory=None, **kwargs):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -96,12 +98,6 @@ class ALPSO(Optimizer):
         storeHistory : str
             File name of the history file into which the history of
             this optimization will be stored
-
-        coldStart : str
-            Filename of the history file to use for "cold"
-            restart. Here, the only requirment is that the number of
-            design variables (and their order) are the same. Use this
-            method if any of the optimization parameters have changed.
 
         Notes
         -----
@@ -149,7 +145,7 @@ class ALPSO(Optimizer):
         
         if self.optProb.comm.rank == 0:
             # Set history/hotstart/coldstart
-            xs = self._setHistory(storeHistory, None, coldStart, xs)
+            self._setHistory(storeHistory, None)
             
             # Setup argument list values
             opt = self.getOption

@@ -41,7 +41,7 @@ import numpy
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_solution import Solution
-from ..pyOpt_error import Error
+from ..pyOpt_error import *
 eps = numpy.finfo(1.0).eps
 # =============================================================================
 # NLPQL Optimizer Class
@@ -97,9 +97,9 @@ class NLPQL(Optimizer):
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
         # NLPQL needs jacobians in dense format
         self.jacType = 'dense2d'
-
+    @callDeprecations
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
-                 storeHistory=None, hotStart=None, coldStart=None):
+                 storeHistory=None, hotStart=None, storeSens=True):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -144,14 +144,13 @@ class NLPQL(Optimizer):
             from NLPQL does not match the history, function and
             gradient evaluations revert back to normal evaluations.
 
-        coldStart : str
-            Filename of the history file to use for "cold"
-            restart. Here, the only requirment is that the number of
-            design variables (and their order) are the same. Use this
-            method if any of the optimization parameters have changed.
+        storeSens : bool
+            Flag sepcifying if sensitivities are to be stored in hist.
+            This is necessay for hot-starting only.
             """
 
         self.callCounter = 0
+        self.storeSens = storeSens
 
         if len(optProb.constraints) == 0:
             self.unconstrained = True
@@ -191,7 +190,7 @@ class NLPQL(Optimizer):
 
         if self.optProb.comm.rank == 0:
             # Set history/hotstart/coldstart
-            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
+            self._setHistory(storeHistory, hotStart)
 
             #======================================================================
             # NLPQL - Objective/Constraint Values Function (Real Valued) 

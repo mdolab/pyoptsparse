@@ -41,7 +41,7 @@ import numpy
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_solution import Solution
-from ..pyOpt_error import Error
+from ..pyOpt_error import *
 # =============================================================================
 # CONMIN Optimizer Class
 # =============================================================================
@@ -53,14 +53,14 @@ class CONMIN(Optimizer):
         name = 'CONMIN'
         category = 'Local Optimizer'
 	defOpts = {
-		'ITMAX':[int,1e4],     # Maximum Number of Iterations
-		'DELFUN':[float,1e-6], # Objective Relative Tolerance
-		'DABFUN':[float,1e-6], # Objective Absolute Tolerance
-		'ITRM':[int,5],
-		'NFEASCT':[int,20],
-		'IPRINT':[int,4],  # Print Control (0 - None, 1 - Final, 2,3,4,5 - Debug)
-		'IOUT':[int,6], # Output Unit Number
-		'IFILE':[str,'CONMIN.out'], # Output File Name
+		'ITMAX':[int, 1e4], # Maximum Number of Iterations
+		'DELFUN':[float, 1e-6], # Objective Relative Tolerance
+		'DABFUN':[float, 1e-6], # Objective Absolute Tolerance
+		'ITRM':[int, 5],
+		'NFEASCT':[int, 20],
+		'IPRINT':[int, 4],  # Print Control (0 - None, 1 - Final, 2,3,4,5 - Debug)
+		'IOUT':[int, 6], # Output Unit Number
+		'IFILE':[str, 'CONMIN.out'], # Output File Name
 		}
         informs = {}
         if conmin is None:
@@ -73,9 +73,9 @@ class CONMIN(Optimizer):
 
         # CONMIN needs jacobians in dense format
         self.jacType = 'dense2d'
-
+    @callDeprecations
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
-                 storeHistory=None, hotStart=None, coldStart=None):
+                 storeHistory=None, hotStart=None, storeSens=True):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -120,14 +120,13 @@ class CONMIN(Optimizer):
             from CONMIN does not match the history, function and
             gradient evaluations revert back to normal evaluations.
 
-        coldStart : str
-            Filename of the history file to use for "cold"
-            restart. Here, the only requirment is that the number of
-            design variables (and their order) are the same. Use this
-            method if any of the optimization parameters have changed.
+        storeSens : bool
+            Flag sepcifying if sensitivities are to be stored in hist.
+            This is necessay for hot-starting only.
             """
 
         self.callCounter = 0
+        self.storeSens = storeSens
 
         if len(optProb.constraints) == 0:
             # If the user *actually* has an unconstrained problem,
@@ -151,12 +150,13 @@ class CONMIN(Optimizer):
         ff = self._assembleObjective()
 
         oneSided = True
-	noEquality = True
+        noEquality = True
         if self.unconstrained:
             m = 0
         else:
             indices, blc, buc, fact = self.optProb.getOrdering(
-                ['ne','le','ni','li'], oneSided=oneSided, noEquality=noEquality)
+                ['ne', 'le', 'ni', 'li'], oneSided=oneSided,
+                noEquality=noEquality)
             m = len(indices)
 
             self.optProb.jacIndices = indices
@@ -165,7 +165,7 @@ class CONMIN(Optimizer):
 
         if self.optProb.comm.rank == 0:
             # Set history/hotstart/coldstart
-            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
+            self._setHistory(storeHistory, hotStart)
 
             #=================================================================
             # CONMIN - Objective/Constraint Values Function

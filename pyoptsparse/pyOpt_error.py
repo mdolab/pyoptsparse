@@ -52,3 +52,13 @@ class pyOptSparseWarning(object):
                 i += len(word)+1
         msg += ' '*(78-i) + '|\n' + '+'+'-'*78+'+'+'\n'
         print(msg)
+
+# List of decorators
+def callDeprecations(callFunc):
+    def newCallFunc(*args, **kwargs):
+        if 'coldStart' in kwargs:
+            raise Error("The 'coldStart' keyword option is deprecated. "
+                        "Please use optProb.setDVsFromHist() before the "
+                        "call to the optimizer for the same functionality")
+        return callFunc(*args, **kwargs)
+    return newCallFunc

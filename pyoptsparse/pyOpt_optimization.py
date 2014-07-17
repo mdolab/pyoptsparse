@@ -953,7 +953,6 @@ class Optimization(object):
             fact = None
         return numpy.array(indices), numpy.array(lower), numpy.array(upper), fact
     
-
     def processX(self, x):
         """
         **This function should not need to be called by the user**
@@ -967,16 +966,24 @@ class Optimization(object):
             Flattened array from optimizer
         """
         xg = {}
+        imax = 0
         for dvSet in self.variables:
             for dvGroup in self.variables[dvSet]:
                 istart = self.dvOffset[dvSet][dvGroup][0]
-                iend   = self.dvOffset[dvSet][dvGroup][1]
+                iend = self.dvOffset[dvSet][dvGroup][1]
                 scalar = self.dvOffset[dvSet][dvGroup][2]
-                if scalar:
-                    xg[dvGroup] = x[istart]
-                else:
-                    xg[dvGroup] = x[istart:iend].copy()
-                   
+                imax = max(imax, iend)
+                try:
+                    if scalar:
+                        xg[dvGroup] = x[istart]
+                    else:
+                        xg[dvGroup] = x[istart:iend].copy()
+                except IndexError:
+                    raise Error("Error processing x. There "
+                                "is a mismatch in the number of variables.")
+        if imax != self.ndvs:
+            raise Error("Error processing x. There "
+                        "is a mismatch in the number of variables.")
         return xg
 
     def deProcessX(self, x):
@@ -998,15 +1005,25 @@ class Optimization(object):
         """
 
         x_array = numpy.zeros(self.ndvs)
+        imax = 0
         for dvSet in self.variables:
             for dvGroup in self.variables[dvSet]:
                 istart = self.dvOffset[dvSet][dvGroup][0]
-                iend   = self.dvOffset[dvSet][dvGroup][1]
+                iend = self.dvOffset[dvSet][dvGroup][1]
+                imax = max(imax, iend)
                 scalar = self.dvOffset[dvSet][dvGroup][2]
-                if scalar:
-                    x_array[istart] = x[dvGroup]
-                else:
-                    x_array[istart:iend] = x[dvGroup]
+                try:
+                    if scalar:
+                        x_array[istart] = x[dvGroup]
+                    else:
+                        x_array[istart:iend] = x[dvGroup]
+                except IndexError:
+                    raise Error("Error deprocessing x. There "
+                                "is a mismatch in the number of variables.")
+        if imax != self.ndvs:
+            raise Error("Error deprocessing x. There is a mismatch in the"
+                        " number of variables.")
+            
         return x_array
 
     def processObjective(self, funcs, scaled=True):
@@ -1285,8 +1302,8 @@ class Optimization(object):
         # We now know we must process as a dictionary. Below are the
         # lists for the matrix entris. 
         data = []
-        row  = []
-        col  = []
+        row = []
+        col = []
         ii = 0
 
         # Otherwise, process constraints in the dictionary form. 
