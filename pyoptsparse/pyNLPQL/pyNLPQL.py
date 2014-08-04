@@ -25,7 +25,7 @@ from __future__ import print_function
 # =============================================================================
 try:
     from . import nlpql
-except:
+except ImportError:
     nlpql = None
 # =============================================================================
 # Standard Python modules
@@ -40,8 +40,7 @@ import numpy
 # Extension modules
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_solution import Solution
-from ..pyOpt_error import *
+from ..pyOpt_error import Error
 eps = numpy.finfo(1.0).eps
 # =============================================================================
 # NLPQL Optimizer Class
@@ -97,7 +96,7 @@ class NLPQL(Optimizer):
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
         # NLPQL needs jacobians in dense format
         self.jacType = 'dense2d'
-    @callDeprecations
+
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                  storeHistory=None, hotStart=None, storeSens=True):
         """
@@ -113,20 +112,20 @@ class NLPQL(Optimizer):
         sens : str or python Function.
             Specifiy method to compute sensitivities. To
             explictly use pyOptSparse gradient class to do the
-            derivatives with finite differenes use \'FD\'. \'sens\'
-            may also be \'CS\' which will cause pyOptSpare to compute
+            derivatives with finite differenes use 'FD'. 'sens'
+            may also be 'CS' which will cause pyOptSpare to compute
             the derivatives using the complex step method. Finally,
-            \'sens\' may be a python function handle which is expected
+            'sens' may be a python function handle which is expected
             to compute the sensitivities directly. For expensive
             function evaluations and/or problems with large numbers of
             design variables this is the preferred method.
 
         sensStep : float
             Set the step size to use for design variables. Defaults to
-            1e-6 when sens is \'FD\' and 1e-40j when sens is \'CS\'.
+            1e-6 when sens is 'FD' and 1e-40j when sens is 'CS'.
 
         sensMode : str
-            Use \'pgc\' for parallel gradient computations. Only
+            Use 'pgc' for parallel gradient computations. Only
             available with mpi4py and each objective evaluation is
             otherwise serial
 
@@ -137,8 +136,8 @@ class NLPQL(Optimizer):
         hotStart : str
             File name of the history file to "replay" for the
             optimziation.  The optimization problem used to generate
-            the history file specified in \'hotStart\' must be
-            **IDENTICAL** to the currently supplied \'optProb\'. By
+            the history file specified in 'hotStart' must be
+            **IDENTICAL** to the currently supplied 'optProb'. By
             identical we mean, **EVERY SINGLE PARAMETER MUST BE
             IDENTICAL**. As soon as he requested evaluation point
             from NLPQL does not match the history, function and
@@ -176,7 +175,7 @@ class NLPQL(Optimizer):
             meq = 0
         else:
             indices, blc, buc, fact = self.optProb.getOrdering(
-                ['ne','le','ni','li'], oneSided=oneSided)
+                ['ne', 'le', 'ni', 'li'], oneSided=oneSided)
             m = len(indices)
 
             self.optProb.jacIndices = indices
@@ -185,29 +184,29 @@ class NLPQL(Optimizer):
 
             # Also figure out the number of equality:
             tmp0, __, __, __ = self.optProb.getOrdering(
-                ['ne','le'], oneSided=oneSided)
+                ['ne', 'le'], oneSided=oneSided)
             meq = len(tmp0)
 
         if self.optProb.comm.rank == 0:
             # Set history/hotstart/coldstart
             self._setHistory(storeHistory, hotStart)
 
-            #======================================================================
+            #=================================================================
             # NLPQL - Objective/Constraint Values Function (Real Valued) 
-            #======================================================================
+            #=================================================================
             def nlfunc(m, me, mmax, n, f, g, x, active):
                 fobj, fcon, fail = self._masterFunc(x, ['fobj', 'fcon'])
                 f = fobj
                 g[0:m] = -fcon
-                return f,g
+                return f, g
 
-            #======================================================================
+            #=================================================================
             # NLPQL - Objective/Constraint Gradients Function
-            #======================================================================
+            #=================================================================
             def nlgrad(m, me, mmax, n, f, g, df, dg, x, active, wa):
                 gobj, gcon, fail = self._masterFunc(x, ['gobj', 'gcon'])
                 df[0:n] = gobj.copy()
-                dg[0:m,0:n] = -gcon.copy()
+                dg[0:m, 0:n] = -gcon.copy()
                 return df, dg
 
             ncon = m
@@ -242,7 +241,7 @@ class NLPQL(Optimizer):
                 raise Error('Incorrect iPrint option. Must be >=0 and <= 4')
 
             mode = self.getOption('mode')
-            if not(mode >= 0 and mode <=18):
+            if not(mode >= 0 and mode <= 18):
                 raise Error('Incorrect mode option. Must be >= 0 and <= 18.')
 
             iout = self.getOption('iout')
@@ -255,7 +254,7 @@ class NLPQL(Optimizer):
             lwa1 = 4*mmax + 4*ncon + 19*nvar + 55
             lwa2 = mmax*nvar + 4*mmax + 4*ncon + 18*nvar + 55
             lwa3 = 3/2*(nvar + 1)*(nvar + 1) + 10*nvar + 2*ncon + 10
-            lwa = max([lwa0,lwa1,lwa2,lwa3]) + lwa3
+            lwa = max([lwa0, lwa1, lwa2, lwa3]) + lwa3
             wa = numpy.zeros([lwa], numpy.float)
             lkwa = numpy.array([mmax+2*nmax+20], numpy.int)
             kwa = numpy.zeros([lkwa], numpy.intc)

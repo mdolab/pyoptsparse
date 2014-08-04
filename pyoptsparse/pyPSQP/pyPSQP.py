@@ -24,7 +24,7 @@ from __future__ import print_function
 # =============================================================================
 try:
     from . import psqp
-except:
+except ImportError:
     psqp = None
 # =============================================================================
 # Standard Python modules
@@ -39,8 +39,7 @@ import numpy
 # Extension modules
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_solution import Solution
-from ..pyOpt_error import *
+from ..pyOpt_error import Error
 # =============================================================================
 # PSQP Optimizer Class
 # =============================================================================
@@ -86,7 +85,7 @@ class PSQP(Optimizer):
 
         # PSQP needs jacobians in dense format
         self.jacType = 'dense2d'
-    @callDeprecations
+
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                  storeHistory=None, hotStart=None, storeSens=True):
         """
@@ -102,20 +101,20 @@ class PSQP(Optimizer):
         sens : str or python Function.
             Specifiy method to compute sensitivities. To
             explictly use pyOptSparse gradient class to do the
-            derivatives with finite differenes use \'FD\'. \'sens\'
-            may also be \'CS\' which will cause pyOptSpare to compute
+            derivatives with finite differenes use 'FD'. 'sens'
+            may also be 'CS' which will cause pyOptSpare to compute
             the derivatives using the complex step method. Finally,
-            \'sens\' may be a python function handle which is expected
+            'sens' may be a python function handle which is expected
             to compute the sensitivities directly. For expensive
             function evaluations and/or problems with large numbers of
             design variables this is the preferred method.
 
         sensStep : float
             Set the step size to use for design variables. Defaults to
-            1e-6 when sens is \'FD\' and 1e-40j when sens is \'CS\'.
+            1e-6 when sens is 'FD' and 1e-40j when sens is 'CS'.
 
         sensMode : str
-            Use \'pgc\' for parallel gradient computations. Only
+            Use 'pgc' for parallel gradient computations. Only
             available with mpi4py and each objective evaluation is
             otherwise serial
 
@@ -126,8 +125,8 @@ class PSQP(Optimizer):
         hotStart : str
             File name of the history file to "replay" for the
             optimziation.  The optimization problem used to generate
-            the history file specified in \'hotStart\' must be
-            **IDENTICAL** to the currently supplied \'optProb\'. By
+            the history file specified in 'hotStart' must be
+            **IDENTICAL** to the currently supplied 'optProb'. By
             identical we mean, **EVERY SINGLE PARAMETER MUST BE
             IDENTICAL**. As soon as he requested evaluation point
             from PSQP does not match the history, function and

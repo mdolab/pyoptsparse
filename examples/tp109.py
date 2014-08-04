@@ -36,7 +36,7 @@ parser.add_argument("--opt",help="optimizer",type=str, default='SNOPT')
 parser.add_argument('--optOptions', type=str, help='Options for the optimizer', default="{}")
 args = parser.parse_args()
 exec('optOptions=%s'% args.optOptions)
-USE_LINEAR=True
+USE_LINEAR = True
 
 def objfunc(xdict):
     x = xdict['xvars']
@@ -67,19 +67,19 @@ def objfunc(xdict):
     return funcs, fail
 
 # Optimization Object
-optProb = Optimization('TP109 Constraint Problem',objfunc)
+optProb = Optimization('TP109 Constraint Problem', objfunc)
 
 # Design Variables
 lower = [0.0, 0.0, -0.55, -0.55, 196, 196, 196, -400, -400]
-upper = [None, None, 0.55, 0.55,  252, 252, 252, 800, 800]
-value = [0,0,0,0,0,0,0,0,0]
+upper = [None, None, 0.55, 0.55, 252, 252, 252, 800, 800]
+value = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 optProb.addVarGroup('xvars', 9, lower=lower, upper=upper, value=value)
 
 # Constraints
-lower = [0, 0      , 0, 0, 0, 0, 0, 0]
+lower = [0, 0, 0, 0, 0, 0, 0, 0]
 upper = [None, None, 0, 0, 0, 0, 0, 0]
 if not USE_LINEAR:
-    lower.extend([0,0])
+    lower.extend([0, 0])
     upper.extend([None, None])
 
 optProb.addConGroup('con', len(lower), lower=lower, upper=upper)
@@ -87,9 +87,10 @@ optProb.addConGroup('con', len(lower), lower=lower, upper=upper)
 # And the 2 linear constriants
 if USE_LINEAR:
     jac = numpy.zeros((1, 9))
-    jac[0, 3] = 1.0; jac[0, 2] = -1.0
-    optProb.addConGroup('lin_con',1, lower=-.55, upper=0.55,
-                        wrt=['xvars'], jac ={'xvars':jac}, linear=True)
+    jac[0, 3] = 1.0
+    jac[0, 2] = -1.0
+    optProb.addConGroup('lin_con', 1, lower=-.55, upper=0.55, 
+                        wrt=['xvars'], jac={'xvars':jac}, linear=True)
 
 # Objective
 optProb.addObj('obj')
