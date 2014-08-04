@@ -40,8 +40,7 @@ import numpy
 # Extension modules
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_solution import Solution
-from ..pyOpt_error import *
+from ..pyOpt_error import Error
 # =============================================================================
 # SLSQP Optimizer Class
 # =============================================================================
@@ -83,7 +82,7 @@ class SLSQP(Optimizer):
 
         # SLSQP needs jacobians in dense format
         self.jacType = 'dense2d'
-    @callDeprecations
+
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                  storeHistory=None, hotStart=None, storeSens=True):
         """
@@ -166,7 +165,7 @@ class SLSQP(Optimizer):
             meq = 0
         else:
             indices, blc, buc, fact = self.optProb.getOrdering(
-                ['ne','le','ni','li'], oneSided=oneSided)
+                ['ne', 'le', 'ni', 'li'], oneSided=oneSided)
             m = len(indices)
 
             self.optProb.jacIndices = indices
@@ -175,7 +174,7 @@ class SLSQP(Optimizer):
 
             # Also figure out the number of equality:
             tmp0, __, __, __ = self.optProb.getOrdering(
-                ['ne','le'], oneSided=oneSided)
+                ['ne', 'le'], oneSided=oneSided)
             meq = len(tmp0)
 
         if self.optProb.comm.rank == 0:
@@ -197,7 +196,7 @@ class SLSQP(Optimizer):
             def slgrad(m, me, la, n, f, g, df, dg, x):
                 gobj, gcon, fail = self._masterFunc(x, ['gobj', 'gcon'])
                 df[0:n] = gobj.copy()
-                dg[0:m,0:n] = -gcon.copy()
+                dg[0:m, 0:n] = -gcon.copy()
                 return df, dg
 
             # Setup argument list values

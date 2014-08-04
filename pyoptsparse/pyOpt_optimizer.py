@@ -17,17 +17,16 @@ from __future__ import print_function
 # Imports
 # =============================================================================
 import os
-import sys
 import time
 import copy
-import shelve
 import numpy
-from scipy import sparse
 from .pyOpt_gradient import Gradient
 from .pyOpt_error import Error, pyOptSparseWarning
 from .pyOpt_history import History
 from .pyOpt_solution import Solution
 from .pyOpt_optimization import INFINITY
+from .pyOpt_utils import convertToDense, convertToCOO, convertToCSC, \
+    convertToCSR, extractRows, scaleRows, IDATA
 eps = numpy.finfo(1.0).eps
 
 # =============================================================================
@@ -238,6 +237,7 @@ class Optimizer(object):
                             gobj = self.optProb.processObjectiveGradient(funcsSens)
                             gcon = self.optProb.processConstraintJacobian(funcsSens)
                             gcon = self._convertJacobian(gcon)
+
                             if 'gobj' in evaluate:
                                 returns.append(gobj)
                             if 'gcon' in evaluate:
@@ -290,7 +290,7 @@ class Optimizer(object):
         # gobj, and gcon values such that on the next pass we can just
         # read them and return.
 
-        xscaled = self.optProb.invXScale.dot(x)
+        xscaled = self.optProb.invXScale * x
         xuser = self.optProb.processX(xscaled)
 
         masterFail = False
@@ -478,35 +478,31 @@ class Optimizer(object):
         Convert gcon which is a coo matrix into the format we need
         """
 
-        # Now, gcon is a csr sparse matrix. Depending on what the
+        # Now, gcon is a coo sparse matrix. Depending on what the
         # optimizer wants, we will convert. The conceivable options
         # are: dense (most), csc (snopt), csr (???), or coo (IPOPT)
-
-        if gcon.size > 0:
-            if self.optProb.nCon > 0:
-                # Extract the rows we need:
-                gcon = gcon[self.optProb.jacIndices, :]
-                
-                # Apply factor scaling because of constraint sign changes
-                gcon = self.optProb.fact*gcon
-                
-                # Sort for the ones that need it
-                gcon.sort_indices()
-
-            if self.jacType == 'dense2d':
-                gcon = numpy.array(gcon.todense())
-            elif self.jacType == '1ddense':
-                gcon = gcon.todense().flatten()
-            elif self.jacType == 'csc':
-                gcon = gcon.tocsc()
-                gcon.sort_indices()
-                gcon = gcon.data
-            elif self.jacType == 'csr':
-                gcon = gcon.data
-            elif self.jacType == 'coo':
-                gcon = gcon.tocoo()
-                gcon = gcon.data
         
+        if self.optProb.nCon > 0:
+            # Extract the rows we need:
+            gcon = extractRows(gcon, self.optProb.jacIndices)
+                
+            # Apply factor scaling because of constraint sign changes
+            scaleRows(gcon, self.optProb.fact)
+
+            # Now convert to final format:    
+            if self.jacType == 'dense2d':
+                gcon = convertToDense(gcon)
+            elif self.jacType == 'csc':
+                gcon = convertToCSC(gcon)
+                gcon = gcon['csc'][IDATA]
+            elif self.jacType == 'csr':
+                gcon = convertToCSR(gcon)
+                gcon = gcon['csr'][IDATA]
+            elif self.jacType == 'coo':
+                gcon = convertToCOO(gcon)
+                gcon = gcon['coo'][IDATA]
+        if self.optProb.dummyConstraint:
+            gcon = gcon['csr'][IDATA]
         return gcon
 
     def _waitLoop(self):
@@ -545,7 +541,6 @@ class Optimizer(object):
         optimizers here use continuous variables so this chunk of code
         can be reused.
         """
-
         blx = []
         bux = []
         xs = []

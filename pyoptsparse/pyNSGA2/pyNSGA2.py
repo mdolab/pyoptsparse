@@ -25,12 +25,11 @@ from __future__ import print_function
 # =============================================================================
 try:
     from . import nsga2
-except:
+except ImportError:
     nsga2 = None
 # =============================================================================
 # Standard Python modules
 # =============================================================================
-import os, copy
 import time
 # =============================================================================
 # External Python modules
@@ -40,8 +39,7 @@ import numpy
 # Extension modules
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_solution import Solution
-from ..pyOpt_error import *
+from ..pyOpt_error import Error
 # =============================================================================
 # NSGA2 Optimizer Class
 # =============================================================================
@@ -63,8 +61,8 @@ class NSGA2(Optimizer):
         'pCross_bin': [float, 0.0],
         'pMut_bin': [float, 0.0],
         'PrintOut': [int, 1],  # Flag to Turn On Output to filename (0 - , 1 - , 2 - )
-        'seed': [float,0],      # Random Number Seed (0 - Auto-Seed based on time clock)
-        'xinit': [int, 0],       # Use Initial Solution Flag (0 - random population, 1 - use given solution)
+        'seed': [float, 0], # Random Number Seed (0 - Auto-Seed based on time clock)
+        'xinit': [int, 0], # Use Initial Solution Flag (0 - random population, 1 - use given solution)
         }
         informs = {}
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
@@ -72,7 +70,7 @@ class NSGA2(Optimizer):
         if nsga2 is None:
             raise Error('There was an error importing the compiled \
                         nsga2 module')
-    @callDeprecations
+
     def __call__(self, optProb, storeHistory=None, hotStart=None, *kwargs):
         """
         This is the main routine used to solve the optimization
@@ -91,8 +89,8 @@ class NSGA2(Optimizer):
         hotStart : str
             File name of the history file to "replay" for the
             optimziation.  The optimization problem used to generate
-            the history file specified in \'hotStart\' must be
-            **IDENTICAL** to the currently supplied \'optProb\'. By
+            the history file specified in 'hotStart' must be
+            **IDENTICAL** to the currently supplied 'optProb'. By
             identical we mean, **EVERY SINGLE PARAMETER MUST BE
             IDENTICAL**. As soon as he requested evaluation point
             from NSGA2 does not match the history, function and
@@ -145,7 +143,7 @@ class NSGA2(Optimizer):
             m = 0
         else:
             indices, blc, buc, fact = self.optProb.getOrdering(
-                ['ne','le','ni','li'], oneSided=oneSided, noEquality=True)
+                ['ne', 'le', 'ni', 'li'], oneSided=oneSided, noEquality=True)
             m = len(indices)
 
             self.optProb.jacIndices = indices
@@ -174,7 +172,7 @@ class NSGA2(Optimizer):
             nfeval = 0
             opt = self.getOption
 
-            if self.getOption('PrintOut') >=0 and self.getOption('PrintOut') <=2:
+            if self.getOption('PrintOut') >=0 and self.getOption('PrintOut') <= 2:
                 printout = self.getOption('PrintOut')
             else:
                 raise Error('Incorrect option PrintOut')

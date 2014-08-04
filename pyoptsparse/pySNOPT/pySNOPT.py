@@ -25,7 +25,7 @@ from __future__ import print_function
 # =============================================================================
 try:
     from . import snopt
-except:
+except ImportError:
     snopt = None
 # =============================================================================
 # Standard Python modules
@@ -36,13 +36,13 @@ import time
 # External Python modules
 # =============================================================================
 import numpy
-from scipy import sparse
 # # ===========================================================================
 # # Extension modules
 # # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_history import History
-from ..pyOpt_error import *
+from ..pyOpt_error import Error
+from ..pyOpt_utils import convertToCSC, IDATA, IROWIND, ICOLP, extractRows, \
+     scaleRows
 # =============================================================================
 # SNOPT Optimizer Class
 # =============================================================================
@@ -237,7 +237,7 @@ class SNOPT(Optimizer):
 
         # Snopt need jacobians in csc format
         self.jacType = 'csc'
-    @callDeprecations
+
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                  storeHistory=None, hotStart=None, storeSens=True):
         """
@@ -317,7 +317,7 @@ class SNOPT(Optimizer):
             nnCon = 1
         else:
             indices, tmp1, tmp2, fact = self.optProb.getOrdering(
-                ['ne','ni'], oneSided=oneSided)
+                ['ne', 'ni'], oneSided=oneSided)
             nnCon = len(indices)
             self.optProb.jacIndices = indices
             self.optProb.fact = fact
@@ -340,18 +340,18 @@ class SNOPT(Optimizer):
             if self.optProb.nCon > 0:
                 # We need to reorder this full jacobian...so get ordering:
                 indices, blc, buc, fact = self.optProb.getOrdering(
-                    ['ne','ni','le','li'], oneSided=oneSided)
-            
-                jac = jac[indices, :] # Does reordering
-                jac = fact*jac # Perform logical scaling
+                    ['ne', 'ni', 'le', 'li'], oneSided=oneSided)
+                jac = extractRows(jac, indices) # Does reordering
+                scaleRows(jac, fact) # Perform logical scaling
             else:
                 blc = [-1e20]
                 buc = [1e20]
-            jac = jac.tocsc() # Conver to csc for SNOPT
+            jac = convertToCSC(jac)
 
-            Acol = jac.data
-            indA = jac.indices + 1
-            locA = jac.indptr + 1
+            Acol = jac['csc'][IDATA]
+            indA = jac['csc'][IROWIND] + 1
+            locA = jac['csc'][ICOLP] + 1
+
             if self.optProb.nCon == 0:
                 ncon = 1
             else:
@@ -376,8 +376,6 @@ class SNOPT(Optimizer):
                 if ierror != 0:
                     raise Error('Failed to properly open %s, ierror = %3d'%
                                   (SummFile, ierror))
-
-         
 
             # Calculate the length of the work arrays
             # --------------------------------------

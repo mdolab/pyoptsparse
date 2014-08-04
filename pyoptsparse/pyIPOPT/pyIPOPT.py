@@ -23,27 +23,25 @@ History
 
 try:
     from . import pyipoptcore
-except:
+except ImportError:
     pyipoptcore = None
 
 # =============================================================================
 # standard Python modules
 # =============================================================================
-import os
 import copy
 import time
 # =============================================================================
 # External Python modules
 # =============================================================================
 import numpy
-import shelve
-from scipy import sparse
-# # =============================================================================
-# # Extension modules
-# # =============================================================================
+
+# =============================================================================
+# Extension modules
+# =============================================================================
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_history import History
-from ..pyOpt_error import *
+from ..pyOpt_error import Error
+from ..pyOpt_utils import IROW, ICOL, convertToCOO, extractRows, scaleRows
 # =============================================================================
 # IPOPT Optimizer Class
 # =============================================================================
@@ -64,10 +62,10 @@ class IPOPT(Optimizer):
         # http://www.coin-or.org/Ipopt/documentation/node39.html
         # accessed on March 26, 2014.
 
-        def_opts = {'tol':[float,1e-6],
-                    'hessian_approximation':[str,'limited-memory'],
-                    'limited_memory_max_history':[int,10],
-                    'max_iter':[int,100],
+        def_opts = {'tol':[float, 1e-6],
+                    'hessian_approximation':[str, 'limited-memory'],
+                    'limited_memory_max_history':[int, 10],
+                    'max_iter':[int, 100],
 
                     # Print options
                     'print_level':[int, 0], # Output verbosity level. '0-12'
@@ -90,13 +88,13 @@ class IPOPT(Optimizer):
                     'output_file':[str, 'IPOPT.out'],
 
                     #Verbosity level for output file. '0-12'
-                    'file_print_level':[int,5],
+                    'file_print_level':[int, 5],
 
-                    'option_file_name':[str,'IPOPT_options.opt'],
+                    'option_file_name':[str, 'IPOPT_options.opt'],
 
                     # Enables printing of additional info string at
                     # end of iteration output.
-                    'print_info_string':[str,'no'],#yes or no.
+                    'print_info_string':[str, 'no'],#yes or no.
                     
                     # Determines what value is printed in the "inf_pr"
                     # output column. 'internal' or 'original'
@@ -105,7 +103,7 @@ class IPOPT(Optimizer):
                     
                     # Derivative Testing options
                     # none, first-order, second-order, only-second-order
-                    'derivative_test':[str,'none'], 
+                    'derivative_test':[str, 'none'], 
 
                     'derivative_test_perturbation':[float, 1e-8],
                     'derivative_test_tol':[float, 1e-4],
@@ -180,12 +178,12 @@ class IPOPT(Optimizer):
                         IPOPT module')
 
         self.set_options = []
-        Optimizer.__init__(self, name, category, def_opts, informs, *args, **kwargs)
+        Optimizer.__init__(self, name, category, def_opts, informs, *args,
+                           **kwargs)
 
         # IPOPT needs jacobians in coo format
         self.jacType = 'coo'
 
-    @callDeprecations
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                   storeHistory=None, hotStart=None, storeSens=True):
         """
@@ -271,18 +269,19 @@ class IPOPT(Optimizer):
         if self.optProb.nCon > 0:
             # We need to reorder this full jacobian...so get ordering:
             indices, blc, buc, fact = self.optProb.getOrdering(
-                ['ne','ni','le','li'], oneSided=False)
+                ['ne', 'ni', 'le', 'li'], oneSided=False)
             self.optProb.jacIndices = indices
             self.optProb.fact = fact
             self.optProb.offset = numpy.zeros(len(indices))
             ncon = len(indices)
-            jac = jac[indices, :] # Does reordering
-            jac = fact*jac # Perform logical scaling
+            jac = extractRows(jac, indices) # Does reordering
+            scaleRows(jac, fact) # Perform logical scaling
         else:
             blc = numpy.array([-1e20])
             buc = numpy.array([1e20])
             ncon = 1
-        jac = jac.tocoo() # Conver to coo format for IPOPT
+
+        jac = convertToCOO(jac)# Conver to coo format for IPOPT
 
         # We make a split here: If the rank is zero we setup the
         # problem and run IPOPT, otherwise we go to the waiting loop:
@@ -291,8 +290,8 @@ class IPOPT(Optimizer):
 
             # Now what we need for IPOPT is precisely the .row and
             # .col attributes of the fullJacobian array
-            matStruct = (jac.row.copy().astype('int_'),
-                         jac.col.copy().astype('int_'))
+            matStruct = (jac['coo'][IROW].copy().astype('int_'),
+                         jac['coo'][ICOL].copy().astype('int_'))
 
             # Set history/hotstart
             self._setHistory(storeHistory, hotStart)
@@ -302,15 +301,15 @@ class IPOPT(Optimizer):
                 fobj, fail = self._masterFunc(x, ['fobj'])
                 return fobj
 
-            def eval_g(x, user_data = None):
+            def eval_g(x, user_data=None):
                 fcon, fail = self._masterFunc(x, ['fcon'])
                 return fcon.copy()
 
-            def eval_grad_f(x, user_data= None):
+            def eval_grad_f(x, user_data=None):
                 gobj, fail = self._masterFunc(x, ['gobj'])
                 return gobj.copy()
 
-            def eval_jac_g(x, flag, user_data = None):
+            def eval_jac_g(x, flag, user_data=None):
                 if flag:
                     return copy.deepcopy(matStruct)
                 else:
@@ -321,8 +320,9 @@ class IPOPT(Optimizer):
             nnzj = len(matStruct[0])
             nnzh = 0
 
-            nlp = pyipoptcore.create(len(xs), blx, bux, ncon, blc, buc, nnzj, nnzh,
-                                     eval_f, eval_grad_f, eval_g, eval_jac_g)
+            nlp = pyipoptcore.create(len(xs), blx, bux, ncon, blc, buc, nnzj,
+                                     nnzh, eval_f, eval_grad_f, eval_g,
+                                     eval_jac_g)
 
             self._set_ipopt_options(nlp)
             x, zl, zu, constraint_multipliers, obj, status = nlp.solve(xs)
@@ -364,64 +364,14 @@ class IPOPT(Optimizer):
                 value = self.getOption(key)
 
                 if isinstance(value, str):
-                    nlp.str_option(name,value)
+                    nlp.str_option(name, value)
                 elif isinstance(value, float):
-                    nlp.num_option(name,value)
+                    nlp.num_option(name, value)
                 elif isinstance(value, int):
-                    nlp.int_option(name,value)
+                    nlp.int_option(name, value)
                 else:
-                    print 'invalid option type',type(value)
-
-
-    def _on_setOption(self, name, value):
-        """
-        Set Optimizer Option Value (Optimizer Specific Routine)
-
-        Documentation last updated:  May. 07, 2008 - Ruben E. Perez
-        """
-
-        self.set_options.append([name,value])
-
-    def _on_getOption(self, name):
-        """
-        Get Optimizer Option Value (Optimizer Specific Routine)
-
-        Documentation last updated:  May. 07, 2008 - Ruben E. Perez
-        """
-
-        pass
-
-    def _on_getInform(self, infocode):
-        """
-        Get Optimizer Result Information (Optimizer Specific Routine)
-
-        Keyword arguments:
-        -----------------
-        id -> STRING: Option Name
-
-        Documentation last updated:  May. 07, 2008 - Ruben E. Perez
-        """
-
-        #
-        mjr_code = (infocode[0]/10)*10
-        mnr_code = infocode[0] - 10*mjr_code
-        try:
-            inform_text = self.informs[mjr_code]
-        except:
-            inform_text = 'Unknown Exit Status'
-        # end try
-
-        return inform_text
-
-    def _on_flushFiles(self):
-        """
-        Flush the Output Files (Optimizer Specific Routine)
-
-        Documentation last updated:  August. 09, 2009 - Ruben E. Perez
-        """
-
-        pass
-
+                    print 'invalid option type', type(value)
+ 
 #==============================================================================
 # IPOPT Optimizer Test
 #==============================================================================
