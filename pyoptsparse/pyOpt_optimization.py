@@ -288,7 +288,7 @@ class Optimization(object):
         elif numpy.isscalar(lower):
             lower = lower*numpy.ones(nVars)
         elif len(lower) == nVars:
-            pass  # Some iterable object
+            lower = numpy.atleast_1d(lower).real
         else:
             raise Error("The 'lower' argument to addVarGroup is "
                         "invalid. It must be None, a scalar, or a "
@@ -299,7 +299,7 @@ class Optimization(object):
         elif numpy.isscalar(upper):
             upper = upper*numpy.ones(nVars)
         elif len(upper) == nVars:
-            pass  # Some iterable object
+            upper = numpy.atleast_1d(upper).real
         else:
             raise Error("The 'upper' argument to addVarGroup is "
                         "invalid. It must be None, a scalar, or a "
