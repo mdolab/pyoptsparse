@@ -19,7 +19,6 @@ from __future__ import print_function
 # =============================================================================
 # Standard Python modules
 # =============================================================================
-import os, copy
 import time
 # =============================================================================
 # External Python modules
@@ -29,8 +28,7 @@ import numpy
 # Extension modules
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_solution import Solution
-from ..pyOpt_error import *
+from ..pyOpt_error import Error
 # =============================================================================
 # ALPSO Optimizer Class
 # =============================================================================
@@ -83,7 +81,6 @@ class ALPSO(Optimizer):
         informs = {}
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
 
-    @callDeprecations
     def __call__(self, optProb, storeHistory=None, **kwargs):
         """
         This is the main routine used to solve the optimization
@@ -131,14 +128,14 @@ class ALPSO(Optimizer):
             me = 0
         else:
             indices, blc, buc, fact = self.optProb.getOrdering(
-                ['ne','le','ni','li'], oneSided=oneSided, noEquality=False)
+                ['ne', 'le', 'ni', 'li'], oneSided=oneSided, noEquality=False)
             m = len(indices)
 
             self.optProb.jacIndices = indices
             self.optProb.fact = fact
             self.optProb.offset = buc
             indices, __, __, __ = self.optProb.getOrdering(
-                ['ne','le'], oneSided=oneSided, noEquality=False)
+                ['ne', 'le'], oneSided=oneSided, noEquality=False)
             me = len(indices)
         
         nobj = 1
@@ -154,7 +151,7 @@ class ALPSO(Optimizer):
             if dyniI == 0:
                 self.setOption('minInnerIter', opt('maxInnerIter'))
 
-            if not opt('stopCriteria') in [0,1]:
+            if not opt('stopCriteria') in [0, 1]:
                 raise Error('Incorrect Stopping Criteria Setting')
 
             if opt('fileout') not in [0, 1, 2, 3]:

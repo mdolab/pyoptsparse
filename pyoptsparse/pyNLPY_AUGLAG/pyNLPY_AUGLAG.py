@@ -59,8 +59,7 @@ import logging
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_gradient import Gradient
-from ..pyOpt_history import History
-from ..pyOpt_error import *
+from ..pyOpt_error import Error
 
 # =============================================================================
 # Timeout Class
@@ -134,7 +133,6 @@ class NLPY_AUGLAG(Optimizer):
         self.userJProdCalls = 0
         self.userJTProdCalls = 0
 
-    @callDeprecations
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                   storeHistory=None, hotStart=None, timeLimit=None,
                   storeSens=True):
@@ -150,9 +148,9 @@ class NLPY_AUGLAG(Optimizer):
         sens : str or python Function or list of functions.
             Specifiy method to compute sensitivities.  To explictly
             use pyOptSparse gradient class to do the derivatives with
-            finite differenes use \'FD\'. \'sens\' may also be \'CS\'
+            finite differenes use 'FD'. 'sens' may also be 'CS'
             which will cause pyOptSpare to compute the derivatives
-            using the complex step method. Finally, \'sens\' may be a
+            using the complex step method. Finally, 'sens' may be a
             python function handle which is expected to compute the
             sensitivities directly. For expensive function evaluations
             and/or problems with large numbers of design variables
@@ -160,10 +158,10 @@ class NLPY_AUGLAG(Optimizer):
 
         sensStep : float
             Set the step size to use for design variables. Defaults to
-            1e-6 when sens is \'FD\' and 1e-40j when sens is \'CS\'.
+            1e-6 when sens is 'FD' and 1e-40j when sens is 'CS'.
 
         sensMode : str
-            Use \'pgc\' for parallel gradient computations. Only
+            Use 'pgc' for parallel gradient computations. Only
             available with mpi4py and each objective evaluation is
             otherwise serial
 
@@ -174,8 +172,8 @@ class NLPY_AUGLAG(Optimizer):
         hotStart : str
             File name of the history file to "replay" for the
             optimziation.  The optimization problem used to generate
-            the history file specified in \'hotStart\' must be
-            **IDENTICAL** to the currently supplied \'optProb\'. By
+            the history file specified in 'hotStart' must be
+            **IDENTICAL** to the currently supplied 'optProb'. By
             identical we mean, **EVERY SINGLE PARAMETER MUST BE
             IDENTICAL**. As soon as he requested evaluation point does
             not match the history, function and gradient evaluations
@@ -456,8 +454,8 @@ be installed to use NLPY_AUGLAG.')
 
         self.matrix_free = False
         if sens is None:
-            raise Error('\'None\' value given for sens. Must be one \
-of \'FD\' or \'CS\' or a user supplied function or group of functions.')
+            raise Error("'None' value given for sens. Must be one \
+of 'FD' or 'CS' or a user supplied function or group of functions.")
         elif hasattr(sens, 'append'):
             # A list of functions has been provided
             self.sens = sens
@@ -471,8 +469,8 @@ of \'FD\' or \'CS\' or a user supplied function or group of functions.')
             self.sens = Gradient(self.optProb, sens.lower(), sensStep,
                                  sensMode, self.optProb.comm)
         else:
-            raise Error('Unknown value given for sens. Must be None, \'FD\', \
-            \'CS\', a python function handle, or a list of handles')
+            raise Error("Unknown value given for sens. Must be None, 'FD', \
+            'CS', a python function handle, or a list of handles")
 
 
     def _masterFunc3(self, x, invec, evaluate, writeHist=True, sparse_only=False):
