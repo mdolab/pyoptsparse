@@ -81,6 +81,8 @@ class SNOPT(Optimizer):
         'Minor feasibility tolerance':[float,1.0e-6], # For Satisfying the QP Bounds
         # SNOPT Derivative Checking Options
         'Verify level':[int,0], # Gradients Check Flag
+        'Start objective check at column':[int, 1], # Start the gradient verification at this column
+        'Start constraint check at column':[int, 1],
         # SNOPT Scaling Options
         'Scale option':[int,1], # Scaling (1 - linear constraints and variables)
         'Scale tolerance':[float,0.9], # Scaling Tolerance
