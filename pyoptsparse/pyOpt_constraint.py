@@ -311,7 +311,7 @@ class Constraint(object):
                 except KeyError:
                     # No big deal, just make a dense component...and
                     # set to zero
-                    self.jac[dvSet] = convertToCOO(numpy.zeros(self.ncon, ndvs))
+                    self.jac[dvSet] = convertToCOO(numpy.zeros((self.ncon, ndvs)))
 
                 # Convert Now check that the supplied jacobian to COO:
                 self.jac[dvSet] = convertToCOO(self.jac[dvSet])
