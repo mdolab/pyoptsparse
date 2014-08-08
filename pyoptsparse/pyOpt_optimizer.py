@@ -17,17 +17,16 @@ from __future__ import print_function
 # Imports
 # =============================================================================
 import os
-import sys
 import time
 import copy
-import shelve
 import numpy
-from scipy import sparse
 from .pyOpt_gradient import Gradient
 from .pyOpt_error import Error, pyOptSparseWarning
 from .pyOpt_history import History
 from .pyOpt_solution import Solution
 from .pyOpt_optimization import INFINITY
+from .pyOpt_utils import convertToDense, convertToCOO, convertToCSC, \
+    convertToCSR, extractRows, scaleRows, IDATA
 eps = numpy.finfo(1.0).eps
 
 # =============================================================================
@@ -76,6 +75,7 @@ class Optimizer(object):
         self.interfaceTime = 0.0
         self.userObjCalls = 0
         self.userSensCalls = 0
+        self.storeSens = True
         # Cache storage
         self.cache = {'x': None, 'fobj': None, 'fcon': None,
                       'gobj': None, 'gcon': None}
@@ -106,8 +106,8 @@ class Optimizer(object):
                 self.setOption('Derivative level', 0)
                 self.sens = None
             else:
-                raise Error('\'None\' value given for sens. Must be one \
-of \'FD\' or \'CS\' or a user supplied function.')
+                raise Error("'None' value given for sens. Must be one "
+                            " of 'FD' or 'CS' or a user supplied function.")
         elif hasattr(sens, '__call__'):
             # We have function handle for gradients! Excellent!
             self.sens = sens
@@ -117,38 +117,10 @@ of \'FD\' or \'CS\' or a user supplied function.')
             self.sens = Gradient(self.optProb, sens.lower(), sensStep,
                                  sensMode, self.optProb.comm)
         else:
-            raise Error('Unknown value given for sens. Must be None, \'FD\', \
-            \'CS\' or a python function handle')
+            raise Error("Unknown value given for sens. Must be None, 'FD', "
+                        "'CS' or a python function handle")
 
-    def _coldStart(self, coldStart):
-        """
-        Common code to do cold restarting.
-
-        Parameters
-        ----------
-        coldFile : str
-           Filename of the history file to use for the cold start
-           """
-        xCold = None
-        if os.path.exists(coldStart):
-            # Note we open in read only mode just in case. We don't
-            # have to write anyway
-            coldFile = shelve.open(coldStart, flag='r')
-            lastKey = coldFile['last']
-            x = coldFile[lastKey]['x']
-            coldFile.close()
-            if len(x) == self.optProb.ndvs:
-                xCold = x.copy()
-            else:
-                print('The number of variable in coldStart file do not \
-match the number in the current optimization. Ignorning coldStart file')
-        else:
-            print('Cold restart file not found. Continuing without\
-                  cold restart')
-
-        return xCold
-
-    def _setHistory(self, storeHistory, hotStart, coldStart, xs):
+    def _setHistory(self, storeHistory, hotStart):
         """
         Generic routine for setting up the hot start information
 
@@ -159,17 +131,6 @@ match the number in the current optimization. Ignorning coldStart file')
 
         hotStart : str
             Filename for history file for hot start
-
-        coldStart : str
-            Filename for cold file start. You can have a hot and cold
-            start at the same time. 
-        xs : array
-            Array of variables to potentially update for a cold start
-
-        Returns
-        -------
-        xs : array
-            Possibly updated design variables
         """
         # By default no hot start
         self.hotStart = None
@@ -192,18 +153,11 @@ match the number in the current optimization. Ignorning coldStart file')
                 else:
                     pyOptSparseWarning('Hot start file does not exist. \
                     Performning a regular start')
-                    
-        if coldStart is not None:
-            res1 = self._coldStart(coldStart)
-            if res1 is not None:
-                xs[0:n] = res1
 
         self.storeHistory = False
         if storeHistory:
             self.hist = History(storeHistory)
             self.storeHistory = True
-
-        return xs
     
     def _masterFunc(self, x, evaluate):
         """
@@ -232,54 +186,71 @@ match the number in the current optimization. Ignorning coldStart file')
         # fire it back to the specific optimizer
         timeA = time.time()
         if self.hotStart:
-           
-            if self.hotStart.validPoint(self.callCounter, x):
+
+            # This is a very inexpensive check to see if point exists
+            if self.hotStart.pointExists(self.callCounter):
+                # Read the actual data for this point:
                 data = self.hotStart.read(self.callCounter)
 
-                if self.storeHistory:
-                    # Just dump the (exact) dictionary back out:
-                    self.hist.write(self.callCounter, data)
-                    
-                # Since we know it is a valid point, we can be sure
-                # that it contains the information we need
-                funcs = None
-                funcsSens = None
-                if 'fobj' in evaluate or 'fcon' in evaluate:
-                    funcs = data['funcs']
-                if 'gobj' in evaluate or 'gcon' in evaluate:
-                    funcsSens = data['funcsSens']
+                # Get the x-value and (de)process
+                xuser = self.optProb.deProcessX(data['xuser'])
 
-                fail = data['fail']
+                # Validated x-point point to use:
+                if numpy.linalg.norm(x-xuser) < eps:
 
-                returns = []
-                xscaled = self.optProb.invXScale.dot(x)
+                    # However, we may need a sens that *isn't* in the
+                    # the dictionary:
+                    funcs = None
+                    funcsSens = None
+                    validPoint = True
+                    if 'fobj' in evaluate or 'fcon' in evaluate:
+                        funcs = data['funcs']
+                
+                    if 'gobj' in evaluate or 'gcon' in evaluate:
+                        if 'funcsSens' in data:
+                            funcsSens = data['funcsSens']
+                        else:
+                            validPoint = False
 
-                # Process constraints/objectives
-                if funcs is not None:
-                    self.optProb.evaluateLinearConstraints(xscaled, funcs)
-                    fcon = self.optProb.processConstraints(funcs)
-                    fobj = self.optProb.processObjective(funcs)
-                    if 'fobj' in evaluate:
-                        returns.append(fobj)
-                    if 'fcon' in evaluate:
-                        returns.append(fcon)
-                        
-                # Process gradients if we have them
-                if funcsSens is not None:
-                    gobj = self.optProb.processObjectiveGradient(funcsSens)
-                    gcon = self.optProb.processConstraintJacobian(funcsSens)
-                    gcon = self._convertJacobian(gcon)
-                    if 'gobj' in evaluate:
-                        returns.append(gobj)
-                    if 'gcon' in evaluate:
-                        returns.append(gcon)
+                    # Only continue if valid:
+                    if validPoint:
+                        if self.storeHistory:
+                            # Just dump the (exact) dictionary back out:
+                            self.hist.write(self.callCounter, data)
 
-                # We can now safely increment the call counter
-                self.callCounter += 1
-                returns.append(fail)
-                self.interfaceTime += time.time()-timeA
-                return returns
-            # end if (valid hot start point)
+                        fail = data['fail']
+                        returns = []
+                        xscaled = self.optProb.invXScale.dot(x)
+
+                        # Process constraints/objectives
+                        if funcs is not None:
+                            self.optProb.evaluateLinearConstraints(xscaled, funcs)
+                            fcon = self.optProb.processConstraints(funcs)
+                            fobj = self.optProb.processObjective(funcs)
+                            if 'fobj' in evaluate:
+                                returns.append(fobj)
+                            if 'fcon' in evaluate:
+                                returns.append(fcon)
+
+                        # Process gradients if we have them
+                        if funcsSens is not None:
+                            gobj = self.optProb.processObjectiveGradient(funcsSens)
+                            gcon = self.optProb.processConstraintJacobian(funcsSens)
+                            gcon = self._convertJacobian(gcon)
+
+                            if 'gobj' in evaluate:
+                                returns.append(gobj)
+                            if 'gcon' in evaluate:
+                                returns.append(gcon)
+
+                        # We can now safely increment the call counter
+                        self.callCounter += 1
+                        returns.append(fail)
+                        self.interfaceTime += time.time()-timeA
+                        return returns
+                    # end if (valid point -> all data present)
+                # end if (x's match)
+            # end if (point exists)
 
             # We have used up all the information in hot start so we
             # can close the hot start file
@@ -319,13 +290,13 @@ match the number in the current optimization. Ignorning coldStart file')
         # gobj, and gcon values such that on the next pass we can just
         # read them and return.
 
-        xscaled = self.optProb.invXScale.dot(x)
+        xscaled = self.optProb.invXScale * x
         xuser = self.optProb.processX(xscaled)
 
         masterFail = False
 
         # Set basic parameters in history
-        hist = {'x': x, 'xuser': xuser, 'xscaled': xscaled}
+        hist = {'xuser': xuser}
         returns = []
         # Start with fobj:
         tmpObjCalls = self.userObjCalls
@@ -403,6 +374,7 @@ match the number in the current optimization. Ignorning coldStart file')
                 funcsSens, fail = self.sens(xuser, self.cache['funcs'])
                 self.userSensTime += time.time()-timeA
                 self.userSensCalls += 1
+
                 # User values are stored is immediately
                 self.cache['funcsSens'] = copy.deepcopy(funcsSens)
 
@@ -412,6 +384,7 @@ match the number in the current optimization. Ignorning coldStart file')
                 # Process constraint gradients for optimizer
                 gcon = self.optProb.processConstraintJacobian(funcsSens)
                 gcon = self._convertJacobian(gcon)
+
                 # Set the cache values:
                 self.cache['gobj'] = gobj.copy()
                 self.cache['gcon'] = gcon.copy()
@@ -421,7 +394,8 @@ match the number in the current optimization. Ignorning coldStart file')
 
             # gobj is now in the cache
             returns.append(self.cache['gobj'])
-            hist['funcsSens'] = self.cache['funcsSens']
+            if self.storeSens:
+                hist['funcsSens'] = self.cache['funcsSens']
 
         if 'gcon' in evaluate:
             if numpy.linalg.norm(x-self.cache['x']) > eps:
@@ -458,7 +432,8 @@ match the number in the current optimization. Ignorning coldStart file')
 
             # gcon is now in the cache
             returns.append(self.cache['gcon'])
-            hist['funcsSens'] = self.cache['funcsSens']
+            if self.storeSens:
+                hist['funcsSens'] = self.cache['funcsSens']
 
         # Put the fail flag in the history:
         hist['fail'] = masterFail
@@ -503,35 +478,31 @@ match the number in the current optimization. Ignorning coldStart file')
         Convert gcon which is a coo matrix into the format we need
         """
 
-        # Now, gcon is a csr sparse matrix. Depending on what the
+        # Now, gcon is a coo sparse matrix. Depending on what the
         # optimizer wants, we will convert. The conceivable options
         # are: dense (most), csc (snopt), csr (???), or coo (IPOPT)
-
-        if gcon.size > 0:
-            if self.optProb.nCon > 0:
-                # Extract the rows we need:
-                gcon = gcon[self.optProb.jacIndices, :]
-                
-                # Apply factor scaling because of constraint sign changes
-                gcon = self.optProb.fact*gcon
-                
-                # Sort for the ones that need it
-                gcon.sort_indices()
-
-            if self.jacType == 'dense2d':
-                gcon = gcon.todense()
-            elif self.jacType == '1ddense':
-                gcon = gcon.todense().flatten()
-            elif self.jacType == 'csc':
-                gcon = gcon.tocsc()
-                gcon.sort_indices()
-                gcon = gcon.data
-            elif self.jacType == 'csr':
-                gcon = gcon.data
-            elif self.jacType == 'coo':
-                gcon = gcon.tocoo()
-                gcon = gcon.data
         
+        if self.optProb.nCon > 0:
+            # Extract the rows we need:
+            gcon = extractRows(gcon, self.optProb.jacIndices)
+                
+            # Apply factor scaling because of constraint sign changes
+            scaleRows(gcon, self.optProb.fact)
+
+            # Now convert to final format:    
+            if self.jacType == 'dense2d':
+                gcon = convertToDense(gcon)
+            elif self.jacType == 'csc':
+                gcon = convertToCSC(gcon)
+                gcon = gcon['csc'][IDATA]
+            elif self.jacType == 'csr':
+                gcon = convertToCSR(gcon)
+                gcon = gcon['csr'][IDATA]
+            elif self.jacType == 'coo':
+                gcon = convertToCOO(gcon)
+                gcon = gcon['coo'][IDATA]
+        if self.optProb.dummyConstraint:
+            gcon = gcon['csr'][IDATA]
         return gcon
 
     def _waitLoop(self):
@@ -570,7 +541,6 @@ match the number in the current optimization. Ignorning coldStart file')
         optimizers here use continuous variables so this chunk of code
         can be reused.
         """
-
         blx = []
         bux = []
         xs = []
@@ -583,8 +553,8 @@ match the number in the current optimization. Ignorning coldStart file')
                         xs.append(var.value)
 
                     else:
-                        raise Error('%s cannot handle integer \
-                        or discrete design variables' % self.name)
+                        raise Error("%s cannot handle integer or discrete "
+                                    "design variables" % self.name)
 
         blx = numpy.array(blx)
         bux = numpy.array(bux)
@@ -634,8 +604,8 @@ match the number in the current optimization. Ignorning coldStart file')
         nobj = len(self.optProb.objectives.keys())
         ff = []
         if nobj == 0:
-            raise Error('No objective function was supplied! One can \
-            be added using a call to optProb.addObj()')
+            raise Error("No objective function was supplied! One can "
+                        "be added using a call to optProb.addObj()")
         for objKey in self.optProb.objectives:
             ff.append(self.optProb.objectives[objKey].value)
 
@@ -702,9 +672,10 @@ match the number in the current optimization. Ignorning coldStart file')
             if type(value) == self.options['defaults'][name][0]:
                 self.options[name] = [type(value), value]
             else:
-                raise Error('Value type for option %s was incorrect. It was \
-                expecting type \'%s\' by received type \'%s\'' % (
-                name, self.options['defaults'][name][0], type(value)))
+                raise Error("Value type for option %s was incorrect. It was "
+                            "expecting type '%s' by received type '%s'" % (
+                            name, self.options['defaults'][name][0],
+                                type(value)))
         else:
             raise Error('Received an unknown option: %s' % repr(name))
 

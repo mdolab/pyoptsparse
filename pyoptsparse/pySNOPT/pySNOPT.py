@@ -25,7 +25,7 @@ from __future__ import print_function
 # =============================================================================
 try:
     from . import snopt
-except:
+except ImportError:
     snopt = None
 # =============================================================================
 # Standard Python modules
@@ -36,13 +36,13 @@ import time
 # External Python modules
 # =============================================================================
 import numpy
-from scipy import sparse
 # # ===========================================================================
 # # Extension modules
 # # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_history import History
 from ..pyOpt_error import Error
+from ..pyOpt_utils import convertToCSC, IDATA, IROWIND, ICOLP, extractRows, \
+     scaleRows
 # =============================================================================
 # SNOPT Optimizer Class
 # =============================================================================
@@ -239,8 +239,7 @@ class SNOPT(Optimizer):
         self.jacType = 'csc'
 
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
-                 storeHistory=None, hotStart=None, warmStart=None,
-                 coldStart=None):
+                 storeHistory=None, hotStart=None, storeSens=True):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -253,23 +252,23 @@ class SNOPT(Optimizer):
 
         sens : str or python Function.
             Specifiy method to compute sensitivities. The default is
-            None which will use SNOPT\'s own finite differences which
+            None which will use SNOPT's own finite differences which
             are vastly superiour to the pyOptSparse implementation. To
             explictly use pyOptSparse gradient class to do the
-            derivatives with finite differenes use \'FD\'. \'sens\'
-            may also be \'CS\' which will cause pyOptSpare to compute
+            derivatives with finite differenes use 'FD'. 'sens'
+            may also be 'CS' which will cause pyOptSpare to compute
             the derivatives using the complex step method. Finally,
-            \'sens\' may be a python function handle which is expected
+            'sens' may be a python function handle which is expected
             to compute the sensitivities directly. For expensive
             function evaluations and/or problems with large numbers of
             design variables this is the preferred method.
 
         sensStep : float
             Set the step size to use for design variables. Defaults to
-            1e-6 when sens is \'FD\' and 1e-40j when sens is \'CS\'.
+            1e-6 when sens is 'FD' and 1e-40j when sens is 'CS'.
 
         sensMode : str
-            Use \'pgc\' for parallel gradient computations. Only
+            Use 'pgc' for parallel gradient computations. Only
             available with mpi4py and each objective evaluation is
             otherwise serial
 
@@ -280,31 +279,21 @@ class SNOPT(Optimizer):
         hotStart : str
             File name of the history file to "replay" for the
             optimziation.  The optimization problem used to generate
-            the history file specified in \'hotStart\' must be
-            **IDENTICAL** to the currently supplied \'optProb\'. By
+            the history file specified in 'hotStart' must be
+            **IDENTICAL** to the currently supplied 'optProb'. By
             identical we mean, **EVERY SINGLE PARAMETER MUST BE
             IDENTICAL**. As soon as he requested evaluation point
             from SNOPT does not match the history, function and
             gradient evaluations revert back to normal evaluations.
 
-        warmStart : str
-            File name of the history file to use for "warm"
-            restart. The only difference between a "warm" and "cold"
-            restart is that the state of the variables is used when
-            initializing snopt. This information is stored in the
-            history file from snopt only. If a warm start cannot be
-            preformed for any reason, a cold start is attempted
-            instead.
-
-        coldStart : str
-            Filename of the history file to use for "cold"
-            restart. Here, the only requirment is that the number of
-            design variables (and their order) are the same. Use this
-            method if any of the optimization parameters have changed.
+        storeSens : bool
+            Flag sepcifying if sensitivities are to be stored in hist.
+            This is necessay for hot-starting only.
             """
 
         self.callCounter = 0
-
+        self.storeSens = storeSens
+        
         if len(optProb.constraints) == 0:
             # If the user *actually* has an unconstrained problem,
             # snopt sort of chokes with that....it has to have at
@@ -328,7 +317,7 @@ class SNOPT(Optimizer):
             nnCon = 1
         else:
             indices, tmp1, tmp2, fact = self.optProb.getOrdering(
-                ['ne','ni'], oneSided=oneSided)
+                ['ne', 'ni'], oneSided=oneSided)
             nnCon = len(indices)
             self.optProb.jacIndices = indices
             self.optProb.fact = fact
@@ -351,18 +340,18 @@ class SNOPT(Optimizer):
             if self.optProb.nCon > 0:
                 # We need to reorder this full jacobian...so get ordering:
                 indices, blc, buc, fact = self.optProb.getOrdering(
-                    ['ne','ni','le','li'], oneSided=oneSided)
-            
-                jac = jac[indices, :] # Does reordering
-                jac = fact*jac # Perform logical scaling
+                    ['ne', 'ni', 'le', 'li'], oneSided=oneSided)
+                jac = extractRows(jac, indices) # Does reordering
+                scaleRows(jac, fact) # Perform logical scaling
             else:
                 blc = [-1e20]
                 buc = [1e20]
-            jac = jac.tocsc() # Conver to csc for SNOPT
+            jac = convertToCSC(jac)
 
-            Acol = jac.data
-            indA = jac.indices + 1
-            locA = jac.indptr + 1
+            Acol = jac['csc'][IDATA]
+            indA = jac['csc'][IROWIND] + 1
+            locA = jac['csc'][ICOLP] + 1
+
             if self.optProb.nCon == 0:
                 ncon = 1
             else:
@@ -387,8 +376,6 @@ class SNOPT(Optimizer):
                 if ierror != 0:
                     raise Error('Failed to properly open %s, ierror = %3d'%
                                   (SummFile, ierror))
-
-         
 
             # Calculate the length of the work arrays
             # --------------------------------------
@@ -464,16 +451,8 @@ class SNOPT(Optimizer):
             ninf = numpy.array([0], numpy.intc)
             sinf = numpy.array([0.], numpy.float)
 
-            # Set history/hotstart/coldstart
-            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
-
-            # Check for warm/cold start --- this is snopt specific so
-            # we have a special function for this:
-            res1, res2 = self._warmStart(warmStart, coldStart)
-            if res1 is not None:
-                xs[0:nvar] = res1
-            if res2 is not None:
-                hs = res2.copy()
+            # Set history/hotstart
+            self._setHistory(storeHistory, hotStart)
 
             # The snopt c interface
             timeA = time.time()
@@ -505,7 +484,6 @@ class SNOPT(Optimizer):
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xs)
-
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
@@ -549,49 +527,6 @@ class SNOPT(Optimizer):
             mode = -1
 
         return mode, fobj, gobj, fcon, gcon
-
-    def _warmStart(self, warmStart, coldStart):
-        """
-        Internal snopt function to do a warm start or cold start. The
-        cold start code resides in the generic base class"""
-
-        xs = None
-        hs = None
-        if warmStart is not None:
-            if os.path.exists(warmStart):
-                hist = History(warmStart, flag='r')
-                xs_tmp = hist.readData('xs')
-                hs_tmp = hist.readData('hs')
-                hist.close()
-                if xs_tmp is not None and hs_tmp is not None:
-                    if len(xs_tmp) == len(xs) and len(hs_tmp) == len(hs):
-                        xs = xs_tmp.copy()
-                        hs = hs_tmp.copy()
-                        # Tell snopt to use this warm start information
-                        self.setOption('Start', 'Warm start')
-                    else:
-                        print('The number of variables or constraints \
-                            in warmStart file do not match the number \
-                            in the current optimization. Ignorning \
-                            warmStart file and trying cold start.')
-                        coldStart = warmStart
-
-                else:
-                    print('No warm start information in file. \'xs\' and \
-                    \'hs\' must be present in history file. \
-                    Trying cold start instead.')
-                    coldStart = warmStart
-            else:
-                print('warmStart file not found. Continuing without \
-                    warm restart')
-        # end if (warm start)
-
-        # Now if we have a cold start, we can call the common code:
-        if coldStart is not None:
-            xs = self._coldStart(coldStart)
-
-        # Return
-        return xs, hs
 
     def _set_snopt_options(self, iPrint, iSumm, cw, iw, rw):
         """
