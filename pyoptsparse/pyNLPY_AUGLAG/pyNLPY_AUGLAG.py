@@ -6,8 +6,6 @@ blocks.
 
 Some assumptions to get this wrapper working:
 - the NLPy package has been downloaded from Github and installed locally
-- only one version of the optimizer is available: LSR1 Hessian and adjoint 
-Broyden A Jacobian approximation (though this is the best in our experience)
 
 Copyright (c) 2014 by Andrew Lambe
 All rights reserved.
@@ -34,10 +32,14 @@ try:
     from nlpy.optimize.solvers.sbmin import SBMINPartialLqnFramework
     from nlpy.optimize.solvers.sbmin import SBMINSplitLqnFramework
     from nlpy.optimize.solvers.tron import TronPartialLqnFramework
-    from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalLsr1AdjBroyAFramework
+    from nlpy.optimize.solvers.tron import TronSplitLqnFramework
+    from nlpy.optimize.solvers.tron import TronTotalLqnFramework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianPartialLsr1Framework
-    from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianSplitLsr1Framework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianPartialLsr1TronFramework
+    from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianSplitLsr1Framework
+    from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianSplitLsr1TronFramework
+    from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalLsr1AdjBroyATronFramework
+    from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalLsr1AdjBroyATronFramework
 except:
     MFModel=None
 # =============================================================================
@@ -111,6 +113,7 @@ class NLPY_AUGLAG(Optimizer):
         'Use Least-Squares Multipliers':[bool,False],
         'Use Quasi-Newton Jacobian':[bool,True],
         'Use Limited-Memory Approach':[bool,False],
+        'Use Tron':[bool,True],
         'Penalty Parameter':[float,10.],
         'Maximum Inner Iterations':[int, 500],
         'Maximum Outer Iterations':[int, 20],
@@ -360,56 +363,108 @@ be installed to use NLPY_AUGLAG.')
         # Also need to pass the number of dense constraints
         # Assume the dense block is listed first in the problem definition
         # ** Simple sol'n: assume dense block is all nonlinear constraints **
-        if self.options['Use Quasi-Newton Jacobian'][1]:
-            solver = AugmentedLagrangianTotalLsr1AdjBroyAFramework(nlpy_problem, 
-                SBMINTotalLqnFramework, 
-                omega_abs=self.options['Absolute Optimality Tolerance'][1], 
-                eta_abs=self.options['Absolute Feasibility Tolerance'][1], 
-                omega_rel=self.options['Relative Optimality Tolerance'][1],
-                eta_rel=self.options['Relative Feasibility Tolerance'][1],
-                qn_pairs=self.options['Number of Quasi-Newton Pairs'][1],
-                least_squares_pi=self.options['Use Least-Squares Multipliers'][1],
-                data_prefix=self.options['Prefix'][1],
-                save_data=self.options['Save Current Point'][1],
-                warmstart=self.options['Warm Restart'][1],
-                sparse_index=sparse_index,
-                rho_init=self.options['Penalty Parameter'][1],
-                max_inner_iter=self.options['Maximum Inner Iterations'][1],
-                max_outer_iter=self.options['Maximum Outer Iterations'][1])
-        elif self.options['Use Limited-Memory Approach'][1]:
-            solver = AugmentedLagrangianSplitLsr1Framework(nlpy_problem, 
-                SBMINSplitLqnFramework, 
-                omega_abs=self.options['Absolute Optimality Tolerance'][1], 
-                eta_abs=self.options['Absolute Feasibility Tolerance'][1], 
-                omega_rel=self.options['Relative Optimality Tolerance'][1],
-                eta_rel=self.options['Relative Feasibility Tolerance'][1],
-                qn_pairs=self.options['Number of Quasi-Newton Pairs'][1],
-                least_squares_pi=self.options['Use Least-Squares Multipliers'][1],
-                feas_qn_pairs=self.options['Feasibility Quasi-Newton Pairs'][1],
-                data_prefix=self.options['Prefix'][1],
-                save_data=self.options['Save Current Point'][1],
-                warmstart=self.options['Warm Restart'][1],
-                sparse_index=sparse_index,
-                rho_init=self.options['Penalty Parameter'][1],
-                max_inner_iter=self.options['Maximum Inner Iterations'][1],
-                max_outer_iter=self.options['Maximum Outer Iterations'][1])            
+        if self.options['Use Tron'][1]:
+            if self.options['Use Quasi-Newton Jacobian'][1]:
+                solver = AugmentedLagrangianTotalLsr1AdjBroyATronFramework(nlpy_problem, 
+                    TronTotalLqnFramework, 
+                    omega_abs=self.options['Absolute Optimality Tolerance'][1], 
+                    eta_abs=self.options['Absolute Feasibility Tolerance'][1], 
+                    omega_rel=self.options['Relative Optimality Tolerance'][1],
+                    eta_rel=self.options['Relative Feasibility Tolerance'][1],
+                    qn_pairs=self.options['Number of Quasi-Newton Pairs'][1],
+                    least_squares_pi=self.options['Use Least-Squares Multipliers'][1],
+                    data_prefix=self.options['Prefix'][1],
+                    save_data=self.options['Save Current Point'][1],
+                    warmstart=self.options['Warm Restart'][1],
+                    sparse_index=sparse_index,
+                    rho_init=self.options['Penalty Parameter'][1],
+                    max_inner_iter=self.options['Maximum Inner Iterations'][1],
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1])
+            elif self.options['Use Limited-Memory Approach'][1]:
+                solver = AugmentedLagrangianSplitLsr1TronFramework(nlpy_problem, 
+                    TronSplitLqnFramework, 
+                    omega_abs=self.options['Absolute Optimality Tolerance'][1], 
+                    eta_abs=self.options['Absolute Feasibility Tolerance'][1], 
+                    omega_rel=self.options['Relative Optimality Tolerance'][1],
+                    eta_rel=self.options['Relative Feasibility Tolerance'][1],
+                    qn_pairs=self.options['Number of Quasi-Newton Pairs'][1],
+                    least_squares_pi=self.options['Use Least-Squares Multipliers'][1],
+                    feas_qn_pairs=self.options['Feasibility Quasi-Newton Pairs'][1],
+                    data_prefix=self.options['Prefix'][1],
+                    save_data=self.options['Save Current Point'][1],
+                    warmstart=self.options['Warm Restart'][1],
+                    sparse_index=sparse_index,
+                    rho_init=self.options['Penalty Parameter'][1],
+                    max_inner_iter=self.options['Maximum Inner Iterations'][1],
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1])            
+            else:
+                # Try matrix-vector products with the exact Jacobian
+                # Useful for comparisons, but not recommended for larger problems
+                solver = AugmentedLagrangianPartialLsr1TronFramework(nlpy_problem, 
+                    TronPartialLqnFramework, 
+                    omega_abs=self.options['Absolute Optimality Tolerance'][1], 
+                    eta_abs=self.options['Absolute Feasibility Tolerance'][1], 
+                    omega_rel=self.options['Relative Optimality Tolerance'][1],
+                    eta_rel=self.options['Relative Feasibility Tolerance'][1],
+                    qn_pairs=self.options['Number of Quasi-Newton Pairs'][1],
+                    least_squares_pi=self.options['Use Least-Squares Multipliers'][1],
+                    data_prefix=self.options['Prefix'][1],
+                    save_data=self.options['Save Current Point'][1],
+                    warmstart=self.options['Warm Restart'][1],
+                    rho_init=self.options['Penalty Parameter'][1],
+                    max_inner_iter=self.options['Maximum Inner Iterations'][1],
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1])
         else:
-            # Try matrix-vector products with the exact Jacobian
-            # Useful for comparisons, but not recommended for larger problems
-            solver = AugmentedLagrangianPartialLsr1TronFramework(nlpy_problem, 
-                TronPartialLqnFramework, 
-                omega_abs=self.options['Absolute Optimality Tolerance'][1], 
-                eta_abs=self.options['Absolute Feasibility Tolerance'][1], 
-                omega_rel=self.options['Relative Optimality Tolerance'][1],
-                eta_rel=self.options['Relative Feasibility Tolerance'][1],
-                qn_pairs=self.options['Number of Quasi-Newton Pairs'][1],
-                least_squares_pi=self.options['Use Least-Squares Multipliers'][1],
-                data_prefix=self.options['Prefix'][1],
-                save_data=self.options['Save Current Point'][1],
-                warmstart=self.options['Warm Restart'][1],
-                rho_init=self.options['Penalty Parameter'][1],
-                max_inner_iter=self.options['Maximum Inner Iterations'][1],
-                max_outer_iter=self.options['Maximum Outer Iterations'][1])
+            if self.options['Use Quasi-Newton Jacobian'][1]:
+                solver = AugmentedLagrangianTotalLsr1AdjBroyAFramework(nlpy_problem, 
+                    SBMINTotalLqnFramework, 
+                    omega_abs=self.options['Absolute Optimality Tolerance'][1], 
+                    eta_abs=self.options['Absolute Feasibility Tolerance'][1], 
+                    omega_rel=self.options['Relative Optimality Tolerance'][1],
+                    eta_rel=self.options['Relative Feasibility Tolerance'][1],
+                    qn_pairs=self.options['Number of Quasi-Newton Pairs'][1],
+                    least_squares_pi=self.options['Use Least-Squares Multipliers'][1],
+                    data_prefix=self.options['Prefix'][1],
+                    save_data=self.options['Save Current Point'][1],
+                    warmstart=self.options['Warm Restart'][1],
+                    sparse_index=sparse_index,
+                    rho_init=self.options['Penalty Parameter'][1],
+                    max_inner_iter=self.options['Maximum Inner Iterations'][1],
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1])
+            elif self.options['Use Limited-Memory Approach'][1]:
+                solver = AugmentedLagrangianSplitLsr1Framework(nlpy_problem, 
+                    SBMINSplitLqnFramework, 
+                    omega_abs=self.options['Absolute Optimality Tolerance'][1], 
+                    eta_abs=self.options['Absolute Feasibility Tolerance'][1], 
+                    omega_rel=self.options['Relative Optimality Tolerance'][1],
+                    eta_rel=self.options['Relative Feasibility Tolerance'][1],
+                    qn_pairs=self.options['Number of Quasi-Newton Pairs'][1],
+                    least_squares_pi=self.options['Use Least-Squares Multipliers'][1],
+                    feas_qn_pairs=self.options['Feasibility Quasi-Newton Pairs'][1],
+                    data_prefix=self.options['Prefix'][1],
+                    save_data=self.options['Save Current Point'][1],
+                    warmstart=self.options['Warm Restart'][1],
+                    sparse_index=sparse_index,
+                    rho_init=self.options['Penalty Parameter'][1],
+                    max_inner_iter=self.options['Maximum Inner Iterations'][1],
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1])            
+            else:
+                # Try matrix-vector products with the exact Jacobian
+                # Useful for comparisons, but not recommended for larger problems
+                solver = AugmentedLagrangianPartialLsr1Framework(nlpy_problem, 
+                    SBMINPartialLqnFramework, 
+                    omega_abs=self.options['Absolute Optimality Tolerance'][1], 
+                    eta_abs=self.options['Absolute Feasibility Tolerance'][1], 
+                    omega_rel=self.options['Relative Optimality Tolerance'][1],
+                    eta_rel=self.options['Relative Feasibility Tolerance'][1],
+                    qn_pairs=self.options['Number of Quasi-Newton Pairs'][1],
+                    least_squares_pi=self.options['Use Least-Squares Multipliers'][1],
+                    data_prefix=self.options['Prefix'][1],
+                    save_data=self.options['Save Current Point'][1],
+                    warmstart=self.options['Warm Restart'][1],
+                    rho_init=self.options['Penalty Parameter'][1],
+                    max_inner_iter=self.options['Maximum Inner Iterations'][1],
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1])
 
         # if self.optProb.comm.rank == 0:
         #     print("Starting solve")
