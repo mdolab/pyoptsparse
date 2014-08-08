@@ -1156,7 +1156,7 @@ class Optimization(object):
                 fcon_in += self.offset
                 # Since self.fact elements are unit magnitude and the
                 # values are either 1 or -1...
-                fcon_in = fact * fcon_in
+                fcon_in = self.fact * fcon_in
                 # Undo the ordering
                 fcon_in = fcon_in[self.jacIndicesInv]
 
