@@ -40,7 +40,6 @@ import numpy
 # Extension modules
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_solution import Solution
 from ..pyOpt_error import Error
 # =============================================================================
 # SLSQP Optimizer Class
@@ -85,7 +84,7 @@ class SLSQP(Optimizer):
         self.jacType = 'dense2d'
 
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
-                 storeHistory=None, hotStart=None, coldStart=None):
+                 storeHistory=None, hotStart=None, storeSens=True):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -130,14 +129,13 @@ class SLSQP(Optimizer):
             from SLSQP does not match the history, function and
             gradient evaluations revert back to normal evaluations.
 
-        coldStart : str
-            Filename of the history file to use for "cold"
-            restart. Here, the only requirment is that the number of
-            design variables (and their order) are the same. Use this
-            method if any of the optimization parameters have changed.
+        storeSens : bool
+            Flag sepcifying if sensitivities are to be stored in hist.
+            This is necessay for hot-starting only.
             """
 
         self.callCounter = 0
+        self.storeSens = storeSens
 
         if len(optProb.constraints) == 0:
             # If the user *actually* has an unconstrained problem,
@@ -167,7 +165,7 @@ class SLSQP(Optimizer):
             meq = 0
         else:
             indices, blc, buc, fact = self.optProb.getOrdering(
-                ['ne','le','ni','li'], oneSided=oneSided)
+                ['ne', 'le', 'ni', 'li'], oneSided=oneSided)
             m = len(indices)
 
             self.optProb.jacIndices = indices
@@ -176,12 +174,12 @@ class SLSQP(Optimizer):
 
             # Also figure out the number of equality:
             tmp0, __, __, __ = self.optProb.getOrdering(
-                ['ne','le'], oneSided=oneSided)
+                ['ne', 'le'], oneSided=oneSided)
             meq = len(tmp0)
 
         if self.optProb.comm.rank == 0:
-            # Set history/hotstart/coldstart
-            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
+            # Set history/hotstart
+            self._setHistory(storeHistory, hotStart)
 
             #=================================================================
             # SLSQP - Objective/Constraint Values Function
@@ -198,7 +196,7 @@ class SLSQP(Optimizer):
             def slgrad(m, me, la, n, f, g, df, dg, x):
                 gobj, gcon, fail = self._masterFunc(x, ['gobj', 'gcon'])
                 df[0:n] = gobj.copy()
-                dg[0:m,0:n] = -gcon.copy()
+                dg[0:m, 0:n] = -gcon.copy()
                 return df, dg
 
             # Setup argument list values

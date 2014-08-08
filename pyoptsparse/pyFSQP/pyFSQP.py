@@ -24,7 +24,7 @@ from __future__ import print_function
 # =============================================================================
 try:
     from . import ffsqp
-except:
+except ImportError:
     ffsqp = None
 # =============================================================================
 # Standard Python modules
@@ -39,7 +39,6 @@ import numpy
 # # Extension modules
 # # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_solution import Solution
 from ..pyOpt_error import Error
 # =============================================================================
 # FSQP Optimizer Class
@@ -48,7 +47,6 @@ class FSQP(Optimizer):
     """
     FSQP Optimizer Class - Inherited from Optimizer Abstract Class
     """
-    
     def __init__(self, *args, **kwargs):
         
         name = 'FSQP'
@@ -84,9 +82,8 @@ class FSQP(Optimizer):
         # We need jacobians in dens2d formation
         self.jacType = 'dense2d'
         
-
     def __call__(self, optProb, sens=None, sensStep=None, sensMode='FD',
-                 storeHistory=None, hotStart=None,  coldStart=None):
+                 storeHistory=None, hotStart=None, storeSens=True):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -100,9 +97,9 @@ class FSQP(Optimizer):
         sens : str or python Function.
             Specifiy method to compute sensitivities.  To explictly
             use pyOptSparse gradient class to do the derivatives with
-            finite differenes use \'FD\'. \'sens\' may also be \'CS\'
+            finite differenes use 'FD'. 'sens' may also be 'CS'
             which will cause pyOptSpare to compute the derivatives
-            using the complex step method. Finally, \'sens\' may be a
+            using the complex step method. Finally, 'sens' may be a
             python function handle which is expected to compute the
             sensitivities directly. For expensive function evaluations
             and/or problems with large numbers of design variables
@@ -110,10 +107,10 @@ class FSQP(Optimizer):
 
         sensStep : float
             Set the step size to use for design variables. Defaults to
-            1e-6 when sens is \'FD\' and 1e-40j when sens is \'CS\'.
+            1e-6 when sens is 'FD' and 1e-40j when sens is 'CS'.
 
         sensMode : str
-            Use \'pgc\' for parallel gradient computations. Only
+            Use 'pgc' for parallel gradient computations. Only
             available with mpi4py and each objective evaluation is
             otherwise serial
 
@@ -124,21 +121,20 @@ class FSQP(Optimizer):
         hotStart : str
             File name of the history file to "replay" for the
             optimziation.  The optimization problem used to generate
-            the history file specified in \'hotStart\' must be
-            **IDENTICAL** to the currently supplied \'optProb\'. By
+            the history file specified in 'hotStart' must be
+            **IDENTICAL** to the currently supplied 'optProb'. By
             identical we mean, **EVERY SINGLE PARAMETER MUST BE
             IDENTICAL**. As soon as he requested evaluation point
             from SNOPT does not match the history, function and
             gradient evaluations revert back to normal evaluations.
 
-        coldStart : str
-            Filename of the history file to use for "cold"
-            restart. Here, the only requirment is that the number of
-            design variables (and their order) are the same. Use this
-            method if any of the optimization parameters have changed.
+        storeSens : bool
+            Flag sepcifying if sensitivities are to be stored in hist.
+            This is necessay for hot-starting only.
             """
 
         self.callCounter = 0
+        self.storeSens = storeSens
 
         if len(optProb.constraints) == 0:
             self.unconstrained = True
@@ -171,7 +167,7 @@ class FSQP(Optimizer):
             nineqn = len(indices)
 
             indices, __, __, __ = self.optProb.getOrdering(
-                ['ni','li'], oneSided=True)
+                ['ni', 'li'], oneSided=True)
             nineq = len(indices)
 
             indices, __, __, __ = self.optProb.getOrdering(
@@ -179,7 +175,7 @@ class FSQP(Optimizer):
             neqn = len(indices)
 
             indices, __, __, __ = self.optProb.getOrdering(
-                ['ne','le'], oneSided=True)
+                ['ne', 'le'], oneSided=True)
             neq = len(indices)
         else:
             nineqn = 0
@@ -192,7 +188,7 @@ class FSQP(Optimizer):
         # problem and run SNOPT, otherwise we go to the waiting loop:
         if self.optProb.comm.rank == 0:
             # Set history/hotstart/coldstart
-            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
+            self._setHistory(storeHistory, hotStart)
 
             #======================================================================
             # FSQP - Objective Values Function
