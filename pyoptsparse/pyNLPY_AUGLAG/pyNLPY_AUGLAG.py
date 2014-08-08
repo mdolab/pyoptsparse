@@ -537,7 +537,7 @@ of 'FD' or 'CS' or a user supplied function or group of functions.")
 
         timeAA = time.time()
 
-        xscaled = self.optProb.invXScale.dot(x)
+        xscaled = self.optProb.invXScale*x
         xuser = self.optProb.processX(xscaled)
 
         masterFail = False
@@ -641,7 +641,7 @@ of 'FD' or 'CS' or a user supplied function or group of functions.")
             # Convert input arrays to dictionaries before calling the callback function
             # Also, scale vectors appropriately before and after the products are formed
             if 'jac_prod' in evaluate:
-                invec = self.optProb.invXScale.dot(invec)
+                invec = self.optProb.invXScale*invec
                 invec = self.optProb.processX(invec)
                 timeA = time.time()
                 outvec, fail = self.sens[1](xuser, invec, sparse_only=sparse_only)
@@ -657,7 +657,7 @@ of 'FD' or 'CS' or a user supplied function or group of functions.")
                 self.userJTProdTime += time.time() - timeA
                 self.userJTProdCalls += 1
                 outvec = self.optProb.deProcessX(outvec)
-                outvec = self.optProb.invXScale.dot(outvec)
+                outvec = self.optProb.invXScale*outvec
                 
             # prodTime = time.time() - timeA
             # if 'jac_prod' in evaluate:
