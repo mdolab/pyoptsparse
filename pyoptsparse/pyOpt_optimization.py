@@ -801,7 +801,7 @@ class Optimization(object):
                 for var in self.variables[dvSet][dvGroup]:
                     xscale.append(var.scale)
         self.invXScale = 1.0/numpy.array(xscale)
-        
+
         # ----------------------------------------
         # Step 3. Determine if dense return is OK
         # ----------------------------------------

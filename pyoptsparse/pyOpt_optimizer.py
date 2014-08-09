@@ -196,7 +196,7 @@ class Optimizer(object):
                 xuser = self.optProb.deProcessX(data['xuser'])
 
                 # Validated x-point point to use:
-                if numpy.linalg.norm(x-xuser) < eps:
+                if numpy.linalg.norm(x*self.optProb.invXScale - xuser) < eps:
 
                     # However, we may need a sens that *isn't* in the
                     # the dictionary:
@@ -220,7 +220,7 @@ class Optimizer(object):
 
                         fail = data['fail']
                         returns = []
-                        xscaled = self.optProb.invXScale.dot(x)
+                        xscaled = self.optProb.invXScale * x
 
                         # Process constraints/objectives
                         if funcs is not None:
