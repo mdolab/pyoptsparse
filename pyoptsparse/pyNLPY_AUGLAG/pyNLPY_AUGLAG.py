@@ -350,7 +350,7 @@ be installed to use NLPY_AUGLAG.')
 
         else:
             # Only the root proc stores the history
-            self._setHistory("", hotStart, coldStart)
+            self._setHistory("", hotStart)
         # end if
 
         # This optimizer has no hot start capability (too many vectors)
