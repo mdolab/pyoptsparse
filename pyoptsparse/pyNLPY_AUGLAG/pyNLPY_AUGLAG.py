@@ -110,6 +110,7 @@ class NLPY_AUGLAG(Optimizer):
         'Use Magical Steps':[bool,True],
         # 'Use Tron':[bool,False],
         'Use Least-Squares Multipliers':[bool,False],
+        'Use Damped Multiplier Update':[bool,True],
         'Use Quasi-Newton Jacobian':[bool,True],
         'Use Limited-Memory Approach':[bool,False],
         'Use Tron':[bool,True],
@@ -378,7 +379,8 @@ be installed to use NLPY_AUGLAG.')
                     sparse_index=sparse_index,
                     rho_init=self.options['Penalty Parameter'][1],
                     max_inner_iter=self.options['Maximum Inner Iterations'][1],
-                    max_outer_iter=self.options['Maximum Outer Iterations'][1])
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1],
+                    damped_pi=self.options['Use Damped Multiplier Update'][1])
             elif self.options['Use Limited-Memory Approach'][1]:
                 solver = AugmentedLagrangianSplitLsr1TronFramework(nlpy_problem, 
                     TronSplitLqnFramework, 
@@ -395,7 +397,8 @@ be installed to use NLPY_AUGLAG.')
                     sparse_index=sparse_index,
                     rho_init=self.options['Penalty Parameter'][1],
                     max_inner_iter=self.options['Maximum Inner Iterations'][1],
-                    max_outer_iter=self.options['Maximum Outer Iterations'][1])            
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1],
+                    damped_pi=self.options['Use Damped Multiplier Update'][1])
             else:
                 # Try matrix-vector products with the exact Jacobian
                 # Useful for comparisons, but not recommended for larger problems
@@ -412,7 +415,8 @@ be installed to use NLPY_AUGLAG.')
                     warmstart=self.options['Warm Restart'][1],
                     rho_init=self.options['Penalty Parameter'][1],
                     max_inner_iter=self.options['Maximum Inner Iterations'][1],
-                    max_outer_iter=self.options['Maximum Outer Iterations'][1])
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1],
+                    damped_pi=self.options['Use Damped Multiplier Update'][1])
         else:
             if self.options['Use Quasi-Newton Jacobian'][1]:
                 solver = AugmentedLagrangianTotalLsr1AdjBroyAFramework(nlpy_problem, 
@@ -429,7 +433,8 @@ be installed to use NLPY_AUGLAG.')
                     sparse_index=sparse_index,
                     rho_init=self.options['Penalty Parameter'][1],
                     max_inner_iter=self.options['Maximum Inner Iterations'][1],
-                    max_outer_iter=self.options['Maximum Outer Iterations'][1])
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1],
+                    damped_pi=self.options['Use Damped Multiplier Update'][1])
             elif self.options['Use Limited-Memory Approach'][1]:
                 solver = AugmentedLagrangianSplitLsr1Framework(nlpy_problem, 
                     SBMINSplitLqnFramework, 
@@ -446,7 +451,8 @@ be installed to use NLPY_AUGLAG.')
                     sparse_index=sparse_index,
                     rho_init=self.options['Penalty Parameter'][1],
                     max_inner_iter=self.options['Maximum Inner Iterations'][1],
-                    max_outer_iter=self.options['Maximum Outer Iterations'][1])            
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1],
+                    damped_pi=self.options['Use Damped Multiplier Update'][1])
             else:
                 # Try matrix-vector products with the exact Jacobian
                 # Useful for comparisons, but not recommended for larger problems
@@ -463,7 +469,8 @@ be installed to use NLPY_AUGLAG.')
                     warmstart=self.options['Warm Restart'][1],
                     rho_init=self.options['Penalty Parameter'][1],
                     max_inner_iter=self.options['Maximum Inner Iterations'][1],
-                    max_outer_iter=self.options['Maximum Outer Iterations'][1])
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1],
+                    damped_pi=self.options['Use Damped Multiplier Update'][1])
 
         # if self.optProb.comm.rank == 0:
         #     print("Starting solve")
