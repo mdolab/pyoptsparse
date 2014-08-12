@@ -38,7 +38,7 @@ try:
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianPartialLsr1TronFramework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianSplitLsr1Framework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianSplitLsr1TronFramework
-    from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalLsr1AdjBroyATronFramework
+    from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalLsr1AdjBroyAFramework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalLsr1AdjBroyATronFramework
 except:
     MFModel=None
