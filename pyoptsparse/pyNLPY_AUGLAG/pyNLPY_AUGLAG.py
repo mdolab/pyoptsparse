@@ -572,7 +572,7 @@ of 'FD' or 'CS' or a user supplied function or group of functions.")
             if self.cache['gobj'] is None:
                 # Only the objective function is cached in this version
                 timeA = time.time()
-                gobj, fail = self.sens[0](xuser)
+                gobj, fail = self.sens[0](xuser, funcs=self.cache['funcs'])
                 self.userSensTime += time.time()-timeA
                 self.userSensCalls += 1
                 # User values are stored immediately
@@ -651,7 +651,7 @@ of 'FD' or 'CS' or a user supplied function or group of functions.")
                 invec = self.optProb.invXScale*invec
                 invec = self.optProb.processX(invec)
                 timeA = time.time()
-                outvec, fail = self.sens[1](xuser, invec, sparse_only=sparse_only)
+                outvec, fail = self.sens[1](xuser, invec, sparse_only=sparse_only, funcs=self.cache['funcs'])
                 self.userJProdTime += time.time() - timeA
                 self.userJProdCalls += 1
                 outvec = self.optProb.processConstraints(outvec, scaled=False)
@@ -660,7 +660,7 @@ of 'FD' or 'CS' or a user supplied function or group of functions.")
                 invec = self.optProb.conScale*invec
                 invec = self.optProb.deProcessConstraints(invec, scaled=False)
                 timeA = time.time()
-                outvec, fail = self.sens[2](xuser, invec, sparse_only=sparse_only)
+                outvec, fail = self.sens[2](xuser, invec, sparse_only=sparse_only, funcs=self.cache['funcs'])
                 self.userJTProdTime += time.time() - timeA
                 self.userJTProdCalls += 1
                 outvec = self.optProb.deProcessX(outvec)
