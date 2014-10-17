@@ -641,9 +641,6 @@ of 'FD' or 'CS' or a user supplied function or group of functions.")
             # hist['outvec'] = outvec
 
         elif 'jac_prod' in evaluate or 'jac_T_prod' in evaluate:
-            # if self.optProb.comm.rank == 0:
-            # print("userJProdCalls = %d"%self.userJProdCalls)
-            # print("userJTProdCalls = %d"%self.userJTProdCalls)
             # Call the true matrix-vector product functions, no matrix formation
             # Convert input arrays to dictionaries before calling the callback function
             # Also, scale vectors appropriately before and after the products are formed
@@ -654,11 +651,9 @@ of 'FD' or 'CS' or a user supplied function or group of functions.")
                 outvec, fail = self.sens[1](xuser, invec, sparse_only=sparse_only, funcs=self.cache['funcs'])
                 self.userJProdTime += time.time() - timeA
                 self.userJProdCalls += 1
-                outvec = self.optProb.processConstraints(outvec, scaled=False)
-                outvec = self.optProb.conScale*outvec
+                outvec = self.optProb.processConstraints(outvec)
             else:
-                invec = self.optProb.conScale*invec
-                invec = self.optProb.deProcessConstraints(invec, scaled=False)
+                invec = self.optProb.deProcessConstraints(invec)
                 timeA = time.time()
                 outvec, fail = self.sens[2](xuser, invec, sparse_only=sparse_only, funcs=self.cache['funcs'])
                 self.userJTProdTime += time.time() - timeA
