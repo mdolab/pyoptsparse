@@ -49,7 +49,7 @@ class NLPQL(Optimizer):
     """
     NLPQL Optimizer Class - Inherited from Optimizer Abstract Class
     """
-    def __init__(self, pll_type=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         name = 'NLPQL'
         category = 'Local Optimizer'
         defOpts = {
@@ -217,7 +217,7 @@ class NLPQL(Optimizer):
             me = meq
             mmax = 200
             if ncon >= mmax:
-                mmxa = ncon + 1
+                mmax = ncon + 1
 
             nn = nvar
             nmax = 200
