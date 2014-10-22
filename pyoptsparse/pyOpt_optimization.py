@@ -1079,10 +1079,11 @@ class Optimization(object):
             is 'd' for a float. The complex-step derivative
             computations will call this function with 'D' to ensure
             that the complex peturbations pass through correctly.
+
         natural : bool
-            Flag to specify if the data should be return in the
-            natural ordering. Again this is only used when
-            computing gradient automatically with FD/CS.
+            Flag to specify if the data should be returned in the
+            natural ordering. This is only used when computing
+            gradient automatically with FD/CS.
             """
 
         if self.dummyConstraint:
@@ -1146,6 +1147,11 @@ class Optimization(object):
             is 'd' for a float. The complex-step derivative
             computations will call this function with 'D' to ensure
             that the complex peturbations pass through correctly.
+
+        natural : bool
+            Flag to specify if the input data is in the
+            natural ordering. This is only used when computing
+            gradient automatically with FD/CS.
             """
 
         if self.dummyConstraint:
@@ -1162,7 +1168,7 @@ class Optimization(object):
 
         # Perform constraint scaling
         if scaled:
-            fcon_in = fcon_in/self.conScale
+            fcon_in = fcon_in*self.conScale
 
         # We REQUIRE that fcon_in is an array:
         fcon = {}

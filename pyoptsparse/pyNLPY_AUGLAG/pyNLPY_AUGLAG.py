@@ -38,7 +38,7 @@ try:
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianPartialLsr1TronFramework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianSplitLsr1Framework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianSplitLsr1TronFramework
-    from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalLsr1AdjBroyATronFramework
+    from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalLsr1AdjBroyAFramework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalLsr1AdjBroyATronFramework
 except:
     MFModel=None
@@ -110,6 +110,7 @@ class NLPY_AUGLAG(Optimizer):
         'Use Magical Steps':[bool,True],
         # 'Use Tron':[bool,False],
         'Use Least-Squares Multipliers':[bool,False],
+        'Use Damped Multiplier Update':[bool,True],
         'Use Quasi-Newton Jacobian':[bool,True],
         'Use Limited-Memory Approach':[bool,False],
         'Use Tron':[bool,True],
@@ -350,7 +351,7 @@ be installed to use NLPY_AUGLAG.')
 
         else:
             # Only the root proc stores the history
-            self._setHistory("", hotStart, coldStart)
+            self._setHistory("", hotStart)
         # end if
 
         # This optimizer has no hot start capability (too many vectors)
@@ -378,7 +379,8 @@ be installed to use NLPY_AUGLAG.')
                     sparse_index=sparse_index,
                     rho_init=self.options['Penalty Parameter'][1],
                     max_inner_iter=self.options['Maximum Inner Iterations'][1],
-                    max_outer_iter=self.options['Maximum Outer Iterations'][1])
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1],
+                    damped_pi=self.options['Use Damped Multiplier Update'][1])
             elif self.options['Use Limited-Memory Approach'][1]:
                 solver = AugmentedLagrangianSplitLsr1TronFramework(nlpy_problem, 
                     TronSplitLqnFramework, 
@@ -395,7 +397,8 @@ be installed to use NLPY_AUGLAG.')
                     sparse_index=sparse_index,
                     rho_init=self.options['Penalty Parameter'][1],
                     max_inner_iter=self.options['Maximum Inner Iterations'][1],
-                    max_outer_iter=self.options['Maximum Outer Iterations'][1])            
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1],
+                    damped_pi=self.options['Use Damped Multiplier Update'][1])
             else:
                 # Try matrix-vector products with the exact Jacobian
                 # Useful for comparisons, but not recommended for larger problems
@@ -412,7 +415,8 @@ be installed to use NLPY_AUGLAG.')
                     warmstart=self.options['Warm Restart'][1],
                     rho_init=self.options['Penalty Parameter'][1],
                     max_inner_iter=self.options['Maximum Inner Iterations'][1],
-                    max_outer_iter=self.options['Maximum Outer Iterations'][1])
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1],
+                    damped_pi=self.options['Use Damped Multiplier Update'][1])
         else:
             if self.options['Use Quasi-Newton Jacobian'][1]:
                 solver = AugmentedLagrangianTotalLsr1AdjBroyAFramework(nlpy_problem, 
@@ -429,7 +433,8 @@ be installed to use NLPY_AUGLAG.')
                     sparse_index=sparse_index,
                     rho_init=self.options['Penalty Parameter'][1],
                     max_inner_iter=self.options['Maximum Inner Iterations'][1],
-                    max_outer_iter=self.options['Maximum Outer Iterations'][1])
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1],
+                    damped_pi=self.options['Use Damped Multiplier Update'][1])
             elif self.options['Use Limited-Memory Approach'][1]:
                 solver = AugmentedLagrangianSplitLsr1Framework(nlpy_problem, 
                     SBMINSplitLqnFramework, 
@@ -446,7 +451,8 @@ be installed to use NLPY_AUGLAG.')
                     sparse_index=sparse_index,
                     rho_init=self.options['Penalty Parameter'][1],
                     max_inner_iter=self.options['Maximum Inner Iterations'][1],
-                    max_outer_iter=self.options['Maximum Outer Iterations'][1])            
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1],
+                    damped_pi=self.options['Use Damped Multiplier Update'][1])
             else:
                 # Try matrix-vector products with the exact Jacobian
                 # Useful for comparisons, but not recommended for larger problems
@@ -463,7 +469,8 @@ be installed to use NLPY_AUGLAG.')
                     warmstart=self.options['Warm Restart'][1],
                     rho_init=self.options['Penalty Parameter'][1],
                     max_inner_iter=self.options['Maximum Inner Iterations'][1],
-                    max_outer_iter=self.options['Maximum Outer Iterations'][1])
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1],
+                    damped_pi=self.options['Use Damped Multiplier Update'][1])
 
         # if self.optProb.comm.rank == 0:
         #     print("Starting solve")
@@ -565,7 +572,7 @@ of 'FD' or 'CS' or a user supplied function or group of functions.")
             if self.cache['gobj'] is None:
                 # Only the objective function is cached in this version
                 timeA = time.time()
-                gobj, fail = self.sens[0](xuser)
+                gobj, fail = self.sens[0](xuser, funcs=self.cache['funcs'])
                 self.userSensTime += time.time()-timeA
                 self.userSensCalls += 1
                 # User values are stored immediately
@@ -634,9 +641,6 @@ of 'FD' or 'CS' or a user supplied function or group of functions.")
             # hist['outvec'] = outvec
 
         elif 'jac_prod' in evaluate or 'jac_T_prod' in evaluate:
-            # if self.optProb.comm.rank == 0:
-            # print("userJProdCalls = %d"%self.userJProdCalls)
-            # print("userJTProdCalls = %d"%self.userJTProdCalls)
             # Call the true matrix-vector product functions, no matrix formation
             # Convert input arrays to dictionaries before calling the callback function
             # Also, scale vectors appropriately before and after the products are formed
@@ -644,16 +648,14 @@ of 'FD' or 'CS' or a user supplied function or group of functions.")
                 invec = self.optProb.invXScale*invec
                 invec = self.optProb.processX(invec)
                 timeA = time.time()
-                outvec, fail = self.sens[1](xuser, invec, sparse_only=sparse_only)
+                outvec, fail = self.sens[1](xuser, invec, sparse_only=sparse_only, funcs=self.cache['funcs'])
                 self.userJProdTime += time.time() - timeA
                 self.userJProdCalls += 1
-                outvec = self.optProb.processConstraints(outvec, scaled=False)
-                outvec = self.optProb.conScale*outvec
+                outvec = self.optProb.processConstraints(outvec)
             else:
-                invec = self.optProb.conScale*invec
-                invec = self.optProb.deProcessConstraints(invec, scaled=False)
+                invec = self.optProb.deProcessConstraints(invec)
                 timeA = time.time()
-                outvec, fail = self.sens[2](xuser, invec, sparse_only=sparse_only)
+                outvec, fail = self.sens[2](xuser, invec, sparse_only=sparse_only, funcs=self.cache['funcs'])
                 self.userJTProdTime += time.time() - timeA
                 self.userJTProdCalls += 1
                 outvec = self.optProb.deProcessX(outvec)
