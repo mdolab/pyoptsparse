@@ -37,8 +37,10 @@ try:
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianPartialLsr1Framework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianPartialLsr1TronFramework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianSplitLsr1Framework
+    from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianSplitSr1Framework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianSplitLsr1TronFramework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalLsr1AdjBroyAFramework
+    from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalSr1AdjBroyAFramework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalLsr1AdjBroyATronFramework
 except:
     MFModel=None
@@ -113,8 +115,10 @@ class NLPY_AUGLAG(Optimizer):
         'Use Damped Multiplier Update':[bool,True],
         'Use Quasi-Newton Jacobian':[bool,True],
         'Use Limited-Memory Approach':[bool,False],
+        'Use Full-Memory Approach':[bool,False],
         'Use Tron':[bool,True],
         'Penalty Parameter':[float,10.],
+        'Penalty Scaling':[float,0.1],
         'Maximum Inner Iterations':[int, 500],
         'Maximum Outer Iterations':[int, 20],
         'Maximum Time':[int,172000]
@@ -378,6 +382,7 @@ be installed to use NLPY_AUGLAG.')
                     warmstart=self.options['Warm Restart'][1],
                     sparse_index=sparse_index,
                     rho_init=self.options['Penalty Parameter'][1],
+                    tau=self.options['Penalty Scaling'][1],
                     max_inner_iter=self.options['Maximum Inner Iterations'][1],
                     max_outer_iter=self.options['Maximum Outer Iterations'][1],
                     damped_pi=self.options['Use Damped Multiplier Update'][1])
@@ -396,6 +401,7 @@ be installed to use NLPY_AUGLAG.')
                     warmstart=self.options['Warm Restart'][1],
                     sparse_index=sparse_index,
                     rho_init=self.options['Penalty Parameter'][1],
+                    tau=self.options['Penalty Scaling'][1],
                     max_inner_iter=self.options['Maximum Inner Iterations'][1],
                     max_outer_iter=self.options['Maximum Outer Iterations'][1],
                     damped_pi=self.options['Use Damped Multiplier Update'][1])
@@ -414,6 +420,7 @@ be installed to use NLPY_AUGLAG.')
                     save_data=self.options['Save Current Point'][1],
                     warmstart=self.options['Warm Restart'][1],
                     rho_init=self.options['Penalty Parameter'][1],
+                    tau=self.options['Penalty Scaling'][1],
                     max_inner_iter=self.options['Maximum Inner Iterations'][1],
                     max_outer_iter=self.options['Maximum Outer Iterations'][1],
                     damped_pi=self.options['Use Damped Multiplier Update'][1])
@@ -432,6 +439,7 @@ be installed to use NLPY_AUGLAG.')
                     warmstart=self.options['Warm Restart'][1],
                     sparse_index=sparse_index,
                     rho_init=self.options['Penalty Parameter'][1],
+                    tau=self.options['Penalty Scaling'][1],
                     max_inner_iter=self.options['Maximum Inner Iterations'][1],
                     max_outer_iter=self.options['Maximum Outer Iterations'][1],
                     damped_pi=self.options['Use Damped Multiplier Update'][1])
@@ -450,6 +458,26 @@ be installed to use NLPY_AUGLAG.')
                     warmstart=self.options['Warm Restart'][1],
                     sparse_index=sparse_index,
                     rho_init=self.options['Penalty Parameter'][1],
+                    tau=self.options['Penalty Scaling'][1],
+                    max_inner_iter=self.options['Maximum Inner Iterations'][1],
+                    max_outer_iter=self.options['Maximum Outer Iterations'][1],
+                    damped_pi=self.options['Use Damped Multiplier Update'][1])
+            elif self.options['Use Full-Memory Approach'][1]:
+                solver = AugmentedLagrangianSplitSr1Framework(nlpy_problem,
+                    SBMINSplitLqnFramework, 
+                    omega_abs=self.options['Absolute Optimality Tolerance'][1], 
+                    eta_abs=self.options['Absolute Feasibility Tolerance'][1], 
+                    omega_rel=self.options['Relative Optimality Tolerance'][1],
+                    eta_rel=self.options['Relative Feasibility Tolerance'][1],
+                    qn_pairs=self.options['Number of Quasi-Newton Pairs'][1],
+                    least_squares_pi=self.options['Use Least-Squares Multipliers'][1],
+                    feas_qn_pairs=self.options['Feasibility Quasi-Newton Pairs'][1],
+                    data_prefix=self.options['Prefix'][1],
+                    save_data=self.options['Save Current Point'][1],
+                    warmstart=self.options['Warm Restart'][1],
+                    sparse_index=sparse_index,
+                    rho_init=self.options['Penalty Parameter'][1],
+                    tau=self.options['Penalty Scaling'][1],
                     max_inner_iter=self.options['Maximum Inner Iterations'][1],
                     max_outer_iter=self.options['Maximum Outer Iterations'][1],
                     damped_pi=self.options['Use Damped Multiplier Update'][1])
@@ -468,6 +496,7 @@ be installed to use NLPY_AUGLAG.')
                     save_data=self.options['Save Current Point'][1],
                     warmstart=self.options['Warm Restart'][1],
                     rho_init=self.options['Penalty Parameter'][1],
+                    tau=self.options['Penalty Scaling'][1],
                     max_inner_iter=self.options['Maximum Inner Iterations'][1],
                     max_outer_iter=self.options['Maximum Outer Iterations'][1],
                     damped_pi=self.options['Use Damped Multiplier Update'][1])
