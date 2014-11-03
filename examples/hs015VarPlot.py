@@ -21,13 +21,11 @@ for opt in db.keys():
     for i in xrange(n):
         try:
             obj[opt].append(db[opt]['%d'%i]['funcs']['obj'])
-            x1[opt].append(db[opt]['%d'%i]['x'][0])
-            x2[opt].append(db[opt]['%d'%i]['x'][1])
+            x1[opt].append(db[opt]['%d'%i]['xuser']['xvars'][0])
+            x2[opt].append(db[opt]['%d'%i]['xuser']['xvars'][1])
         except:
             pass
-        # end
-    # end
-# end
+   
 from pylab import *
 
 # Generate the Rosenbrock contours

@@ -15,6 +15,7 @@ History
 -------
     v. 1.0  - Initial Class Creation (GKK, 2013)
 """
+import numpy
 # =============================================================================
 # Objective Class
 # =============================================================================
@@ -46,7 +47,7 @@ class Objective(object):
         """
         res = '        Name        Value        Optimum\n'
         res += '	 '+str(self.name).center(9)
-        res += '%12g  %12g\n'% (self.value, self.optimum)
+        res += '%12g  %12g\n'% (numpy.real(self.value), numpy.real(self.optimum))
 
         return res
         

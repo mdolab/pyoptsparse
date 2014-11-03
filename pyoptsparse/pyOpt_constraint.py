@@ -20,8 +20,8 @@ History
 # =============================================================================
 import copy
 import numpy
-from scipy import sparse
 from .pyOpt_error import Error
+from .pyOpt_utils import convertToCOO
 INFINITY = 1e20
 eps = numpy.finfo(1.0).eps
 # =============================================================================
@@ -81,6 +81,8 @@ class Constraint(object):
         # Save lower and upper...they are only used for printing however
         self.lower = lower
         self.upper = upper
+        # The current value of the constraint (for printing purposes)
+        self.value = numpy.zeros(self.ncon)
         
         # Now we determine what kind of constraint this is: 
         # 1. An equality constraint
@@ -181,9 +183,9 @@ class Constraint(object):
         # end for (con loop)
 
         # Convert the stuff to arrays:
-        oneSidedConstraints['ind'] = numpy.array(oneSidedConstraints['ind'],'intc')
-        twoSidedConstraints['ind'] = numpy.array(twoSidedConstraints['ind'],'intc')
-        equalityConstraints['ind'] = numpy.array(equalityConstraints['ind'],'intc')
+        oneSidedConstraints['ind'] = numpy.array(oneSidedConstraints['ind'], 'intc')
+        twoSidedConstraints['ind'] = numpy.array(twoSidedConstraints['ind'], 'intc')
+        equalityConstraints['ind'] = numpy.array(equalityConstraints['ind'], 'intc')
 
         oneSidedConstraints['fact'] = numpy.array(oneSidedConstraints['fact'])
         twoSidedConstraints['fact'] = numpy.array(twoSidedConstraints['fact'])
@@ -281,8 +283,7 @@ class Constraint(object):
             for dvSet in self.wrt:
                 ss = dvOffset[dvSet]['n']                 
                 ndvs = ss[1]-ss[0]
-                self.jac[dvSet] = sparse.coo_matrix(numpy.ones((self.ncon, ndvs)))
-                self.jac[dvSet].data[:] = 1e-50
+                self.jac[dvSet] = convertToCOO(numpy.zeros((self.ncon, ndvs)))
                 
             # Set a flag for the constraint object, that not returning
             # them all is ok.
@@ -307,42 +308,31 @@ class Constraint(object):
 
                 try:
                     self.jac[dvSet] = tmp.pop(dvSet)
-                    # Check that this user-supplied jacobian is in
-                    # fact the right size
-                except:
+                except KeyError:
                     # No big deal, just make a dense component...and
                     # set to zero
-                    self.jac[dvSet] = sparse.coo_matrix(numpy.ones((self.ncon, ndvs)))
-                    self.jac[dvSet].data[:] = 1e-50
-                    
-                if (self.jac[dvSet].shape[0] != self.ncon or 
-                    self.jac[dvSet].shape[1] != ndvs):
-                    raise Error("The supplied jacobian for dvSet \%s' "
+                    self.jac[dvSet] = convertToCOO(numpy.zeros((self.ncon, ndvs)))
+
+                # Convert Now check that the supplied jacobian to COO:
+                self.jac[dvSet] = convertToCOO(self.jac[dvSet])
+
+                # Generically check the shape:
+                if (self.jac[dvSet]['shape'][0] != self.ncon or 
+                    self.jac[dvSet]['shape'][1] != ndvs):
+                    raise Error("The supplied jacobian for dvSet %s' "
                                 "in constraint %s, was the incorrect size. "
                                 "Expecting a jacobian of size (%d, %d) but "
                                 "received a jacobian of size (%d, %d)."%(
                                     dvSet, self.name, self.ncon, ndvs, 
-                                    self.jac[dvSet].shape[0],
-                                    self.jac[dvSet].shape[1]))
-
-                # Now check that the supplied jacobian is sparse of not:
-                if sparse.issparse(self.jac[dvSet]):
-                    # Excellent, the user supplied a sparse matrix or
-                    # we just created one above. Convert to csr format
-                    # if not already in that format.
-                    self.jac[dvSet] = self.jac[dvSet].tocoo()
-                else:
-                    # Supplied jacobian is dense, replace any zero, 
-                    # before converting to csr format
-                    self.jac[dvSet][numpy.where(self.jac[dvSet]==0)] = 1e-50
-                    self.jac[dvSet] = sparse.coo_matrix(self.jac[dvSet])
+                                    self.jac[dvSet]['shape'][0],
+                                    self.jac[dvSet]['shape'][1]))
             # end for (dvSet)
 
             # If there is anything left in jac print a warning:
             for dvSet in tmp:
                 print("pyOptSparse Warning: A jacobian with dvSet key of "
                       "'%s' was unused in constraint %s. This will be "
-                      "ignored."% ( dvSet, self.name))
+                      "ignored."% (dvSet, self.name))
 
             # Since this function *may* be called multiple times, only
             # set paritalReturnOk if it was the first pass:
@@ -363,13 +353,15 @@ class Constraint(object):
         for i in range(self.ncon):
             lower = self.lower[i]
             upper = self.upper[i]
+            value = self.value[i]
             if lower is None:
-                lower = 1e-20
+                lower = -1e20
             if upper is None:
                 upper = 1e20
                 
             res += '	 '+str(self.name).center(9) + \
                    '	  i %15.2e <= %8f <= %8.2e\n' %(
-                lower, 0.0, upper)
+                        numpy.real(lower), numpy.real(value),
+                       numpy.real(upper))
        
         return res
