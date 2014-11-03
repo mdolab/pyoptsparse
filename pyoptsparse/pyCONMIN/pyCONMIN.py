@@ -25,7 +25,7 @@ from __future__ import print_function
 # =============================================================================
 try:
     from . import conmin
-except:
+except ImportError:
     conmin = None
 # =============================================================================
 # Standard Python modules
@@ -40,7 +40,6 @@ import numpy
 # Extension modules
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_solution import Solution
 from ..pyOpt_error import Error
 # =============================================================================
 # CONMIN Optimizer Class
@@ -53,14 +52,14 @@ class CONMIN(Optimizer):
         name = 'CONMIN'
         category = 'Local Optimizer'
 	defOpts = {
-		'ITMAX':[int,1e4],     # Maximum Number of Iterations
-		'DELFUN':[float,1e-6], # Objective Relative Tolerance
-		'DABFUN':[float,1e-6], # Objective Absolute Tolerance
-		'ITRM':[int,5],
-		'NFEASCT':[int,20],
-		'IPRINT':[int,4],  # Print Control (0 - None, 1 - Final, 2,3,4,5 - Debug)
-		'IOUT':[int,6], # Output Unit Number
-		'IFILE':[str,'CONMIN.out'], # Output File Name
+		'ITMAX':[int, 1e4], # Maximum Number of Iterations
+		'DELFUN':[float, 1e-6], # Objective Relative Tolerance
+		'DABFUN':[float, 1e-6], # Objective Absolute Tolerance
+		'ITRM':[int, 5],
+		'NFEASCT':[int, 20],
+		'IPRINT':[int, 4],  # Print Control (0 - None, 1 - Final, 2,3,4,5 - Debug)
+		'IOUT':[int, 6], # Output Unit Number
+		'IFILE':[str, 'CONMIN.out'], # Output File Name
 		}
         informs = {}
         if conmin is None:
@@ -75,7 +74,7 @@ class CONMIN(Optimizer):
         self.jacType = 'dense2d'
 
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
-                 storeHistory=None, hotStart=None, coldStart=None):
+                 storeHistory=None, hotStart=None, storeSens=True):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -89,20 +88,20 @@ class CONMIN(Optimizer):
         sens : str or python Function.
             Specifiy method to compute sensitivities. To
             explictly use pyOptSparse gradient class to do the
-            derivatives with finite differenes use \'FD\'. \'sens\'
-            may also be \'CS\' which will cause pyOptSpare to compute
+            derivatives with finite differenes use 'FD'. 'sens'
+            may also be 'CS' which will cause pyOptSpare to compute
             the derivatives using the complex step method. Finally,
-            \'sens\' may be a python function handle which is expected
+            'sens' may be a python function handle which is expected
             to compute the sensitivities directly. For expensive
             function evaluations and/or problems with large numbers of
             design variables this is the preferred method.
 
         sensStep : float
             Set the step size to use for design variables. Defaults to
-            1e-6 when sens is \'FD\' and 1e-40j when sens is \'CS\'.
+            1e-6 when sens is 'FD' and 1e-40j when sens is 'CS'.
 
         sensMode : str
-            Use \'pgc\' for parallel gradient computations. Only
+            Use 'pgc' for parallel gradient computations. Only
             available with mpi4py and each objective evaluation is
             otherwise serial
 
@@ -113,21 +112,20 @@ class CONMIN(Optimizer):
         hotStart : str
             File name of the history file to "replay" for the
             optimziation.  The optimization problem used to generate
-            the history file specified in \'hotStart\' must be
-            **IDENTICAL** to the currently supplied \'optProb\'. By
+            the history file specified in 'hotStart' must be
+            **IDENTICAL** to the currently supplied 'optProb'. By
             identical we mean, **EVERY SINGLE PARAMETER MUST BE
             IDENTICAL**. As soon as he requested evaluation point
             from CONMIN does not match the history, function and
             gradient evaluations revert back to normal evaluations.
 
-        coldStart : str
-            Filename of the history file to use for "cold"
-            restart. Here, the only requirment is that the number of
-            design variables (and their order) are the same. Use this
-            method if any of the optimization parameters have changed.
+        storeSens : bool
+            Flag sepcifying if sensitivities are to be stored in hist.
+            This is necessay for hot-starting only.
             """
 
         self.callCounter = 0
+        self.storeSens = storeSens
 
         if len(optProb.constraints) == 0:
             # If the user *actually* has an unconstrained problem,
@@ -151,12 +149,13 @@ class CONMIN(Optimizer):
         ff = self._assembleObjective()
 
         oneSided = True
-	noEquality = True
+        noEquality = True
         if self.unconstrained:
             m = 0
         else:
             indices, blc, buc, fact = self.optProb.getOrdering(
-                ['ne','le','ni','li'], oneSided=oneSided, noEquality=noEquality)
+                ['ne', 'le', 'ni', 'li'], oneSided=oneSided,
+                noEquality=noEquality)
             m = len(indices)
 
             self.optProb.jacIndices = indices
@@ -165,7 +164,7 @@ class CONMIN(Optimizer):
 
         if self.optProb.comm.rank == 0:
             # Set history/hotstart/coldstart
-            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
+            self._setHistory(storeHistory, hotStart)
 
             #=================================================================
             # CONMIN - Objective/Constraint Values Function
@@ -183,17 +182,16 @@ class CONMIN(Optimizer):
             def cnmngrad(n1, n2, x, f, g, ct, df, a, ic, nac):
             
                 gobj, gcon, fail = self._masterFunc(x[0:ndv], ['gobj', 'gcon'])
-		df[0:ndv] = gobj.copy()
+                df[0:ndv] = gobj.copy()
 
-		# Only assign the gradients for constraints that are
-		# actually active:
+                # Only assign the gradients for constraints that are
+                # actually active:
                 nac = 0
-		for j in xrange(ncn):
+                for j in xrange(ncn):
                     if g[j] >= ct:
                         a[0:ndv, nac] = gcon[j, :]
                         ic[nac] = j + 1
-			nac += 1
-
+                nac += 1
                 return df, a, ic, nac
 
             # Setup argument list values
@@ -205,7 +203,7 @@ class CONMIN(Optimizer):
             nn4 = max(nn2, ndv)
             nn5 = 2*nn4
             gg = numpy.zeros(ncn, numpy.float)
-            if self.getOption('IPRINT') >= 0 and self.getOption('IPRINT')  <=4:
+            if self.getOption('IPRINT') >= 0 and self.getOption('IPRINT')  <= 4:
                 iprint = self.getOption('IPRINT')
             else:
                 raise Error('IPRINT option must be >= 0 and <= 4')

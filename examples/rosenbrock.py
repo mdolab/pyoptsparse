@@ -31,6 +31,7 @@ def objfunc(xdict):
     funcs['obj'] = 100*(x[1]-x[0]**2)**2+(1-x[0])**2
     funcs['con'] = 0.1-(x[0]-1)**3 - (x[1]-1)
     fail = False
+
     return funcs, fail
 
 def sensfunc(xdict, funcsDict):
@@ -53,7 +54,7 @@ def objgrad(xdict):
 
     return objsens, fail
 
-def jprod(xdict,pdict,sparse_only):
+def jprod(xdict, pdict, sparse_only):
     x = xdict['xvars']
     p = pdict['xvars']
     qdict = {}
@@ -86,11 +87,11 @@ if sens == 'none':
 if sens == 'user':
     sens = sensfunc
 if sens == 'matrix-free':
-    sens = [objgrad,jprod,jtprod]
+    sens = [objgrad, jprod, jtprod]
 
 # Instantiate Optimization Problem
 optProb = Optimization('Rosenbrock function', objfunc)
-optProb.addVarGroup('xvars', 2, 'c', value=[3,-3], lower=-5.12, upper=5.12,
+optProb.addVarGroup('xvars', 2, 'c', value=[3, -3], lower=-5.12, upper=5.12,
                     scale=[1.0, 1.0])
 optProb.finalizeDesignVariables()
 if constrained:
@@ -102,7 +103,8 @@ opt = OPT(args.opt, options=optOptions)
 if testHist == 'no':
     # Just run a normal run
     sol = opt(optProb, sens=sens, sensMode=sensMode)
-    print(sol.fStar)
+    # print(sol.fStar)
+    print(sol)
 else:
     # First call just does 10 iterations
     if args.opt.lower() == 'snopt':

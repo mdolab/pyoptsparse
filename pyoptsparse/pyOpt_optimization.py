@@ -39,8 +39,7 @@ use:\n pip install ordereddict')
 # External Python modules
 # =============================================================================
 import numpy
-# pylint: disable-msg=E0611
-from scipy import sparse
+
 # =============================================================================
 # Extension modules
 # =============================================================================
@@ -49,6 +48,7 @@ from .pyOpt_objective import Objective
 from .pyOpt_constraint import Constraint
 from .pyOpt_error import Error
 from .pyOpt_MPI import MPI
+from .pyOpt_utils import *
 # =============================================================================
 # Misc Definitions
 # =============================================================================
@@ -178,14 +178,14 @@ class Optimization(object):
             A valid constraint name. May be the same as conName it that
             was, in fact, a valid name.
             """
-        if name not in self.conGroupNames:
-            return varName
+        if conName not in self.conGroupNames:
+            return conName
         else:
             i = 0
-            validName = varName + '_%d'% i
-            while validName in self.varGroupNames:
+            validName = conName + '_%d'% i
+            while validName in self.conGroupNames:
                 i += 1
-                validName = varName + '_%d'% i
+                validName = conName + '_%d'% i
             return validName
 
     def addVarGroup(self, name, nVars, type='c', value=0.0, 
@@ -223,11 +223,12 @@ class Optimization(object):
             Upper bound of variables. Scalar/array usage is the same as value
             keyword
             
-        scale : scalar or array. 
-            Define a user supplied scaling variable for the design variable group.
-            This is often necessary when design variables of widely varraying magnitudes
-            are used within the same optimization. Scalar/array usage is the same
-            as value keyword.
+        scale : scalar or array.  Define a user supplied scaling
+            variable for the design variable group.  This is often
+            necessary when design variables of widely varraying
+            magnitudes are used within the same
+            optimization. Scalar/array usage is the same as value
+            keyword.
 
         varSet : str. 
             Specify which variable set this design variable group
@@ -266,17 +267,6 @@ class Optimization(object):
         given for all variables even if the default value is used. 
         """
 
-        if name in self.varGroupNames:
-            raise Error("The supplied name '%s' for a variable group "
-                        "has already been used."% name)
-        else:
-            self.varGroupNames.add(name)
-
-        if varSet is None:
-            varSet = name
-        if not varSet in self.variables:
-            self.addVarSet(varSet)
-
         # Check that the type is ok:
         if type not in ['c', 'i', 'd']:
             raise Error("Type must be one of 'c' for continuous, "
@@ -298,7 +288,7 @@ class Optimization(object):
         elif numpy.isscalar(lower):
             lower = lower*numpy.ones(nVars)
         elif len(lower) == nVars:
-            pass  # Some iterable object
+            lower = numpy.atleast_1d(lower).real
         else:
             raise Error("The 'lower' argument to addVarGroup is "
                         "invalid. It must be None, a scalar, or a "
@@ -309,7 +299,7 @@ class Optimization(object):
         elif numpy.isscalar(upper):
             upper = upper*numpy.ones(nVars)
         elif len(upper) == nVars:
-            pass  # Some iterable object
+            upper = numpy.atleast_1d(upper).real
         else:
             raise Error("The 'upper' argument to addVarGroup is "
                         "invalid. It must be None, a scalar, or a "
@@ -334,13 +324,41 @@ class Optimization(object):
         scalar = kwargs.pop('scalar', False)
 
         # Now create all the variable objects
-        self.variables[varSet][name] = []
+        varList = []
         for iVar in range(nVars):
             varName = name + '_%d'% iVar
-            self.variables[varSet][name].append(
-                Variable(varName, type=type, value=value[iVar],
-                         lower=lower[iVar], upper=upper[iVar],
-                         scale=scale[iVar], scalar=scalar, choices=choices))
+            varList.append(Variable(varName, type=type, value=value[iVar],
+                                    lower=lower[iVar], upper=upper[iVar],
+                                    scale=scale[iVar], scalar=scalar, 
+                                    choices=choices))
+
+        # We have created the list of variables according to the
+        # specification of the user. It is possible however, that the
+        # user has already added *EXACTLY* the same DV. This will be
+        # ok.
+        if varSet is None:
+            varSet = name
+        if not varSet in self.variables:
+            self.addVarSet(varSet)
+
+        if name in self.varGroupNames:
+            # Check that the variables happen to be the same
+            err = False
+            if not len(self.variables[varSet][name]) == len(varList):
+                raise Error("The supplied name '%s' for a variable group "
+                            "has already been used!"% name)
+            for i in range(len(varList)):
+                if not varList[i] == self.variables[varSet][name][i]:
+                    raise Error("The supplied name '%s' for a variable group "
+                                "has already been used!"% name)
+            # We we got here, we know that the variables we wanted to
+            # add are **EXACTLY** the same so that's cool. We'll just
+            # overwrite with the varList below. 
+        else:
+            self.varGroupNames.add(name)
+
+        # Finally we set the variable list
+        self.variables[varSet][name] = varList
 
     def delVar(self, name):
         """
@@ -561,8 +579,11 @@ class Optimization(object):
                     nvar = len(self.variables[dvSet][dvGroup])
                     for i in range(nvar):
                         var = self.variables[dvSet][dvGroup][i]
-                        var.value = inDVs[dvSet][i]*var.scale
-                        
+                        if numpy.isscalar(inDVs[dvGroup]):
+                            var.value = inDVs[dvGroup]*var.scale
+                        else:
+                            var.value = inDVs[dvGroup][i]*var.scale
+
     def setDVsFromHistory(self, histFile, key=None):
         """
         Set optimization variables from a previous optimization. This
@@ -588,7 +609,7 @@ class Optimization(object):
             self.setDVs(hist[key]['xuser'])
             hist.close()
         else:
-            raise Error("History file '%s' not found!."% histHist)
+            raise Error("History file '%s' not found!."% histFile)
         
     def printSparsity(self):
         """
@@ -771,7 +792,7 @@ class Optimization(object):
             conScale[con.rs:con.re] = con.scale
 
         if self.nCon > 0:
-            self.conScale = sparse.spdiags(conScale, 0, self.nCon, self.nCon)
+            self.conScale = conScale
         else:
             self.conScale = None
         
@@ -783,9 +804,8 @@ class Optimization(object):
             for dvGroup in self.variables[dvSet]:
                 for var in self.variables[dvSet][dvGroup]:
                     xscale.append(var.scale)
-        xscale = numpy.array(xscale)
-        ndv = len(xscale)
-        self.invXScale = sparse.spdiags(1.0/xscale, 0, ndv, ndv)
+        self.invXScale = 1.0/numpy.array(xscale)
+
         # ----------------------------------------
         # Step 3. Determine if dense return is OK
         # ----------------------------------------
@@ -798,9 +818,8 @@ class Optimization(object):
                 # can't do a dense return
                 self.denseJacobianOK = False
 
-
         # ---------------------------------------------
-        # Step 3. Final jacobian for lienar constraints
+        # Step 3. Final jacobian for linear constraints
         # ---------------------------------------------
         for iCon in self.constraints:
             con = self.constraints[iCon]
@@ -813,13 +832,13 @@ class Optimization(object):
                     # ss means 'start - stop'
                     ss = self.dvOffset[key]['n'] 
 
-                    data.extend(con.jac[key].data)
-                    row.extend(con.jac[key].row)
-                    col.extend(con.jac[key].col +ss[0])
-
+                    row.extend(con.jac[key]['coo'][IROW])
+                    col.extend(con.jac[key]['coo'][ICOL] +ss[0])
+                    data.extend(con.jac[key]['coo'][IDATA])
+                    
                 # Now create a coo, convert to CSR and store
-                con.linearJacobian = sparse.coo_matrix((data, (row, col)), (con.ncon, self.ndvs)).tocsr()
-
+                con.linearJacobian = {'coo':[row, col, data],
+                                      'shape':[con.ncon, self.ndvs]}
 
     def getOrdering(self, conOrder, oneSided, noEquality=False):
         """
@@ -931,13 +950,10 @@ class Optimization(object):
                     lower.extend(icon['lower'])
                     upper.extend(icon['upper'])
 
-        if len(fact) > 0:
-            fact = sparse.spdiags(fact, 0, len(fact), len(fact))
-        else:
+        if len(fact) == 0:
             fact = None
         return numpy.array(indices), numpy.array(lower), numpy.array(upper), fact
     
-
     def processX(self, x):
         """
         **This function should not need to be called by the user**
@@ -951,16 +967,24 @@ class Optimization(object):
             Flattened array from optimizer
         """
         xg = {}
+        imax = 0
         for dvSet in self.variables:
             for dvGroup in self.variables[dvSet]:
                 istart = self.dvOffset[dvSet][dvGroup][0]
-                iend   = self.dvOffset[dvSet][dvGroup][1]
+                iend = self.dvOffset[dvSet][dvGroup][1]
                 scalar = self.dvOffset[dvSet][dvGroup][2]
-                if scalar:
-                    xg[dvGroup] = x[istart]
-                else:
-                    xg[dvGroup] = x[istart:iend].copy()
-                   
+                imax = max(imax, iend)
+                try:
+                    if scalar:
+                        xg[dvGroup] = x[istart]
+                    else:
+                        xg[dvGroup] = x[istart:iend].copy()
+                except IndexError:
+                    raise Error("Error processing x. There "
+                                "is a mismatch in the number of variables.")
+        if imax != self.ndvs:
+            raise Error("Error processing x. There "
+                        "is a mismatch in the number of variables.")
         return xg
 
     def deProcessX(self, x):
@@ -982,15 +1006,25 @@ class Optimization(object):
         """
 
         x_array = numpy.zeros(self.ndvs)
+        imax = 0
         for dvSet in self.variables:
             for dvGroup in self.variables[dvSet]:
                 istart = self.dvOffset[dvSet][dvGroup][0]
-                iend   = self.dvOffset[dvSet][dvGroup][1]
+                iend = self.dvOffset[dvSet][dvGroup][1]
+                imax = max(imax, iend)
                 scalar = self.dvOffset[dvSet][dvGroup][2]
-                if scalar:
-                    x_array[istart] = x[dvGroup]
-                else:
-                    x_array[istart:iend] = x[dvGroup]
+                try:
+                    if scalar:
+                        x_array[istart] = x[dvGroup]
+                    else:
+                        x_array[istart:iend] = x[dvGroup]
+                except IndexError:
+                    raise Error("Error deprocessing x. There "
+                                "is a mismatch in the number of variables.")
+        if imax != self.ndvs:
+            raise Error("Error deprocessing x. There is a mismatch in the"
+                        " number of variables.")
+            
         return x_array
 
     def processObjective(self, funcs, scaled=True):
@@ -1018,6 +1052,8 @@ class Optimization(object):
                 except ValueError:
                     raise Error("The objective return value, '%s' must be a "
                                 "scalar!"% objKey)
+                # Store objective for printing later
+                self.objectives[objKey].value = f
                 if scaled:
                     f *= self.objectives[objKey].scale
                 fobj.append(f)
@@ -1035,7 +1071,7 @@ class Optimization(object):
         Parameters
         ----------
         fcon_in : dict
-            Dictionary of constraint values values
+            Dictionary of constraint values
 
         scaled : bool
             Flag specifying if the returned array should be scaled by
@@ -1047,6 +1083,11 @@ class Optimization(object):
             is 'd' for a float. The complex-step derivative
             computations will call this function with 'D' to ensure
             that the complex peturbations pass through correctly.
+
+        natural : bool
+            Flag to specify if the data should be returned in the
+            natural ordering. This is only used when computing
+            gradient automatically with FD/CS.
             """
 
         if self.dummyConstraint:
@@ -1070,6 +1111,9 @@ class Optimization(object):
                                 "%s, but expected %d." % (
                                     len(fcon_in[iCon]), iCon,
                                     self.constraints[iCon].ncon))
+
+                # Store constraint values for printing later
+                con.value = copy.copy(c)
             else:
                 raise Error("No constraint values were found for the "
                             "constraint '%s'."% iCon)
@@ -1083,8 +1127,7 @@ class Optimization(object):
         else:
             if self.nCon > 0:
                 fcon = fcon[self.jacIndices]
-
-                fcon = self.fact.dot(fcon) - self.offset
+                fcon = self.fact*fcon - self.offset
                 return fcon
             else:
                 return fcon
@@ -1108,6 +1151,11 @@ class Optimization(object):
             is 'd' for a float. The complex-step derivative
             computations will call this function with 'D' to ensure
             that the complex peturbations pass through correctly.
+
+        natural : bool
+            Flag to specify if the input data is in the
+            natural ordering. This is only used when computing
+            gradient automatically with FD/CS.
             """
 
         if self.dummyConstraint:
@@ -1116,14 +1164,15 @@ class Optimization(object):
         if not natural:
             if self.nCon > 0:
                 fcon_in += self.offset
-                # Since self.fact elements are unit magnitude ...
-                fcon_in = self.fact.dot(fcon_in) 
+                # Since self.fact elements are unit magnitude and the
+                # values are either 1 or -1...
+                fcon_in = self.fact * fcon_in
                 # Undo the ordering
                 fcon_in = fcon_in[self.jacIndicesInv]
 
         # Perform constraint scaling
         if scaled:
-            fcon_in = fcon_in/self.conScale
+            fcon_in = fcon_in*self.conScale
 
         # We REQUIRE that fcon_in is an array:
         fcon = {}
@@ -1156,7 +1205,7 @@ class Optimization(object):
         # proper linearJacobian entry we've already computed
         for iCon in self.constraints:
             if self.constraints[iCon].linear:
-                fcon[iCon] = self.constraints[iCon].linearJacobian.dot(x)
+                fcon[iCon] = multCOO(self.constraints[iCon].linearJacobian, x)
 
     def processObjectiveGradient(self, funcsSens):
         """
@@ -1210,7 +1259,7 @@ class Optimization(object):
         # end (objective keys)
 
         # Do column scaling (dv scaling)
-        gobj = self.invXScale.dot(gobj.T)
+        gobj = self.invXScale * gobj
 
         # Finally squeeze back out so we get a 1D vector for a single objective
         return numpy.squeeze(gobj)
@@ -1241,7 +1290,7 @@ class Optimization(object):
 
         Returns
         -------
-        gcon : scipy.sparse.csr_matrix
+        gcon : dict with csr data
             Return the jacobain in a sparse csr format. 
             can be easily converted to csc, coo or dense format as
             required by individual optimizers
@@ -1251,7 +1300,7 @@ class Optimization(object):
         # include a dummy constraint:
         if self.nCon == 0:
             if self.dummyConstraint:
-                return sparse.csr_matrix(1e-50*numpy.ones((1, self.ndvs)))
+                return convertToCSR(numpy.zeros((1, self.ndvs)))
             else:
                 return numpy.zeros((0, self.ndvs), 'd')
 
@@ -1264,8 +1313,8 @@ class Optimization(object):
         # We now know we must process as a dictionary. Below are the
         # lists for the matrix entris. 
         data = []
-        row  = []
-        col  = []
+        row = []
+        col = []
         ii = 0
 
         # Otherwise, process constraints in the dictionary form. 
@@ -1297,60 +1346,48 @@ class Optimization(object):
                 # ss means 'start - stop'
                 ss = self.dvOffset[key]['n'] 
                 ndvs = ss[1]-ss[0]
-
                 if key in gcon[iCon]:
-                    # The key is actually returned:
-                    if sparse.issparse(gcon[iCon][key]):
-                        # Excellent, the user supplied a sparse matrix
-                        # Convert to coo format if not already in that
-                        # format.
-                        tmp = gcon[iCon][key].copy().tocoo()
-                    else:
-                        # Supplied jacobian is dense, replace any zero, 
-                        # before converting to csr format
-                        tmp = numpy.atleast_2d(gcon[iCon][key])
-                        tmp[numpy.where(tmp==0)] = 1e-50
-                        tmp = sparse.coo_matrix(tmp.copy())
+                    tmp = convertToCOO(gcon[iCon][key])
                 else:
                     # This key is not returned. Just use the
                     # stored jacobian that contains zeros
                     tmp = con.jac[key]
-
                 # Now check that the jacobian is the correct shape
-                if not(tmp.shape[0] == con.ncon and tmp.shape[1] == ndvs):
+                if not(tmp['shape'][0] == con.ncon and tmp['shape'][1] == ndvs):
                     raise Error("The shape of the supplied constraint "
-                                "jacobian for constraint %s wrt to %s is incorrect. "
+                                "jacobian for constraint %s with respect to %s "
+                                "is incorrect. "
                                 "Expected an array of shape (%d, %d), but "
                                 "received an array of shape (%d, %d)."% (
                                     con.name, key, con.ncon, ndvs, 
-                                    tmp.shape[0], tmp.shape[1]))
+                                    tmp['shape'][0], tmp['shape'][1]))
 
-                # Now check that the csr matrix has the correct
-                # number of non zeros:
-                if tmp.nnz != con.jac[key].nnz:
+                # Now check that supplied coo matrix has same length
+                # of data array
+                if len(tmp['coo'][2]) != len(con.jac[key]['coo'][2]):
                     raise Error("The number of nonzero elements for "
-                                "constraint group '%s' was not the correct "
-                                "size. The supplied jacobian has %d nonzero "
+                                "constraint group '%s' with respect to %s "
+                                "was not the correct size. The supplied "
+                                "jacobian has %d nonzero "
                                 "entries, but must contain %d nonzero "
-                                "entries." % (con.name, tmp.nnz,
+                                "entries." % (con.name, key, tmp.nnz,
                                               con.jac[key].nnz))
 
                 # Include data from this jacobian chunk
-                data.extend(tmp.data)
-                row.extend(tmp.row + ii)
-                col.extend(tmp.col + ss[0])
+                data.extend(tmp['coo'][IDATA])
+                row.extend(tmp['coo'][IROW] + ii)
+                col.extend(tmp['coo'][ICOL] + ss[0])
             # end for (key in constraint)
             ii += con.ncon
         # end for (constraint loop)
 
         # Finally, construct coo matrix, convert to csr and perform
-        # row and column scaling. Also sort the indices to ensure
-        # consistent ordering
-        gcon = sparse.coo_matrix((data, (row, col)), (self.nCon, self.ndvs)).tocsr()
-        gcon = self.conScale*gcon
-        gcon = gcon.dot(self.invXScale)
-        if not gcon.has_sorted_indices:
-            gcon.sort_indices()
+        # row and column scaling.
+        gcon = {'coo':[row, col, numpy.array(data)],
+                'shape':[self.nCon, self.ndvs]}
+        gcon = convertToCSR(gcon)
+        scaleRows(gcon, self.conScale)
+        scaleColumns(gcon, self.invXScale)
 
         return gcon
 

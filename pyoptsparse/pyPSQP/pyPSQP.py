@@ -24,7 +24,7 @@ from __future__ import print_function
 # =============================================================================
 try:
     from . import psqp
-except:
+except ImportError:
     psqp = None
 # =============================================================================
 # Standard Python modules
@@ -39,7 +39,6 @@ import numpy
 # Extension modules
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_solution import Solution
 from ..pyOpt_error import Error
 # =============================================================================
 # PSQP Optimizer Class
@@ -88,7 +87,7 @@ class PSQP(Optimizer):
         self.jacType = 'dense2d'
 
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
-                 storeHistory=None, hotStart=None, coldStart=None):
+                 storeHistory=None, hotStart=None, storeSens=True):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -102,20 +101,20 @@ class PSQP(Optimizer):
         sens : str or python Function.
             Specifiy method to compute sensitivities. To
             explictly use pyOptSparse gradient class to do the
-            derivatives with finite differenes use \'FD\'. \'sens\'
-            may also be \'CS\' which will cause pyOptSpare to compute
+            derivatives with finite differenes use 'FD'. 'sens'
+            may also be 'CS' which will cause pyOptSpare to compute
             the derivatives using the complex step method. Finally,
-            \'sens\' may be a python function handle which is expected
+            'sens' may be a python function handle which is expected
             to compute the sensitivities directly. For expensive
             function evaluations and/or problems with large numbers of
             design variables this is the preferred method.
 
         sensStep : float
             Set the step size to use for design variables. Defaults to
-            1e-6 when sens is \'FD\' and 1e-40j when sens is \'CS\'.
+            1e-6 when sens is 'FD' and 1e-40j when sens is 'CS'.
 
         sensMode : str
-            Use \'pgc\' for parallel gradient computations. Only
+            Use 'pgc' for parallel gradient computations. Only
             available with mpi4py and each objective evaluation is
             otherwise serial
 
@@ -126,21 +125,20 @@ class PSQP(Optimizer):
         hotStart : str
             File name of the history file to "replay" for the
             optimziation.  The optimization problem used to generate
-            the history file specified in \'hotStart\' must be
-            **IDENTICAL** to the currently supplied \'optProb\'. By
+            the history file specified in 'hotStart' must be
+            **IDENTICAL** to the currently supplied 'optProb'. By
             identical we mean, **EVERY SINGLE PARAMETER MUST BE
             IDENTICAL**. As soon as he requested evaluation point
             from PSQP does not match the history, function and
             gradient evaluations revert back to normal evaluations.
 
-        coldStart : str
-            Filename of the history file to use for "cold"
-            restart. Here, the only requirment is that the number of
-            design variables (and their order) are the same. Use this
-            method if any of the optimization parameters have changed.
+        storeSens : bool
+            Flag sepcifying if sensitivities are to be stored in hist.
+            This is necessay for hot-starting only.
             """
 
         self.callCounter = 0
+        self.storeSens = storeSens
 
         if len(optProb.constraints) == 0:
             self.unconstrained = True
@@ -188,42 +186,51 @@ class PSQP(Optimizer):
             # Also figure out the number of equality and set the type
             # of constraint to 5
             tmp0, __, __, __ = self.optProb.getOrdering(
-                ['ne','le'], oneSided=oneSided)
+                ['ne', 'le'], oneSided=oneSided)
             ic[0:len(tmp0)] = 5
 
         if self.optProb.comm.rank == 0:
-            # Set history/hotstart/coldstart
-            xs = self._setHistory(storeHistory, hotStart, coldStart, xs)
+            # Set history/hotstart
+            self._setHistory(storeHistory, hotStart)
 
             #======================================================================
             # PSQP - Objective Values Function
             #======================================================================
             def pobj(n, x, f):
-                fobj, fcon, fail = self._masterFunc(x, ['fobj', 'fcon'])
-                return fobj
+                if self._checkEval(x):
+                    self._internalEval(x)
+
+                f = self.storedData['fobj']
+                return f
 
             #======================================================================
             # PSQP - Constraint Values Function
             #======================================================================
             def pcon(n, k, x, g):
-                fobj, fcon, fail = self._masterFunc(x, ['fobj', 'fcon'])
-                g = fcon[k-1]
+                if self._checkEval(x):
+                    self._internalEval(x)
+
+                g = self.storedData['fcon'][k-1]
                 return g
 
             #======================================================================
             # PSQP - Objective Gradients Function
             #======================================================================
             def pdobj(n, x, df):
-                gobj, gcon, fail = self._masterFunc(x, ['gobj', 'gcon'])
-                df = gobj.copy()
+                if self._checkEval(x):
+                    self._internalEval(x)
+
+                df = self.storedData['gobj']
                 return df
 
             #======================================================================
             # PSQP - Constraint Gradients Function
             #======================================================================
             def pdcon(n, k, x, dg):
-                gobj, gcon, fail = self._masterFunc(x, ['gobj', 'gcon'])
-                dg = gcon[k-1].copy()
+                if self._checkEval(x):
+                    self._internalEval(x)
+                
+                dg = self.storedData['gcon'][k-1]
                 return dg
 
             # Setup argument list values

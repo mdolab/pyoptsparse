@@ -30,6 +30,7 @@ class Variable(object):
         self.name = name
         self.type = type
         self.scalar = scalar
+        self.choices = None
         if self.type == 'c':
             if lower is None:
                 self.lower = -INFINITY
@@ -49,12 +50,23 @@ class Variable(object):
             self.upper = upper
         elif self.type == 'd':
             if choices is not None:
-                raise Error('A discrete variable requires \
-                to input an array of choices')
+                raise Error("A discrete variable requires "
+                            "to input an array of choices.")
             self.choices = choices
             self.value = self.choices[int(value)]
             self.lower = 0
             self.upper = len(self.choices)
+
+    def __eq__(self, other):
+        """
+        Compare two variable objects
+        """
+        if (self.name == other.name and self.type == other.type and 
+            self.scalar == other.scalar and self.upper == other.upper and
+            self.lower == other.lower and self.choices == other.choices):
+            return True
+        else:
+            return False
         
     def __str__(self):
         """
