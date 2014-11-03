@@ -536,6 +536,10 @@ class Optimization(object):
                     var = self.variables[dvSet][dvGroup][i]
                     outDVs[dvGroup][i] = var.value/var.scale
 
+                # If it is a single DV, return a scalar rather than a numpy array
+                if nvar == 1:
+                    outDVs[dvGroup] = outDVs[dvGroup][0]
+
         return outDVs
 
     def setDVs(self, inDVs):
@@ -1315,10 +1319,10 @@ class Optimization(object):
                 # Now check that the jacobian is the correct shape
                 if not(tmp.shape[0] == con.ncon and tmp.shape[1] == ndvs):
                     raise Error("The shape of the supplied constraint "
-                                "jacobian for constraint %s is incorrect. "
+                                "jacobian for constraint %s wrt to %s is incorrect. "
                                 "Expected an array of shape (%d, %d), but "
                                 "received an array of shape (%d, %d)."% (
-                                    con.name, con.ncon, ndvs, 
+                                    con.name, key, con.ncon, ndvs, 
                                     tmp.shape[0], tmp.shape[1]))
 
                 # Now check that the csr matrix has the correct
