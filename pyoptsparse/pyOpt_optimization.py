@@ -716,6 +716,52 @@ class Optimization(object):
         for i in range(len(txt)):
             print(''.join(txt[i]))
 
+    def getDVConIndex(self, startIndex=1, printIndex=True):
+        """
+        Return the index of a scalar DV/constraint, or the beginning
+        and end index (inclusive) of a DV/constraint array.
+        This is useful for looking at SNOPT gradient check output, 
+        and the default startIndex=1 is for that purpose
+        """
+
+        # Get the begin and end index (inclusive) of design variables
+        # using infomation from finalizeDesignVariables()
+        dvIndex = OrderedDict()
+        for dvSet in self.dvOffset:
+            # Loop over the actual DV names under each varSet
+            for dvGroup in self.dvOffset[dvSet]:
+                if dvGroup == 'n':
+                    continue
+                ind0 = self.dvOffset[dvSet][dvGroup][0] + startIndex
+                ind1 = self.dvOffset[dvSet][dvGroup][1] + startIndex
+                # if it is a scalar DV, return just the index
+                if ind1 - ind0 == 1:
+                    dvIndex[dvGroup] = [ind0]
+                else:
+                    dvIndex[dvGroup] = [ind0, ind1-1]
+
+        # Get the begin and end index (inclusive) of constraints
+        conIndex = OrderedDict()
+        conCounter = startIndex
+        for iCon in self.constraints:
+            n = self.constraints[iCon].ncon
+            if n == 1:
+                conIndex[iCon] = [conCounter]
+            else:
+                conIndex[iCon] = [conCounter, conCounter+n-1]
+            conCounter += n
+
+        # Print them all to terminal
+        if printIndex and self.comm.rank == 0:
+            print('### DESIGN VARIABLES ###')
+            for dvKey in dvIndex:
+                print(dvKey, dvIndex[dvKey])
+            print('### CONSTRAINTS ###')
+            for conKey in conIndex:
+                print(conKey, conIndex[conKey])
+        
+        return dvIndex, conIndex
+
 #=======================================================================
 #       All the functions from here down should not need to be called
 #       by the user. Most functions are public since the individual
