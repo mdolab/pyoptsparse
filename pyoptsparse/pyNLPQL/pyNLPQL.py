@@ -49,12 +49,12 @@ class NLPQL(Optimizer):
     """
     NLPQL Optimizer Class - Inherited from Optimizer Abstract Class
     """
-    def __init__(self, pll_type=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         name = 'NLPQL'
         category = 'Local Optimizer'
         defOpts = {
         # NLPQL Options
-        'Accurancy':[float,1e-6],   # Convergence Accurancy
+            'Accuracy':[float,1e-6],   # Convergence Accurancy
         'ScaleBound':[float,1e30],  # 
         'maxFun':[int,20],          # Maximum Number of Function Calls During Line Search
         'maxIt':[int,500],          # Maximum Number of Iterations
@@ -217,7 +217,7 @@ class NLPQL(Optimizer):
             me = meq
             mmax = 200
             if ncon >= mmax:
-                mmxa = ncon + 1
+                mmax = ncon + 1
 
             nn = nvar
             nmax = 200
@@ -231,7 +231,7 @@ class NLPQL(Optimizer):
             uu = numpy.zeros(mnn2)
             cc = numpy.zeros((nmax, nmax))
             dd = numpy.zeros(nmax)
-            acc = self.getOption('Accurancy')
+            acc = self.getOption('Accuracy')
             scbou = self.getOption('ScaleBound')
             maxfun = self.getOption('maxFun')
             maxit = self.getOption('maxIt')
