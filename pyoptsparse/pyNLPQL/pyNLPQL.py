@@ -54,7 +54,7 @@ class NLPQL(Optimizer):
         category = 'Local Optimizer'
         defOpts = {
         # NLPQL Options
-        'Accurancy':[float,1e-6],   # Convergence Accurancy
+            'Accuracy':[float,1e-6],   # Convergence Accurancy
         'ScaleBound':[float,1e30],  # 
         'maxFun':[int,20],          # Maximum Number of Function Calls During Line Search
         'maxIt':[int,500],          # Maximum Number of Iterations
@@ -231,7 +231,7 @@ class NLPQL(Optimizer):
             uu = numpy.zeros(mnn2)
             cc = numpy.zeros((nmax, nmax))
             dd = numpy.zeros(nmax)
-            acc = self.getOption('Accurancy')
+            acc = self.getOption('Accuracy')
             scbou = self.getOption('ScaleBound')
             maxfun = self.getOption('maxFun')
             maxit = self.getOption('maxIt')
