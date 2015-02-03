@@ -624,8 +624,9 @@ class Optimizer(object):
         sol.interfaceTime = self.interfaceTime - self.userSensTime - self.userObjTime
         sol.optCodeTime = sol.optTime - self.interfaceTime 
         sol.fStar = obj
-        xscaled = self.optProb.invXScale * xopt
-        self.xStar = self.optProb.processX(xscaled)
+        n = len(self.optProb.invXScale)
+        xscaled = self.optProb.invXScale * xopt[0:n]
+        sol.xStar = self.optProb.processX(xscaled)
 
         # Now set the x-values:
         i = 0
