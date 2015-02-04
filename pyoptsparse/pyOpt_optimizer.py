@@ -773,6 +773,8 @@ def OPT(optName, *args, **kwargs):
         from .pyFSQP.pyFSQP import FSQP as opt
     elif optName == 'nlpql':
         from .pyNLPQL.pyNLPQL import NLPQL as opt
+    elif optName == 'nlpqlp':
+        from .pyNLPQLP.pyNLPQLP import NLPQLP as opt
     elif optName == 'psqp':
         from .pyPSQP.pyPSQP import PSQP as opt
     elif optName == 'conmin':
