@@ -84,7 +84,7 @@ class Optimizer(object):
         # for each constraint. (eg. PSQP, FSQP, etc)
         self.storedData = {}
         self.storedData['x'] = None
-        
+
     def _clearTimings(self):
         """Clear timings and call counters"""
         self.userObjTime = 0.0
@@ -92,7 +92,7 @@ class Optimizer(object):
         self.interfaceTime = 0.0
         self.userObjCalls = 0
         self.userSensCalls = 0
-        
+
     def _setSens(self, sens, sensStep, sensMode):
         """
         Common function to setup sens function
@@ -107,18 +107,18 @@ class Optimizer(object):
                 self.sens = None
             else:
                 raise Error("'None' value given for sens. Must be one "
-                            " of 'FD' or 'CS' or a user supplied function.")
+                            " of 'FD', 'FDR', 'CD', 'CDR', 'CS' or a user supplied function.")
         elif hasattr(sens, '__call__'):
             # We have function handle for gradients! Excellent!
             self.sens = sens
-        elif sens.lower() in ['fd', 'cs']:
+        elif sens.lower() in ['fd', 'fdr', 'cd', 'cdr', 'cs']:
             # Create the gradient class that will operate just like if
             # the user supplied fucntion
             self.sens = Gradient(self.optProb, sens.lower(), sensStep,
                                  sensMode, self.optProb.comm)
         else:
             raise Error("Unknown value given for sens. Must be None, 'FD', "
-                        "'CS' or a python function handle")
+                        "'FDR', 'CD', 'CDR', 'CS' or a python function handle")
 
     def _setHistory(self, storeHistory, hotStart):
         """
@@ -158,7 +158,7 @@ class Optimizer(object):
         if storeHistory:
             self.hist = History(storeHistory)
             self.storeHistory = True
-    
+
     def _masterFunc(self, x, evaluate):
         """
         This is the master function that **ALL** optimizers call from
@@ -205,7 +205,7 @@ class Optimizer(object):
                     validPoint = True
                     if 'fobj' in evaluate or 'fcon' in evaluate:
                         funcs = data['funcs']
-                
+
                     if 'gobj' in evaluate or 'gcon' in evaluate:
                         if 'funcsSens' in data:
                             funcsSens = data['funcsSens']
@@ -454,7 +454,7 @@ class Optimizer(object):
         """
         Special internal evaluation for optimizers that have a
         separate callback for each constraint"""
-        
+
         fobj, fcon, gobj, gcon, fail = self._masterFunc(
             x, ['fobj', 'fcon', 'gobj', 'gcon'])
 
@@ -481,15 +481,15 @@ class Optimizer(object):
         # Now, gcon is a coo sparse matrix. Depending on what the
         # optimizer wants, we will convert. The conceivable options
         # are: dense (most), csc (snopt), csr (???), or coo (IPOPT)
-        
+
         if self.optProb.nCon > 0:
             # Extract the rows we need:
             gcon = extractRows(gcon, self.optProb.jacIndices)
-                
+
             # Apply factor scaling because of constraint sign changes
             scaleRows(gcon, self.optProb.fact)
 
-            # Now convert to final format:    
+            # Now convert to final format:
             if self.jacType == 'dense2d':
                 gcon = convertToDense(gcon)
             elif self.jacType == 'csc':
@@ -622,7 +622,7 @@ class Optimizer(object):
         sol.userObjCalls = self.userObjCalls
         sol.userSensCalls = self.userSensCalls
         sol.interfaceTime = self.interfaceTime - self.userSensTime - self.userObjTime
-        sol.optCodeTime = sol.optTime - self.interfaceTime 
+        sol.optCodeTime = sol.optTime - self.interfaceTime
         sol.fStar = obj
         n = len(self.optProb.invXScale)
         xscaled = self.optProb.invXScale * xopt[0:n]
@@ -744,13 +744,13 @@ def OPT(optName, *args, **kwargs):
     This is a simple utility function that enables creating an
     optimzier based on the 'optName' string. This can be useful for
     doing optimzation studies with respect to optimizer since you
-    don't need massive if-statements. 
+    don't need massive if-statements.
 
     Parameters
     ----------
     optName : str
        String identifiying the optimizer to create
-    
+
     *args, **kwargs : varries
        Passed to optimizer creation.
 
@@ -771,8 +771,6 @@ def OPT(optName, *args, **kwargs):
         from .pySLSQP.pySLSQP import SLSQP as opt
     elif optName == 'fsqp':
         from .pyFSQP.pyFSQP import FSQP as opt
-    elif optName == 'nlpql':
-        from .pyNLPQL.pyNLPQL import NLPQL as opt
     elif optName == 'nlpqlp':
         from .pyNLPQLP.pyNLPQLP import NLPQLP as opt
     elif optName == 'psqp':
@@ -787,7 +785,7 @@ def OPT(optName, *args, **kwargs):
         from .pyALPSO.pyALPSO import ALPSO as opt
     else:
         raise Error("The optimizer specified in 'optName' was \
-not reconginzed. The current list of supported optimizers is: %s" % 
+not reconginzed. The current list of supported optimizers is: %s" %
                     repr(optList))
 
     # Create the optimizer and return it
