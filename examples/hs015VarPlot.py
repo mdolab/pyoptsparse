@@ -1,6 +1,6 @@
 import shelve, numpy,sys
 db = {}
-opts = ['ipopt', 'slsqp', 'snopt', 'fsqp', 'conmin', 'nlpql', 'psqp']
+opts = ['ipopt', 'slsqp', 'snopt', 'fsqp', 'conmin', 'nlpqlp', 'psqp']
 for opt in opts:
     fileName = '%s_hs015_Hist.hst'%opt
     try:

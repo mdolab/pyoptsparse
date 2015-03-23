@@ -609,7 +609,7 @@ class Optimizer(object):
         for objKey in self.optProb.objectives:
             ff.append(self.optProb.objectives[objKey].value)
 
-        return numpy.squeeze(ff)
+        return numpy.real(numpy.squeeze(ff))
 
     def _createSolution(self, optTime, sol_inform, obj, xopt):
         """

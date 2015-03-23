@@ -3,7 +3,7 @@ import argparse
 from pyoptsparse import Optimization, OPT
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--opt",help="optimizer",type=str, default='SNOPT')
+parser.add_argument("--opt",help="optimizer",type=str, default='SLSQP')
 args = parser.parse_args()
 optOptions = {}
 
