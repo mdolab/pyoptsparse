@@ -33,6 +33,20 @@ python module snoptc__user__routines
 end python module snoptc__user__routines
 python module snopt ! in 
     interface  ! in :snopt
+        subroutine openunit(unitnum,filename,filestatus,fileaction,ierror) ! in :snopt:openunit.f
+            integer intent(in) :: unitnum
+            character*(*) intent(in) :: filename
+            character*(*) intent(in) :: filestatus
+            character*(*) intent(in) :: fileaction
+            integer intent(out) :: ierror
+        end subroutine openunit
+        subroutine pyflush(unitnum)
+          integer unitnum
+          return
+        end subroutine pyflush
+        subroutine closeunit(unitnum) ! in :snopt:closeunit.f
+            integer intent(in) :: unitnum
+        end subroutine closeunit
         subroutine sninit(iprint,isumm,cw,lencw,iw,leniw,rw,lenrw) ! in :snopt:sn02lib.f
             integer :: iprint
             integer :: isumm

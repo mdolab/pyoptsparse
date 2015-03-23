@@ -14,7 +14,7 @@ parser.add_argument("--constrained",help="constrained or not",type=int,default=0
 parser.add_argument("--testHist",help="test history",type=str,default="no")
 parser.add_argument("--groups",help="use groups",type=int, default=0)
 parser.add_argument("--sensMode",help="gradient mode",type=str, default='')
-parser.add_argument("--opt",help="optimizer",type=str, default='SNOPT')
+parser.add_argument("--opt",help="optimizer",type=str, default='SLSQP')
 parser.add_argument('--pythonProf',help="profile in Python",type=int,default=0)
 args = parser.parse_args()
 sens = args.sens

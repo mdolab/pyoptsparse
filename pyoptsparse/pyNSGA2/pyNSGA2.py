@@ -71,7 +71,7 @@ class NSGA2(Optimizer):
             raise Error('There was an error importing the compiled \
                         nsga2 module')
 
-    def __call__(self, optProb, storeHistory=None, hotStart=None, *kwargs):
+    def __call__(self, optProb, storeHistory=None, hotStart=None, **kwargs):
         """
         This is the main routine used to solve the optimization
         problem.

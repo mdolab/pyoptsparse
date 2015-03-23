@@ -116,6 +116,9 @@ class ALPSO(Optimizer):
         self.optProb.finalizeConstraints()
         self._setInitialCacheValues()
 
+        if len(optProb.constraints) == 0:
+            self.unconstrained = True
+
         xl, xu, xs = self._assembleContinuousVariables()
         xs = numpy.maximum(xs, xl)
         xs = numpy.minimum(xs, xu)
