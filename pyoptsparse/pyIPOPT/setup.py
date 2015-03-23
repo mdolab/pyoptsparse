@@ -23,20 +23,22 @@ def configuration(parent_package='',top_path=None):
 
     from numpy.distutils.misc_util import Configuration
 
-    numpy_include = numpy.get_include()
-    IPOPT_DIR = './Ipopt/'
-    IPOPT_LIB = './Ipopt/lib/'
-    IPOPT_INC = os.path.join(IPOPT_DIR, 'include/coin/')
-    FILES = ['src/callback.c', 'src/pyipoptcoremodule.c']
-    config = Configuration('pyIPOPT', parent_package, top_path)
-    config.add_extension('pyipoptcore',
-                         FILES,
-                         library_dirs=[IPOPT_LIB],
-                         libraries=['ipopt', 'coinblas','coinhsl','coinlapack','dl','m'],
-                         extra_link_args=['-Wl,--rpath -Wl,%s -L%s'% (IPOPT_LIB,IPOPT_LIB)],
-                         include_dirs=[numpy_include, IPOPT_INC])
-    return config
 
-if __name__ == '__main__':
-    from numpy.distutils.core import setup
-    setup(**configuration(top_path='').todict())
+    config = Configuration('pyIPOPT', parent_package, top_path)    
+
+    # Check if we have Ipopt dir....is so assume the user has setup
+    # stuff correctly
+    if os.path.exists('Ipopt'):
+        numpy_include = numpy.get_include()
+        IPOPT_DIR = './Ipopt/'
+        IPOPT_LIB = './Ipopt/lib/'
+        IPOPT_INC = os.path.join(IPOPT_DIR, 'include/coin/')
+        FILES = ['src/callback.c', 'src/pyipoptcoremodule.c']
+        config.add_extension('pyipoptcore',
+                             FILES,
+                             library_dirs=[IPOPT_LIB],
+                             libraries=['ipopt', 'coinblas','coinhsl','coinlapack','dl','m'],
+                             extra_link_args=['-Wl,--rpath -Wl,%s -L%s'% (IPOPT_LIB,IPOPT_LIB)],
+                             include_dirs=[numpy_include, IPOPT_INC])
+        
+    return config

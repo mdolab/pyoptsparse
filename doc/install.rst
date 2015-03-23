@@ -26,7 +26,7 @@ The recommended approcah to using pyOptSparse is to install
 inplace. This does not require root access. From the ``pyoptsparse``
 directory run::
     
-  >>> python setup.py inplace
+  >>> python setup.py build_ext --inplace
 
 To use pyOptSparse in this case, the user should add the path of the
 diretory containing ``pyoptsparse`` to the user's ``PYTHONPATH``
@@ -42,9 +42,11 @@ The required line in the .bashrc file would be::
 To install the ``pyOptSparse`` package in a folder on the Python search path 
 (usually in a python site-packages or dist-packages folder) run:
     
->>> python setup.py install
+>>> python setup.py install --user
 
-This will typically require root access and thus the command actually needs to be:
+This will install the package to ``~/.local`` which is typically found
+automatically by Python. If a system wide install is desired the
+command to run would be (requiring root access)
 
 >>> sudo python setup.py install
 
@@ -59,9 +61,12 @@ Notes:
       
       >>> python setup.py install --compiler=mingw32
       
-    * Installing to site-packages/ requires root privileges on Linux.
     * By default pyOpt will attempt to use compilers available on the system. To get a list of 
       available compilers and their corresponding flag on a specific system use:
       
-      >>> python setup.py compilers
+      >>> python setup.py build --help-fcompiler
+
+    * To see a list of all available ``setup.py`` options for building run 
+      
+      >>> python setup.py build --help
 

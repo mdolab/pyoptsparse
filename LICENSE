@@ -1,6 +1,6 @@
 pyOptSparse LICENSE
 =============
-Copyright (c) 2013-2013, Dr. Gaetan Kenway
+Copyright (c) 2013-2015, Dr. Gaetan Kenway
 
 The pyOptSparse extension is distributed under the terms of the GNU
 Lesser General Public License (LGPL). Note however that each optimizer
