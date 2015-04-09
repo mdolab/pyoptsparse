@@ -1416,8 +1416,8 @@ class Optimization(object):
                                 "was not the correct size. The supplied "
                                 "jacobian has %d nonzero "
                                 "entries, but must contain %d nonzero "
-                                "entries." % (con.name, key, tmp.nnz,
-                                              con.jac[key].nnz))
+                                "entries." % (con.name, key, tmp['coo'][2],
+                                              con.jac[key]['coo'][2]))
 
                 # Include data from this jacobian chunk
                 data.extend(tmp['coo'][IDATA])
