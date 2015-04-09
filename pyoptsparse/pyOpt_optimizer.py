@@ -98,6 +98,12 @@ class Optimizer(object):
         Common function to setup sens function
         """
 
+        # If se have SNOPT set derivative level to 3...it will be
+        # reset if necessary
+        if self.name in ['SNOPT']:
+            # SNOPT is the only one where None is ok.
+            self.setOption('Derivative level', 3)
+
         # Next we determine what to what to do about
         # derivatives. We must hvae a function or we use FD or CS:
         if sens is None:
@@ -304,7 +310,17 @@ class Optimizer(object):
         if 'fobj' in evaluate:
             if numpy.linalg.norm(x-self.cache['x']) > eps:
                 timeA = time.time()
-                funcs, fail = self.optProb.objFun(xuser)
+                args = self.optProb.objFun(xuser)
+                if isinstance(args, tuple):
+                    funcs = args[0]
+                    fail = args[1]
+                elif args is None:
+                    raise Error("No return values from user supplied "
+                                "objective function. The function must "
+                                "return \"funcs\" *OR* \"funcs, fail\"")
+                else:
+                    funcs = args
+                    fail = False
                 self.userObjTime += time.time()-timeA
                 self.userObjCalls += 1
                 # User values stored is immediately
@@ -332,7 +348,19 @@ class Optimizer(object):
         if 'fcon' in evaluate:
             if numpy.linalg.norm(x-self.cache['x']) > eps:
                 timeA = time.time()
-                funcs, fail = self.optProb.objFun(xuser)
+
+                args = self.optProb.objFun(xuser)
+                if isinstance(args, tuple):
+                    funcs = args[0]
+                    fail = args[1]
+                elif args is None:
+                    raise Error("No return values from user supplied "
+                                "objective function. The function must "
+                                "return \"funcs\" *OR* \"funcs, fail\"")
+                else:
+                    funcs = args
+                    fail = False
+
                 self.userObjTime += time.time()-timeA
                 self.userObjCalls += 1
                 # User values stored is immediately
@@ -371,7 +399,19 @@ class Optimizer(object):
 
             if self.cache['gobj'] is None:
                 timeA = time.time()
-                funcsSens, fail = self.sens(xuser, self.cache['funcs'])
+                args = self.sens(xuser, self.cache['funcs'])
+
+                if isinstance(args, tuple):
+                    funcsSens = args[0]
+                    fail = args[1]
+                elif args is None:
+                    raise Error("No return values from user supplied "
+                                "sensitivity function. The function must "
+                                "return \"funcsSens\" *OR* \"funcsSens, fail\"")
+                else:
+                    funcsSens = args
+                    fail = False
+
                 self.userSensTime += time.time()-timeA
                 self.userSensCalls += 1
 
@@ -410,7 +450,20 @@ class Optimizer(object):
             # determine if we have to run the sens calc:
             if self.cache['gcon'] is None:
                 timeA = time.time()
-                funcsSens, fail = self.sens(xuser, self.cache['funcs'])
+
+                args = self.sens(xuser, self.cache['funcs'])
+
+                if isinstance(args, tuple):
+                    funcsSens = args[0]
+                    fail = args[1]
+                elif args is None:
+                    raise Error("No return values from user supplied "
+                                "sensitivity function. The function must "
+                                "return \"funcsSens\" *OR* \"funcsSens, fail\"")
+                else:
+                    funcsSens = args
+                    fail = False
+
                 self.userSensTime += time.time()-timeA
                 self.userSensCalls += 1
                 # User values stored is immediately
