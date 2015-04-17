@@ -36,8 +36,8 @@ subroutine wrapper(np, m, me, mmax, n, nmax, mnn2, x, f, g, df, dg, u, xl, xu, &
   ! pains me to use goto statements, but they kind of make sense here. 
 
   ifail  = 0
-  lwa = 23*n+4*m+3*mmax+np*(n+m+1)+150 + 3*nmax*nmax/2+10*nmax+nmax+m+1 
-  lkwa   = n + 25  
+  lwa = 23*N+4*M+3*MMAX+NP*(N+M+1)+150 + 3*NMAX*NMAX/2+10*NMAX+MMAX+M+1 
+  lkwa   = n + 30
   lactiv = 2*m + 10      
 
   ! Allocate some workspace
