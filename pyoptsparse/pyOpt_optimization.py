@@ -267,6 +267,11 @@ class Optimization(object):
         given for all variables even if the default value is used. 
         """
 
+        # Check that the nVars is > 0. 
+        if nVars < 1:
+            raise Error("The 'nVars' argument to addVarGroup must be greater "
+                        "than or equal to 1. The bad DV is %s."%name)
+
         # Check that the type is ok:
         if type not in ['c', 'i', 'd']:
             raise Error("Type must be one of 'c' for continuous, "
