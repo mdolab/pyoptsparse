@@ -50,7 +50,7 @@ subroutine wrapper(np, m, me, mmax, n, nmax, mnn2, x, f, g, df, dg, u, xl, xu, &
 1 continue
 
   call nlfunc(m, me, mmax, n, f, g, x, active, fail)
-  
+  call flush(iout)
   if (fail) then 
      ! NLPQLP says to set ifail to -10 and it will back-off on the
      ! step and try again
@@ -66,7 +66,7 @@ subroutine wrapper(np, m, me, mmax, n, nmax, mnn2, x, f, g, df, dg, u, xl, xu, &
   !  ------------ Call the user supplied gradient ----------------
 2 continue
   call nlgrad(m, me, mmax, n, f, g, df, dg, x, active, wa)
-  
+  call flush(iout)
   ! Now go back to NLPQLP
   if (ifail == -2) goto 4
     
