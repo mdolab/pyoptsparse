@@ -363,7 +363,7 @@ class SNOPT(Optimizer):
             # --------------------------------------
             iPrint = self.getOption('iPrint')
             PrintFile = os.path.join(self.getOption('Print file'))
-            if iPrint != 0:
+            if iPrint != 0 and iPrint != 6:
                 ierror = snopt.openunit(iPrint, PrintFile, "replace",
                                         "sequential")
                 if ierror != 0:
@@ -372,7 +372,7 @@ class SNOPT(Optimizer):
 
             iSumm = self.getOption('iSumm')
             SummFile = os.path.join(self.getOption('Summary file'))
-            if iSumm != 0:
+            if iSumm != 0 and iSumm != 6:
                 ierror = snopt.openunit(iSumm, SummFile, "replace",
                                         "sequential")
                 if ierror != 0:
@@ -474,9 +474,9 @@ class SNOPT(Optimizer):
                 self.hist.writeData('hs', hs)
                 self.hist.close()
 
-            if iPrint != 0:
+            if iPrint != 0 and iPrint != 6:
                 snopt.closeunit(self.options['iPrint'][1])
-            if iSumm != 0:
+            if iSumm != 0 and iSumm != 6:
                 snopt.closeunit(self.options['iSumm'][1])
 
             # Store Results
@@ -542,6 +542,9 @@ class SNOPT(Optimizer):
         for item in self.set_options:
             name = item[0]
             value = item[1]
+
+            if name == 'iPrint' or name == 'iSumm':
+                continue
 
             if isinstance(value, str):
                 if (name == 'Start'):
