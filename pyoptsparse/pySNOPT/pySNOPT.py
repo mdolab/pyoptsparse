@@ -241,7 +241,8 @@ class SNOPT(Optimizer):
         self.jacType = 'csc'
 
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
-                 storeHistory=None, hotStart=None, storeSens=True):
+                 storeHistory=None, hotStart=None, storeSens=True,
+                 timeLimit=None):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -291,11 +292,23 @@ class SNOPT(Optimizer):
         storeSens : bool
             Flag sepcifying if sensitivities are to be stored in hist.
             This is necessay for hot-starting only.
+
+        timeLimit : float
+            Specify the maximum amount of time for optimizer to run. 
+            Must be in seconds. This can be useful on queue systems when
+            you want an optimization to cleanly finish before the 
+            job runs out of time. 
             """
 
         self.callCounter = 0
         self.storeSens = storeSens
-        
+
+        # Store the starting time if the keyword timeLimit is given:
+        self.timeLimit = timeLimit
+        self.startTime = None
+        if self.timeLimit is not None:
+            self.startTime = time.time()
+                    
         if len(optProb.constraints) == 0:
             # If the user *actually* has an unconstrained problem,
             # snopt sort of chokes with that....it has to have at
@@ -525,8 +538,10 @@ class SNOPT(Optimizer):
         snopt.pyflush(self.getOption('iPrint'))
         snopt.pyflush(self.getOption('iSumm'))
 
-        if fail:
-            mode = -1
+        # Check if we've exceeded the timeLimit
+        if self.timeLimit is not None:
+            if time.time() - self.startTime > self.timeLimit:
+                mode = -2 # User requested termination
 
         return mode, fobj, gobj, fcon, gcon
 
