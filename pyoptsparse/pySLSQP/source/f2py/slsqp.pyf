@@ -1,0 +1,72 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module slsqp__user__routines 
+    interface slsqp_user_interface 
+        subroutine slfunc(m,meq,la,n,f,c,x)
+            integer intent(in) :: m
+            integer intent(in) :: meq
+            integer intent(in) :: la
+            integer intent(in) :: n
+            double precision intent(in,out) :: f
+            double precision dimension(la),intent(in,out),depend(la) :: c
+            double precision dimension(n),intent(in),depend(n) :: x
+        end subroutine slfunc
+        subroutine slgrad(m,meq,la,n,f,c,g,a,x)
+            integer intent(in) :: m
+            integer intent(in) :: meq
+            integer intent(in) :: la
+            integer intent(in) :: n
+            double precision intent(in) :: f
+            double precision dimension(la),intent(in),depend(la) :: c
+            double precision dimension(n+1),depend(n),intent(in,out) :: g
+            double precision dimension(la,n+1),depend(la,n),intent(in,out) :: a
+            double precision dimension(n),depend(n),intent(in) :: x
+        end subroutine slgrad
+    end interface slsqp_user_interface
+end python module slsqp__user__routines
+python module slsqp ! in 
+    interface  ! in :slsqp
+        subroutine slsqp(m,meq,la,n,x,xl,xu,f,c,g,a,acc,iter,iprint,iout,ifile,mode,w,l_w,jw,l_jw,nfunc,ngrad,slfunc,slgrad) ! in :slsqp:source/slsqp.f
+            use slsqp__user__routines
+            integer intent(in) :: m
+            integer intent(in) :: meq
+            integer intent(in) :: la
+            integer intent(in) :: n
+            double precision dimension(n),intent(inout),depend(n) :: x
+            double precision dimension(n),intent(in),depend(n) :: xl
+            double precision dimension(n),intent(in),depend(n) :: xu
+            double precision intent(inout) :: f
+            double precision dimension(la),depend(la),intent(inout) :: c
+            double precision dimension(n+1),depend(n),intent(inout) :: g
+            double precision dimension(la,n+1),depend(la,n),intent(in,out) :: a
+            double precision intent(in) :: acc
+            integer intent(inout) :: iter
+            integer intent(in) :: iprint
+            integer intent(in) :: iout
+            character*(*) intent(in) :: ifile
+            integer intent(inout) :: mode
+            double precision dimension(l_w),intent(inout),depend(l_w) :: w
+            integer intent(in) :: l_w
+            integer dimension(l_jw),intent(inout),depend(l_jw) :: jw
+            integer intent(in) :: l_jw
+            integer intent(inout) :: nfunc
+            integer intent(inout) :: ngrad
+            external slfunc
+            external slgrad
+        end subroutine slsqp
+        subroutine openunit(unitnum,filename,filestatus,fileaction,ierror) ! in :slsqp:source/openunit.f
+            integer intent(in) :: unitnum
+            character*(*) intent(in) :: filename
+            character*(*) intent(in) :: filestatus
+            character*(*) intent(in) :: fileaction
+            integer intent(out) :: ierror
+        end subroutine openunit
+        subroutine pyflush(unitnum) ! in :slsqp:source/openunit.f
+            integer :: unitnum
+        end subroutine pyflush
+        subroutine closeunit(unitnum) ! in :slsqp:source/closeunit.f
+            integer intent(in) :: unitnum
+        end subroutine closeunit
+    end interface 
+end python module slsqp
