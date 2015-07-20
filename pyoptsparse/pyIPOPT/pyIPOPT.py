@@ -370,7 +370,7 @@ class IPOPT(Optimizer):
                 elif isinstance(value, int):
                     nlp.int_option(name, value)
                 else:
-                    print 'invalid option type', type(value)
+                    print('invalid option type', type(value))
  
 #==============================================================================
 # IPOPT Optimizer Test
@@ -378,4 +378,4 @@ class IPOPT(Optimizer):
 if __name__ == '__main__':
 
     ipopt = IPOPT()
-    print ipopt
+    print(ipopt)

@@ -128,21 +128,21 @@ def convertToCSR(mat):
         rowp[row+1] += 1
 
     # Set up the array as a pointer
-    for i in xrange(1, n+1):
+    for i in range(1, n+1):
         rowp[i] += rowp[i-1]
 
     ncols = numpy.zeros(rowp[-1], dtype='intc')
     ndata = numpy.zeros(rowp[-1], dtype=type(data[0]))
 
     # Now, add all the values and the data
-    for i in xrange(len(rows)):
+    for i in range(len(rows)):
         r = rows[i]
         ncols[rowp[r]] = cols[i]
         ndata[rowp[r]] = data[i]
         rowp[r] += 1
 
     # Readjust the pointer 
-    for i in xrange(n, 0, -1):
+    for i in range(n, 0, -1):
         rowp[i] = rowp[i-1]
     rowp[0] = 0
 
@@ -182,15 +182,15 @@ def convertToCSC(mat):
         colp[col+1] += 1 
 
     # Set colp so that it is now a pointer
-    for i in xrange(1, m):
+    for i in range(1, m):
         colp[i] += colp[i-1]
 
     # Allocate data for the csc object
     csc_data = numpy.zeros(len(data), dtype=type(data[0]))
 
     # Scan through the CSR data structure
-    for i in xrange(n):
-        for jp in xrange(rowp[i], rowp[i+1]):
+    for i in range(n):
+        for jp in range(rowp[i], rowp[i+1]):
             # Set the new row location in the CSC data structure
             j = cols[jp]
             csc_data[colp[j]] = data[jp]
@@ -198,7 +198,7 @@ def convertToCSC(mat):
             colp[j] += 1
         
     # Reset the colp pointer
-    for j in xrange(m, 0, -1):
+    for j in range(m, 0, -1):
         colp[j] = colp[j-1]
     colp[0] = 0
 
@@ -290,7 +290,7 @@ def extractRows(mat, indices):
 
     # Count up the size of everything
     size = 0
-    for i in xrange(nn):
+    for i in range(nn):
         size += rowp[indices[i]+1] - rowp[indices[i]]
         nrowp[i+1] = size
        
@@ -299,7 +299,7 @@ def extractRows(mat, indices):
     ndata = numpy.zeros(size, dtype=type(data[0]))
 
     # Re-indices the new columns
-    for i in xrange(nn):
+    for i in range(nn):
         ncols[nrowp[i]:nrowp[i+1]] = cols[rowp[indices[i]]:rowp[indices[i]+1]]
         ndata[nrowp[i]:nrowp[i+1]] = data[rowp[indices[i]]:rowp[indices[i]+1]]
 

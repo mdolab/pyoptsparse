@@ -51,16 +51,16 @@ class CONMIN(Optimizer):
     def __init__(self, *args, **kwargs):
         name = 'CONMIN'
         category = 'Local Optimizer'
-	defOpts = {
-		'ITMAX':[int, 1e4], # Maximum Number of Iterations
-		'DELFUN':[float, 1e-6], # Objective Relative Tolerance
-		'DABFUN':[float, 1e-6], # Objective Absolute Tolerance
-		'ITRM':[int, 5],
-		'NFEASCT':[int, 20],
-		'IPRINT':[int, 4],  # Print Control (0 - None, 1 - Final, 2,3,4,5 - Debug)
-		'IOUT':[int, 6], # Output Unit Number
-		'IFILE':[str, 'CONMIN.out'], # Output File Name
-		}
+        defOpts = {
+            'ITMAX':[int, 1e4], # Maximum Number of Iterations
+            'DELFUN':[float, 1e-6], # Objective Relative Tolerance
+            'DABFUN':[float, 1e-6], # Objective Absolute Tolerance
+            'ITRM':[int, 5],
+            'NFEASCT':[int, 20],
+            'IPRINT':[int, 4],  # Print Control (0 - None, 1 - Final, 2,3,4,5 - Debug)
+            'IOUT':[int, 6], # Output Unit Number
+            'IFILE':[str, 'CONMIN.out'], # Output File Name
+        }
         informs = {}
         if conmin is None:
             raise Error('There was an error importing the compiled \
@@ -187,7 +187,7 @@ class CONMIN(Optimizer):
                 # Only assign the gradients for constraints that are
                 # actually active:
                 nac = 0
-                for j in xrange(ncn):
+                for j in range(ncn):
                     if g[j] >= ct:
                         a[0:ndv, nac] = gcon[j, :]
                         ic[nac] = j + 1
