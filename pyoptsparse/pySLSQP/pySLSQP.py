@@ -267,4 +267,3 @@ class SLSQP(Optimizer):
 
     def _on_getOption(self, name, value):
         pass
-

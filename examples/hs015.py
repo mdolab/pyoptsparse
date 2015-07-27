@@ -10,6 +10,7 @@
  #  Sometimes the solver converges to another local minimum
  #  at (-0.79212, -1.26243), with final objective = 360.4.
  ##
+from __future__ import print_function
 
 import numpy
 import argparse
@@ -61,7 +62,7 @@ optProb.addConGroup('con', 2, lower=lower, upper=upper)
 optProb.addObj('obj')
 
 # Check optimization problem:
-print optProb
+print(optProb)
 
 # Optimizer
 opt = OPT(args.opt, options=optOptions)
@@ -75,4 +76,4 @@ else:
 sol = opt(optProb, sens=sens,storeHistory=histFileName)
 
 # Check Solution
-print sol
+print(sol)
