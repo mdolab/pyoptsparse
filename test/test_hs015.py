@@ -1,4 +1,5 @@
 """Test solution of problem HS15 from the Hock & Schittkowski collection"""
+from __future__ import print_function
 
 import unittest
 
@@ -63,7 +64,7 @@ class TestHS15(unittest.TestCase):
         optProb.addObj('obj')
 
         # Check optimization problem:
-        # print optProb
+        # print(optProb)
 
         # Optimizer
         try:

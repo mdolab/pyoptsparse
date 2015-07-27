@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import numpy
 import argparse
 from pyoptsparse import Optimization, OPT
@@ -32,7 +34,7 @@ optProb.addConGroup('con', 2, lower=None, upper=0.0)
 optProb.addObj('obj')
 
 # Check optimization problem:
-print optProb
+print(optProb)
 
 # Optimizer
 opt = OPT(args.opt, options=optOptions)
@@ -41,5 +43,4 @@ opt = OPT(args.opt, options=optOptions)
 sol = opt(optProb, sens='CS')
 
 # Check Solution
-print sol
-
+print(sol)

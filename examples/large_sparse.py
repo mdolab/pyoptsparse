@@ -1,5 +1,6 @@
 # This example is taken from the OpenOpt Examples website. 
 # http://trac.openopt.org/openopt/browser/PythonPackages/FuncDesigner/FuncDesigner/examples/nlpSparse.py
+from __future__ import print_function
 
 import numpy
 from numpy import arange
@@ -55,4 +56,4 @@ opt = OPT(args.opt, options=optOptions)
 optProb.printSparsity()
 # Solution
 sol = opt(optProb, sens=sens)
-#print sol
+print(sol)

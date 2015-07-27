@@ -1,4 +1,7 @@
-import shelve, numpy,sys
+import shelve, sys
+import numpy as np
+import matplotlib.pyplot as plt
+
 db = {}
 opts = ['ipopt', 'slsqp', 'snopt', 'fsqp', 'conmin', 'nlpqlp', 'psqp']
 for opt in opts:
@@ -26,8 +29,6 @@ for opt in db.keys():
         except:
             pass
    
-from pylab import *
-
 # Generate the Rosenbrock contours
 delta = 0.25
 x = np.arange(-2.5, 1.5, delta)
@@ -59,13 +60,13 @@ yupper = [-7,3.0]
 styleList=['ko-','ro-','bo-','go-','mo-','co-','ks--']
 counter=0
 for opt in db.keys():
-    plot(x1[opt],x2[opt],styleList[counter],label='%s'%(opt))
+    plt.plot(x1[opt],x2[opt],styleList[counter],label='%s'%(opt))
     counter+=1
+
 # end
-plot(xupper,yupper,'k')
-legend(loc=3)
-xlabel('x1')
-ylabel('x2')
-title('Simple optimizer comparison')
-show()
-    
+plt.plot(xupper,yupper,'k')
+plt.legend(loc=3)
+plt.xlabel('x1')
+plt.ylabel('x2')
+plt.title('Simple optimizer comparison')
+plt.show()

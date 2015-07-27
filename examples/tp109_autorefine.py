@@ -1,5 +1,7 @@
 # Example of auto-refinement -- runs ALPSO followed by SNOPT. 
 # See TP109.py for more information. 
+from __future__ import print_function
+
 import numpy
 import argparse
 from numpy import sin, cos
@@ -36,7 +38,7 @@ if USE_LINEAR:
 optProb.addObj('obj')
 
 # Check optimization problem:
-print optProb
+print(optProb)
 optProb.printSparsity()
 
 # Global Optimizer: ALPSO
@@ -44,11 +46,11 @@ opt1 = ALPSO()
 
 # Get first Solution
 sol1 = opt1(optProb)
-print sol1
+print(sol1)
 
 # Now run the previous solution with SNOPT
 opt2 = SNOPT()
 sol2 = opt2(sol1)
 
 # Check Solution
-print sol2
+print(sol2)
