@@ -19,6 +19,7 @@ def configuration(parent_package='',top_path=None):
     config.add_subpackage('pyPSQP')
     config.add_subpackage('pyNLPY_AUGLAG')
     config.add_subpackage('pyALPSO')
+    config.add_subpackage('pyNOMAD')
     config.add_data_files('LICENSE')
     
     return config
