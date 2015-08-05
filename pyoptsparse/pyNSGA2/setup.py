@@ -45,10 +45,10 @@ def swig_sources(self, sources, extension):
 				py_target_dir = target_dir
 			if os.path.isfile(source):
 				name = get_swig_modulename(source)
-				if name != ext_name:
-					raise DistutilsSetupError(
-						'mismatch of extension names: %s provides %r'
-						' but expected %r' % (source, name, ext_name))
+#				if name != ext_name:
+#					raise DistutilsSetupError(
+#						'mismatch of extension names: %s provides %r'
+#						' but expected %r' % (source, name, ext_name))
 				if typ is None:
 					typ = get_swig_target(source)
 					is_cpp = typ=='c++'
@@ -101,7 +101,7 @@ def swig_sources(self, sources, extension):
 		self.mkpath(d)
 
 	swig = self.swig or self.find_swig()
-	swig_cmd = [swig, "-python", "-noproxy"]
+	swig_cmd = [swig, "-python"] + extension.swig_opts
 	if is_cpp:
 		swig_cmd.append('-c++')
 	for d in extension.include_dirs:
@@ -119,10 +119,8 @@ def swig_sources(self, sources, extension):
 					% (source))
 
 	return new_sources + py_files
-	
 
 build_src.build_src.swig_sources = swig_sources
-
 
 def configuration(parent_package='',top_path=None):
 	
@@ -142,7 +140,8 @@ def configuration(parent_package='',top_path=None):
 		sources=['source/swig/nsga2.i'],
 		include_dirs=['source'],
 		libraries=['nsga2'],
-		extra_link_args=extra_link_args)
+		extra_link_args=extra_link_args,
+		swig_opts=['-noproxy'])
 	config.add_data_files('LICENSE','README')
 	
 	return config
