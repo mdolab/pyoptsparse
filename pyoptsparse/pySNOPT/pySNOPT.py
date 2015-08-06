@@ -533,6 +533,9 @@ class SNOPT(Optimizer):
                     gobj, gcon, fail2 = self._masterFunc(x, ['gobj', 'gcon'])
                     fail = fail or fail2
 
+        if fail:
+            mode = -1
+
         # Flush the files to the buffer for all the people who like to
         # monitor the residual
         snopt.pyflush(self.getOption('iPrint'))
