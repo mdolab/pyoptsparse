@@ -2,11 +2,11 @@
 
 import os,sys
 
-def configuration(parent_package='',top_path=None):
+def configuration(parent_package='', top_path=None):
     
     from numpy.distutils.misc_util import Configuration
     
-    config = Configuration('pyoptsparse',parent_package,top_path)
+    config = Configuration('pyoptsparse', parent_package, top_path)
     
     # need: auto add_subpackage from source availability
     config.add_subpackage('pySNOPT')

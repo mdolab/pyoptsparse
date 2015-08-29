@@ -222,7 +222,7 @@ class Constraint(object):
         self.re = index + self.ncon
 
         # First check if 'wrt' is supplied...if not we just take all
-        # the dvSet
+        # the dvGroups
         if self.wrt is None:
             self.wrt = list(variables.keys())
         else:
@@ -238,34 +238,33 @@ class Constraint(object):
 
             # We allow 'None' to be in the list...they are null so
             # just pop them out:
-            self.wrt = [dvSet for dvSet in self.wrt if dvSet != None]
+            self.wrt = [dvGroup for dvGroup in self.wrt if dvGroup != None]
                     
-            # Now, make sure that each dvSet the user supplied list
-            # *actually* are DVsets
-            for dvSet in self.wrt:
-                if not dvSet in variables:
-                    raise Error("The supplied dvSet '%s' in 'wrt' "
+            # Now, make sure that each dvGroup the user supplied list
+            # *actually* are variables
+            for dvGroup in self.wrt:
+                if not dvGroup in variables:
+                    raise Error("The supplied dvGroup '%s' in 'wrt' "
                                 "for the %s constraint, does not exist. It "
                                 "must be added with a call to addVar() or "
-                                "addVarGroup() with a dvSet='%s' keyword "
-                                "argument."% (dvSet, self.name, dvSet))
+                                "addVarGroup()."% (dvGroup, self.name))
 
-        # Last thing for wrt is to reorder them such that dvsets are
+        # Last thing for wrt is to reorder them such that dvGroups are
         # in order. This way when the jacobian is assembled in
         # processDerivatives() the coorindate matrix will in the right
         # order.
         dvStart = []
-        for dvSet in self.wrt:
-            dvStart.append(dvOffset[dvSet]['n'][0])
+        for dvGroup in self.wrt:
+            dvStart.append(dvOffset[dvGroup][0])
 
         # This sort wrt using the keys in dvOffset
         self.wrt = [x for (y, x) in sorted(zip(dvStart, self.wrt))]
 
-        # Now we know which DVsets this constraint will have a
+        # Now we know which dvGroups this constraint will have a
         # derivative with respect to (i.e. what is in the wrt list)
             
         # Now, it is possible that jacobians were given for none, some
-        # or all the dvSets defined in wrt. 
+        # or all the dvGroups defined in wrt. 
         if self.jac is None:
             # If the constraint is linear we have to *Force* the user to
             # supply a constraint jacobian for *each* of the values in
@@ -280,10 +279,10 @@ class Constraint(object):
             # without any additional information about the jacobian
             # structure, we must assume they are all dense. 
             self.jac = {}
-            for dvSet in self.wrt:
-                ss = dvOffset[dvSet]['n']                 
+            for dvGroup in self.wrt:
+                ss = dvOffset[dvGroup]
                 ndvs = ss[1]-ss[0]
-                self.jac[dvSet] = convertToCOO(numpy.zeros((self.ncon, ndvs)))
+                self.jac[dvGroup] = convertToCOO(numpy.zeros((self.ncon, ndvs)))
                 
             # Set a flag for the constraint object, that not returning
             # them all is ok.
@@ -302,37 +301,37 @@ class Constraint(object):
             # user supplied information was unused. 
             tmp = copy.deepcopy(self.jac)
             self.jac = {}
-            for dvSet in self.wrt:
-                ss = dvOffset[dvSet]['n']                 
+            for dvGroup in self.wrt:
+                ss = dvOffset[dvGroup]
                 ndvs = ss[1]-ss[0]
 
                 try:
-                    self.jac[dvSet] = tmp.pop(dvSet)
+                    self.jac[dvGroup] = tmp.pop(dvGroup)
                 except KeyError:
                     # No big deal, just make a dense component...and
                     # set to zero
-                    self.jac[dvSet] = convertToCOO(numpy.zeros((self.ncon, ndvs)))
+                    self.jac[dvGroup] = convertToCOO(numpy.zeros((self.ncon, ndvs)))
 
                 # Convert Now check that the supplied jacobian to COO:
-                self.jac[dvSet] = convertToCOO(self.jac[dvSet])
+                self.jac[dvGroup] = convertToCOO(self.jac[dvGroup])
 
                 # Generically check the shape:
-                if (self.jac[dvSet]['shape'][0] != self.ncon or 
-                    self.jac[dvSet]['shape'][1] != ndvs):
-                    raise Error("The supplied jacobian for dvSet %s' "
+                if (self.jac[dvGroup]['shape'][0] != self.ncon or 
+                    self.jac[dvGroup]['shape'][1] != ndvs):
+                    raise Error("The supplied jacobian for dvGroup %s' "
                                 "in constraint %s, was the incorrect size. "
                                 "Expecting a jacobian of size (%d, %d) but "
                                 "received a jacobian of size (%d, %d)."%(
-                                    dvSet, self.name, self.ncon, ndvs, 
-                                    self.jac[dvSet]['shape'][0],
-                                    self.jac[dvSet]['shape'][1]))
-            # end for (dvSet)
+                                    dvGroup, self.name, self.ncon, ndvs, 
+                                    self.jac[dvGroup]['shape'][0],
+                                    self.jac[dvGroup]['shape'][1]))
+            # end for (dvGroup)
 
             # If there is anything left in jac print a warning:
-            for dvSet in tmp:
-                print("pyOptSparse Warning: A jacobian with dvSet key of "
+            for dvGroup in tmp:
+                print("pyOptSparse Warning: A jacobian with dvGroup key of "
                       "'%s' was unused in constraint %s. This will be "
-                      "ignored."% (dvSet, self.name))
+                      "ignored."% (dvGroup, self.name))
 
             # Since this function *may* be called multiple times, only
             # set paritalReturnOk if it was the first pass:

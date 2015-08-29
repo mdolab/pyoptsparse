@@ -47,7 +47,6 @@ class Gradient(object):
 
     def __init__(self, optProb, sensType, sensStep=None, sensMode='',
                  comm=None):
-
         self.optProb = optProb
         self.sensType = sensType
         if sensStep is None:
@@ -69,8 +68,6 @@ class Gradient(object):
             self.mydvs = list(range(self.comm.rank, ndvs, self.comm.size))
         else:
             self.mydvs = list(range(ndvs))
-        return
-
 
     def _eval_func(self, x):
         """internal method to call function and extract obj, con"""
@@ -91,7 +88,6 @@ class Gradient(object):
                                                    natural=True)
 
         return fobj, fcon, fail
-
 
     def __call__(self, x, funcs):
         """
@@ -204,16 +200,16 @@ class Gradient(object):
         funcs = {}
         for objKey in self.optProb.objectives:
             funcs[objKey] = {}
-            for varKey in self.optProb.variables:
-                ss = self.optProb.dvOffset[varKey]['n']
-                funcs[objKey][varKey] = gobj[ss[0]:ss[1]]
+            for dvGroup in self.optProb.variables:
+                ss = self.optProb.dvOffset[dvGroup]
+                funcs[objKey][dvGroup] = gobj[ss[0]:ss[1]]
 
         for conKey in self.optProb.constraints:
             con = self.optProb.constraints[conKey]
             funcs[conKey] = {}
-            for varKey in self.optProb.variables:
-                ss = self.optProb.dvOffset[varKey]['n']
-                funcs[conKey][varKey] = gcon[con.rs:con.re,ss[0]:ss[1]]
+            for dvGroup in self.optProb.variables:
+                ss = self.optProb.dvOffset[dvGroup]
+                funcs[conKey][dvGroup] = gcon[con.rs:con.re,ss[0]:ss[1]]
 
         return funcs, masterFail
 
