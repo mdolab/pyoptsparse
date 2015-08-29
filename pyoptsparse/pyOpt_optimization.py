@@ -92,12 +92,6 @@ class Optimization(object):
         self.objectives = OrderedDict()
         self.dvOffset =  OrderedDict()
 
-        # Sets to keep track of user-supplied names --- Keep track of
-        # varSets, varGroup and constraint names independencely
-        self.varSetNames = set()
-        self.varGroupNames = set()
-        self.conGroupNames = set()
-
         # Flag to determine if adding variables is legal. 
         self.denseJacobianOK = True
         
@@ -111,19 +105,6 @@ class Optimization(object):
         self.linearJacobian = None
         self.dummyConstraint = False
         
-    def addVarSet(self, name):
-        """An outer grouping of design variables. These sets are used
-        when specifiying the sparsity structure of the constraint
-        jacobian
-        """
-
-        if name in self.varSetNames:
-            raise Error("The supplied name '%s' for a variable set"
-                        "has already been used."% name)
-
-        self.varSetNames.add(name)
-        self.variables[name] = OrderedDict()
-
     def addVar(self, name, *args, **kwargs):
         """
         This is a convience function. It simply calls addVarGroup()
@@ -150,12 +131,12 @@ class Optimization(object):
             A valid variable name. May be the same as varName it that
             was, in fact, a valid name.
             """
-        if name not in self.varGroupNames:
+        if varName not in self.variables:
             return varName
         else:
             i = 0
             validName = varName + '_%d'% i
-            while validName in self.varGroupNames:
+            while validName in self.variables:
                 i += 1
                 validName = varName + '_%d'% i
             return validName
@@ -178,24 +159,22 @@ class Optimization(object):
             A valid constraint name. May be the same as conName it that
             was, in fact, a valid name.
             """
-        if conName not in self.conGroupNames:
+        if conName not in self.constraints:
             return conName
         else:
             i = 0
             validName = conName + '_%d'% i
-            while validName in self.conGroupNames:
+            while validName in self.constraints:
                 i += 1
                 validName = conName + '_%d'% i
             return validName
 
     def addVarGroup(self, name, nVars, type='c', value=0.0, 
                     lower=None, upper=None, scale=1.0, 
-                    varSet=None, choices=None, **kwargs):
+                    choices=None, **kwargs):
         """
         Add a group of variables into a variable set. This is the main
-        function used for adding variables to pyOptSparse. If the
-        varSet keyword is not given, a varSet will be created using
-        the "name" arguement.
+        function used for adding variables to pyOptSparse.
 
         Parameters
         ----------
@@ -230,28 +209,17 @@ class Optimization(object):
             optimization. Scalar/array usage is the same as value
             keyword.
 
-        varSet : str. 
-            Specify which variable set this design variable group
-            belongs. If this is not specified, it will be added to a
-            varSet whose name is the same as 'name'. 
-            
         choices : list
             Specify a list of choices for discrete design variables
             
         Examples
         --------
-        >>> # Add a single design variable 'alpha' to the default variable set
+        >>> # Add a single design variable 'alpha'
         >>> optProb.addVar('alpha', type='c', value=2.0, lower=0.0, upper=10.0, \
         scale=0.1)
-        >>> # Add a single variable to its own varSet (varSet is not needed)
-        >>> optProb.addVar('alpha_c1', type='c', value=2.0, lower=0.0, upper=10.0, \
-        scale=0.1)
-        >>> # Add 10 unscaled variables of 0.5 between 0 and 1 to varSet 'y_vars'
+        >>> # Add 10 unscaled variables of 0.5 between 0 and 1 with name 'y'
         >>> optProb.addVarGroup('y', type='c', value=0.5, lower=0.0, upper=1.0, \
-        scale=1.0, varSet='y_vars')
-        >>> # Add another scaled variable to the varSet 'y_vars'
-        >>> optProb.addVar('y2', type='c', value=0.25, lower=0.0, upper=1.0, \
-        scale=.5, varSet='y_vars')
+        scale=1.0)
         
         Notes
         -----
@@ -337,33 +305,22 @@ class Optimization(object):
                                     scale=scale[iVar], scalar=scalar, 
                                     choices=choices))
 
-        # We have created the list of variables according to the
-        # specification of the user. It is possible however, that the
-        # user has already added *EXACTLY* the same DV. This will be
-        # ok.
-        if varSet is None:
-            varSet = name
-        if not varSet in self.variables:
-            self.addVarSet(varSet)
-
-        if name in self.varGroupNames:
+        if name in self.variables:
             # Check that the variables happen to be the same
             err = False
-            if not len(self.variables[varSet][name]) == len(varList):
+            if not len(self.variables[name]) == len(varList):
                 raise Error("The supplied name '%s' for a variable group "
                             "has already been used!"% name)
             for i in range(len(varList)):
-                if not varList[i] == self.variables[varSet][name][i]:
+                if not varList[i] == self.variables[name][i]:
                     raise Error("The supplied name '%s' for a variable group "
                                 "has already been used!"% name)
             # We we got here, we know that the variables we wanted to
             # add are **EXACTLY** the same so that's cool. We'll just
             # overwrite with the varList below. 
         else:
-            self.varGroupNames.add(name)
-
-        # Finally we set the variable list
-        self.variables[varSet][name] = varList
+            # Finally we set the variable list
+            self.variables[name] = varList
 
     def delVar(self, name):
         """
@@ -374,30 +331,11 @@ class Optimization(object):
         name : str
            Name of variable or variable group to remove
            """
-        
-        deleted = False
-        for dvSet in self.variables:
-            for dvGroup in self.variables[dvSet]:
-                if dvGroup == name:
-                    self.variables[dvSet].pop(dvGroup)
-                    deleted = True
-
-        if not deleted:
+        try:
+            self.variables.pop(name)
+        except KeyError:
             print('%s was not a valid design variable name.'% name)
             
-    def delVarSet(self, name):
-        """
-        Delete all variables belonging to a variable set
-
-        Parameters
-        ----------
-        name : str
-           Name of variable or variable group to remove
-           """
-
-        assert name in self.variables, '%s not a valid varSet.'% name
-        self.variables.pop(name)
-
     def _reduceDict(self, variables):
         """
         This is a specialized function that is used to communicate
@@ -463,8 +401,7 @@ class Optimization(object):
 
     def addConGroup(self, name, nCon, lower=None, upper=None, scale=1.0, 
                     linear=False, wrt=None, jac=None):
-        """
-        Add a group of variables into a variable set. This is the main
+        """Add a group of variables into a variable set. This is the main
         function used for adding variables to pyOptSparse.
 
         Parameters
@@ -499,7 +436,7 @@ class Optimization(object):
 
         wrt : iterable (list, set, OrderedDict, array etc)
             'wrt' stand for stands for 'With Respect To'. This
-            specifies for what dvSets have non-zero jacobian values
+            specifies for what dvs have non-zero jacobian values
             for this set of constraints. The order is not important.
 
         jac : dictionary
@@ -507,16 +444,28 @@ class Optimization(object):
             jacobian must be passed in. The structure is jac dictionary
             is as follows:
 
-            {'dvSet1':<matrix1>, 'dvSet2', <matrix1>}
+            {'dvName1':<matrix1>, 'dvName2', <matrix1>, ...}
 
-            They keys of the jacobian must correpsond to the dvSets
-            givn in the wrt keyword argument. The dimensions of each
+            They keys of the jacobian must correpsond to the dvGroups
+            given in the wrt keyword argument. The dimensions of each
             "chunk" of the constraint jacobian must be consistent. For
             example, <matrix1> must have a shape of (nCon, nDvs) where
-            nDVs is the **total** number of all design variables in
-            dvSet1. <matrix1> may be a desnse numpy array or it may be
-            scipy sparse matrix. It each case, the matrix shape must
-            be as previously described. 
+            nDVs is the total number of design variables in
+            dvName1. <matrix1> may be a dense numpy array or it may be
+            scipy sparse matrix. However, it is *HIGHLY* recommended
+            that sparse constraints are supplied to pyOptSparse using
+            the pyOptSparse's simplified sparse matrix format. The
+            reason for this is that it is *impossible* for force scipy
+            sparse matrices to keep a fixed sparsity pattern; if the
+            sparsity pattern changes during an optimization, *IT WILL
+            FAIL*.
+
+            The three simplified pyOptSparse sparse matrix formats are
+            sumarized below:
+
+            mat = {'coo':[row, col, data], 'shape':[nrow, ncols]} # A coo matrix
+            mat = {'csr':[rowp, colind, data], 'shape':[nrow, ncols]} # A csr matrix
+            mat = {'coo':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
 
             Note that for nonlinear constraints (linear=False), the
             values themselves in the matrices in jac do not matter, 
@@ -525,14 +474,13 @@ class Optimization(object):
             non-zero entries have non-zero entries in jac
             argument. That is, we do not let the sparsity structure of
             the jacobian change throughout the optimization. This
-            stipulation is automatically checked internally. 
-            """
+            stipulation is automatically checked internally.
 
-        if name in self.conGroupNames:
+        """
+
+        if name in self.constraints:
             raise Error("The supplied name '%s' for a constraint group "
                         "has already been used."% name)
-
-        self.conGroupNames.add(name)
 
         # Simply add constraint object
         self.constraints[name] = Constraint(
@@ -551,17 +499,16 @@ class Optimization(object):
         """ 
 
         outDVs = {}
-        for dvSet in self.variables:
-            for dvGroup in self.variables[dvSet]:
-                nvar = len(self.variables[dvSet][dvGroup])
+        for dvGroup in self.varables:
+            nvar = len(self.variables[dvGroup])
+            # If it is a single DV, return a scalar rather than a numpy array
+            if nvar == 1:
+                outDVs[dvGroup] = outDVs[dvGroup][0]
+            else:
                 outDVs[dvGroup] = numpy.zeros(nvar)
                 for i in range(nvar):
-                    var = self.variables[dvSet][dvGroup][i]
+                    var = self.variables[dvGroup][i]
                     outDVs[dvGroup][i] = var.value/var.scale
-
-                # If it is a single DV, return a scalar rather than a numpy array
-                if nvar == 1:
-                    outDVs[dvGroup] = outDVs[dvGroup][0]
 
         return outDVs
 
@@ -577,17 +524,15 @@ class Optimization(object):
             'x' that would be used to call the user objective
             function.
         """
-
-        for dvSet in self.variables:
-            for dvGroup in self.variables[dvSet]:
-                if dvGroup in inDVs:
-                    nvar = len(self.variables[dvSet][dvGroup])
-                    for i in range(nvar):
-                        var = self.variables[dvSet][dvGroup][i]
-                        if numpy.isscalar(inDVs[dvGroup]):
-                            var.value = inDVs[dvGroup]*var.scale
-                        else:
-                            var.value = inDVs[dvGroup][i]*var.scale
+        for dvGroup in self.variables:
+            if dvGroup in inDVs:
+                nvar = len(self.variables[dvGroup])
+                for i in range(nvar):
+                    var = self.variables[dvGroup][i]
+                    if numpy.isscalar(inDVs[dvGroup]):
+                        var.value = inDVs[dvGroup]*var.scale
+                    else:
+                        var.value = inDVs[dvGroup][i]*var.scale
 
     def setDVsFromHistory(self, histFile, key=None):
         """
@@ -662,9 +607,9 @@ class Optimization(object):
         nCol = maxConNameLen
         nCol += 2 # Space plus line
         varCenters = []
-        for iVar in self.variables:
-            nvar = self.dvOffset[iVar]['n'] [1] - self.dvOffset[iVar]['n'][0]
-            var_str = iVar + ' (%d)'% nvar
+        for dvGroup in self.variables:
+            nvar = self.dvOffset[dvGroup][1] - self.dvOffset[dvGroup][0]
+            var_str = dvGroup + ' (%d)'% nvar
 
             varCenters.append(nCol + len(var_str)/2 + 1)
             nCol += len(var_str)
@@ -679,9 +624,9 @@ class Optimization(object):
      
         # Print the variable names:
         iCol = maxConNameLen + 2
-        for iVar in self.variables:
-            nvar = self.dvOffset[iVar]['n'] [1] - self.dvOffset[iVar]['n'][0]
-            var_str = iVar + ' (%d)'% nvar
+        for dvGroup in self.variables:
+            nvar = self.dvOffset[dvGroup][1] - self.dvOffset[dvGroup][0]
+            var_str = dvGroup + ' (%d)'% nvar
             l = len(var_str)
             txt[0, iCol+1 :iCol + l+1] = list(var_str)
             txt[2:-1, iCol + l + 2] = '|'
@@ -703,15 +648,14 @@ class Optimization(object):
 
             # Now we write a 'X' if there is something there:
             varKeys = list(self.variables.keys())
-            for iVar in range(len(varKeys)):
-                if varKeys[iVar] in con.wrt:
-                    txt[iRow, varCenters[iVar]] = 'X'
+            for dvGroup in range(len(varKeys)):
+                if varKeys[dvGroup] in con.wrt:
+                    txt[iRow, varCenters[dvGroup]] = 'X'
 
             # The separator
             txt[iRow+1, maxConNameLen+1:] = '-'
             iRow += 2
             
-
         # Corners - just to make it nice :-)
         txt[1, maxConNameLen+1] = '+'
         txt[-1, maxConNameLen+1] = '+'
@@ -732,18 +676,15 @@ class Optimization(object):
         # Get the begin and end index (inclusive) of design variables
         # using infomation from finalizeDesignVariables()
         dvIndex = OrderedDict()
-        for dvSet in self.dvOffset:
-            # Loop over the actual DV names under each varSet
-            for dvGroup in self.dvOffset[dvSet]:
-                if dvGroup == 'n':
-                    continue
-                ind0 = self.dvOffset[dvSet][dvGroup][0] + startIndex
-                ind1 = self.dvOffset[dvSet][dvGroup][1] + startIndex
-                # if it is a scalar DV, return just the index
-                if ind1 - ind0 == 1:
-                    dvIndex[dvGroup] = [ind0]
-                else:
-                    dvIndex[dvGroup] = [ind0, ind1-1]
+        # Loop over the actual DV names 
+        for dvGroup in self.dvOffset:
+            ind0 = self.dvOffset[dvGroup][0] + startIndex
+            ind1 = self.dvOffset[dvGroup][1] + startIndex
+            # if it is a scalar DV, return just the index
+            if ind1 - ind0 == 1:
+                dvIndex[dvGroup] = [ind0]
+            else:
+                dvIndex[dvGroup] = [ind0, ind1-1]
 
         # Get the begin and end index (inclusive) of constraints
         conIndex = OrderedDict()
@@ -759,8 +700,8 @@ class Optimization(object):
         # Print them all to terminal
         if printIndex and self.comm.rank == 0:
             print('### DESIGN VARIABLES ###')
-            for dvKey in dvIndex:
-                print(dvKey, dvIndex[dvKey])
+            for dvGroup in dvIndex:
+                print(dvGroup, dvIndex[dvGroup])
             print('### CONSTRAINTS ###')
             for conKey in conIndex:
                 print(conKey, conIndex[conKey])
@@ -776,7 +717,7 @@ class Optimization(object):
     def finalizeDesignVariables(self):
         """
         Communicate design variables potentially from different
-        processors and form the DVOffset dict.  This routine should be
+        processors and form the DVOffset dict. This routine should be
         called from the individual optimizers
         """
 
@@ -785,22 +726,14 @@ class Optimization(object):
         self.variables = self._reduceDict(self.variables)
 
         dvCounter = 0
-        for dvSet in self.variables:
-            # Check that varSet *actually* has variables in it:
-            if len(self.variables[dvSet]) > 0:
-                self.dvOffset[dvSet] = OrderedDict()
-                self.dvOffset[dvSet]['n'] = [dvCounter, -1]
-                for dvGroup in self.variables[dvSet]:
-                    n = len(self.variables[dvSet][dvGroup])
-                    self.dvOffset[dvSet][dvGroup] = [
-                        dvCounter, dvCounter + n, 
-                        self.variables[dvSet][dvGroup][0].scalar]
-                    dvCounter += n
-                self.dvOffset[dvSet]['n'][1] = dvCounter
-            else:
-                # Get rid of the dvSet since it has no variable groups
-                self.variables.pop(dvSet)
+        self.dvOffset = OrderedDict()
 
+        for dvGroup in self.variables:
+            n = len(self.variables[dvGroup])
+            self.dvOffset[dvGroup] = [
+                dvCounter, dvCounter + n, 
+                self.variables[dvGroup][0].scalar]
+            dvCounter += n
         self.ndvs = dvCounter
     
     def finalizeConstraints(self):
@@ -851,21 +784,20 @@ class Optimization(object):
         # Step 2. Assemble design variable scaling
         # -----------------------------------------
         xscale = []
-        for dvSet in self.variables:
-            for dvGroup in self.variables[dvSet]:
-                for var in self.variables[dvSet][dvGroup]:
-                    xscale.append(var.scale)
+        for dvGroup in self.variables:
+            for var in self.variables[dvGroup]:
+                xscale.append(var.scale)
         self.invXScale = 1.0/numpy.array(xscale)
 
         # ----------------------------------------
         # Step 3. Determine if dense return is OK
         # ----------------------------------------
-        allVarSets = set(self.variables.keys())
+        allVars = set(self.variables.keys())
         for iCon in self.constraints:
             con = self.constraints[iCon]
-            # All entries of con.wrt in allVarSets
-            if not set(con.wrt) <= allVarSets: 
-                # If any constrant 'wrt' is not fully in allVarSets we
+            # All entries of con.wrt in allVars
+            if not set(con.wrt) <= allVars:
+                # If any constrant 'wrt' is not fully in allVars we
                 # can't do a dense return
                 self.denseJacobianOK = False
 
@@ -879,13 +811,13 @@ class Optimization(object):
                 row = []
                 col = []
 
-                for key in con.jac:
+                for dvGroup in con.jac:
                     # ss means 'start - stop'
-                    ss = self.dvOffset[key]['n'] 
+                    ss = self.dvOffset[dvGroup]
 
-                    row.extend(con.jac[key]['coo'][IROW])
-                    col.extend(con.jac[key]['coo'][ICOL] +ss[0])
-                    data.extend(con.jac[key]['coo'][IDATA])
+                    row.extend(con.jac[dvGroup]['coo'][IROW])
+                    col.extend(con.jac[dvGroup]['coo'][ICOL] +ss[0])
+                    data.extend(con.jac[dvGroup]['coo'][IDATA])
                     
                 # Now create a coo, convert to CSR and store
                 con.linearJacobian = {'coo':[row, col, data],
@@ -1019,20 +951,19 @@ class Optimization(object):
         """
         xg = {}
         imax = 0
-        for dvSet in self.variables:
-            for dvGroup in self.variables[dvSet]:
-                istart = self.dvOffset[dvSet][dvGroup][0]
-                iend = self.dvOffset[dvSet][dvGroup][1]
-                scalar = self.dvOffset[dvSet][dvGroup][2]
-                imax = max(imax, iend)
-                try:
-                    if scalar:
-                        xg[dvGroup] = x[istart]
-                    else:
-                        xg[dvGroup] = x[istart:iend].copy()
-                except IndexError:
-                    raise Error("Error processing x. There "
-                                "is a mismatch in the number of variables.")
+        for dvGroup in self.variables:
+            istart = self.dvOffset[dvGroup][0]
+            iend = self.dvOffset[dvGroup][1]
+            scalar = self.dvOffset[dvGroup][2]
+            imax = max(imax, iend)
+            try:
+                if scalar:
+                    xg[dvGroup] = x[istart]
+                else:
+                    xg[dvGroup] = x[istart:iend].copy()
+            except IndexError:
+                raise Error("Error processing x. There "
+                            "is a mismatch in the number of variables.")
         if imax != self.ndvs:
             raise Error("Error processing x. There "
                         "is a mismatch in the number of variables.")
@@ -1058,20 +989,19 @@ class Optimization(object):
 
         x_array = numpy.zeros(self.ndvs)
         imax = 0
-        for dvSet in self.variables:
-            for dvGroup in self.variables[dvSet]:
-                istart = self.dvOffset[dvSet][dvGroup][0]
-                iend = self.dvOffset[dvSet][dvGroup][1]
-                imax = max(imax, iend)
-                scalar = self.dvOffset[dvSet][dvGroup][2]
-                try:
-                    if scalar:
-                        x_array[istart] = x[dvGroup]
-                    else:
-                        x_array[istart:iend] = x[dvGroup]
-                except IndexError:
-                    raise Error("Error deprocessing x. There "
-                                "is a mismatch in the number of variables.")
+        for dvGroup in self.variables:
+            istart = self.dvOffset[dvGroup][0]
+            iend = self.dvOffset[dvGroup][1]
+            imax = max(imax, iend)
+            scalar = self.dvOffset[dvGroup][2]
+            try:
+                if scalar:
+                    x_array[istart] = x[dvGroup]
+                else:
+                    x_array[istart:iend] = x[dvGroup]
+            except IndexError:
+                raise Error("Error deprocessing x. There "
+                            "is a mismatch in the number of variables.")
         if imax != self.ndvs:
             raise Error("Error deprocessing x. There is a mismatch in the"
                         " number of variables.")
@@ -1272,7 +1202,7 @@ class Optimization(object):
             objective(s) we need here. 
         """
 
-        dvSets = list(self.variables.keys())
+        dvGroups = set(self.variables.keys())
 
         nobj = len(self.objectives)
         gobj = numpy.zeros((nobj, self.ndvs))
@@ -1280,30 +1210,30 @@ class Optimization(object):
         iObj = 0
         for objKey in self.objectives.keys():
             if objKey in funcsSens:
-                for dvKey in funcsSens[objKey]:
-                    if dvKey in dvSets:
+                for dvGroup in funcsSens[objKey]:
+                    if dvGroup in dvGroups:
                         # Now check that the array is the correct length:
-                        ss = self.dvOffset[dvKey]['n'] 
-                        tmp = numpy.array(funcsSens[objKey][dvKey]).squeeze()
+                        ss = self.dvOffset[dvGroup]
+                        tmp = numpy.array(funcsSens[objKey][dvGroup]).squeeze()
                         if tmp.size == ss[1]-ss[0]:
                             # Everything checks out so set:
                             gobj[iObj, ss[0]:ss[1]] = tmp * self.objectives[objKey].scale
                         else:
                             raise Error("The shape of the objective derivative "
-                                        "for dvSet '%s' is the incorrect "
+                                        "for dvGroup '%s' is the incorrect "
                                         "length. Expecting a shape of %s but "
                                         "received a shape of %s."% (
-                                            dvKey, (ss[1]-ss[0],),
-                                            funcsSens[objKey][dvKey].shape))
+                                            dvGroup, (ss[1]-ss[0],),
+                                            funcsSens[objKey][dvGroup].shape))
                     else:
-                        raise Error("The dvSet key '%s' is not valid"% dvKey)
+                        raise Error("The dvGroup key '%s' is not valid"% dvGroup)
             else:
                 raise Error("The key for the objective gradient, '%s', was not found." %
                             objKey)
             iObj += 1
 
             # Note that we looped over the keys in funcsSens[objKey]
-            # and not the dvSet keys since a dvSet key not in
+            # and not the variable keys since a variable key not in
             # funcsSens[objKey] will just be left to zero. We have
             # implictly assumed that the objective gradient is dense
             # and any keys that are provided are simply zero.
@@ -1337,7 +1267,7 @@ class Optimization(object):
         ----------
         gcon : array or dict
             Constraint gradients. Either a complete 2D array or a nested
-            dictionary of gradients given with respect to the dvSets
+            dictionary of gradients given with respect to the variables.
 
         Returns
         -------
@@ -1383,26 +1313,26 @@ class Optimization(object):
                 # the keys in con.wrt....The user told us they
                 # would supply derivatives wrt to these sets, and
                 # then didn't, so scold them. 
-                for dvSet in con.jac:
-                    if dvSet not in gcon[iCon]:
+                for dvGroup in con.jac:
+                    if dvGroup not in gcon[iCon]:
                         raise Error(
                             "Constraint '%s' was expecting a jacobain with "
-                            "respect to dvSet '%s' as was supplied in "
+                            "respect to dvGroup '%s' as was supplied in "
                             "addConGroup(). This was not found in the "
                             "constraint jacobian dictionary"% (
-                                        con.name, dvSet))
+                                        con.name, dvGroup))
                     
             # Now loop over all required keys for this constraint:
-            for key in con.wrt:
+            for dvGroup in con.wrt:
                 # ss means 'start - stop'
-                ss = self.dvOffset[key]['n'] 
+                ss = self.dvOffset[dvGroup]
                 ndvs = ss[1]-ss[0]
-                if key in gcon[iCon]:
-                    tmp = convertToCOO(gcon[iCon][key])
+                if dvGroup in gcon[iCon]:
+                    tmp = convertToCOO(gcon[iCon][dvGroup])
                 else:
                     # This key is not returned. Just use the
                     # stored jacobian that contains zeros
-                    tmp = con.jac[key]
+                    tmp = con.jac[dvGroup]
                 # Now check that the jacobian is the correct shape
                 if not(tmp['shape'][0] == con.ncon and tmp['shape'][1] == ndvs):
                     raise Error("The shape of the supplied constraint "
@@ -1410,25 +1340,25 @@ class Optimization(object):
                                 "is incorrect. "
                                 "Expected an array of shape (%d, %d), but "
                                 "received an array of shape (%d, %d)."% (
-                                    con.name, key, con.ncon, ndvs, 
+                                    con.name, dvGroup, con.ncon, ndvs, 
                                     tmp['shape'][0], tmp['shape'][1]))
 
                 # Now check that supplied coo matrix has same length
                 # of data array
-                if len(tmp['coo'][2]) != len(con.jac[key]['coo'][2]):
+                if len(tmp['coo'][2]) != len(con.jac[dvGroup]['coo'][2]):
                     raise Error("The number of nonzero elements for "
                                 "constraint group '%s' with respect to %s "
                                 "was not the correct size. The supplied "
                                 "jacobian has %d nonzero "
                                 "entries, but must contain %d nonzero "
-                                "entries." % (con.name, key, len(tmp['coo'][2]),
-                                              len(con.jac[key]['coo'][2])))
+                                "entries." % (con.name, dvGroup, len(tmp['coo'][2]),
+                                              len(con.jac[dvGroup]['coo'][2])))
 
                 # Include data from this jacobian chunk
                 data.extend(tmp['coo'][IDATA])
                 row.extend(tmp['coo'][IROW] + ii)
                 col.extend(tmp['coo'][ICOL] + ss[0])
-            # end for (key in constraint)
+            # end for (dvGroup in constraint)
             ii += con.ncon
         # end for (constraint loop)
 
@@ -1459,11 +1389,10 @@ class Optimization(object):
         text += """\n	Variables (c - continuous, i - integer, d - discrete):
            Name      Type       Value       Lower Bound  Upper Bound\n"""
 
-        for dvSet in self.variables:
-            for dvGroup in self.variables[dvSet]:
-                for var in self.variables[dvSet][dvGroup]:
-                    lines = str(var).split('\n')
-                    text += lines[1] + '\n'
+        for dvGroup in self.variables:
+            for var in self.variables[dvGroup]:
+                lines = str(var).split('\n')
+                text += lines[1] + '\n'
 
         print('	    Name        Type'+' '*25+'Bound\n'+'	 ')
         if len(self.constraints) > 0:

@@ -491,6 +491,32 @@ class Optimizer(object):
         # Put the fail flag in the history:
         hist['fail'] = masterFail
 
+        # Add constraint and variable bounds at beginning of optimization
+        # This info is used for visualization using OptView
+        if self.callCounter == 0 and self.optProb.comm.rank == 0:
+            conBounds = {}
+            varBounds = {}
+
+            # Cycle through constraints adding the bounds
+            for key in self.optProb.constraints.keys():
+                lower = self.optProb.constraints[key].lower
+                upper = self.optProb.constraints[key].upper
+                conBounds[key] = {'lower':lower, 'upper':upper}
+                
+            
+            # Cycle through variables and add the bounds
+            for dvGroup in self.optProb.variables:
+                varBounds[dvGroup] = {'lower':[], 'upper':[]}
+                for var in self.optProb.variables[dvGroup]:
+                    if var.type == 'c':
+                        varBounds[dvGroup]['lower'].append(var.lower)
+                        varBounds[dvGroup]['upper'].append(var.upper)
+            
+            # There is a special write for the bounds data
+            if self.storeHistory:
+                self.hist.writeData('varBounds', varBounds)
+                self.hist.writeData('conBounds', conBounds)
+                        
         # Write history if necessary
         if (self.optProb.comm.rank == 0 and  writeHist and self.storeHistory):
             self.hist.write(self.callCounter, hist)
@@ -597,17 +623,16 @@ class Optimizer(object):
         blx = []
         bux = []
         xs = []
-        for dvSet in self.optProb.variables.keys():
-            for dvGroup in self.optProb.variables[dvSet]:
-                for var in self.optProb.variables[dvSet][dvGroup]:
-                    if var.type == 'c':
-                        blx.append(var.lower)
-                        bux.append(var.upper)
-                        xs.append(var.value)
+        for dvGroup in self.optProb.variables:
+            for var in self.optProb.variables[dvGroup]:
+                if var.type == 'c':
+                    blx.append(var.lower)
+                    bux.append(var.upper)
+                    xs.append(var.value)
 
-                    else:
-                        raise Error("%s cannot handle integer or discrete "
-                                    "design variables" % self.name)
+                else:
+                    raise Error("%s cannot handle integer or discrete "
+                                "design variables" % self.name)
 
         blx = numpy.array(blx)
         bux = numpy.array(bux)
@@ -683,12 +708,10 @@ class Optimizer(object):
 
         # Now set the x-values:
         i = 0
-        for dvSet in sol.variables.keys():
-            for dvGroup in sol.variables[dvSet]:
-                for var in sol.variables[dvSet][dvGroup]:
-                    var.value = xopt[i]
-                    i += 1
-
+        for dvGroup in sol.variables:
+            for var in sol.variables[dvGroup]:
+                var.value = xopt[i]
+                i += 1
 
         return sol
 

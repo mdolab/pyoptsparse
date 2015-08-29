@@ -48,9 +48,6 @@ class Solution(Optimization):
         self.variables = copy.deepcopy(optProb.variables)
         self.constraints = copy.deepcopy(optProb.constraints)
         self.objectives = copy.deepcopy(optProb.objectives)
-        self.varSetNames = copy.deepcopy(optProb.varSetNames)
-        self.varGroupNames = copy.deepcopy(optProb.varGroupNames)
-        self.conGroupNames = copy.deepcopy(optProb.conGroupNames)
         self.optTime = optTime
         self.optInform = optInform
 
