@@ -22,7 +22,7 @@ Notes:
 Building
 --------
 
-The recommended approcah to using pyOptSparse is to install
+The recommended approach to using pyOptSparse is to install
 inplace. This does not require root access. From the ``pyoptsparse``
 directory run::
     

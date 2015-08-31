@@ -23,3 +23,4 @@ PYthon OPTimization (Sparse) Framework
    guide
    optimizers
    reference
+   postprocessing
