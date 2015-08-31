@@ -3,7 +3,7 @@
 Guide
 -----
 
-``pyOptSparse`` is design to solve general, constrained nonlinear
+``pyOptSparse`` is designed to solve general, constrained nonlinear
 optimization problems of the form::
 
   min f(x) w.r.t. x
@@ -83,29 +83,6 @@ numpy array within the x-dictionary. For example, to add 10 variables
 with no lower bound, and a scale factor of 0.1::
 
   >>> optProb.addVarGroup('con_group', 10, upper=2.5, scale=0.1)
-
-``pyOptSparse`` has an additional concept related to design variables,
-known as a ``variableSet`` or ``varSet``. The idea is that multiple
-design variables groups can be associated with a single variable
-set. The purpose of this is that the objective and constraint
-derivatives are actually given with respect to the variable
-sets. Unless the ``varSet`` is explictly given in a call to ``addVar``
-to add ``addVarGroup`` a variable set is automatically added with the
-same name as the variable. In certain cases, it can be beneficial to
-group derivatives together. For example::
-
-  optProb.addVar('varA', varSet='x')
-  optProb.addVarGroup('varsB', 5, varSet='x')
-  optProb.addVar('varC', varSet='x')
-  ...
-
-  # In objective function
-  funcs['obj'] = {'x':numpy.ones[7]}
-
-In this case, the derivative of 'obj' is given with respect to the
-user supplied ``varSet`` ``x``, **not** with respect to ``varA``,
-``varsB`` and ``varC``. For this case, the **order** of the ``addVar``
-is significant.
   
 
 Constraints

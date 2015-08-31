@@ -8,7 +8,7 @@ framework originally written by Dr. Ruben E. Perez and
 Peter W. Jansen. It is not backwards compatible with pyOpt and thus
 optimization scripts will need to be modified to use ``pyOptSparse``. 
 
-The original goal of the pyOpt was to create an object-oriented
+The original goal of pyOpt was to create an object-oriented
 framework for formulating and solving nonlinear constrained
 optimization problems. This goal remains the same with ``pyOptSparse``.
 
