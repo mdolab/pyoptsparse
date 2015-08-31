@@ -509,8 +509,8 @@ class Optimizer(object):
                 varBounds[dvGroup] = {'lower':[], 'upper':[]}
                 for var in self.optProb.variables[dvGroup]:
                     if var.type == 'c':
-                        varBounds[dvGroup]['lower'].append(var.lower)
-                        varBounds[dvGroup]['upper'].append(var.upper)
+                        varBounds[dvGroup]['lower'].append(var.lower/var.scale)
+                        varBounds[dvGroup]['upper'].append(var.upper/var.scale)
             
             # There is a special write for the bounds data
             if self.storeHistory:
