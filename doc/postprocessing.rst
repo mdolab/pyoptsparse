@@ -45,7 +45,7 @@ Here, ``histFile`` is the name of the history file to be examined
 ``outputDirectory`` is the name of the desired output directory for
 saved images (default is within the same folder as ``OptView.py``.)
 
-``OptView`` can also be run from any directory by adding an alias line 
+``OptView`` can also be ran from any directory by adding an alias line 
 to your ``.bashrc`` file such as::
 
     alias OptView='python ~/hg/pyoptsparse/postprocessing/OptView.py
@@ -78,7 +78,7 @@ The top is the canvas where the figure and graphs will be produced,
 while the bottom grayed section contains user-selectable options.
 Here, we will focus on the user options.
 
-The selectable variables are contained opn the lefthand 
+The selectable variables are contained on the lefthand 
 side of the options panel in scrollable listboxes.
 You can select multiple items from the listboxes using the normal selection 
 operators such as control and shift.
@@ -109,7 +109,7 @@ Additionally, four buttons allow control of the plot:
 
     * Refresh history - reloads the history file; used if checking on an optimization run on the fly
     * Save all figures - saves .png versions of a basic plot for each variable in the history file
-    * Save figure - saves a .png and .pickle version of the plot (the latter can be reformatted afterwards)
+    * Save figure - saves a .png and .pickle version of the current plot (the .pickle version can be reformatted afterwards)
     * Quit - exits the program
     
 Lastly, there some miscellaneous features:
@@ -118,7 +118,7 @@ Lastly, there some miscellaneous features:
     * A font size slider to control the text size on the plot
     * Hoverable tooltips when the cursor is on a plot line
     
-More features are being developed on a as-needed basis.
+More features are being developed on an as-needed basis.
 Feel free to edit the code as you see fit and submit a pull request if you
 would like to see a feature added.
 Alternatively, you can submit an issue ticket to discuss possible features.
