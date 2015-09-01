@@ -15,7 +15,6 @@ import os
 import argparse
 import shelve
 import tkFont
-import traceback  # remove this at some point
 import Tkinter as Tk
 
 # ======================================================================
@@ -29,7 +28,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
 import numpy
-
+from pyoptsparse.pyoptsparse.sqlitedict import SqliteDict
 
 class Display(object):
 
@@ -84,7 +83,11 @@ class Display(object):
 
         self.num_iter = 0
 
-        db = shelve.open(self.histFileName, 'r')
+        try:
+            db = shelve.open(self.histFileName, 'r')
+        except: # bare except because error is not in standard Python
+            db = SqliteDict(self.histFileName)
+            
         nkey = int(db['last'])
         self.iter_type = numpy.zeros(nkey)
 
@@ -264,8 +267,6 @@ class Display(object):
                         color = cc[i]
                         a.set_color_cycle(color)
                 except UnboundLocalError:
-                    print 'boop'
-                    traceback.print_exc()
                     pass
             else:
                 a.set_ylabel(val)

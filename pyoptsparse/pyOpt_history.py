@@ -10,7 +10,7 @@ Revision: 1.0   $Date: 11/12/2009 21:00$
 
 Developers:
 -----------
-- Dr. Gaetan K. W. Kneway (GKK)
+- Dr. Gaetan K. W. Kenway (GKK)
 
 History
 -------
@@ -23,6 +23,7 @@ from __future__ import print_function
 import os
 import shelve
 from .pyOpt_error import Error
+from .sqlitedict import SqliteDict
 # =============================================================================
 # History Class
 # =============================================================================
@@ -55,10 +56,10 @@ class History(object):
             # prevent old keys from "polluting" the new histrory
             if os.path.exists(fileName):
                 os.remove(fileName)
-            self.db = shelve.open(fileName, protocol=2, writeback=True)
+            self.db = SqliteDict(fileName)
         else:
             if os.path.exists(fileName):
-                self.db = shelve.open(fileName, protocol=2, flag=flag)
+                self.db = SqliteDict(fileName)
             else:
                 raise Error("The requested history file %s to open in "
                             "read-only mode does not exist."% fileName)
@@ -91,7 +92,7 @@ class History(object):
         Write arbitrary key:data value to db
         """
         self.db[key] = data
-        self.db.sync()
+        self.db.commit()
 
     def pointExists(self, callCounter):
         """
