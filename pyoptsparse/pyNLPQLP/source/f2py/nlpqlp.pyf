@@ -1,0 +1,78 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module nlpqlp__user__routines
+    interface nlpqlp_user_interface
+        subroutine nlfunc(m,me,mmax,n,f,g,x,active,fail)
+          integer intent(in) :: m
+          integer intent(in) :: me
+          integer intent(in) :: mmax
+          integer intent(in) :: n
+          double precision intent(in,out) :: f
+          double precision dimension(mmax),intent(in,out),depend(mmax) :: g
+          double precision dimension(n),intent(in),depend(n) :: x
+          logical dimension(mmax),depend(mmax) :: active
+          logical intent(in,out) :: fail
+        end subroutine nlfunc
+        subroutine nlgrad(m,me,mmax,n,f,g,df,dg,x,active,wa)
+          integer intent(in) :: m
+          integer intent(in) :: me
+          !integer optional,check(len(g)>=mmax),depend(g) :: mmax=len(g)
+          !integer optional,check(len(x)>=n),depend(x) :: n=len(x)
+          integer intent(in) :: mmax
+          integer intent(in) :: n
+          double precision intent(in) :: f
+          double precision dimension(mmax),intent(in),depend(mmax) :: g
+          double precision dimension(n),depend(n),intent(in,out) :: df
+          double precision dimension(mmax,n),depend(mmax,n),intent(in,out) :: dg
+          double precision dimension(n),depend(n) :: x
+          logical dimension(mmax),depend(mmax) :: active
+          double precision dimension(mmax),depend(mmax) :: wa
+        end subroutine nlgrad
+    end interface nlpqlp_user_interface
+end python module nlpqlp__user__routiness
+python module nlpqlp ! in 
+    interface  ! in :nlpqlp
+       subroutine wrapper(np, m, me, mmax, n, nmax, mnn2, x, f, g, df, dg, u, xl, xu, &
+            c, d, acc, accqp, stpmin, maxfun, maxit, maxnm, rho, mode, iprint, iout, &
+            ifile, ifail, lmerit, lql, nlfunc, nlgrad)
+            use nlpqlp__user__routines
+            integer intent(in) :: np
+            integer intent(in) :: m
+            integer intent(in) :: me
+            integer intent(in) :: mmax
+            integer intent(in) :: n
+            integer intent(in) :: nmax
+            integer intent(in) :: mnn2
+            double precision dimension(n,np),depend(n, np) :: x
+            double precision dimension(np), depend(np), intent(inout) :: f
+            double precision dimension(mmax, np),depend(mmax, np),intent(in,out) :: g
+            double precision dimension(nmax),depend(nmax),intent(inout) :: df
+            double precision dimension(mmax,nmax),depend(mmax,nmax),intent(in,out) :: dg
+            double precision dimension(mnn2),depend(mnn2),intent(in,out) :: u
+            double precision dimension(n),depend(n),intent(in) :: xl
+            double precision dimension(n),depend(n),intent(in) :: xu
+            double precision dimension(nmax,nmax),depend(nmax,nmax),intent(in,out) :: c
+            double precision dimension(nmax),depend(nmax),intent(in,out) :: d
+            double precision intent(in) :: acc
+            double precision intent(in) :: accqp
+            double precision intent(in) :: stpmin
+            integer intent(in) :: maxfun
+            integer intent(in) :: maxit
+            integer intent(in) :: maxnm
+            double precision intent(in) :: rho
+            integer intent(in) :: mode
+            integer intent(in) :: iprint
+            integer intent(in) :: iout
+            character*(*) intent(in) :: ifile
+            integer intent(inout) :: ifail
+            logical intent(in) :: lmerit
+            logical intent(in) :: lql
+            external nlfunc
+            external nlgrad
+        end subroutine wrapper
+    end interface
+end python module nlpqlp
+
+! This file was auto-generated with f2py (version:2_3974).
+! See http://cens.ioc.ee/projects/f2py2e/
