@@ -17,7 +17,7 @@ void NomadLinker::setCallback(Callback &callback)
 }
 
 std::vector<double> NomadLinker::call( int n, int m, double* x, int xdim, double* lb, int
-		lbdim, double* ub, int ubdim, double min_poll_size, double min_mesh_size, int max_bbe, int display_degree, int print_history )
+		lbdim, double* ub, int ubdim, double min_poll_size, double min_mesh_size, int max_bbe, int display_degree, int print_file )
 {
     if( !callback_ )
     {
@@ -82,8 +82,9 @@ std::vector<double> NomadLinker::call( int n, int m, double* x, int xdim, double
             p.set_DIMENSION( n );             // number of variables
 
             vector<bb_output_type> bbot( m ); // definition of output types:
-            bbot[0] = OBJ;                    // first output : objective value to minimize
-            for( i=1; i<m; i++ )      // other outputs: constraints cj <= 0
+            bbot[0] = CNT_EVAL;
+            bbot[1] = OBJ;                    // first output : objective value to minimize
+            for( i=2; i<m; i++ )      // other outputs: constraints cj <= 0
                 bbot[i] = EB;
             p.set_BB_OUTPUT_TYPE( bbot );
 
@@ -116,7 +117,7 @@ std::vector<double> NomadLinker::call( int n, int m, double* x, int xdim, double
             // display degree:
             p.set_DISPLAY_DEGREE( display_degree );
             // History file
-            if( print_history > 0 )
+            if( print_file > 0 )
                 p.set_HISTORY_FILE( "NOMAD.out" );
             // parameters validation:
             p.check();

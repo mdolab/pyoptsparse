@@ -233,7 +233,7 @@ class SNOPT(Optimizer):
         if snopt is None:
             raise Error('There was an error importing the compiled \
                         snopt module')
-        
+
         self.set_options = []
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
 
@@ -294,10 +294,10 @@ class SNOPT(Optimizer):
             This is necessay for hot-starting only.
 
         timeLimit : float
-            Specify the maximum amount of time for optimizer to run. 
+            Specify the maximum amount of time for optimizer to run.
             Must be in seconds. This can be useful on queue systems when
-            you want an optimization to cleanly finish before the 
-            job runs out of time. 
+            you want an optimization to cleanly finish before the
+            job runs out of time.
             """
 
         self.callCounter = 0
@@ -308,7 +308,7 @@ class SNOPT(Optimizer):
         self.startTime = None
         if self.timeLimit is not None:
             self.startTime = time.time()
-                    
+
         if len(optProb.constraints) == 0:
             # If the user *actually* has an unconstrained problem,
             # snopt sort of chokes with that....it has to have at
@@ -320,7 +320,7 @@ class SNOPT(Optimizer):
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()
-              
+
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
@@ -337,7 +337,7 @@ class SNOPT(Optimizer):
             self.optProb.jacIndices = indices
             self.optProb.fact = fact
             self.optProb.offset = numpy.zeros_like(fact)
-            
+
         # We make a split here: If the rank is zero we setup the
         # problem and run SNOPT, otherwise we go to the waiting loop:
         if self.optProb.comm.rank == 0:
@@ -371,7 +371,7 @@ class SNOPT(Optimizer):
                 ncon = 1
             else:
                 ncon = len(indices)
-            
+
             # Initialize the Print and Summary files
             # --------------------------------------
             iPrint = self.getOption('iPrint')
@@ -479,7 +479,7 @@ class SNOPT(Optimizer):
 
             # Indicate solution finished
             self.optProb.comm.bcast(-1, root=0)
-            
+
             if self.storeHistory:
                 # Record the full state of variables, xs and hs such
                 # that we could perform a warm start.
