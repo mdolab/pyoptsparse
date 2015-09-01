@@ -1,13 +1,14 @@
-import shelve, sys
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
+from pyoptsparse.pyoptsparse.sqlitedict.sqlitedict import SqliteDict
 
-db = {}
+db = SqliteDict()
 opts = ['ipopt', 'slsqp', 'snopt', 'fsqp', 'conmin', 'nlpqlp', 'psqp']
 for opt in opts:
     fileName = '%s_hs015_Hist.hst'%opt
     try:
-        db[opt]= shelve.open(fileName, flag='r')
+        db[opt] = SqliteDict(fileName)
     except:
         pass
 
