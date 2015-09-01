@@ -23,7 +23,7 @@ from __future__ import print_function
 import os
 import shelve
 from .pyOpt_error import Error
-from pyoptsparse.pyoptsparse.sqlitedict.sqlitedict import SqliteDict
+from .sqlitedict.sqlitedict import SqliteDict
 # =============================================================================
 # History Class
 # =============================================================================
