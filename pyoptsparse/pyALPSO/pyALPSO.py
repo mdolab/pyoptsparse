@@ -49,7 +49,7 @@ class ALPSO(Optimizer):
         'minInnerIter':[int, 6],            # Minimum Number of Inner Loop Iterations (Dynamic Inner Iterations)
         'dynInnerIter':[int, 0],            # Dynamic Number of Inner Iterations Flag
         'stopCriteria':[int, 1],            # Stopping Criteria Flag (0 - maxIters, 1 - convergence)
-        'stopIters':[int, 3],            # Consecutively Number of Iterations for which the Stopping Criteria must be Satisfied
+        'stopIters':[int, 5],            # Consecutively Number of Iterations for which the Stopping Criteria must be Satisfied
         'etol':[float, 1e-3],            # Absolute Tolerance for Equality constraints
         'itol':[float, 1e-3],            # Absolute Tolerance for Inequality constraints
         #'ltol':[float, 1e-2],            # Absolute Tolerance for Lagrange Multipliers
