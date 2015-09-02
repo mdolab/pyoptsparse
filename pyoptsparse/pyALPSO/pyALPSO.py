@@ -49,9 +49,9 @@ class ALPSO(Optimizer):
         'minInnerIter':[int, 6],            # Minimum Number of Inner Loop Iterations (Dynamic Inner Iterations)
         'dynInnerIter':[int, 0],            # Dynamic Number of Inner Iterations Flag
         'stopCriteria':[int, 1],            # Stopping Criteria Flag (0 - maxIters, 1 - convergence)
-        'stopIters':[int, 5],            # Consecutively Number of Iterations for which the Stopping Criteria must be Satisfied
-        'etol':[float, 1e-3],            # Absolute Tolerance for Equality constraints 
-        'itol':[float, 1e-3],            # Absolute Tolerance for Inequality constraints 
+        'stopIters':[int, 3],            # Consecutively Number of Iterations for which the Stopping Criteria must be Satisfied
+        'etol':[float, 1e-3],            # Absolute Tolerance for Equality constraints
+        'itol':[float, 1e-3],            # Absolute Tolerance for Inequality constraints
         #'ltol':[float, 1e-2],            # Absolute Tolerance for Lagrange Multipliers
         'rtol':[float, 1e-2],            # Relative Tolerance for Lagrange Multipliers
         'atol':[float, 1e-2],            # Absolute Tolerance for Lagrange Function
@@ -76,7 +76,7 @@ class ALPSO(Optimizer):
         'HoodSize':[int, 40],            # Number of Neighbours of Each Particle
         'HoodModel':[str, 'gbest'],        # Neighbourhood Model (dl/slring - Double/Single Link Ring, wheel - Wheel, Spatial - based on spatial distance, sfrac - Spatial Fraction)
         'HoodSelf':[int, 1],                # Selfless Neighbourhood Model (0 - Include Particle i in NH i, 1 - Don't Include Particle i)
-        'Scaling':[int, 1],                # Design Variables Scaling Flag (0 - no scaling, 1 - scaling between [-1, 1]) 
+        'Scaling':[int, 1],                # Design Variables Scaling Flag (0 - no scaling, 1 - scaling between [-1, 1])
         }
         informs = {}
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
@@ -140,16 +140,16 @@ class ALPSO(Optimizer):
             indices, __, __, __ = self.optProb.getOrdering(
                 ['ne', 'le'], oneSided=oneSided, noEquality=False)
             me = len(indices)
-        
+
         nobj = 1
-        
+
         if self.optProb.comm.rank == 0:
             # Set history/hotstart/coldstart
             self._setHistory(storeHistory, None)
-            
+
             # Setup argument list values
             opt = self.getOption
-                               
+
             dyniI = self.getOption('dynInnerIter')
             if dyniI == 0:
                 self.setOption('minInnerIter', opt('maxInnerIter'))
