@@ -34,6 +34,7 @@ except ImportError:
     except ImportError:
         print('Could not find any OrderedDict class. For 2.6 and earlier, \
 use:\n pip install ordereddict')
+from six import iteritems
     
 # =============================================================================
 # External Python modules
@@ -58,7 +59,7 @@ INFINITY = 1e20
 # =============================================================================
 class Optimization(object):
     """
-    Create a description of an optimization probelem. 
+    Create a description of an optimization problem. 
 
     Parameters
     ----------
@@ -90,10 +91,7 @@ class Optimization(object):
         self.variables = OrderedDict()
         self.constraints = OrderedDict()
         self.objectives = OrderedDict()
-        self.dvOffset =  OrderedDict()
-
-        # Flag to determine if adding variables is legal. 
-        self.denseJacobianOK = True
+        self.dvOffset = OrderedDict()
         
         # Variables to be set in finalizeConstraints
         # have finalized the specification of the variable and the
@@ -104,7 +102,9 @@ class Optimization(object):
         self.xscale = None
         self.linearJacobian = None
         self.dummyConstraint = False
-        
+        self.constraintIdx = {}
+        self.objectiveIdx = {}
+
     def addVar(self, name, *args, **kwargs):
         """
         This is a convience function. It simply calls addVarGroup()
@@ -224,13 +224,13 @@ class Optimization(object):
         Notes
         -----
         Calling addVar() and addVarGroup(..., nVars=1, ...) are
-        **NOT** equilivant! The variable added with addVar() will be
+        **NOT** equivalent! The variable added with addVar() will be
         returned as scalar, while variable returned from addVarGroup
         will be an array of length 1.
 
         It is recommended that the addVar() and addVarGroup() calls
         follow the examples above by including all the keyword
-        arguments. This make it very clear the itent of the script's
+        arguments. This make it very clear the intent of the script's
         author. The type, value, lower, upper and scale should be
         given for all variables even if the default value is used. 
         """
@@ -245,7 +245,7 @@ class Optimization(object):
             raise Error("Type must be one of 'c' for continuous, "
                         "'i' for integer or 'd' for discrete.")
                     
-        # ------ Process the value arguement
+        # ------ Process the value argument
         value = numpy.atleast_1d(value).real
         if len(value) == 1:
             value = value[0]*numpy.ones(nVars)
@@ -789,20 +789,20 @@ class Optimization(object):
                 xscale.append(var.scale)
         self.invXScale = 1.0/numpy.array(xscale)
 
-        # ----------------------------------------
-        # Step 3. Determine if dense return is OK
-        # ----------------------------------------
-        allVars = set(self.variables.keys())
+        # ------------------------------------------------
+        # Step 3. Map constraint and objective names to Jacobian indices
+        # ------------------------------------------------
+        # allVars = set(self.variables.keys())
         for iCon in self.constraints:
             con = self.constraints[iCon]
-            # All entries of con.wrt in allVars
-            if not set(con.wrt) <= allVars:
-                # If any constrant 'wrt' is not fully in allVars we
-                # can't do a dense return
-                self.denseJacobianOK = False
+            self.constraintIdx[con] = iCon
+
+        for iObj in self.objectives:
+            obj = self.objectives[iObj]
+            self.objectiveIdx[obj] = iObj
 
         # ---------------------------------------------
-        # Step 3. Final jacobian for linear constraints
+        # Step 4. Final jacobian for linear constraints
         # ---------------------------------------------
         for iCon in self.constraints:
             con = self.constraints[iCon]
@@ -838,18 +838,18 @@ class Optimization(object):
 
         oneSided : bool
            Flag to do all constraints as one-sided instead of two
-           sided. Most optimzers need this but some can deal with the
+           sided. Most optimizers need this but some can deal with the
            two-sided constraints properly (snopt and ipopt for
            example)
 
         noEquality : bool
            Flag to split equality constraints into two inequality
            constraints. Some optimizers (CONMIN for example) can't do
-           equality constraints explictly. 
+           equality constraints explicitly. 
            """
 
         # Now for the fun part determine what *actual* order the
-        # constraints need to be in: We recongize the following
+        # constraints need to be in: We recognize the following
         # constraint types:
         # ne : nonlinear equality
         # ni : nonlinear inequality
@@ -1207,36 +1207,60 @@ class Optimization(object):
         nobj = len(self.objectives)
         gobj = numpy.zeros((nobj, self.ndvs))
 
-        iObj = 0
-        for objKey in self.objectives.keys():
-            if objKey in funcsSens:
-                for dvGroup in funcsSens[objKey]:
-                    if dvGroup in dvGroups:
-                        # Now check that the array is the correct length:
-                        ss = self.dvOffset[dvGroup]
-                        tmp = numpy.array(funcsSens[objKey][dvGroup]).squeeze()
-                        if tmp.size == ss[1]-ss[0]:
-                            # Everything checks out so set:
-                            gobj[iObj, ss[0]:ss[1]] = tmp * self.objectives[objKey].scale
-                        else:
-                            raise Error("The shape of the objective derivative "
-                                        "for dvGroup '%s' is the incorrect "
-                                        "length. Expecting a shape of %s but "
-                                        "received a shape of %s."% (
-                                            dvGroup, (ss[1]-ss[0],),
-                                            funcsSens[objKey][dvGroup].shape))
-                    else:
-                        raise Error("The dvGroup key '%s' is not valid"% dvGroup)
-            else:
-                raise Error("The key for the objective gradient, '%s', was not found." %
-                            objKey)
-            iObj += 1
+        if isinstance(funcsSens.keys()[0], str):
 
-            # Note that we looped over the keys in funcsSens[objKey]
-            # and not the variable keys since a variable key not in
-            # funcsSens[objKey] will just be left to zero. We have
-            # implictly assumed that the objective gradient is dense
-            # and any keys that are provided are simply zero.
+            iObj = 0
+            for objKey in self.objectives.keys():
+                if objKey in funcsSens:
+                    for dvGroup in funcsSens[objKey]:
+                        if dvGroup in dvGroups:
+                            # Now check that the array is the correct length:
+                            ss = self.dvOffset[dvGroup]
+                            tmp = numpy.array(funcsSens[objKey][dvGroup]).squeeze()
+                            if tmp.size == ss[1]-ss[0]:
+                                # Everything checks out so set:
+                                gobj[iObj, ss[0]:ss[1]] = tmp * self.objectives[objKey].scale
+                            else:
+                                raise Error("The shape of the objective derivative "
+                                            "for dvGroup '%s' is the incorrect "
+                                            "length. Expecting a shape of %s but "
+                                            "received a shape of %s."% (
+                                                dvGroup, (ss[1]-ss[0],),
+                                                funcsSens[objKey][dvGroup].shape))
+                        else:
+                            raise Error("The dvGroup key '%s' is not valid"% dvGroup)
+                else:
+                    raise Error("The key for the objective gradient, '%s', was not found." %
+                                objKey)
+                iObj += 1
+        else: # Then it must be a tuple; assume flat dict
+            for (objKey, dvGroup), gobj in iteritems(funcsSens):
+                try:
+                    iObj = self.constraintIdx[objKey]
+                except KeyError:
+                    raise Error("The key for the objective gradient, '%s', was not found." %
+                                objKey)
+                try:
+                    ss = self.dvOffset[dvGroup]
+                except KeyError:
+                    raise Error("The dvGroup key '%s' is not valid"% dvGroup)
+                tmp = numpy.array(funcsSens[objKey][dvGroup]).squeeze()
+                if tmp.size == ss[1]-ss[0]:
+                    # Everything checks out so set:
+                    gobj[iObj, ss[0]:ss[1]] = tmp * self.objectives[objKey].scale
+                else:
+                    raise Error("The shape of the objective derivative "
+                                "for dvGroup '%s' is the incorrect "
+                                "length. Expecting a shape of %s but "
+                                "received a shape of %s."% (
+                                    dvGroup, (ss[1]-ss[0],),
+                                    funcsSens[objKey][dvGroup].shape))
+
+        # Note that we looped over the keys in funcsSens[objKey]
+        # and not the variable keys since a variable key not in
+        # funcsSens[objKey] will just be left to zero. We have
+        # implicitly assumed that the objective gradient is dense
+        # and any keys that are provided are simply zero.
         # end (objective keys)
 
         # Do column scaling (dv scaling)
@@ -1302,33 +1326,26 @@ class Optimization(object):
         # Loop over all constraints:
         for iCon in self.constraints:
             con = self.constraints[iCon]
-
-            if not con.name in gcon:
-                raise Error("The jacobian for the constraint '%s' was "
-                            "not found in the returned dictionary."%
-                            con.name)
-
-            if not con.partialReturnOk:
-                # The keys in gcon[iCon] MUST match PRECISELY
-                # the keys in con.wrt....The user told us they
-                # would supply derivatives wrt to these sets, and
-                # then didn't, so scold them. 
-                for dvGroup in con.jac:
-                    if dvGroup not in gcon[iCon]:
-                        raise Error(
-                            "Constraint '%s' was expecting a jacobain with "
-                            "respect to dvGroup '%s' as was supplied in "
-                            "addConGroup(). This was not found in the "
-                            "constraint jacobian dictionary"% (
-                                        con.name, dvGroup))
                     
             # Now loop over all required keys for this constraint:
             for dvGroup in con.wrt:
                 # ss means 'start - stop'
                 ss = self.dvOffset[dvGroup]
                 ndvs = ss[1]-ss[0]
+                try_tuple_dict = False
                 if dvGroup in gcon[iCon]:
-                    tmp = convertToCOO(gcon[iCon][dvGroup])
+                    try:
+                        tmp = convertToCOO(gcon[iCon][dvGroup])
+                    except KeyError:
+                        try_tuple_dict = True
+                    if try_tuple_dict: 
+                        try: 
+                            tmp = convertToCOO(gcon[con, dvGroup])
+                        except KeyError: 
+                            raise Error('The constraint jacobian entry for "{}" with respect to "{}"'
+                                        ', as was defined in addConGroup(), was not found in'
+                                        ' constraint jacobian dictionary provided.'.format(con.name, dvGroup))
+                        
                 else:
                     # This key is not returned. Just use the
                     # stored jacobian that contains zeros
