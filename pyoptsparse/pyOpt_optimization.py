@@ -499,11 +499,12 @@ class Optimization(object):
         """ 
 
         outDVs = {}
-        for dvGroup in self.varables:
+        for dvGroup in self.variables:
             nvar = len(self.variables[dvGroup])
             # If it is a single DV, return a scalar rather than a numpy array
             if nvar == 1:
-                outDVs[dvGroup] = outDVs[dvGroup][0]
+                var = self.variables[dvGroup][0]
+                outDVs[dvGroup] = var.value/var.scale
             else:
                 outDVs[dvGroup] = numpy.zeros(nvar)
                 for i in range(nvar):
