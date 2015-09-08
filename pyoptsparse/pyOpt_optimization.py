@@ -791,8 +791,8 @@ class Optimization(object):
         # --------------------------------------
         # Step 3. Map objective names to indices
         # --------------------------------------
-        for idx, iObj in enumerate(self.objectives):
-            self.objectiveIdx[iObj] = idx
+        for idx, objKey in enumerate(self.objectives):
+            self.objectiveIdx[objKey] = idx
 
         # ---------------------------------------------
         # Step 4. Final jacobian for linear constraints
