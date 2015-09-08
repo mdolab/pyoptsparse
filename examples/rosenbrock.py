@@ -9,7 +9,7 @@ import pdb
 # import cProfile
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--sens",help="sensitivity mode",type=str, default='analytic')
+parser.add_argument("--sens",help="sensitivity mode",type=str, default='FD')
 parser.add_argument("--constrained",help="constrained or not",type=int,default=0)
 parser.add_argument("--testHist",help="test history",type=str,default="no")
 parser.add_argument("--groups",help="use groups",type=int, default=0)
