@@ -36,12 +36,12 @@ def objfunc(xdict):
 def sens(xdict, funcs):
     x = xdict['xvars']
     funcsSens = {}
-    funcsSens['obj'] = {'xvars': [2*100*(x[1]-x[0]**2)*(-2*x[0]) - 2*(1-x[0]),
-                                  2*100*(x[1]-x[0]**2)]}
-    funcsSens['con'] = {'xvars': [[x[1], x[0]],
-                                  [1   , 2*x[1]]]}
+    funcsSens['obj', 'xvars'] = [2*100*(x[1]-x[0]**2)*(-2*x[0]) - 2*(1-x[0]),
+                                  2*100*(x[1]-x[0]**2)]
+    funcsSens['con', 'xvars'] = [[x[1], x[0]], [1, 2*x[1]]]
+
     fail = False
-    
+
     return funcsSens, fail
 
 # Optimization Object

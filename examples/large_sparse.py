@@ -27,10 +27,15 @@ def objfunc(xdict):
 def sens(xdict, funcs):
     x = xdict['x'];  y = xdict['y']; z = xdict['z']
     funcsSens = {}
-    funcsSens = {'obj' : {'x':[2*x], 'y':4*y, 'z':3*numpy.ones(2*N)},
-                 'con1': {'x':2.05*x*(x*x)**0.025},
-                 'con2': {'x':4*x**3, 'y':numpy.ones(N), 'z':2*z},
-                 'con3': {'x':1.0, 'z':numpy.ones(2*N)}}
+    funcsSens = {('obj', 'x') : [2*x],
+                 ('obj', 'y') : 4*y,
+                 ('obj', 'z') : 3*numpy.ones(2*N),
+                 ('con1', 'x') : 2.05*x*(x*x)**0.025,
+                 ('con2', 'x') : 4*x**3,
+                 ('con2', 'y') : numpy.ones(N),
+                 ('con2', 'z') : 2*z,
+                 ('con3', 'x') : 1.0,
+                 ('con3', 'z') : numpy.ones(2*N)}
     
     return funcsSens, False
 
