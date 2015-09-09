@@ -41,7 +41,7 @@ class Optimizer(object):
     name : str
         Optimizer name
     category : str
-        Typicaly local or gobal
+        Typically local or global
     defOptions : dictionary
         A dictionary containing the default options
     informs : dict
@@ -80,7 +80,7 @@ class Optimizer(object):
         self.cache = {'x': None, 'fobj': None, 'fcon': None,
                       'gobj': None, 'gcon': None}
 
-        # A second-level cache for optimizers that require callcbacks
+        # A second-level cache for optimizers that require callbacks
         # for each constraint. (eg. PSQP, FSQP, etc)
         self.storedData = {}
         self.storedData['x'] = None
@@ -98,14 +98,14 @@ class Optimizer(object):
         Common function to setup sens function
         """
 
-        # If se have SNOPT set derivative level to 3...it will be
+        # If we have SNOPT set derivative level to 3...it will be
         # reset if necessary
         if self.name in ['SNOPT']:
             # SNOPT is the only one where None is ok.
             self.setOption('Derivative level', 3)
 
         # Next we determine what to what to do about
-        # derivatives. We must hvae a function or we use FD or CS:
+        # derivatives. We must have a function or we use FD or CS:
         if sens is None:
             if self.name in ['SNOPT']:
                 # SNOPT is the only one where None is ok.
@@ -119,7 +119,7 @@ class Optimizer(object):
             self.sens = sens
         elif sens.lower() in ['fd', 'fdr', 'cd', 'cdr', 'cs']:
             # Create the gradient class that will operate just like if
-            # the user supplied fucntion
+            # the user supplied function
             self.sens = Gradient(self.optProb, sens.lower(), sensStep,
                                  sensMode, self.optProb.comm)
         else:
@@ -158,7 +158,7 @@ class Optimizer(object):
                     self.hotStart = History(hotStart, temp=False, flag='r')
                 else:
                     pyOptSparseWarning('Hot start file does not exist. \
-                    Performning a regular start')
+                    Performing a regular start')
 
         self.storeHistory = False
         if storeHistory:
@@ -170,8 +170,8 @@ class Optimizer(object):
         This is the master function that **ALL** optimizers call from
         the specific signature functions. The reason for this is that
         we can generically do the hot-start replay, history storage,
-        timing and possibly chaching once for all optimizers. It also
-        takes care of the MPI communcation that allows the optimizer
+        timing and possibly caching once for all optimizers. It also
+        takes care of the MPI communication that allows the optimizer
         to run on one process only, but within a larger MPI context.
 
         It does add one additional level of call, but we think it is
@@ -182,7 +182,7 @@ class Optimizer(object):
         x : array
             This is the raw x-array data from the optimizer
         evaluate : list of strings
-            This list containts at least one of 'fobj', 'fcon', 'gobj'
+            This list contains at least one of 'fobj', 'fcon', 'gobj'
             or 'gcon'. This list tells this function which of the
             values is required on return
             """
@@ -289,7 +289,7 @@ class Optimizer(object):
 
         # Our goal in this function is to return the values requested
         # in 'evaluate' for the corresponding x. We have to be a
-        # little cheaky here since some optimizers will make multiple
+        # little cheeky here since some optimizers will make multiple
         # call backs with the same x, one for the objective and one
         # for the constraint. We therefore at the end of each function
         # or sensitivity call we cache the x value and the fobj, fcon,
@@ -388,7 +388,7 @@ class Optimizer(object):
         if 'gobj' in evaluate:
             if numpy.linalg.norm(x-self.cache['x']) > eps:
                 # Previous evaluated point is *different* than the
-                # point requested for the derivative. Recusively call
+                # point requested for the derivative. Recursively call
                 # the routine with ['fobj', and 'fcon']
                 self._masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
                 # We *don't* count that extra call, since that will
@@ -440,7 +440,7 @@ class Optimizer(object):
         if 'gcon' in evaluate:
             if numpy.linalg.norm(x-self.cache['x']) > eps:
                 # Previous evaluated point is *different* than the
-                # point requested for the derivative. Recusively call
+                # point requested for the derivative. Recursively call
                 # the routine with ['fobj', and 'fcon']
                 self._masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
                 # We *don't* count that extra call, since that will
@@ -609,7 +609,7 @@ class Optimizer(object):
     def _setInitialCacheValues(self):
         """
         Once we know that the optProb has been set, we populate the
-        cache with a magic numbers. If the starting points for your
+        cache with a magic number. If the starting points for your
         optimization is -9999999999 then you out of luck!
         """
         self.cache['x'] = -999999999*numpy.ones(self.optProb.ndvs)
@@ -719,7 +719,7 @@ class Optimizer(object):
         """
         Broadcast the solution from the root proc back to everyone. We
         have to be a little careful since we can't in general
-        broadcast the function and commso we have to set manually after the broadcast.
+        broadcast the function and comm so we have to set manually after the broadcast.
         """
 
         sol = self.optProb.comm.bcast(sol)
@@ -732,11 +732,11 @@ class Optimizer(object):
         """
         Set Optimizer Option Value (Optimizer Specific Routine)
         """
-        raise Error('This optimizer hsa not implemented _on_setOption')
+        raise Error('This optimizer has not implemented _on_setOption')
 
     def setOption(self, name, value=None):
         """
-        Generic routine for all option setting. Ths routine does
+        Generic routine for all option setting. The routine does
         error checking on the type of the value.
 
         Parameters
@@ -765,7 +765,7 @@ class Optimizer(object):
         """
         Routine to be implemented by optimizer
         """
-        raise Error('This optimizer haa not implemented _on_getOption')
+        raise Error('This optimizer has not implemented _on_getOption')
 
     def getOption(self, name):
         """
@@ -798,7 +798,7 @@ class Optimizer(object):
 
     def getInform(self, infocode=None):
         """
-        Get optimizer result infom code at exit
+        Get optimizer result inform code at exit
 
         Parameters
         ----------
@@ -818,16 +818,16 @@ class Optimizer(object):
 def OPT(optName, *args, **kwargs):
     """
     This is a simple utility function that enables creating an
-    optimzier based on the 'optName' string. This can be useful for
-    doing optimzation studies with respect to optimizer since you
+    optimizer based on the 'optName' string. This can be useful for
+    doing optimization studies with respect to optimizer since you
     don't need massive if-statements.
 
     Parameters
     ----------
     optName : str
-       String identifiying the optimizer to create
+       String identifying the optimizer to create
 
-    *args, **kwargs : varries
+    *args, **kwargs : varies
        Passed to optimizer creation.
 
     Returns
@@ -863,7 +863,7 @@ def OPT(optName, *args, **kwargs):
         from .pyNOMAD.pyNOMAD import NOMAD as opt
     else:
         raise Error("The optimizer specified in 'optName' was \
-not reconginzed. The current list of supported optimizers is: %s" %
+not recognized. The current list of supported optimizers is: %s" %
                     repr(optList))
 
     # Create the optimizer and return it
