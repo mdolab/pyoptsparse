@@ -585,6 +585,62 @@ class Display(object):
                 plt.savefig(fpathname)
                 plt.clf()
 
+    def save_tec(self):
+        """
+        Output selected data to tec file.
+        """
+        func_sel = self.lb_func.curselection()
+        var_sel = self.lb_var.curselection()
+        arr_sel = self.lb_arr.curselection()
+        dat = {}
+        if len(arr_sel) and self.arr_active:
+            for name in self.val_names:
+                dat[name] = self.arr_data[name]
+        elif len(func_sel):
+            values = [self.lb_func.get(i) for i in func_sel]
+            for name in values:
+                dat[name] = self.func_data[name]
+        elif len(var_sel):
+            values = [self.lb_var.get(i) for i in var_sel]
+            for name in values:
+                dat[name] = self.var_data[name]
+
+        keys = dat.keys()
+        
+        num_vars = len(keys)
+        num_iters = len(dat[keys[0]])
+        full_data = numpy.arange(num_iters, dtype=numpy.float_).reshape(num_iters, 1)
+        var_names = ['Iteration']
+        for key in keys:
+            small_data = numpy.asarray(dat[key])
+
+            if len(small_data.shape) == 1:
+                full_data = numpy.c_[full_data, small_data]
+                var_names.append(key)
+
+            else:
+                m = small_data.shape[0]
+                n = small_data.shape[1]
+                indiv_data = numpy.empty((m, 1))
+                for i in range(n):
+                    for j in range(m):
+                        indiv_data[j] = small_data[j][i]
+                    full_data = numpy.c_[full_data, indiv_data]
+                    var_names.append(key + '_{}'.format(i))
+
+        filename = 'OptView_tec.dat'
+        self._file = open(filename, 'w')
+        self._file.write('Title = \"OptView data output\"" \n')
+        self._file.write('Variables = ')
+        for name in var_names:
+            self._file.write('\"' + name + '\" ')
+        self._file.write('\n')
+
+        self._file.write('Zone T= \"OptView_tec_data\", ' + \
+                    'I={}, '.format(num_iters) + 'F=POINT\n')
+        numpy.savetxt(self._file, full_data)
+        self._file.close()
+
     def var_search(self, _):
         """
         Remove listbox entries that do not contain user-inputted string,
@@ -798,10 +854,17 @@ class Display(object):
 
         button4 = Tk.Button(
             options_frame,
+            text='Save tec file',
+            command=self.save_tec,
+            font=font)
+        button4.grid(row=3, column=2, padx=5, sticky=Tk.W)
+
+        button5 = Tk.Button(
+            options_frame,
             text='Quit',
             command=self.quit,
             font=font)
-        button4.grid(row=3, column=2, padx=5, sticky=Tk.W)
+        button5.grid(row=4, column=2, padx=5, sticky=Tk.W)
 
         # Plot options
         self.var = Tk.IntVar()
