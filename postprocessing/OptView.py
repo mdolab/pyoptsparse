@@ -86,9 +86,18 @@ class Display(object):
         try:
             db = shelve.open(self.histFileName, 'r')
         except: # bare except because error is not in standard Python
-            db = SqliteDict(self.histFileName)
+            db = SqliteDict(self.histFileName, 'openmdao')
+            OpenMDAO = True
+            if db.keys() == []:
+                OpenMDAO = False
+                db = SqliteDict(self.histFileName)
             
-        nkey = int(db['last'])
+        if OpenMDAO:
+            string = db.keys()[-1].split('/')
+            nkey = int(string[-1])
+            solver_name = string[0]
+        else:
+            nkey = int(db['last'])
         self.iter_type = numpy.zeros(nkey)
 
         # Check to see if there is bounds information in the hst file
@@ -98,24 +107,10 @@ class Display(object):
         except KeyError:
             pass
 
-        for i in xrange(nkey):
-            key = '%d' % i
-            keyp1 = '%d' % (i + 1)
-
+        if OpenMDAO:
+            key = 'Driver/1'
             try:
-
-                f = db[key]['funcs']
-                try:
-                    db[keyp1]['funcsSens']
-                    self.iter_type[i] = 2
-                except KeyError:
-                    pass
-                try:
-                    db[keyp1]['funcs']
-                    self.iter_type[i] = 1
-                except KeyError:
-                    pass
-
+                f = db[key]['Unknowns']
                 for key in sorted(f):
                     if key not in self.func_data:
                         self.func_data[key] = []
@@ -127,30 +122,85 @@ class Display(object):
                     except (IndexError, AttributeError):
                         pass
 
-                try:
-                    db[key]['funcsSens']
-                except KeyError:
-                    pass
                 self.num_iter += 1
 
             except KeyError:
                 pass
 
         for i in xrange(nkey):
-            key = '%d' % i
-            keyp1 = '%d' % (i + 1)
-            if self.iter_type[i]:
-                f = db[key]['xuser']
-                for key in sorted(f):
-                    if key not in self.var_data:
-                        self.var_data[key] = []
-                    if numpy.isscalar(f[key]):
-                        self.var_data[key].append(f[key])
+            if OpenMDAO:
+                key = '{}/{}'.format(solver_name, i)
+                try:
+                    f = db[key]['Unknowns']
+
+                    for key in sorted(f):
+                        if key not in self.func_data:
+                            self.func_data[key] = []
+                        if numpy.isscalar(f[key]):
+                            self.func_data[key].append(f[key])
+                        try:
+                            if f[key].shape[0] > 1:
+                                self.func_data[key].append(f[key])
+                        except (IndexError, AttributeError):
+                            pass
+
+                    self.num_iter += 1
+
+                except KeyError:
+                    pass
+
+            else:
+                key = '%d' % i
+                keyp1 = '%d' % (i + 1)
+                try:
+
+                    f = db[key]['funcs']
                     try:
-                        if f[key].shape[0] > 1:
-                            self.var_data[key].append(f[key])
-                    except IndexError:
+                        db[keyp1]['funcsSens']
+                        self.iter_type[i] = 2
+                    except KeyError:
                         pass
+                    try:
+                        db[keyp1]['funcs']
+                        self.iter_type[i] = 1
+                    except KeyError:
+                        pass
+
+                    for key in sorted(f):
+                        if key not in self.func_data:
+                            self.func_data[key] = []
+                        if numpy.isscalar(f[key]):
+                            self.func_data[key].append(f[key])
+                        try:
+                            if f[key].shape[0] > 1:
+                                self.func_data[key].append(f[key])
+                        except (IndexError, AttributeError):
+                            pass
+
+                    try:
+                        db[key]['funcsSens']
+                    except KeyError:
+                        pass
+                    self.num_iter += 1
+
+                except KeyError:
+                    pass
+
+            for i in xrange(nkey):
+                key = '%d' % i
+                keyp1 = '%d' % (i + 1)
+                if self.iter_type[i]:
+                    f = db[key]['xuser']
+                    for key in sorted(f):
+                        if key not in self.var_data:
+                            self.var_data[key] = []
+                        if numpy.isscalar(f[key]):
+                            self.var_data[key].append(f[key])
+                        try:
+                            if f[key].shape[0] > 1:
+                                self.var_data[key].append(f[key])
+                        except IndexError:
+                            pass
 
     def quit(self):
         """
@@ -216,7 +266,7 @@ class Display(object):
                 a.plot(
                     [0, self.num_iter - 1], [
                         lower_bound, lower_bound],
-                    "--", linewidth=2
+                    "--", linewidth=2, clip_on=False
                 )
 
         a.set_color_cycle(color)
@@ -225,7 +275,7 @@ class Display(object):
                 a.plot(
                     [0, self.num_iter - 1], [
                         upper_bound, upper_bound],
-                    "--", label=val + ' bounds', linewidth=2)
+                    "--", label=val + ' bounds', linewidth=2, clip_on=False)
 
     def orig_plot(self, dat, val, values, a, i=0):
         """
@@ -243,14 +293,16 @@ class Display(object):
                     minmax_list,
                     "o-",
                     label=val,
-                    markeredgecolor='none')
+                    markeredgecolor='none',
+                    clip_on=False)
 
             elif array_size < 20 or self.var_showall.get():
                 plots = a.plot(
                     dat[val],
                     "o-",
                     label=val,
-                    markeredgecolor='none')
+                    markeredgecolor='none',
+                    clip_on=False)
 
                 a.set_ylabel(val)
                 self.color_error_flag = 1
@@ -274,7 +326,7 @@ class Display(object):
                 dat[val],
                 "o-",
                 label=val,
-                markeredgecolor='none')
+                markeredgecolor='none', clip_on=False)
         try:
             if len(plots) > 1:
                 for i, plot in enumerate(plots):
@@ -324,7 +376,7 @@ class Display(object):
                             newdat[1:],
                             "o-",
                             label=val,
-                            markeredgecolor='none')
+                            markeredgecolor='none', clip_on=False)
                         if len(plots) > 1:
                             for i, plot in enumerate(plots):
                                 self.plots.append([plot, i])
@@ -385,7 +437,7 @@ class Display(object):
                             newdat.append(abs(value - dat[val][idx - 2]))
                         p_list[i], = par_list[i].plot(range(1, self.num_iter),
                                                     newdat[1:], "o-", label=val,
-                                                    markeredgecolor='none')
+                                                    markeredgecolor='none', clip_on=False)
                         par_list[i].set_ylabel(val)
                 # Otherwise plot original data
                 else:
@@ -393,7 +445,7 @@ class Display(object):
                         cc = (matplotlib.rcParams['axes.color_cycle'] * 10)
                         par_list[i].set_color_cycle(cc[i])
                         p_list[i], = par_list[i].plot(
-                            dat[val], "o-", label=val, markeredgecolor='none')
+                            dat[val], "o-", label=val, markeredgecolor='none', clip_on=False)
                         par_list[i].set_ylabel(val)
 
                         try:
@@ -432,7 +484,7 @@ class Display(object):
                             newdat.append(abs(value - dat[val][idx - 2]))
                         a.append(self.f.add_subplot(n, 1, i + 1))
                         plots = a[i].plot(range(1, self.num_iter), newdat[1:],
-                                          "o-", label=val, markeredgecolor='none')
+                                          "o-", label=val, markeredgecolor='none', clip_on=False)
                         a[i].set_ylabel('delta ' + val)
                         self.plots.append([plots[0], -1])
 
@@ -784,7 +836,7 @@ class Display(object):
         # Produce a frame and listbox to contain variable information
         var_frame = Tk.Frame(sel_frame)
         var_frame.pack(side=Tk.RIGHT, fill=Tk.Y, padx=20)
-        var_title = Tk.Label(var_frame, text="Variables", font=font)
+        var_title = Tk.Label(var_frame, text="Design Variables", font=font)
         var_title.pack(side=Tk.TOP)
         scrollbar_var = Tk.Scrollbar(var_frame)
         scrollbar_var.pack(side=Tk.RIGHT, fill=Tk.Y)
