@@ -47,6 +47,14 @@ class NOMAD(Optimizer):
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                  storeHistory=None, hotStart=None, storeSens=True):
 
+        if len(optProb.constraints) == 0:
+            # If the user *actually* has an unconstrained problem,
+            # slsqp sort of chokes with that....it has to have at
+            # least one constraint. So we will add one
+            # automatically here:
+            self.unconstrained = True
+            optProb.dummyConstraint = False
+
         self.callCounter = 0
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
