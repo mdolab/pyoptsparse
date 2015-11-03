@@ -28,17 +28,25 @@ def configuration(parent_package='',top_path=None):
 
     # Check if we have Ipopt dir....is so assume the user has setup
     # stuff correctly
-    if os.path.exists('Ipopt'):
-        numpy_include = numpy.get_include()
-        IPOPT_DIR = './Ipopt/'
-        IPOPT_LIB = './Ipopt/lib/'
+    add_ipopt = False
+    if os.path.exists('pyoptsparse/pyIPOPT/Ipopt'):
+        IPOPT_DIR = os.path.join(top_path, 'pyoptsparse/pyIPOPT/Ipopt/')
+        IPOPT_LIB = os.path.join(top_path, 'pyoptsparse/pyIPOPT/Ipopt/lib')
         IPOPT_INC = os.path.join(IPOPT_DIR, 'include/coin/')
+        add_ipopt = True
+    elif os.getenv('IPOPT_DIR') is not None:
+        IPOPT_DIR = os.getenv('IPOPT_DIR')
+        IPOPT_LIB = os.path.join(IPOPT_DIR, 'lib')
+        IPOPT_INC = os.path.join(IPOPT_DIR, 'include/coin/')
+        add_ipopt = True
+    if add_ipopt:
+        numpy_include = numpy.get_include()
         FILES = ['src/callback.c', 'src/pyipoptcoremodule.c']
         config.add_extension('pyipoptcore',
                              FILES,
                              library_dirs=[IPOPT_LIB],
                              libraries=['ipopt', 'coinblas','coinhsl','coinlapack','dl','m'],
-                             extra_link_args=['-Wl,--rpath -Wl,%s -L%s'% (IPOPT_LIB,IPOPT_LIB)],
+                             extra_link_args=['-Wl, -L%s'% (IPOPT_LIB)],
                              include_dirs=[numpy_include, IPOPT_INC])
-        
     return config
+
