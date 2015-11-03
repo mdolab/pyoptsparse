@@ -69,10 +69,10 @@ class IPOPT(Optimizer):
 
                     # Print options
                     'print_level':[int, 0], # Output verbosity level. '0-12'
-                    
+
                     # Print all options set by the user.
-                    'print_user_options':[str, 'no'], # yes or no, 
-                    
+                    'print_user_options':[str, 'no'], # yes or no,
+
                     # Switch to print all algorithmic options.
                     'print_options_documentation':[str, 'no'], # yes or no
 
@@ -95,15 +95,15 @@ class IPOPT(Optimizer):
                     # Enables printing of additional info string at
                     # end of iteration output.
                     'print_info_string':[str, 'no'],#yes or no.
-                    
+
                     # Determines what value is printed in the "inf_pr"
                     # output column. 'internal' or 'original'
                     'inf_pr_output':[str, 'original'],
                     'print_timing_statistics':[str, 'no'], # yes or no
-                    
+
                     # Derivative Testing options
                     # none, first-order, second-order, only-second-order
-                    'derivative_test':[str, 'none'], 
+                    'derivative_test':[str, 'none'],
 
                     'derivative_test_perturbation':[float, 1e-8],
                     'derivative_test_tol':[float, 1e-4],
@@ -115,7 +115,7 @@ class IPOPT(Optimizer):
 
                     # Maximum number of second order correction trial
                     # steps at each iteration
-                    'max_soc':[int, 4], 
+                    'max_soc':[int, 4],
                     'watchdog_shortened_iter_trigger':[int, 10],
                     'watchdog_trial_iter_max':[int, 3],
                     'accept_every_trial_step':[str, 'no'],
@@ -124,15 +124,15 @@ class IPOPT(Optimizer):
                     # Options for the barrier strategy in IPOPT -
                     # these can make a big difference in the
                     # performance of the IP algorithm.
-                    
+
                     # The initial value of mu
                     'mu_init':[float, 0.1],
 
                     # Use the mu update strategy: Defaults to
                     # Fiacco-McCormick monotone, the other option is
                     # 'adaptive'
-                    'mu_strategy':[str, 'monotone'], 
-                    
+                    'mu_strategy':[str, 'monotone'],
+
                     # For the monotone strategy, decrease the value of
                     # mu by this fixed fraction after each barrrier
                     # problem is solved
@@ -144,7 +144,7 @@ class IPOPT(Optimizer):
                     # convergence
                     'mu_superlinear_decrease_power':[float, 1.5],
 
-                    # Parameter that controls how tightly each barrier 
+                    # Parameter that controls how tightly each barrier
                     # problem is solved before the next mu update. A scaled
                     # version of: ||KKT||_{infty} < mu*barrier_tol_factor
                     'barrier_tol_factor':[float, 10.0],
@@ -165,7 +165,7 @@ class IPOPT(Optimizer):
                     # Use Mehrotra's predictor-corrector algorithm -
                     # warning: no globalization
                     'mehrotra_algorithm':[str, 'no'],
-                    
+
                     'start_with_resto':[str, 'no'],
                     'required_infeasibility_reduction':[float, 0.9],
                     'expect_infeasible_problem':[str, 'no'],
@@ -371,7 +371,31 @@ class IPOPT(Optimizer):
                     nlp.int_option(name, value)
                 else:
                     print('invalid option type', type(value))
- 
+
+    def _on_setOption(self, name, value):
+        """
+        Set Optimizer Option Value (Optimizer Specific Routine)
+
+        Documentation last updated:  May. 07, 2008 - Ruben E. Perez
+        """
+
+        self.set_options.append([name, value])
+
+    def _on_getOption(self, name):
+        """
+        Routine to be implemented by optimizer
+        """
+
+        pass
+
+    def _on_getInform(self, info):
+        """
+        Routine to be implemented by optimizer
+        """
+
+        pass
+
+
 #==============================================================================
 # IPOPT Optimizer Test
 #==============================================================================
