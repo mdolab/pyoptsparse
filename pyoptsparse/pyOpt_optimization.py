@@ -1327,16 +1327,14 @@ class Optimization(object):
                 # ss means 'start - stop'
                 ss = self.dvOffset[dvGroup]
                 ndvs = ss[1]-ss[0]
-                try_tuple_dict = False
+
                 gotDerivative = False
-                try:
+                try: # Try using a nested dictionary return
                     if dvGroup in gcon[iCon]:
                         tmp = convertToCOO(gcon[iCon][dvGroup])
                         gotDerivative = True
                 except KeyError:
-                    try_tuple_dict = True
-                if try_tuple_dict: 
-                    try:
+                    try: # Using tuple dictornary return
                         tmp = convertToCOO(gcon[iCon, dvGroup])
                         gotDerivative = True
                     except KeyError: 
@@ -1344,6 +1342,8 @@ class Optimization(object):
                                     ', as was defined in addConGroup(), was not found in'
                                     ' constraint jacobian dictionary provided.'.format(con.name, dvGroup))
                 if not gotDerivative:
+                    # All keys for this constraint must be returned
+                    # since the user has explictly specified the wrt.
                     if not con.partialReturnOk:
                         raise Error(
                             "Constraint '%s' was expecting a jacobain with "
