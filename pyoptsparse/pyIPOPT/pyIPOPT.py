@@ -319,47 +319,47 @@ class IPOPT(Optimizer):
             'ma27_skip_inertia_check' : [str, "no"],
             'ma27_ignore_singularity' : [str, "no"],
 
-            # MA57 Linear Solver.
-            'ma57_pivtol' : [float, 1e-08],
-            'ma57_pivtolmax' : [float, 0.0001],
-            'ma57_pre_alloc' : [float, 1.05],
-            'ma57_pivot_order' : [int, 5],
-            'ma57_automatic_scaling' : [str, "yes"],  # ipopt default is "no".
-            'ma57_block_size' : [int, 16],
-            'ma57_node_amalgamation' : [int, 16],
-            'ma57_small_pivot_flag' : [int, 0],
+            # # MA57 Linear Solver.
+            # 'ma57_pivtol' : [float, 1e-08],
+            # 'ma57_pivtolmax' : [float, 0.0001],
+            # 'ma57_pre_alloc' : [float, 1.05],
+            # 'ma57_pivot_order' : [int, 5],
+            # 'ma57_automatic_scaling' : [str, "yes"],  # ipopt default is "no".
+            # 'ma57_block_size' : [int, 16],
+            # 'ma57_node_amalgamation' : [int, 16],
+            # 'ma57_small_pivot_flag' : [int, 0],
 
-            # Paridiso Linear Solver.
-            'pardiso_matching_strategy' : [str, "complete+2x2"],
-            'pardiso_redo_symbolic_fact_only_if_inertia_wrong' : [str, "no"],
-            'pardiso_repeated_perturbation_means_singular' : [str, "no"],
-            'pardiso_msglvl' : [int, 0],
-            'pardiso_skip_inertia_check' : [str, "no"],
-            'pardiso_max_iter' : [int, 500],
-            'pardiso_iter_relative_tol' : [float, 1e-06],
-            'pardiso_iter_coarse_size' : [int, 5000],
-            'pardiso_iter_max_levels' : [int, 10000],
-            'pardiso_iter_dropping_factor' : [float, 0.5],
-            'pardiso_iter_dropping_schur' : [float, 0.1],
-            'pardiso_iter_max_row_fill' : [int, 10000000],
-            'pardiso_iter_inverse_norm_factor' : [float, 5e+06],
-            'pardiso_iterative' : [str, "no"],
-            'pardiso_max_droptol_corrections' : [int, 4],
+            # # Paridiso Linear Solver.
+            # 'pardiso_matching_strategy' : [str, "complete+2x2"],
+            # 'pardiso_redo_symbolic_fact_only_if_inertia_wrong' : [str, "no"],
+            # 'pardiso_repeated_perturbation_means_singular' : [str, "no"],
+            # 'pardiso_msglvl' : [int, 0],
+            # 'pardiso_skip_inertia_check' : [str, "no"],
+            # 'pardiso_max_iter' : [int, 500],
+            # 'pardiso_iter_relative_tol' : [float, 1e-06],
+            # 'pardiso_iter_coarse_size' : [int, 5000],
+            # 'pardiso_iter_max_levels' : [int, 10000],
+            # 'pardiso_iter_dropping_factor' : [float, 0.5],
+            # 'pardiso_iter_dropping_schur' : [float, 0.1],
+            # 'pardiso_iter_max_row_fill' : [int, 10000000],
+            # 'pardiso_iter_inverse_norm_factor' : [float, 5e+06],
+            # 'pardiso_iterative' : [str, "no"],
+            # 'pardiso_max_droptol_corrections' : [int, 4],
 
-            # Mumps Linear Solver.
-            'mumps_pivtol' : [float, 1e-06],
-            'mumps_pivtolmax' : [float, 0.1],
-            'mumps_mem_percent' : [int, 1000],
-            'mumps_permuting_scaling' : [int, 7],
-            'mumps_pivot_order' : [int, 7],
-            'mumps_scaling' : [int, 77],
-            'mumps_dep_tol' : [float, -1.0],
+            # # Mumps Linear Solver.
+            # 'mumps_pivtol' : [float, 1e-06],
+            # 'mumps_pivtolmax' : [float, 0.1],
+            # 'mumps_mem_percent' : [int, 1000],
+            # 'mumps_permuting_scaling' : [int, 7],
+            # 'mumps_pivot_order' : [int, 7],
+            # 'mumps_scaling' : [int, 77],
+            # 'mumps_dep_tol' : [float, -1.0],
 
-            # MA28 Linear Solver.
-            'ma28_pivtol' : [float, 0.01],
+            # # MA28 Linear Solver.
+            # 'ma28_pivtol' : [float, 0.01],
 
-            # Uncategorized.
-            'warm_start_target_mu' : [float, 0.0]
+            # # Uncategorized.
+            # 'warm_start_target_mu' : [float, 0.0]
         }
 
         informs = { # Don't have any of these yet either..
