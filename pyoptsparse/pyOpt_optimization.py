@@ -34,7 +34,10 @@ except ImportError:
     except ImportError:
         print('Could not find any OrderedDict class. For 2.6 and earlier, \
 use:\n pip install ordereddict')
-from six import iteritems
+try:
+    from six import iteritems
+except ImportError:
+    print ('Could not import \'six\' OpenMDAO type tuple return not available.')
     
 # =============================================================================
 # External Python modules
