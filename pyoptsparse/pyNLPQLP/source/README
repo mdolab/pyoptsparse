@@ -1,0 +1,3 @@
+This directory contains the Fortran 77 source for NLPQLP. To use, copy
+the NLPQLP.FOR and QL.FOR source code here and rename the files to
+NLPQLP.F and QL.F and pyOptSparse will take care of compiling it.
