@@ -25,7 +25,6 @@ from __future__ import print_function
 # =============================================================================
 import copy
 import os
-import shelve
 try:
     from collections import OrderedDict
 except ImportError:
@@ -35,7 +34,7 @@ except ImportError:
         print('Could not find any OrderedDict class. For 2.6 and earlier, \
 use:\n pip install ordereddict')
 from six import iteritems
-    
+from .sqlitedict.sqlitedict import SqliteDict
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -552,7 +551,7 @@ class Optimization(object):
         """
         
         if os.path.exists(histFile):
-            hist = shelve.open(histFile, flag='r')
+            hist = SqliteDict(histFile)
             if key is None:
                 key = hist['last']
                 
