@@ -21,7 +21,6 @@ from __future__ import print_function
 # External Python modules
 # =============================================================================
 import os
-import shelve
 from .pyOpt_error import Error
 from .sqlitedict.sqlitedict import SqliteDict
 # =============================================================================
@@ -30,7 +29,7 @@ from .sqlitedict.sqlitedict import SqliteDict
 class History(object):
     """
     Optimizer History Class Initialization. This is essentially a
-    thin wrapper around a shelve dictionary to facilitate
+    thin wrapper around a SqliteDict dictionary to facilitate
     operations with pyOptSparse
 
     Parameters
@@ -43,26 +42,25 @@ class History(object):
        closed
 
     flag : str
-       String of flags to be passed to shelve.open. The only
-       useful flag is 'r' which will cause the database to be
-       opened in read-only mode. This is often necessary when the
-       history file needs to be read from a read-only partition
-       during a HPC run job. 
+        String speciying the mode. Similar to what was used in
+        shelve. 'n' for a new database and 'r' to read an existing one. 
        """
-    def __init__(self, fileName, temp=False, flag=''):
+    def __init__(self, fileName, temp=False, flag='n'):
 
-        if flag == '':
-            # If we are writing, we expliclty remove the file to
+        if flag == 'n':
+            # If writing, we expliclty remove the file to
             # prevent old keys from "polluting" the new histrory
             if os.path.exists(fileName):
                 os.remove(fileName)
             self.db = SqliteDict(fileName)
-        else:
+        elif flag == 'r':
             if os.path.exists(fileName):
                 self.db = SqliteDict(fileName)
             else:
                 raise Error("The requested history file %s to open in "
                             "read-only mode does not exist."% fileName)
+        else:
+            raise Error('The flag argument to History must be \'r\' or \'n\'.')
         self.temp = temp
         self.fileName = fileName
 
