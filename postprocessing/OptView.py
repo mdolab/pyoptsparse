@@ -85,6 +85,7 @@ class Display(object):
 
         try:
             db = shelve.open(self.histFileName, 'r')
+            OpenMDAO = False
         except: # bare except because error is not in standard Python
             db = SqliteDict(self.histFileName, 'openmdao')
             OpenMDAO = True
@@ -127,12 +128,30 @@ class Display(object):
             except KeyError:
                 pass
 
+            try:
+                f = db[key]['Parameters']
+                for key in sorted(f):
+                    if key not in self.var_data:
+                        self.var_data[key] = []
+                    if numpy.isscalar(f[key]):
+                        self.var_data[key].append(f[key])
+                    try:
+                        if f[key].shape[0] > 1:
+                            self.var_data[key].append(f[key])
+                    except (IndexError, AttributeError):
+                        pass
+
+                self.num_iter += 1
+
+            except KeyError:
+                pass
+
         for i in xrange(nkey):
             if OpenMDAO:
                 key = '{}/{}'.format(solver_name, i)
                 try:
                     f = db[key]['Unknowns']
-
+                    
                     for key in sorted(f):
                         if key not in self.func_data:
                             self.func_data[key] = []
@@ -186,7 +205,8 @@ class Display(object):
                 except KeyError:
                     pass
 
-            for i in xrange(nkey):
+        for i in xrange(nkey):
+            if not OpenMDAO:
                 key = '%d' % i
                 keyp1 = '%d' % (i + 1)
                 if self.iter_type[i]:
@@ -201,6 +221,35 @@ class Display(object):
                                 self.var_data[key].append(f[key])
                         except IndexError:
                             pass
+
+        if OpenMDAO:
+            try:
+                for tag in db['metadata']:
+                    for item in db['metadata'][tag]:
+                        new_key = item + ' ('
+                        flag_list = []
+                        for flag in db['metadata'][tag][item]:
+                            if 'is_objective' in flag:
+                                flag_list.append('o')
+                            if 'is_desvar' in flag:
+                                flag_list.append('dv') 
+                            if 'is_constraint' in flag:
+                                flag_list.append('c')
+                        for flag in flag_list:
+                            if flag == flag_list[-1]:
+                                new_key += flag + ')'
+                            else:
+                                new_key += flag + ', '
+                        if flag_list:
+                            try:
+                                if 'dv' in flag_list:
+                                    self.var_data[new_key] = self.func_data.pop(item)
+                                else:
+                                    self.func_data[new_key] = self.func_data.pop(item)
+                            except KeyError:
+                                pass
+            except KeyError: # skips metadata info if not included in OpenMDAO hist file
+                pass
 
     def quit(self):
         """
