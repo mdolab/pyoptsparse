@@ -25,7 +25,6 @@ from __future__ import print_function
 # =============================================================================
 import copy
 import os
-import shelve
 try:
     from collections import OrderedDict
 except ImportError:
@@ -34,8 +33,14 @@ except ImportError:
     except ImportError:
         print('Could not find any OrderedDict class. For 2.6 and earlier, \
 use:\n pip install ordereddict')
-from six import iteritems
+
+try:
+    from six import iteritems
+except ImportError:
+    print ('Could not import \'six\' OpenMDAO type tuple return not available.')
     
+from .sqlitedict.sqlitedict import SqliteDict
+
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -552,7 +557,7 @@ class Optimization(object):
         """
         
         if os.path.exists(histFile):
-            hist = shelve.open(histFile, flag='r')
+            hist = SqliteDict(histFile)
             if key is None:
                 key = hist['last']
                 
@@ -1327,24 +1332,35 @@ class Optimization(object):
                 # ss means 'start - stop'
                 ss = self.dvOffset[dvGroup]
                 ndvs = ss[1]-ss[0]
-                try_tuple_dict = False
-                
-                try:
+
+                gotDerivative = False
+                try: # Try using a nested dictionary return
                     if dvGroup in gcon[iCon]:
                         tmp = convertToCOO(gcon[iCon][dvGroup])
+                        gotDerivative = True
                 except KeyError:
-                    try_tuple_dict = True
-                if try_tuple_dict: 
-                    try:
+                    try: # Using tuple dictornary return
                         tmp = convertToCOO(gcon[iCon, dvGroup])
+                        gotDerivative = True
                     except KeyError: 
                         raise Error('The constraint jacobian entry for "{}" with respect to "{}"'
                                     ', as was defined in addConGroup(), was not found in'
                                     ' constraint jacobian dictionary provided.'.format(con.name, dvGroup))
-                if 'tmp' not in locals():
-                    # This key is not returned. Just use the
-                    # stored jacobian that contains zeros
-                    tmp = con.jac[dvGroup]
+                if not gotDerivative:
+                    # All keys for this constraint must be returned
+                    # since the user has explictly specified the wrt.
+                    if not con.partialReturnOk:
+                        raise Error(
+                            "Constraint '%s' was expecting a jacobain with "
+                            "respect to dvGroup '%s' as was supplied in "
+                            "addConGroup(). This was not found in the "
+                            "constraint jacobian dictionary"% (
+                                        con.name, dvGroup))
+                    else:
+                        # This key is not returned. Just use the
+                        # stored jacobian that contains zeros
+                        tmp = con.jac[dvGroup]
+
                 # Now check that the jacobian is the correct shape
                 if not(tmp['shape'][0] == con.ncon and tmp['shape'][1] == ndvs):
                     raise Error("The shape of the supplied constraint "
