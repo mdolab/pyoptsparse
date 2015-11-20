@@ -115,7 +115,7 @@ class Display(object):
                 for key in sorted(f):
                     if key not in self.func_data:
                         self.func_data[key] = []
-                    if numpy.isscalar(f[key]):
+                    if numpy.isscalar(f[key]) or f[key].shape == (1,):
                         self.func_data[key].append(f[key])
                     try:
                         if f[key].shape[0] > 1:
@@ -133,7 +133,7 @@ class Display(object):
                 for key in sorted(f):
                     if key not in self.var_data:
                         self.var_data[key] = []
-                    if numpy.isscalar(f[key]):
+                    if numpy.isscalar(f[key]) or f[key].shape == (1,):
                         self.var_data[key].append(f[key])
                     try:
                         if f[key].shape[0] > 1:
@@ -155,7 +155,7 @@ class Display(object):
                     for key in sorted(f):
                         if key not in self.func_data:
                             self.func_data[key] = []
-                        if numpy.isscalar(f[key]):
+                        if numpy.isscalar(f[key]) or f[key].shape == (1,):
                             self.func_data[key].append(f[key])
                         try:
                             if f[key].shape[0] > 1:
@@ -188,7 +188,7 @@ class Display(object):
                     for key in sorted(f):
                         if key not in self.func_data:
                             self.func_data[key] = []
-                        if numpy.isscalar(f[key]):
+                        if numpy.isscalar(f[key]) or f[key].shape == (1,):
                             self.func_data[key].append(f[key])
                         try:
                             if f[key].shape[0] > 1:
@@ -214,7 +214,7 @@ class Display(object):
                     for key in sorted(f):
                         if key not in self.var_data:
                             self.var_data[key] = []
-                        if numpy.isscalar(f[key]):
+                        if numpy.isscalar(f[key]) or f[key].shape == (1,):
                             self.var_data[key].append(f[key])
                         try:
                             if f[key].shape[0] > 1:
