@@ -78,8 +78,10 @@ class Display(object):
         variable information is stored as a dict in var_data,
         and bounds information is stored as a dict in bounds.
         """
-        self.func_data = {}
-        self.var_data = {}
+        self.func_data_all = {}
+        self.func_data_major = {}
+        self.var_data_all = {}
+        self.var_data_major = {}     
 
         self.num_iter = 0
 
@@ -113,13 +115,13 @@ class Display(object):
             try:
                 f = db[key]['Unknowns']
                 for key in sorted(f):
-                    if key not in self.func_data:
-                        self.func_data[key] = []
+                    if key not in self.func_data_all:
+                        self.func_data_all[key] = []
                     if numpy.isscalar(f[key]) or f[key].shape == (1,):
-                        self.func_data[key].append(f[key])
+                        self.func_data_all[key].append(f[key])
                     try:
                         if f[key].shape[0] > 1:
-                            self.func_data[key].append(f[key])
+                            self.func_data_all[key].append(f[key])
                     except (IndexError, AttributeError):
                         pass
 
@@ -131,13 +133,13 @@ class Display(object):
             try:
                 f = db[key]['Parameters']
                 for key in sorted(f):
-                    if key not in self.var_data:
-                        self.var_data[key] = []
+                    if key not in self.var_data_all:
+                        self.var_data_all[key] = []
                     if numpy.isscalar(f[key]) or f[key].shape == (1,):
-                        self.var_data[key].append(f[key])
+                        self.var_data_all[key].append(f[key])
                     try:
                         if f[key].shape[0] > 1:
-                            self.var_data[key].append(f[key])
+                            self.var_data_all[key].append(f[key])
                     except (IndexError, AttributeError):
                         pass
 
@@ -153,13 +155,13 @@ class Display(object):
                     f = db[key]['Unknowns']
                     
                     for key in sorted(f):
-                        if key not in self.func_data:
-                            self.func_data[key] = []
+                        if key not in self.func_data_all:
+                            self.func_data_all[key] = []
                         if numpy.isscalar(f[key]) or f[key].shape == (1,):
-                            self.func_data[key].append(f[key])
+                            self.func_data_all[key].append(f[key])
                         try:
                             if f[key].shape[0] > 1:
-                                self.func_data[key].append(f[key])
+                                self.func_data_all[key].append(f[key])
                         except (IndexError, AttributeError):
                             pass
 
@@ -176,23 +178,29 @@ class Display(object):
                     f = db[key]['funcs']
                     try:
                         db[keyp1]['funcsSens']
-                        self.iter_type[i] = 2
+                        self.iter_type[i] = 1 # for 'major' iterations
                     except KeyError:
                         pass
                     try:
                         db[keyp1]['funcs']
-                        self.iter_type[i] = 1
+                        self.iter_type[i] = 2 # for 'minor' iterations
                     except KeyError:
                         pass
 
                     for key in sorted(f):
-                        if key not in self.func_data:
-                            self.func_data[key] = []
+                        if key not in self.func_data_all:
+                            self.func_data_all[key] = []
+                            if self.iter_type[i] == 1:
+                                self.func_data_major[key] = []
                         if numpy.isscalar(f[key]) or f[key].shape == (1,):
-                            self.func_data[key].append(f[key])
+                            self.func_data_all[key].append(f[key])
+                            if self.iter_type[i] == 1:
+                                self.func_data_major[key].append(f[key])
                         try:
                             if f[key].shape[0] > 1:
-                                self.func_data[key].append(f[key])
+                                self.func_data_all[key].append(f[key])
+                                if self.iter_type[i] == 1:
+                                    self.func_data_major[key].append(f[key])
                         except (IndexError, AttributeError):
                             pass
 
@@ -202,23 +210,29 @@ class Display(object):
                         pass
                     self.num_iter += 1
 
+
                 except KeyError:
                     pass
 
         for i in xrange(nkey):
             if not OpenMDAO:
                 key = '%d' % i
-                keyp1 = '%d' % (i + 1)
                 if self.iter_type[i]:
                     f = db[key]['xuser']
                     for key in sorted(f):
-                        if key not in self.var_data:
-                            self.var_data[key] = []
+                        if key not in self.var_data_all:
+                            self.var_data_all[key] = []
+                            if self.iter_type[i] == 1:
+                                self.var_data_major[key] = []
                         if numpy.isscalar(f[key]) or f[key].shape == (1,):
-                            self.var_data[key].append(f[key])
+                            self.var_data_all[key].append(f[key])
+                            if self.iter_type[i] == 1:
+                                self.var_data_major[key].append(f[key])
                         try:
                             if f[key].shape[0] > 1:
-                                self.var_data[key].append(f[key])
+                                self.var_data_all[key].append(f[key])
+                                if self.iter_type[i] == 1:
+                                    self.var_data_major[key].append(f[key])
                         except IndexError:
                             pass
 
@@ -243,13 +257,16 @@ class Display(object):
                         if flag_list:
                             try:
                                 if 'dv' in flag_list:
-                                    self.var_data[new_key] = self.func_data.pop(item)
+                                    self.var_data_all[new_key] = self.func_data_all.pop(item)
                                 else:
-                                    self.func_data[new_key] = self.func_data.pop(item)
+                                    self.func_data_all[new_key] = self.func_data_all.pop(item)
                             except KeyError:
                                 pass
             except KeyError: # skips metadata info if not included in OpenMDAO hist file
                 pass
+
+        self.func_data = self.func_data_all
+        self.var_data = self.var_data_all
 
     def quit(self):
         """
@@ -643,6 +660,16 @@ class Display(object):
             elif len(var_sel):
                 values = [self.lb_var.get(i) for i in var_sel]
                 self.plot_selected(values, self.var_data)
+
+    def set_mask(self):
+        if self.var_mask.get():
+            self.func_data = self.func_data_major
+            self.var_data = self.var_data_major
+        else:
+            self.func_data = self.func_data_all
+            self.var_data = self.var_data_all
+        self.num_iter = len(self.func_data[self.func_data.keys()[0]])
+        self.update_graph()
 
     def save_figure(self):
         """
@@ -1043,11 +1070,21 @@ class Display(object):
             font=font)
         c9.grid(row=5, column=1, sticky=Tk.W)
 
+        # Option to only show 'major' iterations
+        self.var_mask = Tk.IntVar()
+        c10 = Tk.Checkbutton(
+            options_frame,
+            text="Show 'major' iterations",
+            variable=self.var_mask,
+            command=self.set_mask,
+            font=font)
+        c10.grid(row=6, column=1, sticky=Tk.W, pady=6)
+
         lab = Tk.Label(
             options_frame,
             text="Search for a function/variable:",
             font=font)
-        lab.grid(row=6, column=0, columnspan=2, pady=10, sticky=Tk.W)
+        lab.grid(row=7, column=0, columnspan=2, pady=10, sticky=Tk.W)
 
         # Search box to filter displayed functions/variables
         vs = Tk.StringVar()
@@ -1055,18 +1092,18 @@ class Display(object):
         self.entry_search = Tk.Entry(
             options_frame, text="Search", textvariable=vs,
             font=font)
-        self.entry_search.grid(row=6, column=2, pady=10, sticky=Tk.W)
+        self.entry_search.grid(row=7, column=2, pady=10, sticky=Tk.W)
 
         lab_font = Tk.Label(
             options_frame,
             text="Font size for plots:",
             font=font)
-        lab_font.grid(row=7, column=0, sticky=Tk.S)
+        lab_font.grid(row=8, column=0, sticky=Tk.S)
 
         w = Tk.Scale(options_frame, from_=6, to=24, orient=Tk.HORIZONTAL,
                      resolution=2, command=self.update_font, font=font)
         w.set(16)
-        w.grid(row=7, column=1)
+        w.grid(row=8, column=1)
 
 if __name__ == '__main__':
     # Called only if this script is run as main.
