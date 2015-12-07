@@ -29,7 +29,6 @@ from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
 import numpy
 from pyoptsparse import SqliteDict
-import traceback
 
 class Display(object):
 
@@ -269,7 +268,6 @@ class Display(object):
                                 except KeyError:
                                     pass
                 except KeyError: # skips metadata info if not included in OpenMDAO hist file
-                    traceback.print_exc()
                     pass
 
         self.func_data = self.func_data_all
