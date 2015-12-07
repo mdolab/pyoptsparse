@@ -52,8 +52,17 @@ to your ``.bashrc`` file such as::
     
 Through this usage, ``OptView`` can be called from any directory as::
 
-    OptView --histFile --outputDirectory
+    OptView histFile --outputDirectory
+
+Additionally, you can open multiple history files in the same ``OptView`` instance
+by calling them via the command line::
     
+    OptView histFile1 histFile2 histFile3 --outputDirectory
+
+Each file's contents will be loaded into ``OptView`` with a flag appended to the end
+of each variable or function name corresponding to the history file. The first one 
+listed will have '_A' added to the name, the second will have '_B' added, etc.
+There is currently no limit to the number of history files than can be loaded.
 
 Features
 --------

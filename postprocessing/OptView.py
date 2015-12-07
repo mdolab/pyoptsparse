@@ -29,6 +29,7 @@ from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
 import numpy
 from pyoptsparse import SqliteDict
+import traceback
 
 class Display(object):
 
@@ -38,7 +39,7 @@ class Display(object):
 
     """
 
-    def __init__(self, histFileName, outputDir):
+    def __init__(self, histList, outputDir):
 
         self.root = Tk.Tk()
         self.root.wm_title("OptView")
@@ -66,7 +67,7 @@ class Display(object):
         self.arr_active = 0
         self.plots = []
         self.annotate = None
-        self.histFileName = histFileName
+        self.histList = histList
         self.outputDir = outputDir
 
         self.OptimizationHistory()
@@ -85,188 +86,199 @@ class Display(object):
 
         self.num_iter = 0
 
-        try:
-            db = shelve.open(self.histFileName, 'r')
-            OpenMDAO = False
-        except: # bare except because error is not in standard Python
-            db = SqliteDict(self.histFileName, 'openmdao')
-            OpenMDAO = True
-            if db.keys() == []:
+        db = {}
+        for histIndex, histFileName in enumerate(self.histList):
+            if len(self.histList) == 1:
+                histIndex = ''
+            else:
+                histIndex = '_' + chr(histIndex + ord('A'))
+            try:
+                db = shelve.open(histFileName, 'r')
                 OpenMDAO = False
-                db = SqliteDict(self.histFileName)
+            except: # bare except because error is not in standard Python
+                db = SqliteDict(histFileName, 'openmdao')
+                OpenMDAO = True
+                if db.keys() == []:
+                    OpenMDAO = False
+                    db = SqliteDict(histFileName)
             
-        if OpenMDAO:
-            string = db.keys()[-1].split('/')
-            nkey = int(string[-1])
-            solver_name = string[0]
-        else:
-            nkey = int(db['last'])
-        self.iter_type = numpy.zeros(nkey)
-
-        # Check to see if there is bounds information in the hst file
-        try:
-            self.bounds = dict(
-                db['varBounds'].items() + db['conBounds'].items())
-        except KeyError:
-            pass
-
-        if OpenMDAO:
-            key = 'Driver/1'
-            try:
-                f = db[key]['Unknowns']
-                for key in sorted(f):
-                    if key not in self.func_data_all:
-                        self.func_data_all[key] = []
-                    if numpy.isscalar(f[key]) or f[key].shape == (1,):
-                        self.func_data_all[key].append(f[key])
-                    try:
-                        if f[key].shape[0] > 1:
-                            self.func_data_all[key].append(f[key])
-                    except (IndexError, AttributeError):
-                        pass
-
-                self.num_iter += 1
-
-            except KeyError:
-                pass
-
-            try:
-                f = db[key]['Parameters']
-                for key in sorted(f):
-                    if key not in self.var_data_all:
-                        self.var_data_all[key] = []
-                    if numpy.isscalar(f[key]) or f[key].shape == (1,):
-                        self.var_data_all[key].append(f[key])
-                    try:
-                        if f[key].shape[0] > 1:
-                            self.var_data_all[key].append(f[key])
-                    except (IndexError, AttributeError):
-                        pass
-
-                self.num_iter += 1
-
-            except KeyError:
-                pass
-
-        for i in xrange(nkey):
             if OpenMDAO:
-                key = '{}/{}'.format(solver_name, i)
+                string = db.keys()[-1].split('/')
+                nkey = int(string[-1])
+                solver_name = string[0]
+            else:
+                nkey = int(db['last'])
+            self.iter_type = numpy.zeros(nkey)
+
+            # Check to see if there is bounds information in the hst file
+            try:
+                self.bounds = dict(
+                    db['varBounds'].items() + db['conBounds'].items())
+            except KeyError:
+                pass
+
+            if OpenMDAO:
+                key = 'Driver/1'
                 try:
                     f = db[key]['Unknowns']
-                    
                     for key in sorted(f):
-                        if key not in self.func_data_all:
-                            self.func_data_all[key] = []
+                        new_key = key + '{}'.format(histIndex)
+                        if new_key not in self.func_data_all:
+                            self.func_data_all[new_key] = []
                         if numpy.isscalar(f[key]) or f[key].shape == (1,):
-                            self.func_data_all[key].append(f[key])
+                            self.func_data_all[new_key].append(f[key])
                         try:
                             if f[key].shape[0] > 1:
-                                self.func_data_all[key].append(f[key])
+                                self.func_data_all[new_key].append(f[key])
                         except (IndexError, AttributeError):
                             pass
-
-                    self.num_iter += 1
 
                 except KeyError:
                     pass
 
-            else:
-                key = '%d' % i
-                keyp1 = '%d' % (i + 1)
                 try:
-
-                    f = db[key]['funcs']
-                    try:
-                        db[keyp1]['funcsSens']
-                        self.iter_type[i] = 1 # for 'major' iterations
-                    except KeyError:
-                        pass
-                    try:
-                        db[keyp1]['funcs']
-                        self.iter_type[i] = 2 # for 'minor' iterations
-                    except KeyError:
-                        pass
-
+                    f = db[key]['Parameters']
                     for key in sorted(f):
-                        if key not in self.func_data_all:
-                            self.func_data_all[key] = []
-                            if self.iter_type[i] == 1:
-                                self.func_data_major[key] = []
+                        new_key = key + '{}'.format(histIndex)
+                        if new_key not in self.var_data_all:
+                            self.var_data_all[new_key] = []
                         if numpy.isscalar(f[key]) or f[key].shape == (1,):
-                            self.func_data_all[key].append(f[key])
-                            if self.iter_type[i] == 1:
-                                self.func_data_major[key].append(f[key])
+                            self.var_data_all[new_key].append(f[key])
                         try:
                             if f[key].shape[0] > 1:
-                                self.func_data_all[key].append(f[key])
-                                if self.iter_type[i] == 1:
-                                    self.func_data_major[key].append(f[key])
+                                self.var_data_all[new_key].append(f[key])
                         except (IndexError, AttributeError):
                             pass
-
-                    try:
-                        db[key]['funcsSens']
-                    except KeyError:
-                        pass
-                    self.num_iter += 1
-
 
                 except KeyError:
                     pass
 
-        for i in xrange(nkey):
-            if not OpenMDAO:
-                key = '%d' % i
-                if self.iter_type[i]:
-                    f = db[key]['xuser']
-                    for key in sorted(f):
-                        if key not in self.var_data_all:
-                            self.var_data_all[key] = []
-                            if self.iter_type[i] == 1:
-                                self.var_data_major[key] = []
-                        if numpy.isscalar(f[key]) or f[key].shape == (1,):
-                            self.var_data_all[key].append(f[key])
-                            if self.iter_type[i] == 1:
-                                self.var_data_major[key].append(f[key])
+            for i in xrange(nkey):
+                if OpenMDAO:
+                    key = '{}/{}'.format(solver_name, i)
+                    try:
+                        f = db[key]['Unknowns']
+                        
+                        for key in sorted(f):
+                            new_key = key + '{}'.format(histIndex)
+                            if new_key not in self.func_data_all:
+                                self.func_data_all[new_key] = []
+                            if numpy.isscalar(f[key]) or f[key].shape == (1,):
+                                self.func_data_all[new_key].append(f[key])
+                            try:
+                                if f[key].shape[0] > 1:
+                                    self.func_data_all[new_key].append(f[key])
+                            except (IndexError, AttributeError):
+                                pass
+
+                    except KeyError:
+                        pass
+
+                else:
+                    key = '%d' % i
+                    keyp1 = '%d' % (i + 1)
+                    try:
+
+                        f = db[key]['funcs']
                         try:
-                            if f[key].shape[0] > 1:
-                                self.var_data_all[key].append(f[key])
-                                if self.iter_type[i] == 1:
-                                    self.var_data_major[key].append(f[key])
-                        except IndexError:
+                            db[keyp1]['funcsSens']
+                            self.iter_type[i] = 1 # for 'major' iterations
+                        except KeyError:
+                            pass
+                        try:
+                            db[keyp1]['funcs']
+                            self.iter_type[i] = 2 # for 'minor' iterations
+                        except KeyError:
                             pass
 
-        if OpenMDAO:
-            try:
-                for tag in db['metadata']:
-                    for item in db['metadata'][tag]:
-                        new_key = item + ' ('
-                        flag_list = []
-                        for flag in db['metadata'][tag][item]:
-                            if 'is_objective' in flag:
-                                flag_list.append('o')
-                            if 'is_desvar' in flag:
-                                flag_list.append('dv') 
-                            if 'is_constraint' in flag:
-                                flag_list.append('c')
-                        for flag in flag_list:
-                            if flag == flag_list[-1]:
-                                new_key += flag + ')'
-                            else:
-                                new_key += flag + ', '
-                        if flag_list:
+                        for key in sorted(f):
+                            new_key = key + '{}'.format(histIndex)
+                            if new_key not in self.func_data_all:
+                                self.func_data_all[new_key] = []
+                                if self.iter_type[i] == 1:
+                                    self.func_data_major[new_key] = []
+                            if numpy.isscalar(f[key]) or f[key].shape == (1,):
+                                self.func_data_all[new_key].append(f[key])
+                                if self.iter_type[i] == 1:
+                                    self.func_data_major[new_key].append(f[key])
                             try:
-                                if 'dv' in flag_list:
-                                    self.var_data_all[new_key] = self.func_data_all.pop(item)
-                                else:
-                                    self.func_data_all[new_key] = self.func_data_all.pop(item)
-                            except KeyError:
+                                if f[key].shape[0] > 1:
+                                    self.func_data_all[new_key].append(f[key])
+                                    if self.iter_type[i] == 1:
+                                        self.func_data_major[new_key].append(f[key])
+                            except (IndexError, AttributeError):
                                 pass
-            except KeyError: # skips metadata info if not included in OpenMDAO hist file
-                pass
+
+                        try:
+                            db[key]['funcsSens']
+                        except KeyError:
+                            pass
+
+
+                    except KeyError:
+                        pass
+
+            for i in xrange(nkey):
+                if not OpenMDAO:
+                    key = '%d' % i
+                    if self.iter_type[i]:
+                        f = db[key]['xuser']
+                        for key in sorted(f):
+                            new_key = key + '{}'.format(histIndex)
+                            if new_key not in self.var_data_all:
+                                self.var_data_all[new_key] = []
+                                if self.iter_type[i] == 1:
+                                    self.var_data_major[new_key] = []
+                            if numpy.isscalar(f[key]) or f[key].shape == (1,):
+                                self.var_data_all[new_key].append(f[key])
+                                if self.iter_type[i] == 1:
+                                    self.var_data_major[new_key].append(f[key])
+                            try:
+                                if f[key].shape[0] > 1:
+                                    self.var_data_all[new_key].append(f[key])
+                                    if self.iter_type[i] == 1:
+                                        self.var_data_major[new_key].append(f[key])
+                            except IndexError:
+                                pass
+
+            if OpenMDAO:
+                try:
+                    for tag in db['metadata']:
+                        for old_item in db['metadata'][tag]:
+                            item = old_item + '{}'.format(histIndex)
+                            new_key = item + ' ('
+                            flag_list = []
+                            for flag in db['metadata'][tag][old_item]:
+                                if 'is_objective' in flag:
+                                    flag_list.append('o')
+                                if 'is_desvar' in flag:
+                                    flag_list.append('dv') 
+                                if 'is_constraint' in flag:
+                                    flag_list.append('c')
+                            for flag in flag_list:
+                                if flag == flag_list[-1]:
+                                    new_key += flag + ')'
+                                else:
+                                    new_key += flag + ', '
+                            if flag_list:
+                                try:
+                                    if 'dv' in flag_list:
+                                        self.var_data_all[new_key] = self.func_data_all.pop(item)
+                                    else:
+                                        self.func_data_all[new_key] = self.func_data_all.pop(item)
+                                except KeyError:
+                                    pass
+                except KeyError: # skips metadata info if not included in OpenMDAO hist file
+                    traceback.print_exc()
+                    pass
 
         self.func_data = self.func_data_all
         self.var_data = self.var_data_all
+
+        for key in self.func_data.keys():
+            length = len(self.func_data[key])
+            if length > self.num_iter:
+                self.num_iter = length
 
     def quit(self):
         """
@@ -668,7 +680,11 @@ class Display(object):
         else:
             self.func_data = self.func_data_all
             self.var_data = self.var_data_all
-        self.num_iter = len(self.func_data[self.func_data.keys()[0]])
+        self.num_iter = 0
+        for key in self.func_data.keys():
+            length = len(self.func_data[key])
+            if length > self.num_iter:
+                self.num_iter = length
         self.update_graph()
 
     def save_figure(self):
@@ -1113,19 +1129,21 @@ if __name__ == '__main__':
     # ======================================================================
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        'histFile', nargs='?', type=str, default='opt_hist.hst',
+        'histFile', nargs='*', type=str, default='opt_hist.hst',
         help="Specify the history file to be plotted")
-    parser.add_argument('output', nargs='?', type=str, default='./',
+    parser.add_argument('--output', nargs='?', type=str, default='./',
                         help="Specify the output directory")
     args = parser.parse_args()
-    histFileName = args.histFile
+    histList = args.histFile
     outputDir = args.output
+
+    histFileName = histList[0]
 
     # Check that the output directory is available. Create it if not
     if not os.path.isdir(outputDir):
         os.makedirs(outputDir)
     # Initialize display parameters, obtain history, and draw GUI
-    disp = Display(histFileName, outputDir)
+    disp = Display(histList, outputDir)
     disp.draw_GUI()
     disp.root.protocol("WM_DELETE_WINDOW", disp.quit)
     on_move_id = disp.f.canvas.mpl_connect('motion_notify_event', disp.on_move)
