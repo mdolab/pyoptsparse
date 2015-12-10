@@ -606,7 +606,7 @@ class Display(object):
         """
         w = evt.widget
         values = [w.get(int(i)) for i in w.curselection()]
-        self.plot_selected(values, data_name)
+        self.update_graph()
         if len(values) == 1:
             try:
                 data = data_name[values[0]]
@@ -662,14 +662,16 @@ class Display(object):
             func_sel = self.lb_func.curselection()
             var_sel = self.lb_var.curselection()
             arr_sel = self.lb_arr.curselection()
+            values = []
+            dat = {}
             if len(arr_sel) and self.arr_active:
                 self.plot_selected(self.val_names, self.arr_data)
-            elif len(func_sel):
-                values = [self.lb_func.get(i) for i in func_sel]
-                self.plot_selected(values, self.func_data)
-            elif len(var_sel):
-                values = [self.lb_var.get(i) for i in var_sel]
-                self.plot_selected(values, self.var_data)
+            elif len(func_sel) or len(var_sel):
+                values.extend([self.lb_func.get(i) for i in func_sel])
+                dat = self.func_data.copy()
+                values.extend([self.lb_var.get(i) for i in var_sel])
+                dat.update(self.var_data)
+                self.plot_selected(values, dat)
 
     def set_mask(self):
         if self.var_mask.get():
@@ -851,6 +853,14 @@ class Display(object):
         self.refresh_history(self.plotAll.get())
         self.update_graph()
 
+    def clear_selections(self):
+        """
+        Deselects all currently-selected variables, functions, and array options
+        """
+        self.lb_func.selection_clear(0, Tk.END)
+        self.lb_var.selection_clear(0, Tk.END)
+        self.lb_arr.selection_clear(0, Tk.END)
+
     def on_move(self, event):
         """
         Checks to see if the cursor is over a plot and provides a
@@ -909,7 +919,8 @@ class Display(object):
             name='lb_func',
             selectmode=Tk.EXTENDED,
             font=font,
-            width=30)
+            width=30,
+            exportselection=0)
         self.lb_func.pack(side=Tk.LEFT)
         for key in sorted(self.func_data):
             self.lb_func.insert(Tk.END, key)
@@ -935,7 +946,8 @@ class Display(object):
             name='lb_var',
             selectmode=Tk.EXTENDED,
             font=font,
-            width=30)
+            width=30,
+            exportselection=0)
         self.lb_var.pack(side=Tk.RIGHT)
         for key in sorted(self.var_data):
             self.lb_var.insert(Tk.END, key)
@@ -973,40 +985,47 @@ class Display(object):
         options_frame = Tk.Frame(self.root)
         options_frame.pack(side=Tk.LEFT, fill=Tk.Y, pady=10)
 
+        button0 = Tk.Button(
+            options_frame,
+            text='Clear selections',
+            command=self.clear_selections,
+            font=font)
+        button0.grid(row=0, column=2, padx=5, sticky=Tk.W)
+
         button1 = Tk.Button(
             options_frame,
             text='Refresh history',
             command=self.refresh_history,
             font=font)
-        button1.grid(row=0, column=2, padx=5, sticky=Tk.W)
+        button1.grid(row=1, column=2, padx=5, sticky=Tk.W)
 
         button2 = Tk.Button(
             options_frame,
             text='Save all figures',
             command=self.save_all_figues,
             font=font)
-        button2.grid(row=1, column=2, padx=5, sticky=Tk.W)
+        button2.grid(row=2, column=2, padx=5, sticky=Tk.W)
 
         button3 = Tk.Button(
             options_frame,
             text='Save figure',
             command=self.save_figure,
             font=font)
-        button3.grid(row=2, column=2, padx=5, sticky=Tk.W)
+        button3.grid(row=3, column=2, padx=5, sticky=Tk.W)
 
         button4 = Tk.Button(
             options_frame,
             text='Save tec file',
             command=self.save_tec,
             font=font)
-        button4.grid(row=3, column=2, padx=5, sticky=Tk.W)
+        button4.grid(row=4, column=2, padx=5, sticky=Tk.W)
 
         button5 = Tk.Button(
             options_frame,
             text='Quit',
             command=self.quit,
             font=font)
-        button5.grid(row=4, column=2, padx=5, sticky=Tk.W)
+        button5.grid(row=5, column=2, padx=5, sticky=Tk.W)
 
         # Plot options
         self.var = Tk.IntVar()
