@@ -16,6 +16,7 @@ import argparse
 import shelve
 import tkFont
 import Tkinter as Tk
+import re
 
 # ======================================================================
 # External Python modules
@@ -800,12 +801,12 @@ class Display(object):
         search_entry = self.entry_search.get()
         func_range = range(len(self.func_data))
         for i in func_range[::-1]:
-            if search_entry.lower() not in self.lb_func.get(i).lower():
+            if not re.search(search_entry.lower(), self.lb_func.get(i).lower()):
                 self.lb_func.delete(i)
 
         var_range = range(len(self.var_data))
         for i in var_range[::-1]:
-            if search_entry.lower() not in self.lb_var.get(i).lower():
+            if not re.search(search_entry.lower(), self.lb_var.get(i).lower()):
                 self.lb_var.delete(i)
 
         if not self.lb_var.get(1) and not self.lb_func.get(1):
