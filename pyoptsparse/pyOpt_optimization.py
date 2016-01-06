@@ -953,7 +953,7 @@ class Optimization(object):
         x : array
             Flattened array from optimizer
         """
-        xg = {}
+        xg = OrderedDict()
         imax = 0
         for dvGroup in self.variables:
             istart = self.dvOffset[dvGroup][0]
