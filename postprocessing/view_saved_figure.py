@@ -20,6 +20,9 @@ string but before the bottom code.
 '''
 
 # Add customization code below
+ax = fig.axes[0]
+ax.set_title('Example title')
+ax.set_ylabel('Example y-axis')
 
 
 # Display the altered figure
