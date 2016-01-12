@@ -104,7 +104,10 @@ class Display(object):
             
             if OpenMDAO:
                 string = db.keys()[-1].split('/')
-                nkey = int(string[-1])
+                if string[-1]=='derivs':
+                    nkey = int(string[-2]) + 1 # OpenMDAO uses 1-indexing
+                else:
+                    nkey = int(string[-1]) + 1 # OpenMDAO uses 1-indexing
                 solver_name = string[0]
             else:
                 nkey = int(db['last'])
@@ -142,11 +145,17 @@ class Display(object):
                         new_key = key + '{}'.format(histIndex)
                         if new_key not in self.var_data_all:
                             self.var_data_all[new_key] = []
+                            if self.iter_type[i] == 1:
+                                self.var_data_major[new_key] = []
                         if numpy.isscalar(f[key]) or f[key].shape == (1,):
                             self.var_data_all[new_key].append(f[key])
+                            if self.iter_type[i] == 1:
+                                self.var_data_major[new_key].append(f[key])
                         try:
                             if f[key].shape[0] > 1:
                                 self.var_data_all[new_key].append(f[key])
+                                if self.iter_type[i] == 1:
+                                    self.var_data_major[new_key].append(f[key])
                         except (IndexError, AttributeError):
                             pass
 
@@ -156,18 +165,31 @@ class Display(object):
             for i in xrange(nkey):
                 if OpenMDAO:
                     key = '{}/{}'.format(solver_name, i)
+                    keyp1 = '{}/{}/derivs'.format(solver_name, i)
+
                     try:
                         f = db[key]['Unknowns']
+                        try:
+                            db[keyp1]
+                            self.iter_type[i] = 1 # for 'major' iterations
+                        except KeyError:
+                            self.iter_type[i] = 2 # for 'minor' iterations
                         
                         for key in sorted(f):
                             new_key = key + '{}'.format(histIndex)
                             if new_key not in self.func_data_all:
                                 self.func_data_all[new_key] = []
+                                if self.iter_type[i] == 1:
+                                    self.func_data_major[new_key] = []
                             if numpy.isscalar(f[key]) or f[key].shape == (1,):
                                 self.func_data_all[new_key].append(f[key])
+                                if self.iter_type[i] == 1:
+                                    self.func_data_major[new_key].append(f[key])
                             try:
                                 if f[key].shape[0] > 1:
                                     self.func_data_all[new_key].append(f[key])
+                                    if self.iter_type[i] == 1:
+                                        self.func_data_major[new_key].append(f[key])
                             except (IndexError, AttributeError):
                                 pass
 
@@ -241,6 +263,9 @@ class Display(object):
                             except IndexError:
                                 pass
 
+
+            # Add labels to OpenMDAO variables
+            # Corresponds to constraints, design variables, and objective
             if OpenMDAO:
                 try:
                     for tag in db['metadata']:
@@ -264,8 +289,11 @@ class Display(object):
                                 try:
                                     if 'dv' in flag_list:
                                         self.var_data_all[new_key] = self.func_data_all.pop(item)
+                                        self.var_data_major[new_key] = self.func_data_major.pop(item)
+
                                     else:
                                         self.func_data_all[new_key] = self.func_data_all.pop(item)
+                                        self.func_data_major[new_key] = self.func_data_major.pop(item)
                                 except KeyError:
                                     pass
                 except KeyError: # skips metadata info if not included in OpenMDAO hist file
