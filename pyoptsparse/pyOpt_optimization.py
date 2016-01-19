@@ -25,7 +25,6 @@ from __future__ import print_function
 # =============================================================================
 import copy
 import os
-import shelve
 try:
     from collections import OrderedDict
 except ImportError:
@@ -34,8 +33,16 @@ except ImportError:
     except ImportError:
         print('Could not find any OrderedDict class. For 2.6 and earlier, \
 use:\n pip install ordereddict')
-from six import iteritems
-    
+
+try:
+    import six
+    from six import iteritems, iterkeys, next
+except ImportError:
+    six = None
+    print ('Could not import \'six\' OpenMDAO type tuple return not available.')
+
+from .sqlitedict.sqlitedict import SqliteDict
+
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -50,16 +57,19 @@ from .pyOpt_constraint import Constraint
 from .pyOpt_error import Error
 from .pyOpt_MPI import MPI
 from .pyOpt_utils import *
+
 # =============================================================================
 # Misc Definitions
 # =============================================================================
-INFINITY = 1e20 
+INFINITY = 1e20
+
+
 # =============================================================================
 # Optimization Class
 # =============================================================================
 class Optimization(object):
     """
-    Create a description of an optimization problem. 
+    Create a description of an optimization problem.
 
     Parameters
     ----------
@@ -75,9 +85,9 @@ class Optimization(object):
         The communicator this problem will be solved on. This is
         required for both analysis when the objective is computed in
         parallel as well as to use the internal parallel gradient
-        computations. Defaults to MPI.COMM_WORLD if not given. 
+        computations. Defaults to MPI.COMM_WORLD if not given.
         """
-      
+
     def __init__(self, name, objFun, comm=None):
 
         self.name = name
@@ -86,13 +96,13 @@ class Optimization(object):
             self.comm = MPI.COMM_WORLD
         else:
             self.comm = comm
-            
+
         # Ordered dictionaries to keep track of variables and constraints
         self.variables = OrderedDict()
         self.constraints = OrderedDict()
         self.objectives = OrderedDict()
         self.dvOffset = OrderedDict()
-        
+
         # Variables to be set in finalizeConstraints
         # have finalized the specification of the variable and the
         # constraints
@@ -108,7 +118,7 @@ class Optimization(object):
         """
         This is a convenience function. It simply calls addVarGroup()
         with nVars=1. Variables added with addVar() are returned as
-        *scalars*. 
+        *scalars*.
         """
         self.addVarGroup(name, 1, *args, scalar=True, **kwargs)
 
@@ -168,8 +178,8 @@ class Optimization(object):
                 validName = conName + '_%d'% i
             return validName
 
-    def addVarGroup(self, name, nVars, type='c', value=0.0, 
-                    lower=None, upper=None, scale=1.0, 
+    def addVarGroup(self, name, nVars, type='c', value=0.0,
+                    lower=None, upper=None, scale=1.0,
                     choices=None, **kwargs):
         """
         Add a group of variables into a variable set. This is the main
@@ -183,24 +193,24 @@ class Optimization(object):
         nVars : int
             Number of design variables in this group.
 
-        type : str. 
+        type : str.
             String representing the type of variable. Suitable values for type
             are: 'c' for continuous variables, 'i' for integer values and
-            'd' for discrete selection. 
+            'd' for discrete selection.
 
-        value : scalar or array. 
+        value : scalar or array.
             Starting value for design variables. If it is a a scalar, the same
             value is applied to all 'nVars' variables. Otherwise, it must be
             iterable object with length equal to 'nVars'.
 
-        lower : scalar or array. 
+        lower : scalar or array.
             Lower bound of variables. Scalar/array usage is the same as value
             keyword
 
-        upper : scalar or array. 
+        upper : scalar or array.
             Upper bound of variables. Scalar/array usage is the same as value
             keyword
-            
+
         scale : scalar or array.  Define a user supplied scaling
             variable for the design variable group.  This is often
             necessary when design variables of widely varying
@@ -210,7 +220,7 @@ class Optimization(object):
 
         choices : list
             Specify a list of choices for discrete design variables
-            
+
         Examples
         --------
         >>> # Add a single design variable 'alpha'
@@ -219,7 +229,7 @@ class Optimization(object):
         >>> # Add 10 unscaled variables of 0.5 between 0 and 1 with name 'y'
         >>> optProb.addVarGroup('y', type='c', value=0.5, lower=0.0, upper=1.0, \
         scale=1.0)
-        
+
         Notes
         -----
         Calling addVar() and addVarGroup(..., nVars=1, ...) are
@@ -231,10 +241,10 @@ class Optimization(object):
         follow the examples above by including all the keyword
         arguments. This make it very clear the intent of the script's
         author. The type, value, lower, upper and scale should be
-        given for all variables even if the default value is used. 
+        given for all variables even if the default value is used.
         """
 
-        # Check that the nVars is > 0. 
+        # Check that the nVars is > 0.
         if nVars < 1:
             raise Error("The 'nVars' argument to addVarGroup must be greater "
                         "than or equal to 1. The bad DV is %s."%name)
@@ -243,7 +253,7 @@ class Optimization(object):
         if type not in ['c', 'i', 'd']:
             raise Error("Type must be one of 'c' for continuous, "
                         "'i' for integer or 'd' for discrete.")
-                    
+
         # ------ Process the value argument
         value = numpy.atleast_1d(value).real
         if len(value) == 1:
@@ -301,7 +311,7 @@ class Optimization(object):
             varName = name + '_%d'% iVar
             varList.append(Variable(varName, type=type, value=value[iVar],
                                     lower=lower[iVar], upper=upper[iVar],
-                                    scale=scale[iVar], scalar=scalar, 
+                                    scale=scale[iVar], scalar=scalar,
                                     choices=choices))
 
         if name in self.variables:
@@ -316,7 +326,7 @@ class Optimization(object):
                                 "has already been used!"% name)
             # We we got here, we know that the variables we wanted to
             # add are **EXACTLY** the same so that's cool. We'll just
-            # overwrite with the varList below. 
+            # overwrite with the varList below.
         else:
             # Finally we set the variable list
             self.variables[name] = varList
@@ -334,7 +344,7 @@ class Optimization(object):
             self.variables.pop(name)
         except KeyError:
             print('%s was not a valid design variable name.'% name)
-            
+
     def _reduceDict(self, variables):
         """
         This is a specialized function that is used to communicate
@@ -343,10 +353,10 @@ class Optimization(object):
         communicating the design variables and constraints, which may
         be specified on different processors independently.
         """
-        
+
         # Step 1: Gather just the key names:
         allKeys = self.comm.gather(list(variables.keys()), root=0)
-       
+
         # Step 2: Determine the unique set:
         procKeys = {}
         if self.comm.rank == 0:
@@ -369,7 +379,7 @@ class Optimization(object):
 
         # Step 3. Now broadcast this back to everyone
         procKeys = self.comm.bcast(procKeys, root=0)
-     
+
         # Step 4. The required processors can send the variables
         if self.comm.rank == 0:
             for key in procKeys:
@@ -388,17 +398,17 @@ class Optimization(object):
         """
         Add Objective into Objectives Set
         """
-        
+
         self.objectives[name] = Objective(name, *args, **kwargs)
 
     def addCon(self, name, *args, **kwargs):
         """
         Convenience function. See addConGroup() for more information
         """
-        
+
         self.addConGroup(name, 1, *args, **kwargs)
 
-    def addConGroup(self, name, nCon, lower=None, upper=None, scale=1.0, 
+    def addConGroup(self, name, nCon, lower=None, upper=None, scale=1.0,
                     linear=False, wrt=None, jac=None):
         """Add a group of variables into a variable set. This is the main
         function used for adding variables to pyOptSparse.
@@ -412,13 +422,13 @@ class Optimization(object):
             The number of constraints in this group
 
         lower : scalar or array
-            The lower bound(s) for the constraint. If it is a scalar, 
-            it is applied to all nCon constraints. If it is an array, 
+            The lower bound(s) for the constraint. If it is a scalar,
+            it is applied to all nCon constraints. If it is an array,
             the array must be the same length as nCon.
 
         upper : scalar or array
-            The upper bound(s) for the constraint. If it is a scalar, 
-            it is applied to all nCon constraints. If it is an array, 
+            The upper bound(s) for the constraint. If it is a scalar,
+            it is applied to all nCon constraints. If it is an array,
             the array must be the same length as nCon.
 
         scale : scalar or array
@@ -467,7 +477,7 @@ class Optimization(object):
             mat = {'coo':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
 
             Note that for nonlinear constraints (linear=False), the
-            values themselves in the matrices in jac do not matter, 
+            values themselves in the matrices in jac do not matter,
             but the sparsity structure **does** matter. It is
             imperative that entries that will at some point have
             non-zero entries have non-zero entries in jac
@@ -494,8 +504,8 @@ class Optimization(object):
         -------
         outDVs : dict
             The dictionary of variables. This is the same as 'x' that
-            would be used to call the user objective function. 
-        """ 
+            would be used to call the user objective function.
+        """
 
         outDVs = {}
         for dvGroup in self.variables:
@@ -516,7 +526,7 @@ class Optimization(object):
         """
         set the problem design variables from a dictionary. In most
         common usage, this function is not required.
-        
+
         Parameters
         ----------
         inDVs : dict
@@ -550,17 +560,17 @@ class Optimization(object):
             default is None which will use the last x-value stored in
             the dictionary.
         """
-        
+
         if os.path.exists(histFile):
-            hist = shelve.open(histFile, flag='r')
+            hist = SqliteDict(histFile)
             if key is None:
                 key = hist['last']
-                
+
             self.setDVs(hist[key]['xuser'])
             hist.close()
         else:
             raise Error("History file '%s' not found!."% histFile)
-        
+
     def printSparsity(self):
         """
         This function prints an (ascii) visualization of the jacobian
@@ -574,7 +584,7 @@ class Optimization(object):
         --------
         This function is **collective** on the optProb comm. It is
         therefore necessary to call this function on **all**
-        processors of the optProb comm. 
+        processors of the optProb comm.
 
         """
         self.finalizeDesignVariables()
@@ -582,7 +592,7 @@ class Optimization(object):
 
         if self.comm.rank != 0:
             return
-    
+
         # Header describing what we are printing:
         print('+'+'-'*78+'-'+'+')
         print('|' + ' '*19 +'Sparsity structure of constraint Jacobian' + ' '*19 + '|')
@@ -591,7 +601,7 @@ class Optimization(object):
         # We will do this with a 2d numpy array of characters since it
         # will make slicing easier
 
-        # First determine the requried number of rows 
+        # First determine the requried number of rows
         nRow = 1 # Header
         nRow += 1 # Line
         maxConNameLen = 0
@@ -614,14 +624,14 @@ class Optimization(object):
             varCenters.append(nCol + len(var_str)/2 + 1)
             nCol += len(var_str)
             nCol += 2 # Spaces on either side
-            nCol += 1 # Line 
+            nCol += 1 # Line
 
         txt = numpy.zeros((nRow, nCol), dtype=str)
         txt[:, :] = ' '
         # Outline of the matrix on left and top
         txt[1, maxConNameLen+1:-1] = '-'
         txt[2:-1, maxConNameLen+1] = '|'
-     
+
         # Print the variable names:
         iCol = maxConNameLen + 2
         for dvGroup in self.variables:
@@ -655,7 +665,7 @@ class Optimization(object):
             # The separator
             txt[iRow+1, maxConNameLen+1:] = '-'
             iRow += 2
-            
+
         # Corners - just to make it nice :-)
         txt[1, maxConNameLen+1] = '+'
         txt[-1, maxConNameLen+1] = '+'
@@ -669,14 +679,14 @@ class Optimization(object):
         """
         Return the index of a scalar DV/constraint, or the beginning
         and end index (inclusive) of a DV/constraint array.
-        This is useful for looking at SNOPT gradient check output, 
+        This is useful for looking at SNOPT gradient check output,
         and the default startIndex=1 is for that purpose
         """
 
         # Get the begin and end index (inclusive) of design variables
         # using infomation from finalizeDesignVariables()
         dvIndex = OrderedDict()
-        # Loop over the actual DV names 
+        # Loop over the actual DV names
         for dvGroup in self.dvOffset:
             ind0 = self.dvOffset[dvGroup][0] + startIndex
             ind1 = self.dvOffset[dvGroup][1] + startIndex
@@ -705,7 +715,7 @@ class Optimization(object):
             print('### CONSTRAINTS ###')
             for conKey in conIndex:
                 print(conKey, conIndex[conKey])
-        
+
         return dvIndex, conIndex
 
 #=======================================================================
@@ -731,11 +741,11 @@ class Optimization(object):
         for dvGroup in self.variables:
             n = len(self.variables[dvGroup])
             self.dvOffset[dvGroup] = [
-                dvCounter, dvCounter + n, 
+                dvCounter, dvCounter + n,
                 self.variables[dvGroup][0].scalar]
             dvCounter += n
         self.ndvs = dvCounter
-    
+
     def finalizeConstraints(self):
         """
         **This function should not need to be called by the user**
@@ -743,7 +753,7 @@ class Optimization(object):
         There are several functions for this routine:
 
         1. Determine the number of constraints
-        
+
         2. Determine the final scaling array for the design variables
 
         3. Determine if it is possible to return a complete dense
@@ -763,7 +773,7 @@ class Optimization(object):
         self.nCon = 0
         for iCon in self.constraints:
             self.nCon += self.constraints[iCon].ncon
-            
+
         # Loop over the constraints assigning the row start (rs) and
         # row end (re) values. The actual ordering depends on if
         # constraints are reordered or not.
@@ -779,7 +789,7 @@ class Optimization(object):
             self.conScale = conScale
         else:
             self.conScale = None
-        
+
         # -----------------------------------------
         # Step 2. Assemble design variable scaling
         # -----------------------------------------
@@ -812,15 +822,15 @@ class Optimization(object):
                     row.extend(con.jac[dvGroup]['coo'][IROW])
                     col.extend(con.jac[dvGroup]['coo'][ICOL] +ss[0])
                     data.extend(con.jac[dvGroup]['coo'][IDATA])
-                    
+
                 # Now create a coo, convert to CSR and store
                 con.linearJacobian = {'coo':[row, col, data],
                                       'shape':[con.ncon, self.ndvs]}
 
     def getOrdering(self, conOrder, oneSided, noEquality=False):
         """
-        Internal function that is used to produce a index list that 
-        reorders the constraints the way a particular optimizer needs. 
+        Internal function that is used to produce a index list that
+        reorders the constraints the way a particular optimizer needs.
 
         Parameters
         ----------
@@ -839,7 +849,7 @@ class Optimization(object):
         noEquality : bool
            Flag to split equality constraints into two inequality
            constraints. Some optimizers (CONMIN for example) can't do
-           equality constraints explicitly. 
+           equality constraints explicitly.
            """
 
         # Now for the fun part determine what *actual* order the
@@ -867,7 +877,7 @@ class Optimization(object):
         fact = []
         lower = []
         upper = []
-        
+
         for conType in conOrder:
             for iCon in self.constraints:
                 con = self.constraints[iCon]
@@ -877,7 +887,7 @@ class Optimization(object):
                     icon = con.oneSidedConstraints
                 else:
                     icon = con.twoSidedConstraints
-              
+
                 if conType == 'ne' and not con.linear:
                     if noEquality:
                         # Expand Equality constraint to two:
@@ -896,13 +906,13 @@ class Optimization(object):
                         fact.extend(econ['fact'])
                         lower.extend(econ['value'])
                         upper.extend(econ['value'])
-                    
+
                 if conType == 'ni' and not con.linear:
                     indices.extend(con.rs + icon['ind'])
                     fact.extend(icon['fact'])
                     lower.extend(icon['lower'])
                     upper.extend(icon['upper'])
-                        
+
                 if conType == 'le' and con.linear:
                     if noEquality:
                         # Expand Equality constraint to two:
@@ -930,20 +940,20 @@ class Optimization(object):
         if len(fact) == 0:
             fact = None
         return numpy.array(indices), numpy.array(lower), numpy.array(upper), fact
-    
+
     def processX(self, x):
         """
         **This function should not need to be called by the user**
 
         Take the flattened array of variables in 'x' and return a
-        dictionary of variables keyed on the name of each variable. 
+        dictionary of variables keyed on the name of each variable.
 
         Parameters
         ----------
         x : array
             Flattened array from optimizer
         """
-        xg = {}
+        xg = OrderedDict()
         imax = 0
         for dvGroup in self.variables:
             istart = self.dvOffset[dvGroup][0]
@@ -999,7 +1009,7 @@ class Optimization(object):
         if imax != self.ndvs:
             raise Error("Error deprocessing x. There is a mismatch in the"
                         " number of variables.")
-            
+
         return x_array
 
     def processObjective(self, funcs, scaled=True):
@@ -1022,7 +1032,7 @@ class Optimization(object):
         fobj = []
         for objKey in self.objectives.keys():
             if objKey in funcs:
-                try: 
+                try:
                     f = numpy.asscalar(numpy.squeeze(funcs[objKey]))
                 except ValueError:
                     raise Error("The objective return value, '%s' must be a "
@@ -1067,13 +1077,13 @@ class Optimization(object):
 
         if self.dummyConstraint:
             return numpy.array([0])
-        
+
         # We REQUIRE that fcon_in is a dict:
         fcon = numpy.zeros(self.nCon, dtype=dtype)
         for iCon in self.constraints:
             con = self.constraints[iCon]
             if iCon in fcon_in:
-                    
+
                 # Make sure it is at least 1-dimensional:
                 c = numpy.atleast_1d(fcon_in[iCon])
                 if dtype == 'd':
@@ -1106,7 +1116,7 @@ class Optimization(object):
                 return fcon
             else:
                 return fcon
-   
+
     def deProcessConstraints(self, fcon_in, scaled=True, dtype='d', natural=False):
         """
         **This function should not need to be called by the user**
@@ -1164,7 +1174,7 @@ class Optimization(object):
         treat the linear constraints. For those optimizers, we will
         evaluate the linear constraints here. We place the values of
         the linear constraints in the fcon dictionary such that it
-        appears as if the user evaluated these constraints. 
+        appears as if the user evaluated these constraints.
 
         Parameters
         ----------
@@ -1173,7 +1183,7 @@ class Optimization(object):
 
         fcon : dict
             Dictionary of the constraints. The linear constraints are
-            to be added to this dictionary. 
+            to be added to this dictionary.
             """
 
         # This is actually pretty easy; it's just a matvec with the
@@ -1185,7 +1195,7 @@ class Optimization(object):
     def processObjectiveGradient(self, funcsSens):
         """
         **This function should not need to be called by the user**
-        
+
         This generic function is used to assemble the objective
         gradient(s)
 
@@ -1193,7 +1203,7 @@ class Optimization(object):
         ----------
         funcsSens : dict
             Dictionary of all function gradients. Just extract the
-            objective(s) we need here. 
+            objective(s) we need here.
         """
 
         dvGroups = set(self.variables.keys())
@@ -1201,8 +1211,15 @@ class Optimization(object):
         nobj = len(self.objectives)
         gobj = numpy.zeros((nobj, self.ndvs))
 
-        if isinstance(funcsSens.keys()[0], str):
+        cond = False
+        if six:
+            # this version is required for python 3 compatibility
+            cond = isinstance(next(iterkeys(funcsSens)), str)
+        else:
+            # fallback if six is not available
+            cond = isinstance(funcsSens.keys()[0], str)
 
+        if cond:
             iObj = 0
             for objKey in self.objectives.keys():
                 if objKey in funcsSens:
@@ -1267,12 +1284,12 @@ class Optimization(object):
     def processConstraintJacobian(self, gcon):
         """
         **This function should not need to be called by the user**
-        
+
         This generic function is used to assemble the entire
         constraint jacobian. The order of the constraint jacobian is
         in 'natural' ordering, that is the order the constraints have
         been added (mostly; since it can be different when constraints
-        are added on different processors). 
+        are added on different processors).
 
         The input is gcon, which is dict or an array. The array format
         should only be used when the pyOpt_gradient class is used
@@ -1291,7 +1308,7 @@ class Optimization(object):
         Returns
         -------
         gcon : dict with csr data
-            Return the jacobian in a sparse csr format. 
+            Return the jacobian in a sparse csr format.
             can be easily converted to csc, coo or dense format as
             required by individual optimizers
             """
@@ -1309,19 +1326,19 @@ class Optimization(object):
         for iCon in self.constraints:
             if self.constraints[iCon].linear:
                 gcon[iCon] = copy.deepcopy(self.constraints[iCon].jac)
-                
+
         # We now know we must process as a dictionary. Below are the
-        # lists for the matrix entries. 
+        # lists for the matrix entries.
         data = []
         row = []
         col = []
         ii = 0
 
-        # Otherwise, process constraints in the dictionary form. 
+        # Otherwise, process constraints in the dictionary form.
         # Loop over all constraints:
         for iCon in self.constraints:
             con = self.constraints[iCon]
-                    
+
             # Now loop over all required keys for this constraint:
             for dvGroup in con.wrt:
                 # ss means 'start - stop'
@@ -1337,7 +1354,7 @@ class Optimization(object):
                     try: # Using tuple dictornary return
                         tmp = convertToCOO(gcon[iCon, dvGroup])
                         gotDerivative = True
-                    except KeyError: 
+                    except KeyError:
                         raise Error('The constraint jacobian entry for "{}" with respect to "{}"'
                                     ', as was defined in addConGroup(), was not found in'
                                     ' constraint jacobian dictionary provided.'.format(con.name, dvGroup))
@@ -1363,7 +1380,7 @@ class Optimization(object):
                                 "is incorrect. "
                                 "Expected an array of shape (%d, %d), but "
                                 "received an array of shape (%d, %d)."% (
-                                    con.name, dvGroup, con.ncon, ndvs, 
+                                    con.name, dvGroup, con.ncon, ndvs,
                                     tmp['shape'][0], tmp['shape'][1]))
 
                 # Now check that supplied coo matrix has same length
@@ -1399,7 +1416,7 @@ class Optimization(object):
         """
         Print Structured Optimization Problem
         """
-        
+
         text = """\nOptimization Problem -- %s\n%s\n
         Objective Function: %s\n\n    Objectives:
         Name        Value        Optimum\n""" % (
@@ -1425,13 +1442,11 @@ class Optimization(object):
                 text += str(self.constraints[iCon])
 
         return text
- 
+
 #==============================================================================
 # Optimization Test
 #==============================================================================
 if __name__ == '__main__':
-    
+
     print('Testing Optimization...')
     optprob = Optimization('Optimization Problem', {})
-    
-    
