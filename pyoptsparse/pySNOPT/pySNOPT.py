@@ -338,6 +338,14 @@ class SNOPT(Optimizer):
             self.optProb.fact = fact
             self.optProb.offset = numpy.zeros_like(fact)
 
+            # Again, make SNOPT think we have a nonlinear constraint when all
+            # our constraints are linear
+            if nnCon == 0:
+                nnCon = 1
+                self.optProb.jacIndices = [0]
+                self.optProb.fact = numpy.array([1.0])
+                self.optProb.offset = numpy.zeros_like(self.optProb.fact)
+
         # We make a split here: If the rank is zero we setup the
         # problem and run SNOPT, otherwise we go to the waiting loop:
         if self.optProb.comm.rank == 0:
