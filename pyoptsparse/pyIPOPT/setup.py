@@ -46,7 +46,7 @@ def configuration(parent_package='',top_path=None):
                              FILES,
                              library_dirs=[IPOPT_LIB],
                              libraries=['ipopt', 'coinblas','coinhsl','coinlapack','dl','m'],
-                             extra_link_args=['-Wl, -L%s'% (IPOPT_LIB)],
+                             extra_link_args=['-Wl,-rpath,%s -L%s'% (IPOPT_LIB, IPOPT_LIB)],
                              include_dirs=[numpy_include, IPOPT_INC])
     return config
 
