@@ -52,8 +52,17 @@ to your ``.bashrc`` file such as::
     
 Through this usage, ``OptView`` can be called from any directory as::
 
-    OptView --histFile --outputDirectory
+    OptView histFile --outputDirectory
+
+Additionally, you can open multiple history files in the same ``OptView`` instance
+by calling them via the command line::
     
+    OptView histFile1 histFile2 histFile3 --outputDirectory
+
+Each file's contents will be loaded into ``OptView`` with a flag appended to the end
+of each variable or function name corresponding to the history file. The first one 
+listed will have '_A' added to the name, the second will have '_B' added, etc.
+There is currently no limit to the number of history files than can be loaded.
 
 Features
 --------
@@ -96,7 +105,7 @@ Most checkbox options should play well with any of these three main options,
 though there are known issues with using the 'multiple axes'
 option and delta values or for displaying arrays.
 
-There are six checkbox options:
+There are seven checkbox options:
 
     * Absolute delta values - displays the absolute difference between one iteration's value and the previous
     * Log scale - sets the y-axis as a log scale
@@ -104,6 +113,7 @@ There are six checkbox options:
     * Show all for arrays - plots all variables within an array
     * Show legend - reveals the legend for the plotted data
     * Show bounds - shows the variable bounds as dashed lines
+    * Show 'major' iterations - a heuristic filter to remove the line search iterations from the plotting results; especially useful for SNOPT output
     
 Additionally, four buttons allow control of the plot:
 
