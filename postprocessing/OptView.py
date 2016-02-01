@@ -200,7 +200,6 @@ class Display(object):
                     key = '%d' % i
                     keyp1 = '%d' % (i + 1)
                     try:
-
                         f = db[key]['funcs']
                         try:
                             db[keyp1]['funcsSens']
@@ -208,7 +207,6 @@ class Display(object):
                         except KeyError:
                             pass
                         try:
-                            db[keyp1]['funcs']
                             self.iter_type[i] = 2 # for 'minor' iterations
                         except KeyError:
                             pass
@@ -432,6 +430,8 @@ class Display(object):
                 "o-",
                 label=val,
                 markeredgecolor='none', clip_on=False)
+        except KeyError:
+            self.warning_display("No 'major' iterations")
         try:
             if len(plots) > 1:
                 for i, plot in enumerate(plots):
@@ -653,6 +653,8 @@ class Display(object):
                 self.scrollbar_arr.pack_forget()
                 self.arr_title.pack_forget()
                 self.arr_active = 0
+            except KeyError:
+                self.warning_display("No 'major' iterations")
 
     def onselect_arr(self, evt):
         """
