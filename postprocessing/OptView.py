@@ -17,6 +17,8 @@ import shelve
 import tkFont
 import Tkinter as Tk
 import re
+import sched
+import time
 
 # ======================================================================
 # External Python modules
@@ -82,7 +84,7 @@ class Display(object):
         self.func_data_all = {}
         self.func_data_major = {}
         self.var_data_all = {}
-        self.var_data_major = {}     
+        self.var_data_major = {}
 
         self.num_iter = 0
 
@@ -101,7 +103,7 @@ class Display(object):
                 if db.keys() == []:
                     OpenMDAO = False
                     db = SqliteDict(histFileName)
-            
+
             if OpenMDAO:
                 string = db.keys()[-1].split('/')
                 if string[-1]=='derivs':
@@ -174,7 +176,6 @@ class Display(object):
                             self.iter_type[i] = 1 # for 'major' iterations
                         except KeyError:
                             self.iter_type[i] = 2 # for 'minor' iterations
-                        
                         for key in sorted(f):
                             new_key = key + '{}'.format(histIndex)
                             if new_key not in self.func_data_all:
@@ -275,7 +276,7 @@ class Display(object):
                                 if 'is_objective' in flag:
                                     flag_list.append('o')
                                 if 'is_desvar' in flag:
-                                    flag_list.append('dv') 
+                                    flag_list.append('dv')
                                 if 'is_constraint' in flag:
                                     flag_list.append('c')
                             for flag in flag_list:
@@ -744,7 +745,7 @@ class Display(object):
             import dill
             dill.dump(self.f, file(fpathname, 'wb'))
         except ImportError:
-            pass            
+            pass
 
     def save_all_figues(self):
         """
@@ -781,7 +782,7 @@ class Display(object):
                 dat[name] = self.var_data[name]
 
         keys = dat.keys()
-        
+
         num_vars = len(keys)
         num_iters = len(dat[keys[0]])
         full_data = numpy.arange(num_iters, dtype=numpy.float_).reshape(num_iters, 1)
@@ -876,6 +877,15 @@ class Display(object):
 
         if not (old_funcs == new_funcs and old_vars == new_vars):
             self.var_search('dummy')
+
+    def auto_ref(self):
+        """
+        Automatically refreshes the history file, which is
+        useful if examining a running optimization.
+        """
+        if self.var_ref.get():
+            self.root.after(10000, self.auto_ref)
+            self.refresh_history()
 
     def update_all(self):
         """
@@ -1144,11 +1154,22 @@ class Display(object):
             font=font)
         c10.grid(row=6, column=1, sticky=Tk.W, pady=6)
 
+        # Option to automatically refresh history file
+        # especially useful for running optimizations
+        self.var_ref = Tk.IntVar()
+        c11 = Tk.Checkbutton(
+            options_frame,
+            text="Automatically refresh",
+            variable=self.var_ref,
+            command=self.auto_ref,
+            font=font)
+        c11.grid(row=7, column=1, sticky=Tk.W, pady=6)
+
         lab = Tk.Label(
             options_frame,
             text="Search for a function/variable:",
             font=font)
-        lab.grid(row=7, column=0, columnspan=2, pady=10, sticky=Tk.W)
+        lab.grid(row=8, column=0, columnspan=2, pady=10, sticky=Tk.W)
 
         # Search box to filter displayed functions/variables
         vs = Tk.StringVar()
@@ -1156,18 +1177,18 @@ class Display(object):
         self.entry_search = Tk.Entry(
             options_frame, text="Search", textvariable=vs,
             font=font)
-        self.entry_search.grid(row=7, column=2, pady=10, sticky=Tk.W)
+        self.entry_search.grid(row=8, column=2, pady=10, sticky=Tk.W)
 
         lab_font = Tk.Label(
             options_frame,
             text="Font size for plots:",
             font=font)
-        lab_font.grid(row=8, column=0, sticky=Tk.S)
+        lab_font.grid(row=9, column=0, sticky=Tk.S)
 
         w = Tk.Scale(options_frame, from_=6, to=24, orient=Tk.HORIZONTAL,
                      resolution=2, command=self.update_font, font=font)
         w.set(16)
-        w.grid(row=8, column=1)
+        w.grid(row=9, column=1)
 
 if __name__ == '__main__':
     # Called only if this script is run as main.
