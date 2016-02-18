@@ -108,10 +108,10 @@ class NSGA2(Optimizer):
         def objconfunc(nreal, nobj, ncon, x, f, g):
             xx = numpy.array(x)
             fobj, fcon, fail = self._masterFunc(xx, ['fobj','fcon'])
-
-            f[0] = fobj
+            fobj = numpy.atleast_1d(fobj)
+            f[0:nobj] = fobj
             g[0:ncon] = -fcon[0:ncon]
-           
+
             return f, g
 
         self.callCounter = 0
@@ -151,8 +151,8 @@ class NSGA2(Optimizer):
             self.optProb.offset = buc
 
         g = nsga2.new_doubleArray(m)
-        l = 1
-        f = nsga2.new_doubleArray(1)
+        l = len(numpy.atleast_1d(ff))
+        f = nsga2.new_doubleArray(l)
 
         if self.optProb.comm.rank == 0:
             # Set history/hotstart
