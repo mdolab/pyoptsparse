@@ -208,6 +208,7 @@ class Display(object):
                         except KeyError:
                             pass
                         try:
+                            db[keyp1]['funcs']
                             self.iter_type[i] = 2 # for 'minor' iterations
                         except KeyError:
                             pass
