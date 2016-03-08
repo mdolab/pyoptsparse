@@ -2,7 +2,7 @@
 """
 pyOpt_variable
 
-Holds the representation of a single pyOptSparse variable 
+Holds the representation of a single pyOptSparse variable
 
 Copyright (c) 2008-2013 by pyOpt Developers
 All rights reserved.
@@ -48,26 +48,28 @@ class Variable(object):
             self.value = int(value)
             self.lower = lower
             self.upper = upper
+            self.scale = scale
         elif self.type == 'd':
-            if choices is not None:
+            if choices is None:
                 raise Error("A discrete variable requires "
                             "to input an array of choices.")
             self.choices = choices
             self.value = self.choices[int(value)]
             self.lower = 0
             self.upper = len(self.choices)
+            self.scale = scale
 
     def __eq__(self, other):
         """
         Compare two variable objects
         """
-        if (self.name == other.name and self.type == other.type and 
+        if (self.name == other.name and self.type == other.type and
             self.scalar == other.scalar and self.upper == other.upper and
             self.lower == other.lower and self.choices == other.choices):
             return True
         else:
             return False
-        
+
     def __str__(self):
         """
         Print Structured List of Variable
@@ -89,10 +91,10 @@ class Variable(object):
                 lower = -1e20
             if self.upper is None:
                 upper = 1e20
-            
+
             res += '	 '
             res += str(self.name).center(9)
             res += '%5s	%14f %14.2e %12.2e \n'% (
                 self.type, self.value, lower, upper)
-            
+
         return res
