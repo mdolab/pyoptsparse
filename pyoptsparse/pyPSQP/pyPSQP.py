@@ -201,6 +201,7 @@ class PSQP(Optimizer):
                     self._internalEval(x)
 
                 f = self.storedData['fobj']
+                psqp.pyflush(self.getOption('IOUT'))
                 return f
 
             #======================================================================
@@ -211,6 +212,7 @@ class PSQP(Optimizer):
                     self._internalEval(x)
 
                 g = self.storedData['fcon'][k-1]
+                psqp.pyflush(self.getOption('IOUT'))
                 return g
 
             #======================================================================
@@ -221,6 +223,7 @@ class PSQP(Optimizer):
                     self._internalEval(x)
 
                 df = self.storedData['gobj']
+                psqp.pyflush(self.getOption('IOUT'))
                 return df
 
             #======================================================================
@@ -231,6 +234,7 @@ class PSQP(Optimizer):
                     self._internalEval(x)
                 
                 dg = self.storedData['gcon'][k-1]
+                psqp.pyflush(self.getOption('IOUT'))
                 return dg
 
             # Setup argument list values
