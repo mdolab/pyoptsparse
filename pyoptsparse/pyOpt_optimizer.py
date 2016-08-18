@@ -265,7 +265,7 @@ class Optimizer(object):
         # end if (hot starting)
 
         # Now we have to actually run our function...this is where the
-        # MPI gets a little tricy. Up until now, only the root proc
+        # MPI gets a little tricky. Up until now, only the root proc
         # has called up to here...the rest of them are waiting at a
         # broadcast to know what to do.
 
@@ -322,7 +322,10 @@ class Optimizer(object):
                     funcs = args
                     fail = False
                 self.userObjTime += time.time()-timeA
-                self.userObjCalls += 1
+                if self.optProb.bulk is None:
+                    self.userObjCalls += 1
+                else:
+                    self.userObjCalls += self.optProb.bulk
                 # User values stored is immediately
                 self.cache['funcs'] = copy.deepcopy(funcs)
 
