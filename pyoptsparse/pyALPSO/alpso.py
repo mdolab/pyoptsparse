@@ -214,7 +214,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
                 x_k[0, :] = x0[:]
 
         else:
-            if x0 != [].shape[0] > swarmsize:
+            if x0.shape[0] > swarmsize:
                 print('Warning: %d initial positions specified for %d particles, last %d positions ignored'
                       % (x0.shape[0], swarmsize, x0.shape[0] - swarmsize))
                 x0 = x0[0:swarmsize, :]
