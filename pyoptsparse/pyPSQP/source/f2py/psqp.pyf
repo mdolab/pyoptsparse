@@ -1,0 +1,146 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module psqp__user__routines
+    interface psqp_user_interface
+        subroutine obj(nf,x,ff)
+            intent(callback) obj
+            external obj
+            integer intent(in) :: nf
+            double precision dimension(nf),intent(in),depend(nf) :: x
+            double precision intent(in,out) :: ff
+        end subroutine obj
+        subroutine dobj(nf,x,gf)
+            intent(callback) dobj
+            external dobj
+            integer intent(in) :: nf
+            double precision dimension(nf),intent(in),depend(nf) :: x
+            double precision dimension(nf),intent(in,out),depend(nf) :: gf
+        end subroutine dobj
+        subroutine con(nf,kc,x,fc)
+            intent(callback) con
+            external con
+            integer intent(in) :: nf
+            integer intent(in) :: kc
+            double precision dimension(nf),intent(in),depend(nf) :: x
+            double precision intent(in,out) :: fc
+        end subroutine con
+        subroutine dcon(nf,kc,x,gc)
+            intent(callback) dcon
+            external dcon
+            integer intent(in) :: nf
+            integer intent(in) :: kc
+            double precision dimension(nf),intent(in),depend(nf) :: x
+            double precision dimension(nf),intent(in,out),depend(nf) :: gc
+        end subroutine dcon
+    end interface psqp_user_interface
+end python module psqp__user__routines
+python module psqp ! in 
+    interface  ! in :psqp
+        subroutine psqp_wrap(nf,nc,x,ix,xl,xu,cf,ic,cl,cu,mit,mfv,met,mec,xmax,tolx,tolc,tolg,rpf,f,gmax,cmax,iprnt,iout,ifile,iterm) ! in :psqp:source/psqp_wrap.f
+            use psqp__user__routines
+            integer intent(in) :: nf
+            integer intent(in) :: nc
+            double precision dimension(nf),intent(inout),depend(nf) :: x
+            integer dimension(nf),intent(in),depend(nf) :: ix
+            double precision dimension(nf),intent(in),depend(nf) :: xl
+            double precision dimension(nf),intent(in),depend(nf) :: xu
+            double precision dimension(nc+1),intent(inout),depend(nc) :: cf
+            integer dimension(nc),intent(in),depend(nc) :: ic
+            double precision dimension(nc),intent(in),depend(nc) :: cl
+            double precision dimension(nc),intent(in),depend(nc) :: cu
+            integer intent(in) :: mit
+            integer intent(in) :: mfv
+            integer intent(in) :: met
+            integer intent(in) :: mec
+            double precision intent(in) :: xmax
+            double precision intent(in) :: tolx
+            double precision intent(in) :: tolc
+            double precision intent(in) :: tolg
+            double precision intent(in) :: rpf
+            double precision intent(inout) :: f
+            double precision intent(in) :: gmax
+            double precision intent(in) :: cmax
+            integer intent(in) :: iprnt
+            integer intent(in) :: iout
+            character*(*) intent(in) :: ifile
+            integer intent(inout) :: iterm
+            integer :: nres
+            integer :: ndec
+            integer :: nrem
+            integer :: nadd
+            integer :: nit
+            integer :: nfv
+            integer :: nfg
+            integer :: nfh
+            intent(callback) obj
+            external obj
+            intent(callback) dobj
+            external dobj
+            intent(callback) con
+            external con
+            intent(callback) dcon
+            external dcon
+            common /stat/ nres,ndec,nrem,nadd,nit,nfv,nfg,nfh
+        end subroutine psqp_wrap
+        subroutine pf1f01(nf,x,gf,g,ff,f,kd,ld,iext) ! in :psqp:wip/pqsubs.f
+            use psqp__user__routines
+            integer :: nf
+            double precision dimension(*) :: x
+            double precision dimension(*) :: gf
+            double precision dimension(*) :: g
+            double precision :: ff
+            double precision :: f
+            integer :: kd
+            integer :: ld
+            integer :: iext
+            integer :: nres
+            integer :: ndec
+            integer :: nrem
+            integer :: nadd
+            integer :: nit
+            integer :: nfv
+            integer :: nfg
+            integer :: nfh
+            intent(callback) obj
+            external obj
+            intent(callback) dobj
+            external dobj
+            common /stat/ nres,ndec,nrem,nadd,nit,nfv,nfg,nfh
+        end subroutine pf1f01
+        subroutine pc1f01(nf,nc,x,fc,cf,cl,cu,ic,gc,cg,cmax,kd,ld) ! in :psqp:wip/pqsubs.f
+            use psqp__user__routines
+            integer :: nf
+            integer :: nc
+            double precision dimension(*) :: x
+            double precision :: fc
+            double precision dimension(*) :: cf
+            double precision dimension(*) :: cl
+            double precision dimension(*) :: cu
+            integer dimension(*) :: ic
+            double precision dimension(*) :: gc
+            double precision dimension(*) :: cg
+            double precision :: cmax
+            integer :: kd
+            integer :: ld
+            intent(callback) con
+            external con
+            intent(callback) dcon
+            external dcon
+        end subroutine pc1f01
+        subroutine openunit(unitnum,filename,filestatus,fileaction,ierror) ! in :psqp:source/openunit.f
+            integer intent(in) :: unitnum
+            character*(*) intent(in) :: filename
+            character*(*) intent(in) :: filestatus
+            character*(*) intent(in) :: fileaction
+            integer intent(out) :: ierror
+        end subroutine openunit
+        subroutine pyflush(unitnum)
+          integer unitnum
+          return
+        end subroutine pyflush
+        subroutine closeunit(unitnum) ! in :psqp:source/closeunit.f
+            integer intent(in) :: unitnum
+        end subroutine closeunit
+    end interface
+end python module psqp
