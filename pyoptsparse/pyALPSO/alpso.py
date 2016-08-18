@@ -87,7 +87,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
     """
 
     # 
-    if x0 != [] != []:
+    if x0 != []:
         if isinstance(x0, list):
             x0 = numpy.array(x0)
         elif not isinstance(x0, numpy.ndarray):
