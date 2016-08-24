@@ -109,7 +109,8 @@ class Optimization(object):
         self.ndvs = None
         self.conScale = None
         self.nCon = None
-        self.xscale = None
+        self.invXScale = None
+        self.xOffset = None
         self.linearJacobian = None
         self.dummyConstraint = False
         self.objectiveIdx = {}
@@ -179,7 +180,7 @@ class Optimization(object):
             return validName
 
     def addVarGroup(self, name, nVars, type='c', value=0.0,
-                    lower=None, upper=None, scale=1.0,
+                    lower=None, upper=None, scale=1.0, offset=0.0,
                     choices=None, **kwargs):
         """
         Add a group of variables into a variable set. This is the main
@@ -217,6 +218,11 @@ class Optimization(object):
             magnitudes are used within the same
             optimization. Scalar/array usage is the same as value
             keyword.
+
+        offset : scalar or array.  Define a user supplied offset 
+            variable for the design variable group.  This is often
+            necessary when design variable has a large magnitude, but
+            only changes a little about this value. 
 
         choices : list
             Specify a list of choices for discrete design variables
@@ -287,7 +293,7 @@ class Optimization(object):
                         "invalid. It must be None, a scalar, or a "
                         "list/array or length nVars=%d." %(nVars))
 
-        # ------ Process the scale bound argument
+        # ------ Process the scale argument
         if scale is None:
             scale = numpy.ones(nVars)
         else:
@@ -302,6 +308,21 @@ class Optimization(object):
                             "variables in nVars is %d."% (
                                 len(scale), nVars))
 
+        # ------ Process the offset argument
+        if offset is None:
+            offset = numpy.ones(nVars)
+        else:
+            offset = numpy.atleast_1d(offset)
+            if len(offset) == 1:
+                offset = offset[0]*numpy.ones(nVars)
+            elif len(offset) == nVars:
+                pass
+            else:
+                raise Error("The length of the 'offset' argument to "
+                            "addVarGroup is %d, but the number of "
+                            "variables in nVars is %d."% (
+                                len(offset), nVars))
+
         # Determine if scalar i.e. it was called from addVar():
         scalar = kwargs.pop('scalar', False)
 
@@ -311,8 +332,8 @@ class Optimization(object):
             varName = name + '_%d'% iVar
             varList.append(Variable(varName, type=type, value=value[iVar],
                                     lower=lower[iVar], upper=upper[iVar],
-                                    scale=scale[iVar], scalar=scalar,
-                                    choices=choices))
+                                    scale=scale[iVar], offset=offset[iVar], 
+                                    scalar=scalar, choices=choices))
 
         if name in self.variables:
             # Check that the variables happen to be the same
@@ -513,12 +534,12 @@ class Optimization(object):
             # If it is a single DV, return a scalar rather than a numpy array
             if nvar == 1:
                 var = self.variables[dvGroup][0]
-                outDVs[dvGroup] = var.value/var.scale
+                outDVs[dvGroup] = var.value/var.scale + var.offset
             else:
                 outDVs[dvGroup] = numpy.zeros(nvar)
                 for i in range(nvar):
                     var = self.variables[dvGroup][i]
-                    outDVs[dvGroup][i] = var.value/var.scale
+                    outDVs[dvGroup][i] = var.value/var.scale + var.offset
 
         return outDVs
 
@@ -540,9 +561,9 @@ class Optimization(object):
                 for i in range(nvar):
                     var = self.variables[dvGroup][i]
                     if numpy.isscalar(inDVs[dvGroup]):
-                        var.value = inDVs[dvGroup]*var.scale
+                        var.value = (inDVs[dvGroup]-var.offset)*var.scale
                     else:
-                        var.value = inDVs[dvGroup][i]*var.scale
+                        var.value = (inDVs[dvGroup][i]-var.offset)*var.scale
 
     def setDVsFromHistory(self, histFile, key=None):
         """
@@ -791,13 +812,22 @@ class Optimization(object):
             self.conScale = None
 
         # -----------------------------------------
-        # Step 2. Assemble design variable scaling
+        # Step 2a. Assemble design variable scaling
         # -----------------------------------------
         xscale = []
         for dvGroup in self.variables:
             for var in self.variables[dvGroup]:
                 xscale.append(var.scale)
         self.invXScale = 1.0/numpy.array(xscale)
+
+        # -----------------------------------------
+        # Step 2a. Assemble design variable offset
+        # -----------------------------------------
+        xoffset = []
+        for dvGroup in self.variables:
+            for var in self.variables[dvGroup]:
+                xoffset.append(var.offset)
+        self.xOffset = numpy.array(xoffset)
 
         # --------------------------------------
         # Step 3. Map objective names to indices
