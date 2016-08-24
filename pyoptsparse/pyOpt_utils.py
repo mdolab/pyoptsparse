@@ -12,7 +12,7 @@ mat = {'coo':[row, col, data], 'shape':[nrow, ncols]} # A coo matrix
 mat = {'csr':[rowp, colind, data], 'shape':[nrow, ncols]} # A csr matrix
 mat = {'coo':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
 
-Copyright (c) 2008-2013 
+Copyright (c) 2008-2013
 All rights reserved.
 
 Developers:
@@ -42,7 +42,7 @@ __all__ = ['convertToCOO', 'convertToCSR', 'convertToCSC', 'convertToDense',
            'multCOO',
            'scaleColumns', 'scaleRows', 'extractRows', 'IROW', 'ICOL',
            'IROWP', 'ICOLIND', 'ICOLP', 'IROWIND', 'IDATA']
-    
+
 def convertToCOO(mat):
     """
     Take a pyoptsparse sparse matrix definition of a COO, CSR or
@@ -51,7 +51,7 @@ def convertToCOO(mat):
 
     Parameters
     ----------
-    mat : dict or numpy array 
+    mat : dict or numpy array
        A sparse matrix representation or numpy array
 
     Returns
@@ -76,10 +76,14 @@ def convertToCOO(mat):
             from scipy import sparse
             if sparse.issparse(mat):
                 warnings.warn("Using scipy.sparse matrices with pyOptSparse "
-                              "in strongly discouraged. Please use the "
+                              "in VERY STRONGLY discouraged. Please use the "
                               "simplified pyoptsparse format which allows for "
-                              "fixed sparsity structure and non-zero "
-                              "locations.")
+                              "fixed sparsity structure and explict zeros in "
+                              "the matrix. There is no way to guarantee "
+                              "a fixed sparsity structure with scipy "
+                              "matrices which is what the underlying "
+                              "optimizers require. Using scipy.sparse "
+                              "matrices may cause unexpected errors.")
 
                 mat = mat.tocoo()
                 return {'coo':[mat.row, mat.col, mat.data], 'shape':mat.shape}
@@ -102,7 +106,7 @@ def convertToCSR(mat):
 
     Parameters
     ----------
-    mat : dict or numpy array 
+    mat : dict or numpy array
        A sparse matrix representation or numpy array
 
     Returns
@@ -110,17 +114,17 @@ def convertToCSR(mat):
     newMat : dict
         A coo representation of the same matrix
     """
-    
+
     if 'csr' in mat:
         return mat
-    
+
     mat = convertToCOO(mat)
     n = mat['shape'][0]
     m = mat['shape'][1]
     rows = mat['coo'][IROW]
     cols = mat['coo'][ICOL]
     data = mat['coo'][IDATA]
-    
+
     rowp = numpy.zeros(n+1, dtype='intc')
 
     # Count up the number of times things are index
@@ -141,7 +145,7 @@ def convertToCSR(mat):
         ndata[rowp[r]] = data[i]
         rowp[r] += 1
 
-    # Readjust the pointer 
+    # Readjust the pointer
     for i in range(n, 0, -1):
         rowp[i] = rowp[i-1]
     rowp[0] = 0
@@ -155,7 +159,7 @@ def convertToCSC(mat):
 
     Parameters
     ----------
-    mat : dict or numpy array 
+    mat : dict or numpy array
        A sparse matrix representation or numpy array
 
     Returns
@@ -165,21 +169,21 @@ def convertToCSC(mat):
     """
     if 'csc' in mat:
         return mat
-    
+
     mat = convertToCSR(mat)
     n = mat['shape'][0]
     m = mat['shape'][1]
     rowp = mat['csr'][IROWP]
     cols = mat['csr'][ICOLIND]
     data = mat['csr'][IDATA]
-    
+
     # Allocate the new arrays
     colp = numpy.zeros(m+1, 'intc')
     rows = numpy.zeros(len(cols), 'intc')
-    
+
     # Count up the number of references to each column
     for col in cols:
-        colp[col+1] += 1 
+        colp[col+1] += 1
 
     # Set colp so that it is now a pointer
     for i in range(1, m):
@@ -196,7 +200,7 @@ def convertToCSC(mat):
             csc_data[colp[j]] = data[jp]
             rows[colp[j]] = i
             colp[j] += 1
-        
+
     # Reset the colp pointer
     for j in range(m, 0, -1):
         colp[j] = colp[j-1]
@@ -220,7 +224,7 @@ def convertToDense(mat):
     -------
     newMat : array
         A dense numpy array of the same matrix
-    """    
+    """
 
     mat = convertToCSR(mat)
     newMat = numpy.zeros((mat['shape']))
@@ -262,7 +266,7 @@ def scaleRows(mat, factor):
         iStart = mat['csr'][IROWP][i]
         iEnd = mat['csr'][IROWP][i+1]
         mat['csr'][IDATA][iStart:iEnd] *= factor[i]
- 
+
 def extractRows(mat, indices):
     """
     Extract the rows defined by 'indices' and return
@@ -278,7 +282,7 @@ def extractRows(mat, indices):
     Returns
     -------
     newMat : dic
-       pyoptsparse CSR matrix 
+       pyoptsparse CSR matrix
         """
     mat = convertToCSR(mat)
     rowp = mat['csr'][IROWP]
@@ -293,7 +297,7 @@ def extractRows(mat, indices):
     for i in range(nn):
         size += rowp[indices[i]+1] - rowp[indices[i]]
         nrowp[i+1] = size
-       
+
     # Create the new columns and data arrays
     ncols = numpy.zeros(size, 'intc')
     ndata = numpy.zeros(size, dtype=type(data[0]))
@@ -329,7 +333,7 @@ def multCOO(mat, x):
         y[rows[i]] += data[i]*x[cols[i]]
 
     return y
-      
+
 def _denseToCOO(arr):
     """
     Return a COO array that is a COO representation of the dense numpy
@@ -367,10 +371,10 @@ def _csr_to_coo(mat):
     data = mat['csr'][IDATA]
     coo_rows = numpy.zeros(len(cols), 'intc')
     coo_cols = numpy.array(cols, 'intc')
-    
+
     for i in range(mat['shape'][0]):
         coo_rows[rowp[i]:rowp[i+1]] = i
-    
+
     coo_data = numpy.array(data)
 
     return {'coo':[coo_rows, coo_cols, coo_data], 'shape':mat['shape']}
@@ -393,10 +397,10 @@ def _csc_to_coo(mat):
     # This is straight forward - just expand out the columns
     coo_rows = numpy.array(rows, 'intc')
     coo_cols = numpy.zeros(len(rows), 'intc')
-    
+
     for j in range(mat['shape'][1]):
         coo_cols[colp[j]:colp[j+1]] = j
-    
+
     coo_data = numpy.array(data)
 
     return {'coo':[coo_rows, coo_cols, coo_data], 'shape':mat['shape']}

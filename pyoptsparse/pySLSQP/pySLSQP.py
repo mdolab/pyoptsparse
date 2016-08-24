@@ -188,6 +188,7 @@ class SLSQP(Optimizer):
                 fobj, fcon, fail = self._masterFunc(x, ['fobj', 'fcon'])
                 f = fobj
                 g[0:m] = -fcon
+                slsqp.pyflush(self.getOption('IOUT'))
                 return f, g
 
             #=================================================================
@@ -197,6 +198,7 @@ class SLSQP(Optimizer):
                 gobj, gcon, fail = self._masterFunc(x, ['gobj', 'gcon'])
                 df[0:n] = gobj.copy()
                 dg[0:m, 0:n] = -gcon.copy()
+                slsqp.pyflush(self.getOption('IOUT'))
                 return df, dg
 
             # Setup argument list values
