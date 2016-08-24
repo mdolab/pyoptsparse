@@ -4,7 +4,7 @@ Provides interactive visualization of optimization results created by
 pyOptSparse. Figures produced here can be saved as images or pickled
 for future customization.
 
-John Jasa 2015
+John Jasa 2015-2016
 
 """
 
@@ -19,6 +19,7 @@ import Tkinter as Tk
 import re
 import sched
 import time
+import warnings
 
 # ======================================================================
 # External Python modules
@@ -30,6 +31,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,\
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
+warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
+warnings.filterwarnings("ignore",category=UserWarning)
 import numpy
 from pyoptsparse import SqliteDict
 
@@ -38,7 +41,6 @@ class Display(object):
     """
     Container for display parameters, properties, and objects.
     This includes a canvas for MPL plots and a bottom area with widgets.
-
     """
 
     def __init__(self, histList, outputDir):
@@ -213,6 +215,13 @@ class Display(object):
                         except KeyError:
                             pass
 
+                        if 'actual_iteration_number' not in self.func_data_all:
+                            self.func_data_all['actual_iteration_number'] = []
+                        self.func_data_all['actual_iteration_number'].append(key)
+                        if 'actual_iteration_number' not in self.func_data_major:
+                            self.func_data_major['actual_iteration_number'] = []
+                        self.func_data_major['actual_iteration_number'].append(key)
+
                         for key in sorted(f):
                             new_key = key + '{}'.format(histIndex)
                             if new_key not in self.func_data_all:
@@ -252,9 +261,13 @@ class Display(object):
                                 if self.iter_type[i] == 1:
                                     self.var_data_major[new_key] = []
                             if numpy.isscalar(f[key]) or f[key].shape == (1,):
-                                self.var_data_all[new_key].append(f[key])
+                                if type(f[key]) == numpy.ndarray:
+                                    val = f[key][0]
+                                else:
+                                    val = f[key]
+                                self.var_data_all[new_key].append(val)
                                 if self.iter_type[i] == 1:
-                                    self.var_data_major[new_key].append(f[key])
+                                    self.var_data_major[new_key].append(val)
                             try:
                                 if f[key].shape[0] > 1:
                                     self.var_data_all[new_key].append(f[key])
@@ -320,9 +333,7 @@ class Display(object):
         """
         self.f.clf()
         a = self.f.add_subplot(111)
-        a.text(
-            0.05,
-            .9,
+        a.text(0.05, .9,
             "Error: " + string,
             fontsize=20,
             transform=a.transAxes)
@@ -333,9 +344,7 @@ class Display(object):
         Display warning message on canvas as necessary.
         """
         a = plt.gca()
-        a.text(
-            0.05,
-            1.04,
+        a.text(0.05, 1.04,
             "Warning: " + string,
             fontsize=20,
             transform=a.transAxes)
@@ -358,8 +367,6 @@ class Display(object):
         else:
             lower = self.bounds[val]['lower']
             upper = self.bounds[val]['upper']
-            if disp.var.get() == 0:
-                color = None
 
         lower = list(lower)
         upper = list(upper)
@@ -386,28 +393,27 @@ class Display(object):
         """
         Plots the original data values from the history file.
         """
-        color = None
+        cc = (
+            matplotlib.rcParams['axes.color_cycle'] * 10
+        )
+        color = cc[i]
+
         try:
             array_size = len(dat[val][0])
             if self.var_minmax.get():
+                a.set_color_cycle(color)
                 minmax_list = []
                 for minmax in dat[val]:
                     minmax_list.append(
                         [numpy.min(minmax), numpy.max(minmax)])
-                plots = a.plot(
-                    minmax_list,
-                    "o-",
-                    label=val,
-                    markeredgecolor='none',
-                    clip_on=False)
+                plots = a.plot(minmax_list, "o-", label=val,
+                    markeredgecolor='none', clip_on=False)
 
             elif array_size < 20 or self.var_showall.get():
-                plots = a.plot(
-                    dat[val],
-                    "o-",
-                    label=val,
-                    markeredgecolor='none',
-                    clip_on=False)
+                if i > 0:
+                    a.set_color_cycle(color)
+                plots = a.plot(dat[val], "o-", label=val,
+                    markeredgecolor='none', clip_on=False)
 
                 a.set_ylabel(val)
                 self.color_error_flag = 1
@@ -415,23 +421,14 @@ class Display(object):
                 self.error_display("Too many values to display")
 
         except TypeError:
+            a.set_color_cycle(color)
             if self.var.get() == 0:
-                try:
-                    if self.var_bounds.get() and val not in self.bounds:
-                        cc = (
-                            matplotlib.rcParams['axes.color_cycle'] * 10
-                        )
-                        color = cc[i]
-                        a.set_color_cycle(color)
-                except UnboundLocalError:
-                    pass
+                pass
             else:
                 a.set_ylabel(val)
-            plots = a.plot(
-                dat[val],
-                "o-",
-                label=val,
+            plots = a.plot(dat[val], "o-", label=val,
                 markeredgecolor='none', clip_on=False)
+
         except KeyError:
             self.warning_display("No 'major' iterations")
         try:
@@ -495,7 +492,7 @@ class Display(object):
                     for i, val in enumerate(values):
                         self.orig_plot(dat, val, values, a, i)
 
-                if i > 0 and self.color_error_flag and self.var_bounds.get():
+                if self.color_error_flag and self.var_bounds.get():
                     self.warning_display(
                         "Line color for bounds may not match data color")
 
@@ -650,7 +647,7 @@ class Display(object):
                 self.scrollbar_arr.pack(side=Tk.RIGHT, fill=Tk.Y)
                 self.lb_arr.pack(side=Tk.RIGHT)
                 self.arr_active = 1
-            except IndexError:
+            except (IndexError, TypeError):
                 self.lb_arr.pack_forget()
                 self.scrollbar_arr.pack_forget()
                 self.arr_title.pack_forget()
@@ -867,7 +864,6 @@ class Display(object):
             old_vars.append(key)
 
         self.OptimizationHistory()
-        self.update_graph()
 
         new_funcs = []
         for key in self.func_data:
@@ -879,21 +875,19 @@ class Display(object):
         if not (old_funcs == new_funcs and old_vars == new_vars):
             self.var_search('dummy')
 
+    def refresh_history_init(self):
+        self.refresh_history()
+        self.set_mask()
+
     def auto_ref(self):
         """
         Automatically refreshes the history file, which is
         useful if examining a running optimization.
         """
         if self.var_ref.get():
-            self.root.after(10000, self.auto_ref)
+            self.root.after(1000, self.auto_ref)
             self.refresh_history()
-
-    def update_all(self):
-        """
-        Updates the history and graph.
-        """
-        self.refresh_history(self.plotAll.get())
-        self.update_graph()
+            self.set_mask()
 
     def clear_selections(self):
         """
@@ -912,28 +906,39 @@ class Display(object):
             self.annotation.remove()
         except (AttributeError, ValueError):
             pass
-        visibility_changed = False
-        point_selected = None
-        for point in self.plots:
-            if point[0].contains(event)[0]:
-                point_selected = point
+        if event.xdata:
+            visibility_changed = False
+            point_selected = None
+            for point in self.plots:
+                if point[0].contains(event)[0]:
+                    point_selected = point
 
-        if point_selected:
-            visibility_changed = True
-            ax = point_selected[0].get_axes()
-            label = point_selected[0].get_label()
-            if point_selected[1] >= 0:
-                label = label + '_' + str(point_selected[1])
-            self.annotation = ax.annotate(label,
-                                          xy=(event.xdata,
-                                              event.ydata), xycoords='data',
-                                          xytext=(
-                                          event.xdata, event.ydata), textcoords='data',
-                                          horizontalalignment="left",
-                                          bbox=dict(
-                                          boxstyle="round", facecolor="w",
-                                          edgecolor="0.5", alpha=0.8),
-                                          )
+            # Prevent error message if we move out of bounds while hovering
+            # over a point on a line
+            if point_selected:
+                visibility_changed = True
+                ax = point_selected[0].get_axes()
+                label = point_selected[0].get_label()
+                if point_selected[1] >= 0:
+                    label = label + '_' + str(point_selected[1])
+
+                xdat = point_selected[0].get_xdata()
+                ydat = point_selected[0].get_ydata()
+
+                iter_count = numpy.round(event.xdata, 0)
+                ind = numpy.where(xdat == iter_count)[0][0]
+
+                label = label + '\niter: {0:d}\nvalue: {1}'.format(int(iter_count), ydat[ind])
+                self.annotation = ax.annotate(label,
+                                              xy=(event.xdata,
+                                                  event.ydata), xycoords='data',
+                                              xytext=(
+                                              event.xdata, event.ydata), textcoords='data',
+                                              horizontalalignment="left",
+                                              bbox=dict(
+                                              boxstyle="round", facecolor="w",
+                                              edgecolor="0.5", alpha=0.8),
+                                              )
         else:
             try:
                 self.annotation.remove()
@@ -1037,7 +1042,7 @@ class Display(object):
         button1 = Tk.Button(
             options_frame,
             text='Refresh history',
-            command=self.refresh_history,
+            command=self.refresh_history_init,
             font=font)
         button1.grid(row=1, column=2, padx=5, sticky=Tk.W)
 
