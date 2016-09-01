@@ -86,7 +86,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
     Documentation last updated:  April. 29, 2008 - Ruben E. Perez
     """
 
-    # 
+    #
     if x0 != []:
         if isinstance(x0, list):
             x0 = numpy.array(x0)
@@ -132,7 +132,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
 
     header = ''
     header += ' ' * 37 + '======================\n'
-    header += ' ' * 39 + ' ALPSO 1.1 (Serial)\n'
+    header += ' ' * 39 + ' ALPSO 1.1 (Bulk)\n'
     header += ' ' * 37 + '======================\n\n'
     header += 'Parameters:\n'
     header += '-' * 97 + '\n'
@@ -243,19 +243,17 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
         f = vals['obj'][0]
         g = vals['con'][0].reshape(g.shape)
     else:
-        for i in range(swarmsize):
+        # Evaluate Objective Function
+        if scale == 1:
+            xtmp = (x_k * space_halflen) + space_centre
+        else:
+            xtmp = x_k
 
-            # Evaluate Ojective Function
-            if scale == 1:
-                xtmp = (x_k[i, :] * space_halflen) + space_centre
-            else:
-                xtmp = x_k[i, :]
+        for m in discrete_i:
+            xtmp[:, m] = floor(xtmp[:, m] + .5)
 
-            for m in discrete_i:
-                xtmp[m] = floor(xtmp[m] + 0.5)
-
-            [f[i], g[i, :]] = objfunc(xtmp)
-            nfevals += 1
+        f, g = objfunc(xtmp)
+        nfevals += swarmsize
 
     for i in range(swarmsize):
 
@@ -584,19 +582,17 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
                     hstfile.close()
 
             if not h_start:
-                for i in range(swarmsize):
+                # Evaluate Objective Function
+                if scale == 1:
+                    xtmp = (x_k * space_halflen) + space_centre
+                else:
+                    xtmp = x_k
 
-                    # Evaluate Ojective Function
-                    if scale == 1:
-                        xtmp = (x_k[i, :] * space_halflen) + space_centre
-                    else:
-                        xtmp = x_k[i, :]
+                for m in discrete_i:
+                    xtmp[:, m] = floor(xtmp[:, m] + .5)
 
-                    for m in discrete_i:
-                        xtmp[m] = floor(xtmp[m] + 0.5)
-
-                    [f[i], g[i, :]] = objfunc(xtmp)
-                    nfevals += 1
+                f, g = objfunc(xtmp)
+                nfevals += swarmsize
 
             # Store History
             if sto_hst:

@@ -202,7 +202,8 @@ class Optimizer(object):
                 xuser = self.optProb.deProcessX(data['xuser'])
 
                 # Validated x-point point to use:
-                if numpy.linalg.norm(x*self.optProb.invXScale - xuser) < eps:
+                xScaled = x*self.optProb.invXScale + self.optProb.xOffset
+                if numpy.linalg.norm(xScaled - xuser) < eps:
 
                     # However, we may need a sens that *isn't* in the
                     # the dictionary:
@@ -226,11 +227,10 @@ class Optimizer(object):
 
                         fail = data['fail']
                         returns = []
-                        xscaled = self.optProb.invXScale * x
 
                         # Process constraints/objectives
                         if funcs is not None:
-                            self.optProb.evaluateLinearConstraints(xscaled, funcs)
+                            self.optProb.evaluateLinearConstraints(xScaled, funcs)
                             fcon = self.optProb.processConstraints(funcs)
                             fobj = self.optProb.processObjective(funcs)
                             if 'fobj' in evaluate:
@@ -265,7 +265,7 @@ class Optimizer(object):
         # end if (hot starting)
 
         # Now we have to actually run our function...this is where the
-        # MPI gets a little tricy. Up until now, only the root proc
+        # MPI gets a little tricky. Up until now, only the root proc
         # has called up to here...the rest of them are waiting at a
         # broadcast to know what to do.
 
@@ -296,8 +296,8 @@ class Optimizer(object):
         # gobj, and gcon values such that on the next pass we can just
         # read them and return.
 
-        xscaled = self.optProb.invXScale * x
-        xuser = self.optProb.processX(xscaled)
+        xScaled = self.optProb.invXScale * x + self.optProb.xOffset
+        xuser = self.optProb.processX(xScaled)
 
         masterFail = False
 
@@ -322,12 +322,15 @@ class Optimizer(object):
                     funcs = args
                     fail = False
                 self.userObjTime += time.time()-timeA
-                self.userObjCalls += 1
+                if self.optProb.bulk is None:
+                    self.userObjCalls += 1
+                else:
+                    self.userObjCalls += self.optProb.bulk
                 # User values stored is immediately
                 self.cache['funcs'] = copy.deepcopy(funcs)
 
                 # Process constraints/objectives
-                self.optProb.evaluateLinearConstraints(xscaled, funcs)
+                self.optProb.evaluateLinearConstraints(xScaled, funcs)
                 fcon = self.optProb.processConstraints(funcs)
                 fobj = self.optProb.processObjective(funcs)
                 # Now clear out gobj and gcon in the cache since these
@@ -367,7 +370,7 @@ class Optimizer(object):
                 self.cache['funcs'] = copy.deepcopy(funcs)
 
                 # Process constraints/objectives
-                self.optProb.evaluateLinearConstraints(xscaled, funcs)
+                self.optProb.evaluateLinearConstraints(xScaled, funcs)
                 fcon = self.optProb.processConstraints(funcs)
                 fobj = self.optProb.processObjective(funcs)
                 # Now clear out gobj and gcon in the cache since these
@@ -703,8 +706,8 @@ class Optimizer(object):
         sol.optCodeTime = sol.optTime - self.interfaceTime
         sol.fStar = obj
         n = len(self.optProb.invXScale)
-        xscaled = self.optProb.invXScale * xopt[0:n]
-        sol.xStar = self.optProb.processX(xscaled)
+        xScaled = self.optProb.invXScale * xopt[0:n] + self.optProb.xOffset[0:n]
+        sol.xStar = self.optProb.processX(xScaled)
 
         # Now set the x-values:
         i = 0
