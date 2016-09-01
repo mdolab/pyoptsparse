@@ -59,13 +59,10 @@ def convertToCOO(mat):
     newMat : dict
         A coo representation of the same matrix
         """
-    try:
-        if 'coo' in mat:
-            return mat
-    except:
-        pass
 
     if isinstance(mat, dict):
+        if 'coo' in mat:
+            return mat
         if 'csr' in mat:
             return _csr_to_coo(mat)
         elif 'csc' in mat:
