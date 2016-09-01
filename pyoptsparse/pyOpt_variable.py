@@ -24,7 +24,7 @@ class Variable(object):
     """
     Variable Class Initialization
     """
-    def __init__(self, name, type, value, lower, upper, scale,
+    def __init__(self, name, type, value, lower, upper, scale, offset,
                  scalar=False, choices=None):
 
         self.name = name
@@ -35,15 +35,16 @@ class Variable(object):
             if lower is None:
                 self.lower = -INFINITY
             else:
-                self.lower = lower*scale
+                self.lower = (lower-offset)*scale
 
             if upper is None:
                 self.upper = INFINITY
             else:
-                self.upper = upper*scale
+                self.upper = (upper-offset)*scale
 
-            self.value = value*scale
+            self.value = (value-offset)*scale
             self.scale = scale
+            self.offset = offset
         elif self.type == 'i':
             self.value = int(value)
             self.lower = lower
