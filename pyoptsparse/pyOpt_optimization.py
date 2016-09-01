@@ -114,6 +114,7 @@ class Optimization(object):
         self.linearJacobian = None
         self.dummyConstraint = False
         self.objectiveIdx = {}
+        self.bulk = None
 
     def addVar(self, name, *args, **kwargs):
         """
@@ -992,9 +993,9 @@ class Optimization(object):
             imax = max(imax, iend)
             try:
                 if scalar:
-                    xg[dvGroup] = x[istart]
+                    xg[dvGroup] = x[..., istart]
                 else:
-                    xg[dvGroup] = x[istart:iend].copy()
+                    xg[dvGroup] = x[..., istart:iend].copy()
             except IndexError:
                 raise Error("Error processing x. There "
                             "is a mismatch in the number of variables.")
@@ -1030,9 +1031,9 @@ class Optimization(object):
             scalar = self.dvOffset[dvGroup][2]
             try:
                 if scalar:
-                    x_array[istart] = x[dvGroup]
+                    x_array[..., istart] = x[dvGroup]
                 else:
-                    x_array[istart:iend] = x[dvGroup]
+                    x_array[..., istart:iend] = x[dvGroup]
             except IndexError:
                 raise Error("Error deprocessing x. There "
                             "is a mismatch in the number of variables.")
@@ -1062,11 +1063,17 @@ class Optimization(object):
         fobj = []
         for objKey in self.objectives.keys():
             if objKey in funcs:
-                try:
-                    f = numpy.asscalar(numpy.squeeze(funcs[objKey]))
-                except ValueError:
-                    raise Error("The objective return value, '%s' must be a "
-                                "scalar!"% objKey)
+                if self.bulk is None:
+                    try:
+                        f = numpy.asscalar(numpy.squeeze(funcs[objKey]))
+                    except ValueError:
+                        raise Error("The objective return value, '%s' must be a "
+                                    "scalar!"% objKey)
+                else:
+                    f = numpy.squeeze(funcs[objKey])
+                    if f.shape != (self.bulk,):
+                        raise Error("Expected %d return values for '%s', but received %d!"
+                                    % (self.bulk, objKey, f.shape))
                 # Store objective for printing later
                 self.objectives[objKey].value = f
                 if scaled:
@@ -1103,13 +1110,16 @@ class Optimization(object):
             Flag to specify if the data should be returned in the
             natural ordering. This is only used when computing
             gradient automatically with FD/CS.
-            """
+        """
 
         if self.dummyConstraint:
             return numpy.array([0])
 
         # We REQUIRE that fcon_in is a dict:
-        fcon = numpy.zeros(self.nCon, dtype=dtype)
+        if self.bulk is not None:
+            fcon = numpy.zeros((self.bulk, self.nCon), dtype=dtype)
+        else:
+            fcon = numpy.zeros(self.nCon, dtype=dtype)
         for iCon in self.constraints:
             con = self.constraints[iCon]
             if iCon in fcon_in:
@@ -1119,8 +1129,8 @@ class Optimization(object):
                 if dtype == 'd':
                     c = numpy.real(c)
                 # Make sure it is the correct size:
-                if len(c) == self.constraints[iCon].ncon:
-                    fcon[con.rs:con.re] = c
+                if c.shape[-1] == self.constraints[iCon].ncon:
+                    fcon[..., con.rs:con.re] = c
                 else:
                     raise Error("%d constraint values were returned in "
                                 "%s, but expected %d." % (
@@ -1141,7 +1151,7 @@ class Optimization(object):
             return fcon
         else:
             if self.nCon > 0:
-                fcon = fcon[self.jacIndices]
+                fcon = fcon[..., self.jacIndices]
                 fcon = self.fact*fcon - self.offset
                 return fcon
             else:
@@ -1194,7 +1204,7 @@ class Optimization(object):
         index = 0
         for iCon in self.constraints:
             con = self.constraints[iCon]
-            fcon[iCon] = fcon_in[con.rs:con.re]
+            fcon[iCon] = fcon_in[..., con.rs:con.re]
 
         return fcon
 

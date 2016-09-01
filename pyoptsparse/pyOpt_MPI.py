@@ -44,9 +44,8 @@ try:
     from mpi4py import MPI
 except:
     warn = 'mpi4py could not be imported. mpi4py is required to use\
- the parallel graident analysis and parallel objective analysis for\
+ the parallel gradient analysis and parallel objective analysis for\
  non-gradient based optimizers. Continuing using a dummy MPI module\
  from pyOptSparse.'
     warnings.warn(warn)
     MPI = myMPI()
-    
