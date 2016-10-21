@@ -559,11 +559,13 @@ class Optimization(object):
         for dvGroup in self.variables:
             if dvGroup in inDVs:
                 nvar = len(self.variables[dvGroup])
+                scalar = self.dvOffset[dvGroup][2]
                 for i in range(nvar):
                     var = self.variables[dvGroup][i]
-                    if numpy.isscalar(inDVs[dvGroup]):
-                        var.value = (inDVs[dvGroup]-var.offset)*var.scale
+                    if scalar:
+                        var.value = (float(inDVs[dvGroup])-var.offset)*var.scale
                     else:
+                        # Must be an array
                         var.value = (inDVs[dvGroup][i]-var.offset)*var.scale
 
     def setDVsFromHistory(self, histFile, key=None):
