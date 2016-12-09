@@ -114,7 +114,7 @@ class Display(object):
                     nkey = int(string[-1]) + 1 # OpenMDAO uses 1-indexing
                 solver_name = string[0]
             else:
-                nkey = int(db['last'])
+                nkey = int(db['last']) + 1
             self.iter_type = numpy.zeros(nkey)
 
             # Check to see if there is bounds information in the hst file
@@ -123,6 +123,12 @@ class Display(object):
                     db['varBounds'].items() + db['conBounds'].items())
             except KeyError:
                 pass
+
+            # Check to see if there is proper saved info about iter type
+            if 'isMajor' in db['0'].keys():
+                storedIters = True
+            else:
+                storedIters = False
 
             if OpenMDAO:
                 key = 'Driver/1'
@@ -204,25 +210,39 @@ class Display(object):
                     keyp1 = '%d' % (i + 1)
                     try:
                         f = db[key]['funcs']
-                        try:
-                            db[keyp1]['funcsSens']
-                            self.iter_type[i] = 1 # for 'major' iterations
-                            print 'major', i
-                        except KeyError:
-                            pass
-                        try:
-                            db[keyp1]['funcs']
-                            self.iter_type[i] = 2 # for 'minor' iterations
-                            print 'minor', i
-                        except KeyError:
-                            pass
 
-                        if 'actual_iteration_number' not in self.func_data_all:
-                            self.func_data_all['actual_iteration_number'] = []
-                        self.func_data_all['actual_iteration_number'].append(key)
-                        if 'actual_iteration_number' not in self.func_data_major:
-                            self.func_data_major['actual_iteration_number'] = []
-                        self.func_data_major['actual_iteration_number'].append(key)
+                        # If the proper history is stored coming out of
+                        # pyoptsparse, use that for filtering major iterations.
+                        if 0:#storedIters:
+                            self.iter_type[i] = int(db[key]['isMajor'])
+
+                        # Otherwise, use a spotty heuristic to see if the
+                        # iteration is major or not. NOTE: this is often
+                        # inaccurate, especially if the optimization used
+                        # gradient-enhanced line searches.
+                        else:
+                            try:
+                                db[keyp1]['funcsSens']
+                                self.iter_type[i] = 1 # for 'major' iterations
+                            except KeyError:
+                                pass
+                            try:
+                                db[keyp1]['funcs']
+                                self.iter_type[i] = 2 # for 'minor' iterations
+                            except KeyError:
+                                pass
+
+                        # !!!! Commented out for now to avoid confusion for new users.
+                        # !!!! May be useful if you're matching up optimization
+                        # !!!! iterations with CFD iterations.
+                        #
+                        # if 'actual_iteration_number' not in self.func_data_all:
+                        #     self.func_data_all['actual_iteration_number'] = []
+                        # self.func_data_all['actual_iteration_number'].append(key)
+                        # if 'actual_iteration_number' not in self.func_data_major:
+                        #     self.func_data_major['actual_iteration_number'] = []
+                        # if self.iter_type[i]:
+                        #     self.func_data_major['actual_iteration_number'].append(key)
 
                         for key in sorted(f):
                             new_key = key + '{}'.format(histIndex)
@@ -230,7 +250,7 @@ class Display(object):
                                 self.func_data_all[new_key] = []
                                 if self.iter_type[i] == 1:
                                     self.func_data_major[new_key] = []
-                            if numpy.isscalar(f[key]) or f[key].shape == (1,):
+                            if numpy.isscalar(f[key]) or len(f[key]) == 1:
                                 self.func_data_all[new_key].append(f[key])
                                 if self.iter_type[i] == 1:
                                     self.func_data_major[new_key].append(f[key])

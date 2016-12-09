@@ -240,6 +240,9 @@ class SNOPT(Optimizer):
         # Snopt need jacobians in csc format
         self.jacType = 'csc'
 
+        # Create list for major iteration numbers
+        self.majorIterations = []
+
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                  storeHistory=None, hotStart=None, storeSens=True,
                  timeLimit=None):
@@ -543,6 +546,10 @@ class SNOPT(Optimizer):
 
         if fail:
             mode = -1
+
+        # Store the major iteration info coming out of snopt.
+        # This will later be saved in the history file.
+        self.majorIterations.append(iu[0])
 
         # Flush the files to the buffer for all the people who like to
         # monitor the residual
