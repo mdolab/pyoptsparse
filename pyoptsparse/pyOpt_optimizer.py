@@ -505,8 +505,8 @@ class Optimizer(object):
                 lower = self.optProb.constraints[key].lower
                 upper = self.optProb.constraints[key].upper
                 conBounds[key] = {'lower':lower, 'upper':upper}
-                
-            
+
+
             # Cycle through variables and add the bounds
             for dvGroup in self.optProb.variables:
                 varBounds[dvGroup] = {'lower':[], 'upper':[]}
@@ -514,12 +514,12 @@ class Optimizer(object):
                     if var.type == 'c':
                         varBounds[dvGroup]['lower'].append(var.lower/var.scale)
                         varBounds[dvGroup]['upper'].append(var.upper/var.scale)
-            
+
             # There is a special write for the bounds data
             if self.storeHistory:
                 self.hist.writeData('varBounds', varBounds)
                 self.hist.writeData('conBounds', conBounds)
-                        
+
         # Write history if necessary
         if (self.optProb.comm.rank == 0 and  writeHist and self.storeHistory):
             self.hist.write(self.callCounter, hist)

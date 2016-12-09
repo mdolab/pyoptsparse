@@ -155,13 +155,13 @@ class Display(object):
                             self.var_data_all[new_key].append(f[key])
                             if self.iter_type[i] == 1:
                                 self.var_data_major[new_key].append(f[key])
-                        try:
-                            if f[key].shape[0] > 1:
-                                self.var_data_all[new_key].append(f[key])
+                        else:
+                            try:
+                                self.var_data_all[new_key].append(f[key].flatten())
                                 if self.iter_type[i] == 1:
-                                    self.var_data_major[new_key].append(f[key])
-                        except (IndexError, AttributeError):
-                            pass
+                                    self.var_data_major[new_key].append(f[key].flatten())
+                            except (IndexError, AttributeError):
+                                pass
 
                 except KeyError:
                     pass
@@ -188,13 +188,13 @@ class Display(object):
                                 self.func_data_all[new_key].append(f[key])
                                 if self.iter_type[i] == 1:
                                     self.func_data_major[new_key].append(f[key])
-                            try:
-                                if f[key].shape[0] > 1:
-                                    self.func_data_all[new_key].append(f[key])
+                            else:
+                                try:
+                                    self.func_data_all[new_key].append(f[key].flatten())
                                     if self.iter_type[i] == 1:
-                                        self.func_data_major[new_key].append(f[key])
-                            except (IndexError, AttributeError):
-                                pass
+                                        self.func_data_major[new_key].append(f[key].flatten())
+                                except (IndexError, AttributeError):
+                                    pass
 
                     except KeyError:
                         pass
@@ -207,11 +207,13 @@ class Display(object):
                         try:
                             db[keyp1]['funcsSens']
                             self.iter_type[i] = 1 # for 'major' iterations
+                            print 'major', i
                         except KeyError:
                             pass
                         try:
                             db[keyp1]['funcs']
                             self.iter_type[i] = 2 # for 'minor' iterations
+                            print 'minor', i
                         except KeyError:
                             pass
 
@@ -232,13 +234,13 @@ class Display(object):
                                 self.func_data_all[new_key].append(f[key])
                                 if self.iter_type[i] == 1:
                                     self.func_data_major[new_key].append(f[key])
-                            try:
-                                if f[key].shape[0] > 1:
-                                    self.func_data_all[new_key].append(f[key])
+                            else:
+                                try:
+                                    self.func_data_all[new_key].append(f[key].flatten())
                                     if self.iter_type[i] == 1:
-                                        self.func_data_major[new_key].append(f[key])
-                            except (IndexError, AttributeError):
-                                pass
+                                        self.func_data_major[new_key].append(f[key].flatten())
+                                except (IndexError, AttributeError):
+                                    pass
 
                         try:
                             db[key]['funcsSens']
