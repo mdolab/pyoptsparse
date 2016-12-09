@@ -494,8 +494,20 @@ class Optimizer(object):
         # Put the fail flag in the history:
         hist['fail'] = masterFail
 
-        # Add constraint and variable bounds at beginning of optimization
-        # This info is used for visualization using OptView
+        # Check if this iteration is a major one. If so, isMajor = True.
+        if len(self.majorIterations) > 1:
+            if self.majorIterations[-1] != self.majorIterations[-2]:
+                isMajor = True
+            else:
+                isMajor = False
+        else:
+            isMajor = True
+
+        # Put the iterType flag in the history:
+        hist['isMajor'] = isMajor
+
+        # Add constraint and variable bounds at beginning of optimization.
+        # This info is used for visualization using OptView.
         if self.callCounter == 0 and self.optProb.comm.rank == 0:
             conBounds = {}
             varBounds = {}
