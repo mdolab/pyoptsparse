@@ -240,9 +240,6 @@ class SNOPT(Optimizer):
         # Snopt need jacobians in csc format
         self.jacType = 'csc'
 
-        # Create list for major iteration numbers
-        self.majorIterations = []
-
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                  storeHistory=None, hotStart=None, storeSens=True,
                  timeLimit=None):
