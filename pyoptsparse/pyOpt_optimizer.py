@@ -85,6 +85,9 @@ class Optimizer(object):
         self.storedData = {}
         self.storedData['x'] = None
 
+        # Create list for major iteration numbers
+        self.majorIterations = []
+
     def _clearTimings(self):
         """Clear timings and call counters"""
         self.userObjTime = 0.0
