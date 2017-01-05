@@ -8,11 +8,7 @@ from scipy import sparse
 import argparse
 from pyoptsparse import Optimization, OPT
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--opt",help="optimizer",type=str, default='SNOPT')
-parser.add_argument('--optOptions', type=str, help='Options for the optimizer', default="{}")
-args = parser.parse_args()
-exec('optOptions=%s'% args.optOptions)
+N = 50000
 
 def objfunc(xdict):
     x = xdict['x']; y = xdict['y']; z = xdict['z']
@@ -39,26 +35,42 @@ def sens(xdict, funcs):
     
     return funcsSens, False
 
-# Optimization Object
-optProb = Optimization('large and sparse', objfunc)
+def large_sparse(optimizer='SNOPT', optOptions=None):
+    opt_options = {} if optOptions is None else optOptions
 
-N = 50000
-# Design Variables
-optProb.addVar('x', lower=-100, upper=150, value=0)
-optProb.addVarGroup('y', N, lower=-10-arange(N), upper=arange(N), value=0)
-optProb.addVarGroup('z', 2*N, upper=arange(2*N), lower=-100-arange(2*N), value=0)
-# Constraints
-optProb.addCon('con1', upper=100, wrt=['x'])
-optProb.addCon('con2', upper=100)
-optProb.addCon('con3', lower=4, wrt=['x','z'])
-optProb.addConGroup('lincon', N, lower=2-3*arange(N), linear=True,
-                    wrt=['x','y'], 
-                    jac={'x': numpy.ones((N,1)),
-                         'y':sparse.spdiags(numpy.ones(N), 0, N, N)})
-optProb.addObj('obj')
-# Optimizer
-opt = OPT(args.opt, options=optOptions)
-optProb.printSparsity()
-# Solution
-sol = opt(optProb, sens=sens)
-print(sol)
+    # Optimization Object
+    optProb = Optimization('large and sparse', objfunc)
+
+    # Design Variables
+    optProb.addVar('x', lower=-100, upper=150, value=0)
+    optProb.addVarGroup('y', N, lower=-10-arange(N), upper=arange(N), value=0)
+    optProb.addVarGroup('z', 2*N, upper=arange(2*N), lower=-100-arange(2*N), value=0)
+    # Constraints
+    optProb.addCon('con1', upper=100, wrt=['x'])
+    optProb.addCon('con2', upper=100)
+    optProb.addCon('con3', lower=4, wrt=['x','z'])
+    optProb.addConGroup('lincon', N, lower=2-3*arange(N), linear=True,
+                        wrt=['x','y'],
+                        jac={'x': numpy.ones((N,1)),
+                             'y':sparse.spdiags(numpy.ones(N), 0, N, N)})
+    optProb.addObj('obj')
+    # Optimizer
+    opt = OPT(optimizer, options=opt_options)
+    optProb.printSparsity()
+
+    return opt, optProb
+
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--opt",help="optimizer",type=str, default='SNOPT')
+    parser.add_argument('--optOptions', type=str, help='Options for the optimizer', default="{}")
+    args = parser.parse_args()
+    exec('optOptions=%s'% args.optOptions)
+
+    opt, optProb = large_sparse(args.opt, optOptions)
+
+    # Solution
+    sol = opt(optProb, sens=sens)
+    print(sol)

@@ -240,6 +240,9 @@ class SNOPT(Optimizer):
         # Snopt need jacobians in csc format
         self.jacType = 'csc'
 
+        # Snopt specific jacobian map
+        self._snopt_jac_map_csr_to_csc = None
+
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                  storeHistory=None, hotStart=None, storeSens=True,
                  timeLimit=None):
@@ -370,31 +373,15 @@ class SNOPT(Optimizer):
                 blc = [-1e20]
                 buc = [1e20]
 
-            # jac_csc = convertToCSC(jac)
-            #
-            # print(jac)
-            # print()
-            # print(jac_csc)
-            # exit(0)
+            if self._snopt_jac_map_csr_to_csc is None:
+                self._snopt_jac_map_csr_to_csc = mapToCSC(jac)
 
-            if self._jac_map_csr_to_csc is None:
-                self._jac_map_csr_to_csc = mapToCSC(jac)
-
-            # jac = {'csc': (self._jac_map_coo_to_csr[ICOL],
-            #                self._jac_map_coo_to_csr[IROW],
-            #                jac['csr'][IDATA][self._jac_map_coo_to_csr[IDATA]]),
-            #         'shape':[self.nCon, self.ndvs]}
-            #
-            # Acol = jac['csc'][IDATA]
-            # indA = jac['csc'][IROWIND] + 1
-            # locA = jac['csc'][ICOLP] + 1
-
-            # CSC data is the csr data with the csc_indexing applied
-            Acol = jac['csr'][IDATA][self._jac_map_csr_to_csc[IDATA]]
-            # CSC Row indices are just the row indices information from the map
-            indA = self._jac_map_csr_to_csc[IROW]
-            # CSC Column pointers are the column information from the map
-            locA = self._jac_map_csr_to_csc[ICOL]
+            # # CSC data is the csr data with the csc_indexing applied
+            Acol = jac['csr'][IDATA][self._snopt_jac_map_csr_to_csc[IDATA]]
+            # # CSC Row indices are just the row indices information from the map
+            indA = self._snopt_jac_map_csr_to_csc[IROW] + 1
+            # # CSC Column pointers are the column information from the map
+            locA = self._snopt_jac_map_csr_to_csc[ICOL] + 1
 
             if self.optProb.nCon == 0:
                 ncon = 1
