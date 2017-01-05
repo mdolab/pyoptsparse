@@ -39,7 +39,7 @@ IROWIND = 1
 
 IDATA = 2
 __all__ = ['convertToCOO', 'convertToCSR', 'convertToCSC', 'convertToDense',
-           'multCOO',
+           'mapToCSC', 'mapToCSR', 'multCOO',
            'scaleColumns', 'scaleRows', 'extractRows', 'IROW', 'ICOL',
            'IROWP', 'ICOLIND', 'ICOLP', 'IROWIND', 'IDATA']
 
