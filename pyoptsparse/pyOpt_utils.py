@@ -434,7 +434,6 @@ def extractRows(mat, indices):
     newMat : dic
        pyoptsparse CSR matrix
         """
-    mat = convertToCSR(mat)
     rowp = mat['csr'][IROWP]
     cols = mat['csr'][ICOLIND]
     data = mat['csr'][IDATA]
