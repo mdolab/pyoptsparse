@@ -109,7 +109,7 @@ def mapToCSR(mat):
 
     # Now for i = 0 to num_rows-1, row_p[i] is the first occurrence
     # of i in rows_rowmaj
-    row_p[:-1] = [numpy.where(rows_rowmaj == i)[0][0] for i in range(num_rows)]
+    row_p[:-1] = numpy.digitize(numpy.arange(num_rows), rows_rowmaj, right=True)
 
     # By convention store nnz in the last element of row_p
     row_p[-1] = nnz
@@ -188,7 +188,7 @@ def mapToCSC(mat):
 
     # Now for i = 0 to num_cols-1, col_p[i] is the first occurrence
     # of i in cols_colmaj
-    col_p[:-1] = [numpy.where(cols_colmaj == i)[0][0] for i in range(num_cols)]
+    col_p[:-1] = numpy.digitize(numpy.arange(num_cols), cols_colmaj, right=True)
 
     # By convention store nnz in the last element of col_p
     col_p[-1] = nnz

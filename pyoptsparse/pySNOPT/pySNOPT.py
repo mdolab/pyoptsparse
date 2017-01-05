@@ -41,8 +41,8 @@ import numpy
 # # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
-from ..pyOpt_utils import convertToCSC, IDATA, IROWIND, ICOLP, extractRows, \
-     scaleRows
+from ..pyOpt_utils import convertToCSC, ICOL, IDATA, IROW, IROWIND, ICOLP, \
+    extractRows, mapToCSC, scaleRows
 # =============================================================================
 # SNOPT Optimizer Class
 # =============================================================================
@@ -369,11 +369,32 @@ class SNOPT(Optimizer):
             else:
                 blc = [-1e20]
                 buc = [1e20]
-            jac = convertToCSC(jac)
 
-            Acol = jac['csc'][IDATA]
-            indA = jac['csc'][IROWIND] + 1
-            locA = jac['csc'][ICOLP] + 1
+            # jac_csc = convertToCSC(jac)
+            #
+            # print(jac)
+            # print()
+            # print(jac_csc)
+            # exit(0)
+
+            if self._jac_map_csr_to_csc is None:
+                self._jac_map_csr_to_csc = mapToCSC(jac)
+
+            # jac = {'csc': (self._jac_map_coo_to_csr[ICOL],
+            #                self._jac_map_coo_to_csr[IROW],
+            #                jac['csr'][IDATA][self._jac_map_coo_to_csr[IDATA]]),
+            #         'shape':[self.nCon, self.ndvs]}
+            #
+            # Acol = jac['csc'][IDATA]
+            # indA = jac['csc'][IROWIND] + 1
+            # locA = jac['csc'][ICOLP] + 1
+
+            # CSC data is the csr data with the csc_indexing applied
+            Acol = jac['csr'][IDATA][self._jac_map_csr_to_csc[IDATA]]
+            # CSC Row indices are just the row indices information from the map
+            indA = self._jac_map_csr_to_csc[IROW]
+            # CSC Column pointers are the column information from the map
+            locA = self._jac_map_csr_to_csc[ICOL]
 
             if self.optProb.nCon == 0:
                 ncon = 1
