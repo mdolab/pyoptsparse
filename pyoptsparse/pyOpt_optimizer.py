@@ -25,8 +25,8 @@ from .pyOpt_error import Error, pyOptSparseWarning
 from .pyOpt_history import History
 from .pyOpt_solution import Solution
 from .pyOpt_optimization import INFINITY
-from .pyOpt_utils import convertToDense, convertToCOO, convertToCSC, \
-    convertToCSR, extractRows, mapToCSC, scaleRows, IDATA
+from .pyOpt_utils import convertToDense, convertToCOO, extractRows, \
+    mapToCSC, scaleRows, IDATA
 eps = numpy.finfo(1.0).eps
 
 # =============================================================================
