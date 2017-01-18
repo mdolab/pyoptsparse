@@ -116,6 +116,9 @@ class Optimization(object):
         self.objectiveIdx = {}
         self.bulk = None
 
+        # Store the jacobian conversion maps
+        self._jac_map_coo_to_csr = None
+
     def addVar(self, name, *args, **kwargs):
         """
         This is a convenience function. It simply calls addVarGroup()
@@ -1444,11 +1447,18 @@ class Optimization(object):
             ii += con.ncon
         # end for (constraint loop)
 
-        # Finally, construct coo matrix, convert to csr and perform
+        # Finally, construct CSR matrix from COO data and perform
         # row and column scaling.
-        gcon = {'coo':[row, col, numpy.array(data)],
+        if self._jac_map_coo_to_csr is None:
+            gcon = {'coo':[row, col, numpy.array(data)],
+                    'shape':[self.nCon, self.ndvs]}
+            self._jac_map_coo_to_csr = mapToCSR(gcon)
+
+        gcon = {'csr': (self._jac_map_coo_to_csr[IROW],
+                        self._jac_map_coo_to_csr[ICOL],
+                        numpy.array(data)[self._jac_map_coo_to_csr[IDATA]]),
                 'shape':[self.nCon, self.ndvs]}
-        gcon = convertToCSR(gcon)
+
         scaleRows(gcon, self.conScale)
         scaleColumns(gcon, self.invXScale)
 
