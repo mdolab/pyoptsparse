@@ -39,9 +39,162 @@ IROWIND = 1
 
 IDATA = 2
 __all__ = ['convertToCOO', 'convertToCSR', 'convertToCSC', 'convertToDense',
-           'multCOO',
+           'mapToCSC', 'mapToCSR', 'multCOO',
            'scaleColumns', 'scaleRows', 'extractRows', 'IROW', 'ICOL',
            'IROWP', 'ICOLIND', 'ICOLP', 'IROWIND', 'IDATA']
+
+
+def mapToCSR(mat):
+    """
+    Given a pyoptsparse matrix definition, return a tuple containing a
+    map of the matrix to the CSR format.
+
+    Parameters
+    ----------
+    mat : dict
+       A sparse matrix representation.
+
+    Returns
+    -------
+    tup : tuple of numpy arrays
+        tup[0] : numpy array (size=num_rows+1)
+            An array that holds the indices in col_idx and data at which each
+            row begins.  The last index of contains the number of nonzero
+            elements in the sparse array.
+        tup[1] : numpy array (size=nnz)
+            An array of the column indices of each element in data.
+        tup[2] : numpy array (size=nnz)
+            An indexing array which maps the elements in the data array
+            to elements in the CSR data array.
+    """
+    if 'csr' in mat:
+        # First handle the trivial case CSR->CSR
+        row_p = mat['csr'][IROW]
+        col_idx = mat['csr'][ICOL]
+        idx_data = numpy.s_[:]
+        return row_p, col_idx, idx_data
+
+    num_rows = mat['shape'][0]
+    num_cols = mat['shape'][1]
+
+    if 'csc' in mat:
+        # If given a CSC matrix, expand the column pointers so we
+        # effectively have a COO representation.
+        csc_colp = mat['csr'][ICOL]
+        rows = mat['csc'][IROW]
+        nnz = csc_colp[-1]
+
+        # Allocate the COO maps
+        cols = numpy.zeros(nnz, dtype='intc')
+
+        # We already have a full representation of the columns.
+        # We need to decompress the representation of the rows.
+        for j in range(num_cols):
+            cols[csc_colp[j]:csc_colp[j+1]] = j
+
+    elif 'coo' in mat:
+        rows = mat['coo'][IROW]
+        cols = mat['coo'][ICOL]
+        nnz = len(rows)
+
+    # Allocate the row pointer array
+    row_p = numpy.zeros(num_rows+1, dtype='intc')
+
+    # Get the sort order that puts data in row-major form
+    idx_data = numpy.lexsort((cols, rows))
+
+    # Apply the row-major indexing to the COO column and row indices
+    col_idx = numpy.asarray(cols, dtype='intc')[idx_data]
+    rows_rowmaj = numpy.asarray(rows, dtype='intc')[idx_data]
+
+    # Now for i = 0 to num_rows-1, row_p[i] is the first occurrence
+    # of i in rows_rowmaj
+    row_p[:-1] = numpy.digitize(numpy.arange(num_rows), rows_rowmaj, right=True)
+
+    # By convention store nnz in the last element of row_p
+    row_p[-1] = nnz
+
+    return row_p, col_idx, idx_data
+
+
+def mapToCSC(mat):
+    """
+    Given a pyoptsparse matrix definition, return a tuple containing a
+    map of the matrix to the CSC format.
+
+    Parameters
+    ----------
+    mat : dict
+       A sparse matrix representation.
+
+    Returns
+    -------
+    tup : tuple of numpy arrays
+        tup[0] : numpy array (size=nnz)
+            An array that holds the row index of each element in the CSC
+            representation of the data.
+        tup[1] : numpy array (size=num_cols+1)
+            An array that holds the indices in the CSC representation
+            and data at which each column begins.  The last index of
+            contains the number of nonzero elements in the sparse array.
+        tup[2] : numpy array
+            An indexing array which maps the elements in the data array
+            to elements in the CSC data array.
+    """
+    if 'csc' in mat:
+        # First handle the trivial case CSR->CSR
+        row_idx = mat['csc'][IROW]
+        col_p = mat['csc'][ICOL]
+        idx_data = numpy.s_[:]
+        return row_idx, col_p, idx_data
+
+    num_rows = mat['shape'][0]
+    num_cols = mat['shape'][1]
+
+    if 'csr' in mat:
+        # If given a CSR matrix, expand the row pointers so we
+        # effectively have a COO representation.
+        csr_rowp = mat['csr'][IROW]
+        cols = mat['csr'][ICOL]
+        nnz = csr_rowp[-1]
+
+        # Allocate the COO maps
+        rows = numpy.zeros(nnz, dtype='intc')
+
+        # We already have a full representation of the columns.
+        # We need to decompress the representation of the rows.
+        for j in range(num_rows):
+            rows[csr_rowp[j]:csr_rowp[j+1]] = j
+
+        # Now we have rows and cols, proceed as if we started with a COO matrix
+
+    elif 'coo' in mat:
+        rows = mat['coo'][IROW]
+        cols = mat['coo'][ICOL]
+        nnz = len(rows)
+
+    else:
+        raise ValueError('Invalid matrix type')
+
+    # Allocate the new column pointer
+    col_p = numpy.zeros(num_cols+1, dtype='intc')
+
+    # Get the sort order that puts data in column-major form
+    idx_data = numpy.lexsort((rows, cols))
+
+    # Apply the column-major indexing to the COO column and row indices
+    row_idx = numpy.asarray(rows, dtype='intc')[idx_data]
+    cols_colmaj = numpy.asarray(cols, dtype='intc')[idx_data]
+
+    # Now for i = 0 to num_cols-1, col_p[i] is the first occurrence
+    # of i in cols_colmaj
+    col_p[:-1] = numpy.digitize(numpy.arange(num_cols), cols_colmaj, right=True)
+
+    # By convention store nnz in the last element of col_p
+    col_p[-1] = nnz
+
+    return row_idx, col_p, idx_data
+
 
 def convertToCOO(mat):
     """
@@ -281,7 +434,6 @@ def extractRows(mat, indices):
     newMat : dic
        pyoptsparse CSR matrix
         """
-    mat = convertToCSR(mat)
     rowp = mat['csr'][IROWP]
     cols = mat['csr'][ICOLIND]
     data = mat['csr'][IDATA]

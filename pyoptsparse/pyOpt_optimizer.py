@@ -25,8 +25,8 @@ from .pyOpt_error import Error, pyOptSparseWarning
 from .pyOpt_history import History
 from .pyOpt_solution import Solution
 from .pyOpt_optimization import INFINITY
-from .pyOpt_utils import convertToDense, convertToCOO, convertToCSC, \
-    convertToCSR, extractRows, scaleRows, IDATA
+from .pyOpt_utils import convertToDense, convertToCOO, extractRows, \
+    mapToCSC, scaleRows, IDATA
 eps = numpy.finfo(1.0).eps
 
 # =============================================================================
@@ -87,6 +87,9 @@ class Optimizer(object):
 
         # Create list for major iteration numbers
         self.majorIterations = []
+
+        # Store the jacobian conversion maps
+        self._jac_map_csr_to_csc = None
 
     def _clearTimings(self):
         """Clear timings and call counters"""
@@ -570,36 +573,38 @@ class Optimizer(object):
         else:
             return True
 
-    def _convertJacobian(self, gcon):
+    def _convertJacobian(self, gcon_csr_in):
         """
-        Convert gcon which is a coo matrix into the format we need
+        Convert gcon which is a coo matrix into the format we need.
+
+        The returned Jacobian gcon is the data only, not a dictionary.
         """
 
-        # Now, gcon is a coo sparse matrix. Depending on what the
+        # Now, gcon is a CSR sparse matrix.  Depending on what the
         # optimizer wants, we will convert. The conceivable options
         # are: dense (most), csc (snopt), csr (???), or coo (IPOPT)
 
         if self.optProb.nCon > 0:
             # Extract the rows we need:
-            gcon = extractRows(gcon, self.optProb.jacIndices)
+            gcon_csr = extractRows(gcon_csr_in, self.optProb.jacIndices)
 
             # Apply factor scaling because of constraint sign changes
-            scaleRows(gcon, self.optProb.fact)
+            scaleRows(gcon_csr, self.optProb.fact)
 
             # Now convert to final format:
             if self.jacType == 'dense2d':
-                gcon = convertToDense(gcon)
+                gcon = convertToDense(gcon_csr)
             elif self.jacType == 'csc':
-                gcon = convertToCSC(gcon)
-                gcon = gcon['csc'][IDATA]
+                if self._jac_map_csr_to_csc is None:
+                    self._jac_map_csr_to_csc = mapToCSC(gcon_csr)
+                gcon = gcon_csr['csr'][IDATA][self._jac_map_csr_to_csc[IDATA]]
             elif self.jacType == 'csr':
-                gcon = convertToCSR(gcon)
-                gcon = gcon['csr'][IDATA]
+                pass
             elif self.jacType == 'coo':
-                gcon = convertToCOO(gcon)
+                gcon = convertToCOO(gcon_csr)
                 gcon = gcon['coo'][IDATA]
         if self.optProb.dummyConstraint:
-            gcon = gcon['csr'][IDATA]
+            gcon = gcon_csr['csr'][IDATA]
         return gcon
 
     def _waitLoop(self):
