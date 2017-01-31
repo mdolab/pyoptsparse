@@ -144,7 +144,7 @@ class PSQP(Optimizer):
             self.unconstrained = True
             optProb.dummyConstraint = False
 
-        # Set optProb and finialize
+        # Set optProb and finalize
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()

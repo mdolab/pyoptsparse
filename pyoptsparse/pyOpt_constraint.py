@@ -83,8 +83,8 @@ class Constraint(object):
         self.upper = upper
         # The current value of the constraint (for printing purposes)
         self.value = numpy.zeros(self.ncon)
-        
-        # Now we determine what kind of constraint this is: 
+
+        # Now we determine what kind of constraint this is:
         # 1. An equality constraint
         # 2. A upper bound on a 1-sided constraint
         # 3. A lower bound on a 1-sided constraint
@@ -95,7 +95,7 @@ class Constraint(object):
         # The first 3, will give a single "constraint" in all
         # optimizers. Some optimizers can only do 1-sided constraints
         # so type 4 and 5 must be split into two separate constraints
-        # automatically. 
+        # automatically.
 
         # This keeps track of the equality constraints:
         equalityConstraints = {'value': [], 'ind': [], 'fact': []}
@@ -112,23 +112,23 @@ class Constraint(object):
         # with a (-value) offset. One sided constraints need a fact
         # defined which is precisely 1.0 or -1.0. The -1.0 appears
         # when a greater-than-constraint is turned into a
-        # less-than-constraint. 
+        # less-than-constraint.
         oneSidedConstraints = {'lower': [], 'upper': [], 'ind': [], 'fact': []}
-        
+
         for icon in range(self.ncon):
             # Check for equality constraint:
             if lower[icon] == upper[icon] and lower[icon] is not None:
                 equalityConstraints['value'].append(lower[icon]*scale[icon])
                 equalityConstraints['ind'].append(icon)
                 equalityConstraints['fact'].append(1.0)
-                
+
             # Two sided constraint:
             elif lower[icon] is not None and upper[icon] is not None:
                 twoSidedConstraints['lower'].append(lower[icon]*scale[icon])
                 twoSidedConstraints['upper'].append(upper[icon]*scale[icon])
                 twoSidedConstraints['ind'].append(icon)
                 twoSidedConstraints['fact'].append(1.0)
-                
+
                 # TWO sets of 1 sided constraints:
                 oneSidedConstraints['lower'].append(-INFINITY)
                 oneSidedConstraints['upper'].append(upper[icon]*scale[icon])
@@ -139,14 +139,14 @@ class Constraint(object):
                 oneSidedConstraints['upper'].append(-lower[icon]*scale[icon])
                 oneSidedConstraints['ind'].append(icon)
                 oneSidedConstraints['fact'].append(-1.0)
-                
+
             # Upper bound only:
             elif upper[icon] is not None:
                 twoSidedConstraints['lower'].append(-INFINITY)
                 twoSidedConstraints['upper'].append(upper[icon]*scale[icon])
                 twoSidedConstraints['ind'].append(icon)
                 twoSidedConstraints['fact'].append(1.0)
-                
+
                 # Just one, 1-sided constraint
                 oneSidedConstraints['lower'].append(-INFINITY)
                 oneSidedConstraints['upper'].append(upper[icon]*scale[icon])
@@ -159,7 +159,7 @@ class Constraint(object):
                 twoSidedConstraints['upper'].append(INFINITY)
                 twoSidedConstraints['ind'].append(icon)
                 twoSidedConstraints['fact'].append(1.0)
-                
+
                 # Just one, 1-sided constraint
                 oneSidedConstraints['lower'].append(-INFINITY)
                 oneSidedConstraints['upper'].append(-lower[icon]*scale[icon])
@@ -172,7 +172,7 @@ class Constraint(object):
                 twoSidedConstraints['upper'].append(INFINITY)
                 twoSidedConstraints['ind'].append(icon)
                 twoSidedConstraints['fact'].append(1.0)
-                                
+
                 # Since this is just a dummy constraint, we only need
                 # a single one....it can just be less than INFINITY
                 oneSidedConstraints['lower'].append(-INFINITY)
@@ -192,22 +192,22 @@ class Constraint(object):
         equalityConstraints['fact'] = numpy.array(equalityConstraints['fact'])
 
         equalityConstraints['value'] = numpy.array(equalityConstraints['value'])
-        
+
         # Now save this information:
         self.equalityConstraints = equalityConstraints
         self.oneSidedConstraints = oneSidedConstraints
         self.twoSidedConstraints = twoSidedConstraints
 
-    def finialize(self, variables, dvOffset, index):
+    def finalize(self, variables, dvOffset, index):
         """ **This function should not need to be called by the user**
-        
-        After the design variables have been finialized and the order
-        is known we can check the constraint for consistency. 
+
+        After the design variables have been finalized and the order
+        is known we can check the constraint for consistency.
 
         Parameters
         ----------
         variables : Ordered Dict
-            The pyOpt variable list after they have been finialized.
+            The pyOpt variable list after they have been finalized.
 
         dvOffset : dict
             Design variable offsets from pyOpt_optimization
@@ -216,7 +216,7 @@ class Constraint(object):
             The starting index of this constraint in natural order
 
         """
-        
+
         # Set the row start and end
         self.rs = index
         self.re = index + self.ncon
@@ -229,7 +229,7 @@ class Constraint(object):
             # Sanitize the wrt input:
             if isinstance(self.wrt, str):
                 self.wrt = [self.wrt.lower()]
-            else: 
+            else:
                 try:
                     self.wrt = list(self.wrt)
                 except:
@@ -239,7 +239,7 @@ class Constraint(object):
             # We allow 'None' to be in the list...they are null so
             # just pop them out:
             self.wrt = [dvGroup for dvGroup in self.wrt if dvGroup != None]
-                    
+
             # Now, make sure that each dvGroup the user supplied list
             # *actually* are variables
             for dvGroup in self.wrt:
@@ -262,9 +262,9 @@ class Constraint(object):
 
         # Now we know which dvGroups this constraint will have a
         # derivative with respect to (i.e. what is in the wrt list)
-            
+
         # Now, it is possible that jacobians were given for none, some
-        # or all the dvGroups defined in wrt. 
+        # or all the dvGroups defined in wrt.
         if self.jac is None:
             # If the constraint is linear we have to *Force* the user to
             # supply a constraint jacobian for *each* of the values in
@@ -277,13 +277,13 @@ class Constraint(object):
                             "The constraint in error is %s."% self.name)
 
             # without any additional information about the jacobian
-            # structure, we must assume they are all dense. 
+            # structure, we must assume they are all dense.
             self.jac = {}
             for dvGroup in self.wrt:
                 ss = dvOffset[dvGroup]
                 ndvs = ss[1]-ss[0]
                 self.jac[dvGroup] = convertToCOO(numpy.zeros((self.ncon, ndvs)))
-                
+
             # Set a flag for the constraint object, that not returning
             # them all is ok.
             self.partialReturnOk = True
@@ -298,7 +298,7 @@ class Constraint(object):
             # Now loop over the set we *know* we need and see if any
             # are in jac. We will actually pop them out, and that way
             # if there is anything left at the end, we can tell the
-            # user supplied information was unused. 
+            # user supplied information was unused.
             tmp = copy.deepcopy(self.jac)
             self.jac = {}
             for dvGroup in self.wrt:
@@ -316,13 +316,13 @@ class Constraint(object):
                 self.jac[dvGroup] = convertToCOO(self.jac[dvGroup])
 
                 # Generically check the shape:
-                if (self.jac[dvGroup]['shape'][0] != self.ncon or 
+                if (self.jac[dvGroup]['shape'][0] != self.ncon or
                     self.jac[dvGroup]['shape'][1] != ndvs):
                     raise Error("The supplied jacobian for dvGroup %s' "
                                 "in constraint %s, was the incorrect size. "
                                 "Expecting a jacobian of size (%d, %d) but "
                                 "received a jacobian of size (%d, %d)."%(
-                                    dvGroup, self.name, self.ncon, ndvs, 
+                                    dvGroup, self.name, self.ncon, ndvs,
                                     self.jac[dvGroup]['shape'][0],
                                     self.jac[dvGroup]['shape'][1]))
             # end for (dvGroup)
@@ -345,7 +345,7 @@ class Constraint(object):
     def __str__(self):
         """
         Print Constraint
-        
+
         Documentation last updated:  April. 30, 2008 - Peter W. Jansen
         """
         res = ''
@@ -357,10 +357,10 @@ class Constraint(object):
                 lower = -1e20
             if upper is None:
                 upper = 1e20
-                
+
             res += '	 '+str(self.name).center(9) + \
                    '	  i %15.2e <= %8f <= %8.2e\n' %(
                         numpy.real(lower), numpy.real(value),
                        numpy.real(upper))
-       
+
         return res
