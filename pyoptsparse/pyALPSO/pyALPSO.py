@@ -116,7 +116,7 @@ class ALPSO(Optimizer):
             fobj, fcon, fail = self._masterFunc(x, ['fobj', 'fcon'])
             return fobj, fcon
 
-        # Save the optimization problem and finialize constraint
+        # Save the optimization problem and finalize constraint
         # jacobian, in general can only do on root proc
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()

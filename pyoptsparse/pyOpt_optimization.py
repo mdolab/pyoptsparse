@@ -808,7 +808,7 @@ class Optimization(object):
         conScale = numpy.zeros(self.nCon)
         for iCon in self.constraints:
             con = self.constraints[iCon]
-            con.finialize(self.variables, self.dvOffset, rowCounter)
+            con.finalize(self.variables, self.dvOffset, rowCounter)
             rowCounter += con.ncon
             conScale[con.rs:con.re] = con.scale
 
