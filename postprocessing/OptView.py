@@ -211,26 +211,27 @@ class Display(object):
                     try:
                         f = db[key]['funcs']
 
-                        # If the proper history is stored coming out of
-                        # pyoptsparse, use that for filtering major iterations.
-                        if 0:#storedIters:
-                            self.iter_type[i] = int(db[key]['isMajor'])
-
-                        # Otherwise, use a spotty heuristic to see if the
+                        # Use a spotty heuristic to see if the
                         # iteration is major or not. NOTE: this is often
                         # inaccurate, especially if the optimization used
                         # gradient-enhanced line searches.
-                        else:
-                            try:
-                                db[keyp1]['funcsSens']
-                                self.iter_type[i] = 1 # for 'major' iterations
-                            except KeyError:
-                                pass
-                            try:
-                                db[keyp1]['funcs']
-                                self.iter_type[i] = 2 # for 'minor' iterations
-                            except KeyError:
-                                pass
+                        try:
+                            db[keyp1]['funcsSens']
+                            self.iter_type[i] = 1 # for 'major' iterations
+                        except KeyError:
+                            pass
+                        try:
+                            if i == nkey-1:
+                                self.iter_type[i] = 2
+                            db[keyp1]['funcs']
+                            self.iter_type[i] = 2 # for 'minor' iterations
+                        except KeyError:
+                            pass
+
+                        # But if the proper history is stored coming out of
+                        # pyoptsparse, use that for filtering major iterations.
+                        if 0:#storedIters:
+                            self.iter_type[i] = int(db[key]['isMajor'])
 
                         # !!!! Commented out for now to avoid confusion for new users.
                         # !!!! May be useful if you're matching up optimization
@@ -250,15 +251,28 @@ class Display(object):
                                 self.func_data_all[new_key] = []
                                 if self.iter_type[i] == 1:
                                     self.func_data_major[new_key] = []
-                            if numpy.isscalar(f[key]) or len(f[key]) == 1:
-                                self.func_data_all[new_key].append(f[key])
+
+                            if numpy.isscalar(f[key]):
+
+                                if type(f[key]) == numpy.ndarray:
+                                    val = f[key][0]
+                                else:
+                                    val = f[key]
+
+                                self.func_data_all[new_key].append(val)
                                 if self.iter_type[i] == 1:
-                                    self.func_data_major[new_key].append(f[key])
-                            else:
-                                try:
-                                    self.func_data_all[new_key].append(f[key].flatten())
+                                    self.func_data_major[new_key].append(val)
+
+                            elif type(f[key]) == numpy.ndarray:
+                                if f[key].shape == ():
+                                    self.func_data_all[new_key].append(float(f[key]))
                                     if self.iter_type[i] == 1:
-                                        self.func_data_major[new_key].append(f[key].flatten())
+                                        self.func_data_major[new_key].append(float(f[key]))
+
+                                try:
+                                    self.func_data_all[new_key].append(f[key][0])
+                                    if self.iter_type[i] == 1:
+                                        self.func_data_major[new_key].append(f[key][0])
                                 except (IndexError, AttributeError):
                                     pass
 
@@ -282,21 +296,35 @@ class Display(object):
                                 self.var_data_all[new_key] = []
                                 if self.iter_type[i] == 1:
                                     self.var_data_major[new_key] = []
-                            if numpy.isscalar(f[key]) or f[key].shape == (1,):
+
+                            if numpy.isscalar(f[key]):
+
                                 if type(f[key]) == numpy.ndarray:
                                     val = f[key][0]
                                 else:
                                     val = f[key]
+
                                 self.var_data_all[new_key].append(val)
                                 if self.iter_type[i] == 1:
                                     self.var_data_major[new_key].append(val)
-                            try:
-                                if f[key].shape[0] > 1:
-                                    self.var_data_all[new_key].append(f[key])
+
+                            elif type(f[key]) == numpy.ndarray:
+                                if f[key].shape == ():
+                                    self.var_data_all[new_key].append(float(f[key]))
                                     if self.iter_type[i] == 1:
-                                        self.var_data_major[new_key].append(f[key])
-                            except IndexError:
-                                pass
+                                        self.var_data_major[new_key].append(float(f[key]))
+
+                                try:
+                                    self.var_data_all[new_key].append(f[key][0])
+                                    if self.iter_type[i] == 1:
+                                        self.var_data_major[new_key].append(f[key][0])
+                                except (IndexError, AttributeError):
+                                    pass
+
+            for key in self.var_data_all.keys():
+                length = len(self.var_data_all[key])
+                if length > self.num_iter:
+                    self.num_iter = length
 
 
             # Add labels to OpenMDAO variables
