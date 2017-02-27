@@ -501,13 +501,17 @@ class Optimizer(object):
         hist['fail'] = masterFail
 
         # Check if this iteration is a major one. If so, isMajor = True.
-        if len(self.majorIterations) > 1:
-            if self.majorIterations[-1] != self.majorIterations[-2]:
+        # This only works as expected when using SNOPT.
+        if len(self.majorIterations) > 0:
+            if len(self.majorIterations) == 1: # The first iteration is major
                 isMajor = True
-            else:
+            # Check to see if the iteration number count has changed
+            elif self.majorIterations[-1] != self.majorIterations[-2]:
+                isMajor = True
+            else: # Otherwise we're on the same major iteration
                 isMajor = False
-        else:
-            isMajor = True
+        else: # SNOPT hasn't recorded any major iterations yet
+            isMajor = False
 
         # Put the iterType flag in the history:
         hist['isMajor'] = isMajor
@@ -523,7 +527,6 @@ class Optimizer(object):
                 lower = self.optProb.constraints[key].lower
                 upper = self.optProb.constraints[key].upper
                 conBounds[key] = {'lower':lower, 'upper':upper}
-
 
             # Cycle through variables and add the bounds
             for dvGroup in self.optProb.variables:
