@@ -4,7 +4,7 @@ Provides interactive visualization of optimization results created by
 pyOptSparse. Figures produced here can be saved as images or pickled
 for future customization.
 
-John Jasa 2015-2016
+John Jasa 2015-2017
 
 """
 
@@ -17,8 +17,6 @@ import shelve
 import tkFont
 import Tkinter as Tk
 import re
-import sched
-import time
 import warnings
 
 # ======================================================================
@@ -33,7 +31,7 @@ from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
 warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
 warnings.filterwarnings("ignore",category=UserWarning)
-import numpy
+import numpy as np
 from pyoptsparse import SqliteDict
 
 class Display(object):
@@ -45,9 +43,12 @@ class Display(object):
 
     def __init__(self, histList, outputDir):
 
+        # Initialize the Tkinter object, which will contain all graphical
+        # elements.
         self.root = Tk.Tk()
         self.root.wm_title("OptView")
 
+        # Load the OptView icon
         try:
             icon_dir = os.path.dirname(os.path.abspath(__file__))
             icon_name = 'OptViewIcon.gif'
@@ -57,23 +58,37 @@ class Display(object):
         except: # bare except because error is not in standard Python
             pass
 
-        self.f = plt.figure(dpi=100, facecolor='white')
+        # If the screen is bigger than 1080p, use a large window
+        if self.root.winfo_screenheight() > 1100:
+            figsize = (14, 10)
+        else: # Otherwise, use a slightly smaller window
+              # so everything fits on the screen
+            figsize = (6, 6)
 
+        # Instantiate the MPL figure
+        self.f = plt.figure(figsize=figsize, dpi=100, facecolor='white')
+
+        # Link the MPL figure onto the TK canvas and pack it
         self.canvas = FigureCanvasTkAgg(self.f, master=self.root)
         self.canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
 
+        # Add a toolbar to explore the figure like normal MPL behavior
         toolbar = NavigationToolbar2TkAgg(self.canvas, self.root)
         toolbar.update()
         self.canvas._tkcanvas.pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
 
+        # Increase the font size
         matplotlib.rcParams.update({'font.size': 16})
 
+        # Initialize lists, dicts, and save inputs from user
         self.arr_active = 0
         self.plots = []
         self.annotate = None
         self.histList = histList
         self.outputDir = outputDir
+        self.bounds = {}
 
+        # Actually setup and run the GUI
         self.OptimizationHistory()
 
     def OptimizationHistory(self):
@@ -83,292 +98,256 @@ class Display(object):
         variable information is stored as a dict in var_data,
         and bounds information is stored as a dict in bounds.
         """
+
+        # Initialize dictionaries for design variables and unknowns.
+        # The data is saved redundantly in dicts for all iterations and then
+        # for major iterations as well.
         self.func_data_all = {}
         self.func_data_major = {}
         self.var_data_all = {}
         self.var_data_major = {}
-
+        db = {}
         self.num_iter = 0
 
-        db = {}
+        # Loop over each history file name provided by the user.
         for histIndex, histFileName in enumerate(self.histList):
+
+            # If they only have one history file, we don't change the keys' names
             if len(self.histList) == 1:
                 histIndex = ''
-            else:
+            else: # If multiple history files, append letters to the keys,
+                  # such that 'key' becomes 'key_A', 'key_B', etc
                 histIndex = '_' + chr(histIndex + ord('A'))
-            try:
+            self.histIndex = histIndex
+
+            try: # This is the classic method of storing history files
                 db = shelve.open(histFileName, 'r')
                 OpenMDAO = False
-            except: # bare except because error is not in standard Python
-                db = SqliteDict(histFileName, 'openmdao')
+            except: # Bare except because error is not in standard Python.
+                # If the db has the 'iterations' tag, it's an OpenMDAO db.
+                db = SqliteDict(histFileName, 'iterations')
                 OpenMDAO = True
+
+                # If it has no 'iterations' tag, it's a pyOptSparse db.
                 if db.keys() == []:
                     OpenMDAO = False
                     db = SqliteDict(histFileName)
 
+            # Specific instructions for OpenMDAO databases
             if OpenMDAO:
-                string = db.keys()[-1].split('/')
-                if string[-1]=='derivs':
-                    nkey = int(string[-2]) + 1 # OpenMDAO uses 1-indexing
-                else:
-                    nkey = int(string[-1]) + 1 # OpenMDAO uses 1-indexing
-                solver_name = string[0]
+
+                # Get the number of iterations by looking at the largest number
+                # in the split string names for each entry in the db
+                string = db.keys()[-1].split('|')
+                nkey = int(string[-1])
+                self.solver_name = string[0]
+
+                # Initalize a list detailing if the iterations are major or minor
+                self.iter_type = np.zeros(nkey)
+
+                # Get the keys of the database where derivatives were evaluated.
+                # These correspond to major iterations, while no derivative
+                # info is calculated for gradient-free linesearches.
+                deriv_keys = SqliteDict(histFileName, 'derivs').keys()
+                self.deriv_keys = [int(key.split('|')[-1]) for key in deriv_keys]
+
+                # Save information from the history file for the unknowns.
+                self.SaveDBData(db, self.func_data_all, self.func_data_major, OpenMDAO=OpenMDAO, data_str='Unknowns')
+
+                # Save information from the history file for the design variables.
+                self.SaveDBData(db, self.var_data_all, self.var_data_major, OpenMDAO=OpenMDAO, data_str='Parameters')
+
+                # Add labels to OpenMDAO variables.
+                # Corresponds to constraints, design variables, and objective.
+                try:
+                    db = SqliteDict(histFileName, 'metadata')
+                    self.SaveOpenMDAOData(db)
+
+                except KeyError: # Skip metadata info if not included in OpenMDAO hist file
+                    pass
+
             else:
+
+                # Get the number of iterations
                 nkey = int(db['last']) + 1
-            self.iter_type = numpy.zeros(nkey)
+                self.nkey = nkey
 
-            # Check to see if there is bounds information in the hst file
-            try:
-                self.bounds = dict(
-                    db['varBounds'].items() + db['conBounds'].items())
-            except KeyError:
-                pass
+                # Initalize a list detailing if the iterations are major or minor
+                self.iter_type = np.zeros(nkey)
 
-            # Check to see if there is proper saved info about iter type
-            if 'isMajor' in db['0'].keys():
-                storedIters = True
-            else:
-                storedIters = False
-
-            if OpenMDAO:
-                key = 'Driver/1'
+                # Check to see if there is bounds information in the db file.
+                # If so, add them to self.bounds to plot later.
                 try:
-                    f = db[key]['Unknowns']
-                    for key in sorted(f):
-                        new_key = key + '{}'.format(histIndex)
-                        if new_key not in self.func_data_all:
-                            self.func_data_all[new_key] = []
-                        if numpy.isscalar(f[key]) or f[key].shape == (1,):
-                            self.func_data_all[new_key].append(f[key])
-                        try:
-                            if f[key].shape[0] > 1:
-                                self.func_data_all[new_key].append(f[key])
-                        except (IndexError, AttributeError):
-                            pass
-
+                    bounds_dict = dict(db['varBounds'].items() + db['conBounds'].items())
+                    for key in bounds_dict.keys():
+                        bounds_dict[key + histIndex] = bounds_dict.pop(key)
+                    self.bounds.update(bounds_dict)
                 except KeyError:
                     pass
 
-                try:
-                    f = db[key]['Parameters']
-                    for key in sorted(f):
-                        new_key = key + '{}'.format(histIndex)
-                        if new_key not in self.var_data_all:
-                            self.var_data_all[new_key] = []
-                            if self.iter_type[i] == 1:
-                                self.var_data_major[new_key] = []
-                        if numpy.isscalar(f[key]) or f[key].shape == (1,):
-                            self.var_data_all[new_key].append(f[key])
-                            if self.iter_type[i] == 1:
-                                self.var_data_major[new_key].append(f[key])
-                        else:
-                            try:
-                                self.var_data_all[new_key].append(f[key].flatten())
-                                if self.iter_type[i] == 1:
-                                    self.var_data_major[new_key].append(f[key].flatten())
-                            except (IndexError, AttributeError):
-                                pass
-
-                except KeyError:
-                    pass
-
-            for i in xrange(nkey):
-                if OpenMDAO:
-                    key = '{}/{}'.format(solver_name, i)
-                    keyp1 = '{}/{}/derivs'.format(solver_name, i)
-
-                    try:
-                        f = db[key]['Unknowns']
-                        try:
-                            db[keyp1]
-                            self.iter_type[i] = 1 # for 'major' iterations
-                        except KeyError:
-                            self.iter_type[i] = 2 # for 'minor' iterations
-                        for key in sorted(f):
-                            new_key = key + '{}'.format(histIndex)
-                            if new_key not in self.func_data_all:
-                                self.func_data_all[new_key] = []
-                                if self.iter_type[i] == 1:
-                                    self.func_data_major[new_key] = []
-                            if numpy.isscalar(f[key]) or f[key].shape == (1,):
-                                self.func_data_all[new_key].append(f[key])
-                                if self.iter_type[i] == 1:
-                                    self.func_data_major[new_key].append(f[key])
-                            else:
-                                try:
-                                    self.func_data_all[new_key].append(f[key].flatten())
-                                    if self.iter_type[i] == 1:
-                                        self.func_data_major[new_key].append(f[key].flatten())
-                                except (IndexError, AttributeError):
-                                    pass
-
-                    except KeyError:
-                        pass
-
+                # Check to see if there is proper saved info about iter type
+                if 'isMajor' in db['0'].keys():
+                    self.storedIters = True
                 else:
-                    key = '%d' % i
-                    keyp1 = '%d' % (i + 1)
-                    try:
-                        f = db[key]['funcs']
+                    self.storedIters = False
 
-                        # Use a spotty heuristic to see if the
+                # Save information from the history file for the funcs.
+                self.SaveDBData(db, self.func_data_all, self.func_data_major, OpenMDAO=OpenMDAO, data_str='funcs')
+
+                # Save information from the history file for the design variables.
+                self.SaveDBData(db, self.var_data_all, self.var_data_major, OpenMDAO=OpenMDAO, data_str='xuser')
+
+        # Set the initial dictionaries to reference all iterations.
+        # Later this can be set to reference only the major iterations.
+        self.func_data = self.func_data_all
+        self.var_data = self.var_data_all
+
+        # Find the maximum length of any variable in the dictionaries and
+        # save this as the number of iterations.
+        for data_dict in [self.func_data, self.var_data]:
+            for key in data_dict.keys():
+                length = len(data_dict[key])
+                if length > self.num_iter:
+                    self.num_iter = length
+
+    def SaveDBData(self, db, data_all, data_major, OpenMDAO, data_str):
+        """ Method to save the information within the database corresponding
+            to a certain key to the relevant dictionaries within the Display
+            object. This method is called twice, once for the design variables
+            and the other for the outputs. """
+
+        # Loop over each optimization iteration
+        for i, iter_type in enumerate(self.iter_type):
+
+            # If this is an OpenMDAO file, the keys are of the format
+            # 'rank0:SNOPT|1', etc
+            if OpenMDAO:
+                key = '{}|{}'.format(self.solver_name, i+1) # OpenMDAO uses 1-indexing
+            else: # Otherwise the keys are simply a number
+                key = '%d' % i
+
+            # If this is the 'funcs' key, perform some special operations,
+            # such as determining the iteration type
+            if data_str == 'funcs':
+
+                # Only actual optimization iterations have 'funcs' in them.
+                # pyOptSparse saves info for two iterations for every
+                # actual major iteration. In particular, one has funcs
+                # and the next has funcsSens, but they're both part of the
+                # same major iteration.
+                if any('funcs' == s for s in db[key].keys()):
+
+                    # If the proper history is stored coming out of
+                    # pyoptsparse, use that for filtering major iterations.
+                    if self.storedIters:
+                        self.iter_type[i] = int(db[key]['isMajor'])
+
+                        # If this iteration has 'funcs' within it, but it's not
+                        # flagged as major, then it's a minor iteration.
+                        if self.iter_type[i] == 0:
+                            self.iter_type[i] = 2
+
+                    else: # Otherwise, use a spotty heuristic to see if the
                         # iteration is major or not. NOTE: this is often
                         # inaccurate, especially if the optimization used
                         # gradient-enhanced line searches.
                         try:
+                            keyp1 = '%d' % (i + 1)
                             db[keyp1]['funcsSens']
                             self.iter_type[i] = 1 # for 'major' iterations
                         except KeyError:
-                            pass
-                        try:
-                            if i == nkey-1:
-                                self.iter_type[i] = 2
-                            db[keyp1]['funcs']
                             self.iter_type[i] = 2 # for 'minor' iterations
-                        except KeyError:
-                            pass
 
-                        # But if the proper history is stored coming out of
-                        # pyoptsparse, use that for filtering major iterations.
-                        if 0:#storedIters:
-                            self.iter_type[i] = int(db[key]['isMajor'])
+                else:
+                    self.iter_type[i] = 0 # this is not a real iteration,
+                                          # just the sensitivity evaluation
+            elif data_str == 'Unknowns':
+                if i in self.deriv_keys:
+                    self.iter_type[i] = 1 # for 'major' iterations
+                else:
+                    self.iter_type[i] = 2 # for 'minor' iterations
 
-                        # !!!! Commented out for now to avoid confusion for new users.
-                        # !!!! May be useful if you're matching up optimization
-                        # !!!! iterations with CFD iterations.
-                        #
-                        # if 'actual_iteration_number' not in self.func_data_all:
-                        #     self.func_data_all['actual_iteration_number'] = []
-                        # self.func_data_all['actual_iteration_number'].append(key)
-                        # if 'actual_iteration_number' not in self.func_data_major:
-                        #     self.func_data_major['actual_iteration_number'] = []
-                        # if self.iter_type[i]:
-                        #     self.func_data_major['actual_iteration_number'].append(key)
+            # Do this for both major and minor iterations
+            if self.iter_type[i]:
 
-                        for key in sorted(f):
-                            new_key = key + '{}'.format(histIndex)
-                            if new_key not in self.func_data_all:
-                                self.func_data_all[new_key] = []
-                                if self.iter_type[i] == 1:
-                                    self.func_data_major[new_key] = []
+                # Get just the info in the dict for this iteration
+                iter_data = db[key][data_str]
 
-                            if numpy.isscalar(f[key]):
+                # Loop through each key within this iteration
+                for key in sorted(iter_data):
 
-                                if type(f[key]) == numpy.ndarray:
-                                    val = f[key][0]
-                                else:
-                                    val = f[key]
+                    # Format a new_key string where we append a modifier
+                    # if we have multiple history files
+                    new_key = key + '{}'.format(self.histIndex)
 
-                                self.func_data_all[new_key].append(val)
-                                if self.iter_type[i] == 1:
-                                    self.func_data_major[new_key].append(val)
+                    # If this key is not in the data dictionaries, add it
+                    if new_key not in data_all:
+                        data_all[new_key] = []
+                        data_major[new_key] = []
 
-                            elif type(f[key]) == numpy.ndarray:
-                                if f[key].shape == ():
-                                    self.func_data_all[new_key].append(float(f[key]))
-                                    if self.iter_type[i] == 1:
-                                        self.func_data_major[new_key].append(float(f[key]))
+                    # Process the data from the key. Convert it to a numpy
+                    # array, keep only the real part, squeeze any 1-dim
+                    # axes out of it, then flatten it.
+                    data = np.squeeze(np.array(iter_data[key]).real).flatten()
 
-                                try:
-                                    self.func_data_all[new_key].append(f[key][0])
-                                    if self.iter_type[i] == 1:
-                                        self.func_data_major[new_key].append(f[key][0])
-                                except (IndexError, AttributeError):
-                                    pass
+                    # Append the data to the entries within the dictionaries.
+                    data_all[new_key].append(data)
+                    if self.iter_type[i] == 1:
+                        data_major[new_key].append(data)
 
+    def SaveOpenMDAOData(self, db):
+        """ Examine the OpenMDAO dict and save tags if the variables are
+            objectives (o), constraints (c), or design variables (dv). """
+
+        # Loop over each key in the metadata db
+        for tag in db:
+
+            # Only look at variables and unknowns
+            if tag in ['Unknowns', 'Parameters']:
+                for old_item in db[tag]:
+
+                    # We'll rename each item, so we need to get the old item
+                    # name and modify it
+                    item = old_item + '{}'.format(self.histIndex)
+
+                    # Here we just have an open parenthesis, and then we will
+                    # add o, c, or dv. Note that we could add multiple flags
+                    # to a single item. That's why we have a sort of convoluted
+                    # process of adding the tags.
+                    new_key = item + ' ('
+                    flag_list = []
+
+                    # Check each flag and see if they have the relevant entries
+                    # within the dict; if so, tag them.
+                    for flag in db[tag][old_item]:
+                        if 'is_objective' in flag:
+                            flag_list.append('o')
+                        if 'is_desvar' in flag:
+                            flag_list.append('dv')
+                        if 'is_constraint' in flag:
+                            flag_list.append('c')
+
+                    # Create the new_key based on the flags for each variable
+                    for flag in flag_list:
+                        if flag == flag_list[-1]:
+                            new_key += flag + ')'
+                        else:
+                            new_key += flag + ', '
+
+                    # If there are actually flags to add, pop out the old items
+                    # in the dict and re-add them with the new name.
+                    if flag_list:
                         try:
-                            db[key]['funcsSens']
+                            if 'dv' in flag_list:
+                                self.var_data_all[new_key] = self.func_data_all.pop(item)
+                                self.var_data_major[new_key] = self.func_data_major.pop(item)
+
+                            else:
+                                self.func_data_all[new_key] = self.func_data_all.pop(item)
+                                self.func_data_major[new_key] = self.func_data_major.pop(item)
+
                         except KeyError:
                             pass
-
-
-                    except KeyError:
-                        pass
-
-            for i in xrange(nkey):
-                if not OpenMDAO:
-                    key = '%d' % i
-                    if self.iter_type[i]:
-                        f = db[key]['xuser']
-                        for key in sorted(f):
-                            new_key = key + '{}'.format(histIndex)
-                            if new_key not in self.var_data_all:
-                                self.var_data_all[new_key] = []
-                                if self.iter_type[i] == 1:
-                                    self.var_data_major[new_key] = []
-
-                            if numpy.isscalar(f[key]):
-
-                                if type(f[key]) == numpy.ndarray:
-                                    val = f[key][0]
-                                else:
-                                    val = f[key]
-
-                                self.var_data_all[new_key].append(val)
-                                if self.iter_type[i] == 1:
-                                    self.var_data_major[new_key].append(val)
-
-                            elif type(f[key]) == numpy.ndarray:
-                                if f[key].shape == ():
-                                    self.var_data_all[new_key].append(float(f[key]))
-                                    if self.iter_type[i] == 1:
-                                        self.var_data_major[new_key].append(float(f[key]))
-
-                                try:
-                                    self.var_data_all[new_key].append(f[key][0])
-                                    if self.iter_type[i] == 1:
-                                        self.var_data_major[new_key].append(f[key][0])
-                                except (IndexError, AttributeError):
-                                    pass
-
-            for key in self.var_data_all.keys():
-                length = len(self.var_data_all[key])
-                if length > self.num_iter:
-                    self.num_iter = length
-
-
-            # Add labels to OpenMDAO variables
-            # Corresponds to constraints, design variables, and objective
-            if OpenMDAO:
-                try:
-                    for tag in db['metadata']:
-                        for old_item in db['metadata'][tag]:
-                            item = old_item + '{}'.format(histIndex)
-                            new_key = item + ' ('
-                            flag_list = []
-                            for flag in db['metadata'][tag][old_item]:
-                                if 'is_objective' in flag:
-                                    flag_list.append('o')
-                                if 'is_desvar' in flag:
-                                    flag_list.append('dv')
-                                if 'is_constraint' in flag:
-                                    flag_list.append('c')
-                            for flag in flag_list:
-                                if flag == flag_list[-1]:
-                                    new_key += flag + ')'
-                                else:
-                                    new_key += flag + ', '
-                            if flag_list:
-                                try:
-                                    if 'dv' in flag_list:
-                                        self.var_data_all[new_key] = self.func_data_all.pop(item)
-                                        self.var_data_major[new_key] = self.func_data_major.pop(item)
-
-                                    else:
-                                        self.func_data_all[new_key] = self.func_data_all.pop(item)
-                                        self.func_data_major[new_key] = self.func_data_major.pop(item)
-                                except KeyError:
-                                    pass
-                except KeyError: # skips metadata info if not included in OpenMDAO hist file
-                    pass
-
-        self.func_data = self.func_data_all
-        self.var_data = self.var_data_all
-
-        for key in self.func_data.keys():
-            length = len(self.func_data[key])
-            if length > self.num_iter:
-                self.num_iter = length
 
     def quit(self):
         """
@@ -455,7 +434,7 @@ class Display(object):
                 minmax_list = []
                 for minmax in dat[val]:
                     minmax_list.append(
-                        [numpy.min(minmax), numpy.max(minmax)])
+                        [np.min(minmax), np.max(minmax)])
                 plots = a.plot(minmax_list, "o-", label=val,
                     markeredgecolor='none', clip_on=False)
 
@@ -736,16 +715,20 @@ class Display(object):
         """
         Produce an updated graph based on user options.
         """
+
         if self.var_minmax.get() and self.var_showall.get():
             self.error_display("Cannot show all and min/max at same time")
+
         else:
             func_sel = self.lb_func.curselection()
             var_sel = self.lb_var.curselection()
             arr_sel = self.lb_arr.curselection()
             values = []
             dat = {}
+
             if len(arr_sel) and self.arr_active:
                 self.plot_selected(self.val_names, self.arr_data)
+
             elif len(func_sel) or len(var_sel):
                 values.extend([self.lb_func.get(i) for i in func_sel])
                 dat = self.func_data.copy()
@@ -754,17 +737,21 @@ class Display(object):
                 self.plot_selected(values, dat)
 
     def set_mask(self):
+
         if self.var_mask.get():
             self.func_data = self.func_data_major
             self.var_data = self.var_data_major
         else:
             self.func_data = self.func_data_all
             self.var_data = self.var_data_all
+
         self.num_iter = 0
+
         for key in self.func_data.keys():
             length = len(self.func_data[key])
             if length > self.num_iter:
                 self.num_iter = length
+
         self.update_graph()
 
     def save_figure(self):
@@ -833,23 +820,23 @@ class Display(object):
 
         num_vars = len(keys)
         num_iters = len(dat[keys[0]])
-        full_data = numpy.arange(num_iters, dtype=numpy.float_).reshape(num_iters, 1)
+        full_data = np.arange(num_iters, dtype=np.float_).reshape(num_iters, 1)
         var_names = ['Iteration']
         for key in keys:
-            small_data = numpy.asarray(dat[key])
+            small_data = np.asarray(dat[key])
 
             if len(small_data.shape) == 1:
-                full_data = numpy.c_[full_data, small_data]
+                full_data = np.c_[full_data, small_data]
                 var_names.append(key)
 
             else:
                 m = small_data.shape[0]
                 n = small_data.shape[1]
-                indiv_data = numpy.empty((m, 1))
+                indiv_data = np.empty((m, 1))
                 for i in range(n):
                     for j in range(m):
                         indiv_data[j] = small_data[j][i]
-                    full_data = numpy.c_[full_data, indiv_data]
+                    full_data = np.c_[full_data, indiv_data]
                     var_names.append(key + '_{}'.format(i))
 
         filename = 'OptView_tec.dat'
@@ -862,7 +849,7 @@ class Display(object):
 
         self._file.write('Zone T= \"OptView_tec_data\", ' + \
                     'I={}, '.format(num_iters) + 'F=POINT\n')
-        numpy.savetxt(self._file, full_data)
+        np.savetxt(self._file, full_data)
         self._file.close()
 
     def var_search(self, _):
@@ -975,8 +962,8 @@ class Display(object):
                 xdat = point_selected[0].get_xdata()
                 ydat = point_selected[0].get_ydata()
 
-                iter_count = numpy.round(event.xdata, 0)
-                ind = numpy.where(xdat == iter_count)[0][0]
+                iter_count = np.round(event.xdata, 0)
+                ind = np.where(xdat == iter_count)[0][0]
 
                 label = label + '\niter: {0:d}\nvalue: {1}'.format(int(iter_count), ydat[ind])
                 self.annotation = ax.annotate(label,
@@ -1200,11 +1187,11 @@ class Display(object):
             font=font)
         c9.grid(row=5, column=1, sticky=Tk.W)
 
-        # Option to only show 'major' iterations
+        # Option to only show major iterations
         self.var_mask = Tk.IntVar()
         c10 = Tk.Checkbutton(
             options_frame,
-            text="Show 'major' iterations",
+            text="Show major iterations",
             variable=self.var_mask,
             command=self.set_mask,
             font=font)
