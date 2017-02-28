@@ -607,7 +607,7 @@ class Optimizer(object):
                 gcon = convertToCOO(gcon_csr)
                 gcon = gcon['coo'][IDATA]
         if self.optProb.dummyConstraint:
-            gcon = gcon_csr['csr'][IDATA]
+            gcon = gcon_csr_in['csr'][IDATA]
         return gcon
 
     def _waitLoop(self):
