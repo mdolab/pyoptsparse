@@ -158,7 +158,7 @@ class NLPQLP(Optimizer):
             self.unconstrained = True
             optProb.dummyConstraint = False
 
-        # Save the optimization problem and finialize constraint
+        # Save the optimization problem and finalize constraint
         # jacobian, in general can only do on root proc
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()

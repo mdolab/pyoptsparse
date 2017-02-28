@@ -145,7 +145,7 @@ class SLSQP(Optimizer):
             self.unconstrained = True
             optProb.dummyConstraint = False
 
-        # Save the optimization problem and finialize constraint
+        # Save the optimization problem and finalize constraint
         # jacobian, in general can only do on root proc
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
@@ -224,10 +224,10 @@ class SLSQP(Optimizer):
             slsqpb = (n+1)*(n/2) + 2*m + 3*n + 3*(n+1) + 1
             lwM = lsq + lsi + lsei + slsqpb + n + m
             lw = numpy.array([lwM], numpy.int)
-            w = numpy.zeros([lw], numpy.float)
+            w = numpy.zeros(lw, numpy.float)
             ljwM = max(mineq, (n+1)-meq)
             ljw = numpy.array([ljwM], numpy.int)
-            jw = numpy.zeros([ljw], numpy.intc)
+            jw = numpy.zeros(ljw, numpy.intc)
             nfunc = numpy.array([0], numpy.int)
             ngrad = numpy.array([0], numpy.int)
 
