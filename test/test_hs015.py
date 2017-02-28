@@ -83,8 +83,8 @@ class TestHS15(unittest.TestCase):
         # Check Solution
         self.assertAlmostEqual(sol.objectives['obj'].value, 306.5)
 
-        self.assertAlmostEqual(sol.variables['xvars']['xvars'][0].value, 0.5)
-        self.assertAlmostEqual(sol.variables['xvars']['xvars'][1].value, 2.0)
+        self.assertAlmostEqual(sol.variables['xvars'][0].value, 0.5)
+        self.assertAlmostEqual(sol.variables['xvars'][1].value, 2.0)
 
     def test_snopt(self):
         self.optimize('snopt')

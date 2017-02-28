@@ -212,7 +212,7 @@ be installed to use NLPY_AUGLAG.')
         #     self.unconstrained = True
         #     optProb.dummyConstraint = True
 
-        # Save the optimization problem and finialize constraint
+        # Save the optimization problem and finalize constraint
         # jacobian, in general can only do on root proc
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
