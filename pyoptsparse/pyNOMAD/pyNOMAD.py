@@ -42,8 +42,8 @@ class NOMAD(Optimizer):
             }
         informs = {}
         self.set_options = []
-        Optimizer.__init__(self, name, category, defOpts, informs, *args,
-                           **kwargs)
+        Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
+
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                  storeHistory=None, hotStart=None, storeSens=True):
 
