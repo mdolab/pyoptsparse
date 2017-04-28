@@ -570,7 +570,6 @@ class SNOPT(Optimizer):
         if mode == -1:
             self.FailCounts += 1
         if self.FailCounts == self.MaxFailCounts:
-            print('Tripped max fail counts')
             mode = -3 # Terminate to regenerate problem data
 
         return mode, fobj, gobj, fcon, gcon
