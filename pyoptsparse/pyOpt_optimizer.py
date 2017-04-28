@@ -77,7 +77,7 @@ class Optimizer(object):
         self.userSensCalls = 0
         self.storeSens = True
         self.FailCounts = 0
-        self.MaxFailCounts = 1
+        self.MaxFailCounts = 10
         # Cache storage
         self.cache = {'x': None, 'fobj': None, 'fcon': None,
                       'gobj': None, 'gcon': None}
