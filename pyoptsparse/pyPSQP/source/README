@@ -1,0 +1,4 @@
+This directory contains the Fortran 77 source for
+PSQP, plus a pyOpt interfacing file called psqpw.f, 
+and two helper files called openunit.f and
+closeunit.f to manipulate Fortran units from Python.
