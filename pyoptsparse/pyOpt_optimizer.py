@@ -748,6 +748,8 @@ class Optimizer(object):
         broadcast the function and comm so we have to set manually after the broadcast.
         """
 
+        if sol is not None:
+            sol.comm = None
         sol = self.optProb.comm.bcast(sol)
         sol.objFun = self.optProb.objFun
         sol.comm = self.optProb.comm
