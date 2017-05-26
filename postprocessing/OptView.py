@@ -14,8 +14,19 @@ John Jasa 2015-2017
 import os
 import argparse
 import shelve
-import tkFont
-import Tkinter as Tk
+                                                                                                                                                                                                                                                                                         
+try:                                                                                                                                                                                                                                                                                     
+    # for Python2                                                                                                                                                                                                                                                                        
+    import Tkinter as Tk  ## notice capitalized T in Tkinter                                                                                                                                                                                                                             
+except ImportError:                                                                                                                                                                                                                                                                      
+    # for Python3                                                                                                                                                                                                                                                                        
+    import tkinter as Tk                                                                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                                                         
+try:                                                                                                                                                                                                                                                                                     
+    import tkFont                                                                                                                                                                                                                                                                        
+except:                                                                                                                                                                                                                                                                                  
+    from tkinter import font as tkFont                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                         
 import re
 import warnings
 
@@ -178,7 +189,13 @@ class Display(object):
                 # Check to see if there is bounds information in the db file.
                 # If so, add them to self.bounds to plot later.
                 try:
-                    bounds_dict = dict(db['varBounds'].items() + db['conBounds'].items())
+                    bounds_dict= {}
+                    for k, v in db['varBounds'].items():
+                        bounds_dict[k] = v
+
+                    for k, v in db['conBounds'].items():
+                        bounds_dict[k] = v
+
                     for key in bounds_dict.keys():
                         bounds_dict[key + histIndex] = bounds_dict.pop(key)
                     self.bounds.update(bounds_dict)
