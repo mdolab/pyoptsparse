@@ -1468,30 +1468,112 @@ class Optimization(object):
         """
         Print Structured Optimization Problem
         """
+        TOL = 1.0E-6
 
-        text = """\nOptimization Problem -- %s\n%s\n
-        Objective Function: %s\n\n    Objectives:
-        Name        Value        Optimum\n""" % (
-        self.name, '='*80, self.objFun.__name__)
+        text = '\n\nOptimization Problem -- {0}\n{1}\n    Objective Function: {2}\n\n'.format(self.name, '='*80, self.objFun.__name__)
+        text += '\n   Objectives\n'
 
-        for obj in self.objectives:
-            lines = str(self.objectives[obj]).split('\n')
-            text += lines[1] + '\n'
+        num_c = max([len(obj) for obj in self.objectives])
+        fmt = '    {0:>7s}  {1:{width}s}   {2:>14s}   {3:>14s}\n'
+        text += fmt.format('Index', 'Name', 'Value', 'Optimum', width=num_c)
+        fmt = '    {0:>7d}  {1:{width}s}   {2:>14.6E}   {3:>14.6E}\n'
+        for idx, name in enumerate(self.objectives):
+            obj = self.objectives[name]
+            text += fmt.format(idx, obj.name, obj.value, obj.optimum, width=num_c)
 
-        text += """\n   Variables (c - continuous, i - integer, d - discrete):
-           Name      Type       Value       Lower Bound  Upper Bound\n"""
+        # Find the longest name in the variables
+        num_c = 0
+        for varname in self.variables:
+            for var in self.variables[varname]:
+                num_c = max(len(var.name), num_c)
 
-        for dvGroup in self.variables:
-            for var in self.variables[dvGroup]:
-                lines = str(var).split('\n')
-                text += lines[1] + '\n'
+        fmt = '    {0:>7s}  {1:{width}s}   {2:>4s}   {3:>14}   {4:>14}   {5:>14}   {6:>8s}\n'
+        text += '\n   Variables (c - continuous, i - integer, d - discrete)\n'
+        text += fmt.format('Index', 'Name', 'Type', 'Lower Bound', 'Value',
+                           'Upper Bound', 'Status', width=num_c)
+        fmt = '    {0:7d}  {1:{width}s}   {2:>4s}   {3:14.6E}   {4:14.6E}   {5:14.6E}   {6:>8s}\n'
 
-        print('     Name        Type'+' '*25+'Bound\n'+'     ')
+        idx = 0
+        for varname in self.variables:
+            for var in self.variables[varname]:
+                if var.type in ['c','i']:
+                    value = var.value
+                    lower = var.lower if var.lower is not None else -1.0E20
+                    upper = var.upper if var.upper is not None else 1.0E20
+                    status = ''
+                    dL = value - lower
+                    if dL > TOL:
+                        pass
+                    elif dL < -TOL:
+                        # In violation of lower bound
+                        status += 'L'
+                    else:
+                        # Active lower bound
+                        status += 'l'
+                    dU = upper - value
+                    if dU > TOL:
+                        pass
+                    elif dU < -TOL:
+                        # In violation of upper bound
+                        status += 'U'
+                    else:
+                        # Active upper bound
+                        status += 'u'
+                elif var.type == 'd':
+                    choices = var.choices
+                    value = choices[int(var.value)]
+                    lower = min(choices)
+                    upper = max(choices)
+                    status = ''
+                else:
+                    raise ValueError('Unrecognized type for variable {0}: {1}'.format(var.name, var.type))
+
+                text += fmt.format(idx, var.name, var.type, lower, value, upper, status,
+                                   width=num_c)
+                idx += 1
+
         if len(self.constraints) > 0:
-            text += """\n   Constraints (i - inequality, e - equality):
-        Name    Type                    Bounds\n"""
+            text += '\n   Constraints (i - inequality, e - equality)\n'
+            # Find the longest name in the constraints
+            num_c = max([len(self.constraints[i].name) for i in self.constraints])
+            fmt = '    {0:>7s}  {1:{width}s} {2:>4s} {3:>14}  {4:>14}  {5:>14}  {6:>8s}\n'
+            text += fmt.format('Index', 'Name', 'Type', 'Lower', 'Value', 'Upper', 'Status', width=num_c)
+            fmt = '    {0:7d}  {1:{width}s} {2:>4s} {3:>14.6E}  {4:>14.6E}  {5:>14.6E}  {6:>8s}\n'
+            idx = 0
             for iCon in self.constraints:
-                text += str(self.constraints[iCon])
+                c = self.constraints[iCon]
+                for j in range(c.ncon):
+                    lower = c.lower[j] if c.lower[j] is not None else -1.0E20
+                    upper = c.upper[j] if c.upper[j] is not None else 1.0E20
+                    value = c.value[j]
+                    status = ''
+                    typ = 'e' if j in c.equalityConstraints['ind'] else 'i'
+                    if typ == 'e':
+                        if abs(value - upper) > TOL:
+                            status = 'E'
+                    else:
+                        dL = value - lower
+                        if dL > TOL:
+                            pass
+                        elif dL < -TOL:
+                            # In violation of lower bound
+                            status += 'L'
+                        else:
+                            # Active lower bound
+                            status += 'l'
+
+                        dU = upper - value
+                        if dU > TOL:
+                            pass
+                        elif dU < -TOL:
+                            # In violation of upper bound
+                            status += 'U'
+                        else:
+                            # Active upper bound
+                            status += 'u'
+
+                    text += fmt.format(idx, c.name, typ, lower, value, upper, status, width=num_c)
+                    idx += 1
 
         return text
 
