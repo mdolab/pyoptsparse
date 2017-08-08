@@ -1,0 +1,103 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module conmin__user__routines 
+    interface conmin_user_interface 
+        subroutine cnmnfun(n1,n2,x,aobj,g)
+            integer intent(in) :: n1
+            integer intent(in) :: n2
+            double precision dimension(n1),intent(in),depend(n1) :: x
+            double precision intent(in,out) :: aobj
+            double precision dimension(n2),intent(in,out),depend(n2) :: g
+        end subroutine cnmnfun
+        subroutine cnmngrd(n1,n2,x,aobj,g,ct,df,a,ic,nac)
+            integer intent(in) :: n1
+            integer intent(in) :: n2
+            double precision dimension(n1),intent(in),depend(n1) :: x
+            double precision intent(in) :: aobj
+            double precision dimension(n2),intent(in),depend(n2) :: g
+            double precision intent(in) :: ct
+            double precision dimension(n1),intent(in,out),depend(n1) :: df
+            double precision dimension(n1,n2),intent(in,out),depend(n1,n2) :: a
+            integer dimension(n2),intent(in,out),depend(n2) :: ic
+            integer intent(in,out) :: nac
+        end subroutine cnmngrd
+    end interface conmin_user_interface
+end python module conmin__user__routines
+python module conmin ! in 
+    interface  ! in :conmin
+        subroutine conmin(ndv_,ncon_,x_,vlb_,vub_,obj_,g_,n1,n2,n3,n4,n5,iprint_,iout_,ifile,itmax_,delfun_,dabfun_,itrm_,nfeasct_,nfdg_,nfun_,ngrd_,cnmnfun,cnmngrd) ! in :conmin:source/conmin.f
+            use conmin__user__routines
+            integer intent(in) :: ndv
+            integer intent(in) :: ncon
+            double precision dimension(ndv_),intent(inout),depend(ndv_) :: x_
+            double precision dimension(ndv_),depend(ndv_) :: vlb_
+            double precision dimension(ndv_),depend(ndv_) :: vub_
+            double precision intent(inout) :: obj_
+            double precision dimension(ncon_),intent(inout),depend(ncon_) :: g_
+            integer intent(in) :: n1
+            integer intent(in) :: n2
+            integer intent(in) :: n3
+            integer intent(in) :: n4
+            integer intent(in) :: n5
+            integer intent(in) :: iprint_
+            integer intent(in) :: iout_
+            character*(*) intent(in) :: ifile
+            integer intent(in) :: itmax_
+            double precision intent(in) :: delfun_
+            double precision intent(in) :: dabfun_
+            integer intent(in) :: itrm_
+            integer intent(in) :: nfeasct_
+            integer intent(in) :: nfdg_
+            integer intent(inout) :: nfun_
+            integer intent(inout) :: ngrd_
+            external cnmnfun
+            external cnmngrd
+            double precision :: aobj
+            double precision :: delfun
+            double precision :: dabfun
+            double precision :: fdch
+            double precision :: fdchm
+            double precision :: ct
+            double precision :: ctmin
+            double precision :: ctl
+            double precision :: ctlmin
+            double precision :: alphax
+            double precision :: abobj1
+            double precision :: theta
+            double precision :: obj
+            integer :: ndv
+            integer :: ncon
+            integer :: nside
+            integer :: iprint
+            integer :: nfdg
+            integer :: nscal
+            integer :: linobj
+            integer :: itmax
+            integer :: itrm
+            integer :: icndir
+            integer :: igoto
+            integer :: nac
+            integer :: info
+            integer :: infog
+            integer :: iter
+            common /varable/ aobj
+            common /output/ iout
+            common /cnmn1/ delfun,dabfun,fdch,fdchm,ct,ctmin,ctl,ctlmin,alphax,abobj1,theta,obj,ndv,ncon,nside,iprint,nfdg,nscal,linobj,itmax,itrm,icndir,igoto,nac,info,infog,iter
+        end subroutine conmin
+        subroutine openunit(unitnum,filename,filestatus,fileaction,ierror) ! in :conmin:source/openunit.f
+            integer intent(in) :: unitnum
+            character*(*) intent(in) :: filename
+            character*(*) intent(in) :: filestatus
+            character*(*) intent(in) :: fileaction
+            integer intent(out) :: ierror
+        end subroutine openunit
+        subroutine pyflush(unitnum)
+          integer unitnum
+          return
+        end subroutine pyflush
+        subroutine closeunit(unitnum) ! in :conmin:source/closeunit.f
+            integer intent(in) :: unitnum
+        end subroutine closeunit
+    end interface 
+end python module conmin
