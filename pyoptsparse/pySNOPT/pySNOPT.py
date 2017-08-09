@@ -566,12 +566,6 @@ class SNOPT(Optimizer):
             if time.time() - self.startTime > self.timeLimit:
                 mode = -2 # User requested termination
 
-        # Check if we've exceed max fail counts
-        if mode == -1:
-            self.FailCounts += 1
-        if self.FailCounts == self.MaxFailCounts:
-            mode = -3 # Terminate to regenerate problem data
-
         return mode, fobj, gobj, fcon, gcon
 
     def _set_snopt_options(self, iPrint, iSumm, cw, iw, rw):
