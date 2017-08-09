@@ -223,10 +223,10 @@ class Optimization(object):
             optimization. Scalar/array usage is the same as value
             keyword.
 
-        offset : scalar or array.  Define a user supplied offset 
+        offset : scalar or array.  Define a user supplied offset
             variable for the design variable group.  This is often
             necessary when design variable has a large magnitude, but
-            only changes a little about this value. 
+            only changes a little about this value.
 
         choices : list
             Specify a list of choices for discrete design variables
@@ -336,7 +336,7 @@ class Optimization(object):
             varName = name + '_%d'% iVar
             varList.append(Variable(varName, type=type, value=value[iVar],
                                     lower=lower[iVar], upper=upper[iVar],
-                                    scale=scale[iVar], offset=offset[iVar], 
+                                    scale=scale[iVar], offset=offset[iVar],
                                     scalar=scalar, choices=choices))
 
         if name in self.variables:
@@ -687,7 +687,7 @@ class Optimization(object):
             varKeys = list(self.variables.keys())
             for dvGroup in range(len(varKeys)):
                 if varKeys[dvGroup] in con.wrt:
-                    txt[iRow, varCenters[dvGroup]] = 'X'
+                    txt[int(iRow), int(varCenters[dvGroup])] = 'X'
 
             # The separator
             txt[iRow+1, maxConNameLen+1:] = '-'

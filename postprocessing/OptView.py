@@ -11,22 +11,21 @@ John Jasa 2015-2017
 # ======================================================================
 # Standard Python modules
 # ======================================================================
+from __future__ import print_function
 import os
 import argparse
 import shelve
-                                                                                                                                                                                                                                                                                         
-try:                                                                                                                                                                                                                                                                                     
-    # for Python2                                                                                                                                                                                                                                                                        
-    import Tkinter as Tk  ## notice capitalized T in Tkinter                                                                                                                                                                                                                             
-except ImportError:                                                                                                                                                                                                                                                                      
-    # for Python3                                                                                                                                                                                                                                                                        
-    import tkinter as Tk                                                                                                                                                                                                                                                                 
-                                                                                                                                                                                                                                                                                         
-try:                                                                                                                                                                                                                                                                                     
-    import tkFont                                                                                                                                                                                                                                                                        
-except:                                                                                                                                                                                                                                                                                  
-    from tkinter import font as tkFont                                                                                                                                                                                                                                                   
-                                                                                                                                                                                                                                                                                         
+
+import sys
+major_python_version = sys.version_info[0]
+
+if major_python_version == 2:
+    import tkFont
+    import Tkinter as Tk
+else:
+    import tkinter as Tk
+    from tkinter import font as tkFont
+
 import re
 import warnings
 
@@ -43,7 +42,11 @@ import mpl_toolkits.axisartist as AA
 warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
 warnings.filterwarnings("ignore",category=UserWarning)
 import numpy as np
-from pyoptsparse import SqliteDict
+try:
+    from sqlitedict import SqliteDict
+except:
+    from pyoptsparse import SqliteDict
+import traceback
 
 class Display(object):
 
@@ -70,7 +73,7 @@ class Display(object):
             pass
 
         # If the screen is bigger than 1080p, use a large window
-        if self.root.winfo_screenheight() > 1100:
+        if self.root.winfo_screenheight() > 1100 and self.root.winfo_screenwidth() < 4000:
             figsize = (14, 10)
         else: # Otherwise, use a slightly smaller window
               # so everything fits on the screen
@@ -139,8 +142,11 @@ class Display(object):
                 db = SqliteDict(histFileName, 'iterations')
                 OpenMDAO = True
 
+                # Need to do this since in py3 db.keys() is a generator object
+                keys = [i for i in db.keys()]
+
                 # If it has no 'iterations' tag, it's a pyOptSparse db.
-                if db.keys() == []:
+                if keys == []:
                     OpenMDAO = False
                     db = SqliteDict(histFileName)
 
@@ -149,7 +155,12 @@ class Display(object):
 
                 # Get the number of iterations by looking at the largest number
                 # in the split string names for each entry in the db
-                string = db.keys()[-1].split('|')
+                if major_python_version == 3:
+                    for string in db.keys():
+                        string = string.split('|')
+                else:
+                    string = db.keys()[-1].split('|')
+
                 nkey = int(string[-1])
                 self.solver_name = string[0]
 
@@ -189,14 +200,13 @@ class Display(object):
                 # Check to see if there is bounds information in the db file.
                 # If so, add them to self.bounds to plot later.
                 try:
-                    bounds_dict= {}
-                    for k, v in db['varBounds'].items():
-                        bounds_dict[k] = v
-
-                    for k, v in db['conBounds'].items():
-                        bounds_dict[k] = v
-
-                    for key in bounds_dict.keys():
+                    bounds_dict = db['varBounds'].copy()
+                    bounds_dict.update(db['conBounds'])
+                    # Got to be a little tricky here since we're modifying
+                    # bounds_dict; if we simply loop over it with the generator
+                    # from Python3, it will contain the new keys and then the
+                    # names will be mangled incorrectly.
+                    for key in [i for i in bounds_dict.keys()]:
                         bounds_dict[key + histIndex] = bounds_dict.pop(key)
                     self.bounds.update(bounds_dict)
                 except KeyError:
@@ -396,6 +406,17 @@ class Display(object):
             transform=a.transAxes)
         self.canvas.show()
 
+    def note_display(self, string=""):
+        """
+        Display warning message on canvas as necessary.
+        """
+        a = plt.gca()
+        a.text(0.05, 1.04,
+            string,
+            fontsize=20,
+            transform=a.transAxes)
+        self.canvas.show()
+
     def plot_bounds(self, val, a, color):
         """
         Plot the bounds if selected.
@@ -475,7 +496,7 @@ class Display(object):
             plots = a.plot(dat[val], "o-", label=val,
                 markeredgecolor='none', clip_on=False)
 
-        except KeyError:
+        except (KeyError, IndexError):
             self.warning_display("No 'major' iterations")
         try:
             if len(plots) > 1:
@@ -495,6 +516,115 @@ class Display(object):
             else:
                 self.error_display("No bounds information")
 
+    def color_plot(self, dat, labels, a):
+
+        # If the user wants the non-constraint colormap, use viridis
+        if self.var_color.get():
+            cmap = plt.get_cmap('viridis')
+
+        # Otherwise, use a custom red-green colormap that has white in the middle
+        # to showcase which constraints are active or not
+        else:
+            cdict1 = {'red':   ((0.0, 0.06, 0.06),
+                       (0.3, .11, .11),
+                       (0.5, 1.0, 1.0),
+                       (0.8, 0.8, 0.8),
+                       (1.0, 0.6, 0.6)),
+
+             'green': ((0.0, 0.3, 0.3),
+                       (0.3, 0.6, 0.6),
+                       (0.5, 1.0, 1.0),
+                       (0.8, 0.0, 0.0),
+                       (1.0, 0.0, 0.0)),
+
+             'blue':  ((0.0, .15, .15),
+                       (0.3, .25, .25),
+                       (0.5, 1.0, 1.0),
+                       (0.8, 0.0, 0.0),
+                       (1.0, 0.0, 0.0))
+            }
+
+            from matplotlib.colors import LinearSegmentedColormap
+            cmap = LinearSegmentedColormap('RedGreen', cdict1)
+
+        # Get the numbmer of iterations and set up some lists
+        iter_len = len(dat[labels[0]])
+        full_array = np.zeros((0, iter_len))
+        tick_labels = []
+
+        # Loop through the data sets selected by the user
+        for label in labels:
+
+            # Get the subarray for this particular data set and record its size
+            subarray = np.array(dat[label]).T
+            sub_size = subarray.shape[0]
+
+            # Add the subarray to the total array to view later
+            full_array = np.vstack((full_array, subarray))
+
+            # Set the labels for the ticks.
+            # If it's a scalar, simply have the data label.
+            if sub_size == 1:
+                tick_labels.append(label)
+
+            # Otherwise, have the data label and append a number to it.
+            else:
+                tick_labels.append(label + ' 0')
+
+                # However, if there are a large number of data points,
+                # only label 12 of them to space out the labels.
+                n = max(sub_size // 12, 1)
+                for i in range(1, sub_size):
+                    if not i % n:
+                        tick_labels.append(str(i))
+                    else:
+                        tick_labels.append('')
+
+        # If the user wants the color set by the bounds, try to get the bounds
+        # information from the bounds dictionary.
+        if self.var_color_bounds.get():
+            bounds = [0., 0.]
+
+            # Loop through the labels and extract the smallest lower bound
+            # and the largest upper bound.
+            for label in labels:
+                try:
+                    bounds[0] = min(bounds[0], self.bounds[label]['lower'][0])
+                    bounds[1] = max(bounds[1], self.bounds[label]['upper'][0])
+                except:
+                    pass
+
+            # If we found no bounds data, simply use the smallest and largest
+            # values from the arrays.
+            if bounds[0] == 0. and bounds[1] == 0.:
+                self.warning_display("No bounds information, using min/max array values instead")
+                largest_mag_val = np.max(np.abs(full_array))
+                bounds = [-largest_mag_val, largest_mag_val]
+
+        # Otherwise, simply use the smallest and largest values from the arrays
+        else:
+            largest_mag_val = np.max(np.abs(full_array))
+            bounds = [-largest_mag_val, largest_mag_val]
+
+        # Set up a colorbar and add it to the figure
+        cax = a.imshow(full_array, cmap=cmap, aspect='auto',
+            vmin=bounds[0], vmax=bounds[1])
+        fig = plt.gcf()
+        cbar = fig.colorbar(cax)
+
+        # Some dirty hardcoding in an attempt to get the labels to appear nicely
+        # for different widths of OptView windows.
+        # This is challenging to do correctly because of non-uniform text widths.
+        size = fig.get_size_inches() * fig.dpi
+        width, height = size
+
+        # More dirty harcoding to try to produce a nice layout.
+        max_label_length = np.max([len(label) for label in labels])
+        plt.subplots_adjust(left=(.006 * max_label_length + .02) * (6000 - width) / 4000)
+
+        # Set the y-tick labels for the plot based on the previously saved info
+        plt.yticks(range(full_array.shape[0]), tick_labels)
+
     def plot_selected(self, values, dat):
         """
         Plot data based on selected keys within listboxes.
@@ -503,6 +633,19 @@ class Display(object):
         self.color_error_flag = 0
         self.f.clf()
         self.plots = []
+
+        # Grid the checkbox options that should exist
+        self.c12.grid_forget()
+        self.c13.grid_forget()
+        self.c4.grid(row=0, column=1, sticky=Tk.W)
+        self.c5.grid(row=1, column=1, sticky=Tk.W)
+        self.c6.grid(row=2, column=1, sticky=Tk.W)
+        self.c7.grid(row=3, column=1, sticky=Tk.W)
+        self.c8.grid(row=4, column=1, sticky=Tk.W)
+        self.c9.grid(row=5, column=1, sticky=Tk.W)
+
+        plt.subplots_adjust(left=.1)
+
         try:
             if self.var_bounds.get():
                 try:
@@ -669,6 +812,32 @@ class Display(object):
 
                 plt.subplots_adjust(right=.95)
                 self.canvas.show()
+
+            # Plot color plots of rectangular pixels showing values,
+            # especially useful for constraints
+            elif self.var.get() == 3 and not fail:
+
+                # Remove options that aren't relevant
+                self.c4.grid_forget()
+                self.c5.grid_forget()
+                self.c6.grid_forget()
+                self.c7.grid_forget()
+                self.c8.grid_forget()
+                self.c9.grid_forget()
+
+                # Add option to change colormap
+                self.c12.grid(row=0, column=1, sticky=Tk.W)
+                self.c13.grid(row=1, column=1, sticky=Tk.W)
+
+                a = self.f.add_subplot(111)
+
+                self.color_plot(dat, values, a)
+
+                plt.subplots_adjust(right=.95)
+                a.set_xlabel('iteration')
+                a.set_xlim(0, self.num_iter - 1)
+                self.canvas.show()
+
         except ValueError:
             self.error_display()
 
@@ -1145,85 +1314,108 @@ class Display(object):
             command=self.update_graph, font=font, value=2)
         c3.grid(row=2, column=0, sticky=Tk.W)
 
+        c12 = Tk.Radiobutton(
+            options_frame, text="Color plots", variable=self.var,
+            command=self.update_graph, font=font, value=3)
+        c12.grid(row=3, column=0, sticky=Tk.W)
+
         self.var_del = Tk.IntVar()
-        c4 = Tk.Checkbutton(
+        self.c4 = Tk.Checkbutton(
             options_frame,
             text="Absolute delta values",
             variable=self.var_del,
             command=self.update_graph,
             font=font)
-        c4.grid(row=0, column=1, sticky=Tk.W)
+        self.c4.grid(row=0, column=1, sticky=Tk.W)
 
         self.var_log = Tk.IntVar()
-        c5 = Tk.Checkbutton(
+        self.c5 = Tk.Checkbutton(
             options_frame,
             text="Log scale",
             variable=self.var_log,
             command=self.update_graph,
             font=font)
-        c5.grid(row=1, column=1, sticky=Tk.W)
+        self.c5.grid(row=1, column=1, sticky=Tk.W)
 
         # Option to only show the min and max of array-type variables
         self.var_minmax = Tk.IntVar()
-        c6 = Tk.Checkbutton(
+        self.c6 = Tk.Checkbutton(
             options_frame,
             text="Min/max for arrays",
             variable=self.var_minmax,
             command=self.update_graph,
             font=font)
-        c6.grid(row=2, column=1, sticky=Tk.W)
+        self.c6.grid(row=2, column=1, sticky=Tk.W)
 
         # Option to show all values for array-type variables
         self.var_showall = Tk.IntVar()
-        c7 = Tk.Checkbutton(
+        self.c7 = Tk.Checkbutton(
             options_frame,
             text="Show all for arrays",
             variable=self.var_showall,
             command=self.update_graph,
             font=font)
-        c7.grid(row=3, column=1, sticky=Tk.W)
+        self.c7.grid(row=3, column=1, sticky=Tk.W)
 
             # Option to show legend
         self.var_legend = Tk.IntVar()
-        c8 = Tk.Checkbutton(
+        self.c8 = Tk.Checkbutton(
             options_frame,
             text="Show legend",
             variable=self.var_legend,
             command=self.update_graph,
             font=font)
         self.var_legend.set(1)
-        c8.grid(row=4, column=1, sticky=Tk.W)
+        self.c8.grid(row=4, column=1, sticky=Tk.W)
 
         # Option to show bounds
         self.var_bounds = Tk.IntVar()
-        c9 = Tk.Checkbutton(
+        self.c9 = Tk.Checkbutton(
             options_frame,
             text="Show bounds",
             variable=self.var_bounds,
             command=self.update_graph,
             font=font)
-        c9.grid(row=5, column=1, sticky=Tk.W)
+        self.c9.grid(row=5, column=1, sticky=Tk.W)
 
         # Option to only show major iterations
         self.var_mask = Tk.IntVar()
-        c10 = Tk.Checkbutton(
+        self.c10 = Tk.Checkbutton(
             options_frame,
             text="Show major iterations",
             variable=self.var_mask,
             command=self.set_mask,
             font=font)
-        c10.grid(row=6, column=1, sticky=Tk.W, pady=6)
+        self.c10.grid(row=6, column=1, sticky=Tk.W, pady=6)
 
         # Option to automatically refresh history file
         # especially useful for running optimizations
         self.var_ref = Tk.IntVar()
-        c11 = Tk.Checkbutton(
+        self.c11 = Tk.Checkbutton(
             options_frame,
             text="Automatically refresh",
             variable=self.var_ref,
             command=self.auto_ref,
             font=font)
-        c11.grid(row=7, column=1, sticky=Tk.W, pady=6)
+        self.c11.grid(row=7, column=1, sticky=Tk.W, pady=6)
+
+        # Option to choose colormap for color plots
+        self.var_color = Tk.IntVar()
+        self.c12 = Tk.Checkbutton(
+            options_frame,
+            text="Viridis colormap",
+            variable=self.var_color,
+            command=self.update_graph,
+            font=font)
+
+        # Option to choose limits of colorbar axes
+        self.var_color_bounds = Tk.IntVar()
+        self.c13 = Tk.Checkbutton(
+            options_frame,
+            text="Colorbar set by bounds",
+            variable=self.var_color_bounds,
+            command=self.update_graph,
+            font=font)
 
         lab = Tk.Label(
             options_frame,
@@ -1276,4 +1468,5 @@ if __name__ == '__main__':
     disp.draw_GUI()
     disp.root.protocol("WM_DELETE_WINDOW", disp.quit)
     on_move_id = disp.f.canvas.mpl_connect('motion_notify_event', disp.on_move)
+    disp.note_display('Select functions or design variables from the listboxes \nbelow to view the optimization history.')
     Tk.mainloop()

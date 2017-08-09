@@ -89,6 +89,7 @@ class Optimizer(object):
 
         # Create list for major iteration numbers
         self.majorIterations = []
+        self.firstMajor = False
 
         # Store the jacobian conversion maps
         self._jac_map_csr_to_csc = None
@@ -505,7 +506,7 @@ class Optimizer(object):
         # Check if this iteration is a major one. If so, isMajor = True.
         # This only works as expected when using SNOPT.
         if len(self.majorIterations) > 0:
-            if len(self.majorIterations) == 1: # The first iteration is major
+            if len(self.majorIterations) == 1:  # The first iteration from SNOPT is major
                 isMajor = True
             # Check to see if the iteration number count has changed
             elif self.majorIterations[-1] != self.majorIterations[-2]:
@@ -514,6 +515,11 @@ class Optimizer(object):
                 isMajor = False
         else: # SNOPT hasn't recorded any major iterations yet
             isMajor = False
+
+        # The absolute first function call is considered major.
+        if not self.firstMajor:
+            isMajor = True
+            self.firstMajor = True
 
         # Put the iterType flag in the history:
         hist['isMajor'] = isMajor
