@@ -8,7 +8,10 @@ from __future__ import print_function
 # =============================================================================
 # NOMAD Library
 # =============================================================================
-from . import nomad
+try:
+    from . import nomad
+except ImportError:
+    nomad = None
 # =============================================================================
 # Standard Python modules
 # =============================================================================
@@ -42,6 +45,10 @@ class NOMAD(Optimizer):
             }
         informs = {}
         self.set_options = []
+        if nomad is None:
+            raise Error('There was an error importing the compiled'
+                        'nomad module')
+
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
 
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
