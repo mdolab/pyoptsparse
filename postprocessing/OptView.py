@@ -39,8 +39,11 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,\
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
-warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
-warnings.filterwarnings("ignore",category=UserWarning)
+try:
+    warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
+    warnings.filterwarnings("ignore",category=UserWarning)
+except:
+    pass
 import numpy as np
 try:
     from sqlitedict import SqliteDict
