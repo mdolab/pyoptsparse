@@ -58,7 +58,7 @@ class Display(object):
     This includes a canvas for MPL plots and a bottom area with widgets.
     """
 
-    def __init__(self, histList, outputDir):
+    def __init__(self, histList, outputDir, figsize):
 
         # Initialize the Tkinter object, which will contain all graphical
         # elements.
@@ -75,12 +75,7 @@ class Display(object):
         except: # bare except because error is not in standard Python
             pass
 
-        # If the screen is bigger than 1080p, use a large window
-        if self.root.winfo_screenheight() > 1100 and self.root.winfo_screenwidth() < 4000:
-            figsize = (14, 10)
-        else: # Otherwise, use a slightly smaller window
-              # so everything fits on the screen
-            figsize = (6, 6)
+        figsize = (figsize, figsize)
 
         # Instantiate the MPL figure
         self.f = plt.figure(figsize=figsize, dpi=100, facecolor='white')
@@ -1457,9 +1452,13 @@ if __name__ == '__main__':
         help="Specify the history file to be plotted")
     parser.add_argument('--output', nargs='?', type=str, default='./',
                         help="Specify the output directory")
+    parser.add_argument('--figsize', nargs='?', type=int, default='4',
+                        help="Specify the desired minimum figure canvas size")
+
     args = parser.parse_args()
     histList = args.histFile
     outputDir = args.output
+    figsize = args.figsize
 
     histFileName = histList[0]
 
@@ -1467,7 +1466,7 @@ if __name__ == '__main__':
     if not os.path.isdir(outputDir):
         os.makedirs(outputDir)
     # Initialize display parameters, obtain history, and draw GUI
-    disp = Display(histList, outputDir)
+    disp = Display(histList, outputDir, figsize)
     disp.draw_GUI()
     disp.root.protocol("WM_DELETE_WINDOW", disp.quit)
     on_move_id = disp.f.canvas.mpl_connect('motion_notify_event', disp.on_move)
