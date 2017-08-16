@@ -99,6 +99,7 @@ class Display(object):
         self.histList = histList
         self.outputDir = outputDir
         self.bounds = {}
+        self.color_bounds = [0., 0.]
 
         # Actually setup and run the GUI
         self.OptimizationHistory()
@@ -578,9 +579,12 @@ class Display(object):
                     else:
                         tick_labels.append('')
 
+        if len(self.min_bound.get()) or len(self.max_bound.get()):
+            bounds = self.color_bounds
+
         # If the user wants the color set by the bounds, try to get the bounds
         # information from the bounds dictionary.
-        if self.var_color_bounds.get():
+        elif self.var_color_bounds.get():
             bounds = [0., 0.]
 
             # Loop through the labels and extract the smallest lower bound
@@ -635,6 +639,10 @@ class Display(object):
         # Grid the checkbox options that should exist
         self.c12.grid_forget()
         self.c13.grid_forget()
+        self.min_label.grid_forget()
+        self.min.grid_forget()
+        self.max_label.grid_forget()
+        self.max.grid_forget()
         self.c4.grid(row=0, column=1, sticky=Tk.W)
         self.c5.grid(row=1, column=1, sticky=Tk.W)
         self.c6.grid(row=2, column=1, sticky=Tk.W)
@@ -826,6 +834,12 @@ class Display(object):
                 # Add option to change colormap
                 self.c12.grid(row=0, column=1, sticky=Tk.W)
                 self.c13.grid(row=1, column=1, sticky=Tk.W)
+
+                # Add bounds textboxes
+                self.min_label.grid(row=4, column=0, pady=10, sticky=Tk.W)
+                self.min.grid(row=4, column=1, pady=10, sticky=Tk.W)
+                self.max_label.grid(row=5, column=0, pady=10, sticky=Tk.W)
+                self.max.grid(row=5, column=1, pady=10, sticky=Tk.W)
 
                 a = self.f.add_subplot(111)
 
@@ -1168,6 +1182,16 @@ class Display(object):
 
         self.canvas.show()
 
+    def set_bounds(self, bound):
+        try:
+            if self.min_bound == bound:
+                self.color_bounds[0] = float(bound.get())
+            else:
+                self.color_bounds[1] = float(bound.get())
+        except ValueError:
+            pass
+        self.update_graph()
+
     def draw_GUI(self):
         """
         Create the frames and widgets in the bottom section of the canvas.
@@ -1294,6 +1318,30 @@ class Display(object):
             command=self.quit,
             font=font)
         button5.grid(row=5, column=2, padx=5, sticky=Tk.W)
+
+        self.min_label = Tk.Label(
+            options_frame,
+            text="Min:",
+            font=font)
+
+        # Search box to filter displayed functions/variables
+        self.min_bound = Tk.StringVar()
+        self.min_bound.trace("w", lambda name, index, mode, min_bound=self.min_bound: self.set_bounds(self.min_bound))
+        self.min = Tk.Entry(
+            options_frame, text="Search", textvariable=self.min_bound,
+            font=font)
+
+        self.max_label = Tk.Label(
+            options_frame,
+            text="Max:",
+            font=font)
+
+        # Search box to filter displayed functions/variables
+        self.max_bound = Tk.StringVar()
+        self.max_bound.trace("w", lambda name, index, mode, max_bound=self.max_bound: self.set_bounds(self.max_bound))
+        self.max = Tk.Entry(
+            options_frame, text="Search", textvariable=self.max_bound,
+            font=font)
 
         # Plot options
         self.var = Tk.IntVar()
