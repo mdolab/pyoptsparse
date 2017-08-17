@@ -1321,7 +1321,7 @@ class Display(object):
 
         self.min_label = Tk.Label(
             options_frame,
-            text="Min:",
+            text="Min bound for colorbar:",
             font=font)
 
         # Search box to filter displayed functions/variables
@@ -1333,7 +1333,7 @@ class Display(object):
 
         self.max_label = Tk.Label(
             options_frame,
-            text="Max:",
+            text="Max bound for colorbar:",
             font=font)
 
         # Search box to filter displayed functions/variables
