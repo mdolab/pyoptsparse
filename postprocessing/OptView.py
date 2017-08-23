@@ -1164,11 +1164,22 @@ class Display(object):
                 ind = np.where(xdat == iter_count)[0][0]
 
                 label = label + '\niter: {0:d}\nvalue: {1}'.format(int(iter_count), ydat[ind])
+
+                # Get the width of the window so we can scale the label placement
+                size = self.f.get_size_inches() * self.f.dpi
+                width, height = size
+
+                # Scale and position the label based on the iteration number.
+                # On the left half of the figure, the label is to the right of the cursor.
+                # On the right half, the label is to the left or centered on the cursor.
+                if event.xdata > self.num_iter // 2:
+                    x = event.xdata - len(label) * 300 / width
+                else:
+                    x = event.xdata
+
                 self.annotation = ax.annotate(label,
-                                              xy=(event.xdata,
-                                                  event.ydata), xycoords='data',
-                                              xytext=(
-                                              event.xdata, event.ydata), textcoords='data',
+                                              xy=(x, event.ydata), xycoords='data',
+                                              xytext=(x, event.ydata), textcoords='data',
                                               horizontalalignment="left",
                                               bbox=dict(
                                               boxstyle="round", facecolor="w",
