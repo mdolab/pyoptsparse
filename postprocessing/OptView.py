@@ -1335,7 +1335,7 @@ class Display(object):
             text="Min bound for colorbar:",
             font=font)
 
-        # Search box to filter displayed functions/variables
+        # Input box to select the min bounds for the colorbar when using color plots
         self.min_bound = Tk.StringVar()
         self.min_bound.trace("w", lambda name, index, mode, min_bound=self.min_bound: self.set_bounds(self.min_bound))
         self.min = Tk.Entry(
@@ -1347,7 +1347,7 @@ class Display(object):
             text="Max bound for colorbar:",
             font=font)
 
-        # Search box to filter displayed functions/variables
+        # Input box to select the max bounds for the colorbar when using color plots
         self.max_bound = Tk.StringVar()
         self.max_bound.trace("w", lambda name, index, mode, max_bound=self.max_bound: self.set_bounds(self.max_bound))
         self.max = Tk.Entry(
@@ -1511,7 +1511,7 @@ if __name__ == '__main__':
         help="Specify the history file to be plotted")
     parser.add_argument('--output', nargs='?', type=str, default='./',
                         help="Specify the output directory")
-    parser.add_argument('--figsize', nargs='?', type=int, default='4',
+    parser.add_argument('--figsize', nargs='?', type=float, default='4',
                         help="Specify the desired minimum figure canvas size")
 
     args = parser.parse_args()
