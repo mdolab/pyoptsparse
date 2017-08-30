@@ -598,7 +598,7 @@ class Optimization(object):
         else:
             raise Error("History file '%s' not found!."% histFile)
 
-    def printSparsity(self):
+    def printSparsity(self, verticalPrint=False):
         """
         This function prints an (ascii) visualization of the jacobian
         sparsity structure. This helps the user visualize what
@@ -606,6 +606,13 @@ class Optimization(object):
         user expected. It is highly recommended this function be
         called before the start of every optimization to verify the
         optimization problem setup.
+
+        Parameters
+        ----------
+        verticalPrint : bool
+            True if the design variable names in the header should be printed
+            vertically instead of horizontally. If true, this will make the
+            constraint Jacobian print out more narrow and taller.
 
         Warnings
         --------
@@ -644,9 +651,20 @@ class Optimization(object):
         nCol = maxConNameLen
         nCol += 2 # Space plus line
         varCenters = []
+        longestNameLength = 0
         for dvGroup in self.variables:
             nvar = self.dvOffset[dvGroup][1] - self.dvOffset[dvGroup][0]
-            var_str = dvGroup + ' (%d)'% nvar
+
+            # If printing vertically, put in a blank string of length 3
+            if verticalPrint:
+                var_str = '   '
+
+            # Otherwise, put in the variable and its size
+            else:
+                var_str = dvGroup + ' (%d)'% nvar
+
+            # Find the length of the longest name for design variables
+            longestNameLength = max(len(dvGroup), longestNameLength)
 
             varCenters.append(nCol + len(var_str)/2 + 1)
             nCol += len(var_str)
@@ -663,7 +681,10 @@ class Optimization(object):
         iCol = maxConNameLen + 2
         for dvGroup in self.variables:
             nvar = self.dvOffset[dvGroup][1] - self.dvOffset[dvGroup][0]
-            var_str = dvGroup + ' (%d)'% nvar
+            if verticalPrint:
+                var_str = '   '
+            else:
+                var_str = dvGroup + ' (%d)'% nvar
             l = len(var_str)
             txt[0, iCol+1 :iCol + l+1] = list(var_str)
             txt[2:-1, iCol + l + 2] = '|'
@@ -698,6 +719,38 @@ class Optimization(object):
         txt[-1, maxConNameLen+1] = '+'
         txt[1, -1] = '+'
         txt[-1, -1] = '+'
+
+        # If we're printing vertically, add an additional text array on top
+        # of the already created txt array
+        if verticalPrint:
+
+            # It has the same width and a height corresponding to the length
+            # of the longest design variable name
+            newTxt = numpy.zeros((longestNameLength+1, nCol), dtype=str)
+            newTxt[:, :] = ' '
+            txt = numpy.vstack((newTxt, txt))
+
+            # Loop through the letters in the longest design variable name
+            # and add the letters for each design variable
+            for i in range(longestNameLength+2):
+
+                # Make a space between the name and the size
+                if i >= longestNameLength:
+                    txt[i, :] = ' '
+
+                # Loop through each design variable
+                for j, dvGroup in enumerate(self.variables):
+
+                    # Print a letter in the name if any remain
+                    if i < longestNameLength and i < len(dvGroup):
+                        txt[i, int(varCenters[j])] = dvGroup[i]
+
+                    # Format and print the size of the design variable
+                    elif i > longestNameLength:
+                        var_str = '(' + str(self.dvOffset[dvGroup][1] - self.dvOffset[dvGroup][0]) + ')'
+                        half_length = len(var_str) / 2
+                        k = int(varCenters[j])
+                        txt[i, int(k-half_length+1):int(k-half_length+1+len(var_str))] = list(var_str)
 
         for i in range(len(txt)):
             print(''.join(txt[i]))
