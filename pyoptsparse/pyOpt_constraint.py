@@ -249,6 +249,17 @@ class Constraint(object):
                                 "must be added with a call to addVar() or "
                                 "addVarGroup()."% (dvGroup, self.name))
 
+            # Check for duplicates in wrt
+            wrt_uniq = list(set(self.wrt))
+            if len(wrt_uniq) < len(self.wrt):
+                duplicate_vars = list(set([x for x in self.wrt if self.wrt.count(x) > 1]))
+                print("pyOptSparse Warning: The constraint %s was created with "
+                      "duplicate\nvariables in 'wrt'. The following duplicates "
+                      "were automatically removed: "%self.name)
+                for var in duplicate_vars:
+                    print("\t\t%s"%var)
+                self.wrt = wrt_uniq
+
         # Last thing for wrt is to reorder them such that dvGroups are
         # in order. This way when the jacobian is assembled in
         # processDerivatives() the coorindate matrix will in the right
