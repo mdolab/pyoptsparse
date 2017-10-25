@@ -1164,11 +1164,22 @@ class Display(object):
                 ind = np.where(xdat == iter_count)[0][0]
 
                 label = label + '\niter: {0:d}\nvalue: {1}'.format(int(iter_count), ydat[ind])
+
+                # Get the width of the window so we can scale the label placement
+                size = self.f.get_size_inches() * self.f.dpi
+                width, height = size
+
+                # Scale and position the label based on the iteration number.
+                # On the left half of the figure, the label is to the right of the cursor.
+                # On the right half, the label is to the left or centered on the cursor.
+                if event.xdata > self.num_iter // 2:
+                    x = event.xdata - len(label) * 300 / width
+                else:
+                    x = event.xdata
+
                 self.annotation = ax.annotate(label,
-                                              xy=(event.xdata,
-                                                  event.ydata), xycoords='data',
-                                              xytext=(
-                                              event.xdata, event.ydata), textcoords='data',
+                                              xy=(x, event.ydata), xycoords='data',
+                                              xytext=(x, event.ydata), textcoords='data',
                                               horizontalalignment="left",
                                               bbox=dict(
                                               boxstyle="round", facecolor="w",
@@ -1324,7 +1335,7 @@ class Display(object):
             text="Min bound for colorbar:",
             font=font)
 
-        # Search box to filter displayed functions/variables
+        # Input box to select the min bounds for the colorbar when using color plots
         self.min_bound = Tk.StringVar()
         self.min_bound.trace("w", lambda name, index, mode, min_bound=self.min_bound: self.set_bounds(self.min_bound))
         self.min = Tk.Entry(
@@ -1336,7 +1347,7 @@ class Display(object):
             text="Max bound for colorbar:",
             font=font)
 
-        # Search box to filter displayed functions/variables
+        # Input box to select the max bounds for the colorbar when using color plots
         self.max_bound = Tk.StringVar()
         self.max_bound.trace("w", lambda name, index, mode, max_bound=self.max_bound: self.set_bounds(self.max_bound))
         self.max = Tk.Entry(
@@ -1500,7 +1511,7 @@ if __name__ == '__main__':
         help="Specify the history file to be plotted")
     parser.add_argument('--output', nargs='?', type=str, default='./',
                         help="Specify the output directory")
-    parser.add_argument('--figsize', nargs='?', type=int, default='4',
+    parser.add_argument('--figsize', nargs='?', type=float, default='4',
                         help="Specify the desired minimum figure canvas size")
 
     args = parser.parse_args()
