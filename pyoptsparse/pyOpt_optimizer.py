@@ -86,8 +86,9 @@ class Optimizer(object):
         self.storedData = {}
         self.storedData['x'] = None
 
-        # Create list for major iteration numbers
-        self.majorIterations = []
+        # Create object to pass information about major iterations.
+        # Only relevant for SNOPT.
+        self.iu0 = 0
 
         # Store the jacobian conversion maps
         self._jac_map_csr_to_csc = None
@@ -501,21 +502,8 @@ class Optimizer(object):
         # Put the fail flag in the history:
         hist['fail'] = masterFail
 
-        # Check if this iteration is a major one. If so, isMajor = True.
-        # This only works as expected when using SNOPT.
-        if len(self.majorIterations) > 0:
-            if len(self.majorIterations) == 1:  # The first iteration from SNOPT is major
-                isMajor = True
-            # Check to see if the iteration number count has changed
-            elif self.majorIterations[-1] != self.majorIterations[-2]:
-                isMajor = True
-            else: # Otherwise we're on the same major iteration
-                isMajor = False
-        else: # SNOPT hasn't recorded any major iterations yet
-            isMajor = False
-
-        # Put the iterType flag in the history:
-        hist['isMajor'] = isMajor
+        # Save information about major iteration counting (only matters for SNOPT).
+        hist['iu0'] = self.iu0
 
         # Add constraint and variable bounds at beginning of optimization.
         # This info is used for visualization using OptView.
@@ -534,8 +522,11 @@ class Optimizer(object):
                 varBounds[dvGroup] = {'lower':[], 'upper':[]}
                 for var in self.optProb.variables[dvGroup]:
                     if var.type == 'c':
-                        varBounds[dvGroup]['lower'].append(var.lower/var.scale)
-                        varBounds[dvGroup]['upper'].append(var.upper/var.scale)
+                        varBounds[dvGroup]['lower'].append(var.lower / var.scale)
+                        varBounds[dvGroup]['upper'].append(var.upper / var.scale)
+
+            # Save objective key for use in OptView
+            hist['objKey'] = list(self.optProb.objectives.keys())[0]
 
             # There is a special write for the bounds data
             if self.storeHistory:
