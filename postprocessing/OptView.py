@@ -172,6 +172,9 @@ class Display(object):
                 deriv_keys = SqliteDict(histFileName, 'derivs').keys()
                 self.deriv_keys = [int(key.split('|')[-1]) for key in deriv_keys]
 
+                # Save information from the history file for the funcs.
+                self.DetermineMajorIterations(db, OpenMDAO=OpenMDAO)
+
                 # Save information from the history file for the unknowns.
                 self.SaveDBData(db, self.func_data_all, self.func_data_major, OpenMDAO=OpenMDAO, data_str='Unknowns')
 
@@ -212,10 +215,16 @@ class Display(object):
                     pass
 
                 # Check to see if there is proper saved info about iter type
-                if 'isMajor' in db['0'].keys():
-                    self.storedIters = True
+                if 'iu0' in db['0'].keys():
+                    if db[db['last']]['iu0'] > 0:
+                        self.storedIters = True
+                    else:
+                        self.storedIters = False
                 else:
                     self.storedIters = False
+
+                # Save information from the history file for the funcs.
+                self.DetermineMajorIterations(db, OpenMDAO=OpenMDAO)
 
                 # Save information from the history file for the funcs.
                 self.SaveDBData(db, self.func_data_all, self.func_data_major, OpenMDAO=OpenMDAO, data_str='funcs')
@@ -236,6 +245,81 @@ class Display(object):
                 if length > self.num_iter:
                     self.num_iter = length
 
+    def DetermineMajorIterations(self, db, OpenMDAO):
+
+        if not OpenMDAO:
+            self.obj_key = db['0']['objKey']
+
+            prev_key = 0
+            # Loop over each optimization iteration
+            for i, iter_type in enumerate(self.iter_type):
+
+                # If this is an OpenMDAO file, the keys are of the format
+                # 'rank0:SNOPT|1', etc
+                key = '%d' % i
+
+                # Only actual optimization iterations have 'funcs' in them.
+                # pyOptSparse saves info for two iterations for every
+                # actual major iteration. In particular, one has funcs
+                # and the next has funcsSens, but they're both part of the
+                # same major iteration.
+                if any('funcs' == s for s in db[key].keys()):
+
+                    # If this iteration has 'funcs' within it, but it's not
+                    # flagged as major, then it's a minor iteration.
+                    if i == 0:
+                        self.iter_type[i] = 1
+                    else:
+                        self.iter_type[i] = 2
+
+                    if not self.storedIters: # Otherwise, use a spotty heuristic to see if the
+                        # iteration is major or not. NOTE: this is often
+                        # inaccurate, especially if the optimization used
+                        # gradient-enhanced line searches.
+                        try:
+                            keyp1 = '%d' % (i + 1)
+                            db[keyp1]['funcsSens']
+                            self.iter_type[i] = 1 # for 'major' iterations
+                        except KeyError:
+                            self.iter_type[i] = 2 # for 'minor' iterations
+
+                else:
+                    self.iter_type[i] = 0 # this is not a real iteration,
+                                          # just the sensitivity evaluation
+
+            min_list = []
+            # Loop over each optimization iteration
+            for i, iter_type in enumerate(self.iter_type):
+
+                if iter_type == 0:
+                    continue
+
+                key = '%d' % i
+
+                # If the proper history is stored coming out of
+                # pyoptsparse, use that for filtering major iterations.
+                if self.storedIters:
+                    if db[key]['iu0'] != db[prev_key]['iu0']:
+                        min_array = np.array(min_list)
+                        argmin = np.argmin(min_array[:, 1])
+                        major_key = min_array[argmin, 0]
+                        self.iter_type[int(major_key)] = 1
+                        min_list = []
+                    min_list.append([int(key), db[key]['funcs'][self.obj_key][0]])
+                    prev_key = i
+
+        else: # this is if it's OpenMDAO
+            for i, iter_type in enumerate(self.iter_type):
+                key = '{}|{}'.format(self.solver_name, i+1) # OpenMDAO uses 1-indexing
+                if i in self.deriv_keys:
+                    self.iter_type[i] = 1.
+
+            # If no derivative info is saved, we don't know which iterations are major.
+            # Treat all iterations as major.
+            if len(self.deriv_keys) < 1:
+                self.iter_type[:] = 1.
+
+
     def SaveDBData(self, db, data_all, data_major, OpenMDAO, data_str):
         """ Method to save the information within the database corresponding
             to a certain key to the relevant dictionaries within the Display
@@ -252,52 +336,12 @@ class Display(object):
             else: # Otherwise the keys are simply a number
                 key = '%d' % i
 
-            # If this is the 'funcs' key, perform some special operations,
-            # such as determining the iteration type
-            if data_str == 'funcs':
-
-                # Only actual optimization iterations have 'funcs' in them.
-                # pyOptSparse saves info for two iterations for every
-                # actual major iteration. In particular, one has funcs
-                # and the next has funcsSens, but they're both part of the
-                # same major iteration.
-                if any('funcs' == s for s in db[key].keys()):
-
-                    # If the proper history is stored coming out of
-                    # pyoptsparse, use that for filtering major iterations.
-                    if self.storedIters:
-                        self.iter_type[i] = int(db[key]['isMajor'])
-
-                        # If this iteration has 'funcs' within it, but it's not
-                        # flagged as major, then it's a minor iteration.
-                        if self.iter_type[i] == 0:
-                            self.iter_type[i] = 2
-
-                    else: # Otherwise, use a spotty heuristic to see if the
-                        # iteration is major or not. NOTE: this is often
-                        # inaccurate, especially if the optimization used
-                        # gradient-enhanced line searches.
-                        try:
-                            keyp1 = '%d' % (i + 1)
-                            db[keyp1]['funcsSens']
-                            self.iter_type[i] = 1 # for 'major' iterations
-                        except KeyError:
-                            self.iter_type[i] = 2 # for 'minor' iterations
-
-                else:
-                    self.iter_type[i] = 0 # this is not a real iteration,
-                                          # just the sensitivity evaluation
-            elif data_str == 'Unknowns':
-                if i in self.deriv_keys:
-                    self.iter_type[i] = 1 # for 'major' iterations
-                else:
-                    self.iter_type[i] = 2 # for 'minor' iterations
-
             # Do this for both major and minor iterations
             if self.iter_type[i]:
 
                 # Get just the info in the dict for this iteration
                 iter_data = db[key][data_str]
+                iter_key = key
 
                 # Loop through each key within this iteration
                 for key in sorted(iter_data):
@@ -320,6 +364,7 @@ class Display(object):
                     data_all[new_key].append(data)
                     if self.iter_type[i] == 1:
                         data_major[new_key].append(data)
+
 
     def SaveOpenMDAOData(self, db):
         """ Examine the OpenMDAO dict and save tags if the variables are
@@ -1005,11 +1050,11 @@ class Display(object):
         if len(arr_sel) and self.arr_active:
             for name in self.val_names:
                 dat[name] = self.arr_data[name]
-        elif len(func_sel):
+        if len(func_sel):
             values = [self.lb_func.get(i) for i in func_sel]
             for name in values:
                 dat[name] = self.func_data[name]
-        elif len(var_sel):
+        if len(var_sel):
             values = [self.lb_var.get(i) for i in var_sel]
             for name in values:
                 dat[name] = self.var_data[name]
@@ -1169,17 +1214,18 @@ class Display(object):
                 size = self.f.get_size_inches() * self.f.dpi
                 width, height = size
 
+                xlim = ax.get_xlim()
+                ylim = ax.get_ylim()
+
+                x_coord = (event.xdata - xlim[0]) / (xlim[1] - xlim[0])
+                y_coord = (event.ydata - ylim[0]) / (ylim[1] - ylim[0])
+
                 # Scale and position the label based on the iteration number.
-                # On the left half of the figure, the label is to the right of the cursor.
-                # On the right half, the label is to the left or centered on the cursor.
-                if event.xdata > self.num_iter // 2:
-                    x = event.xdata - len(label) * 300 / width
-                else:
-                    x = event.xdata
+                x_coord -= event.xdata/(xlim[1]-xlim[0]) * len(label) * 10 / width
 
                 self.annotation = ax.annotate(label,
-                                              xy=(x, event.ydata), xycoords='data',
-                                              xytext=(x, event.ydata), textcoords='data',
+                                              xy=(x_coord, y_coord), xycoords='axes fraction',
+                                              xytext=(x_coord, y_coord), textcoords='axes fraction',
                                               horizontalalignment="left",
                                               bbox=dict(
                                               boxstyle="round", facecolor="w",
