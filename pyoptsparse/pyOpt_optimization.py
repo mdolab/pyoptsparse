@@ -47,6 +47,7 @@ from .sqlitedict.sqlitedict import SqliteDict
 # External Python modules
 # =============================================================================
 import numpy
+from scipy.sparse import coo_matrix
 
 # =============================================================================
 # Extension modules
@@ -913,8 +914,8 @@ class Optimization(object):
                     data.extend(con.jac[dvGroup]['coo'][IDATA])
 
                 # Now create a coo, convert to CSR and store
-                con.linearJacobian = {'coo':[row, col, data],
-                                      'shape':[con.ncon, self.ndvs]}
+                con.linearJacobian = coo_matrix((data, (row, col)),
+                                                shape=[con.ncon, self.ndvs]).tocsr()
 
     def getOrdering(self, conOrder, oneSided, noEquality=False):
         """
@@ -1288,7 +1289,7 @@ class Optimization(object):
         # proper linearJacobian entry we've already computed
         for iCon in self.constraints:
             if self.constraints[iCon].linear:
-                fcon[iCon] = multCOO(self.constraints[iCon].linearJacobian, x)
+                fcon[iCon] = self.constraints[iCon].linearJacobian.dot(x)
 
     def processObjectiveGradient(self, funcsSens):
         """

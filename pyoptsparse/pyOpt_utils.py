@@ -39,7 +39,7 @@ IROWIND = 1
 
 IDATA = 2
 __all__ = ['convertToCOO', 'convertToCSR', 'convertToCSC', 'convertToDense',
-           'mapToCSC', 'mapToCSR', 'multCOO',
+           'mapToCSC', 'mapToCSR',
            'scaleColumns', 'scaleRows', 'extractRows', 'IROW', 'ICOL',
            'IROWP', 'ICOLIND', 'ICOLP', 'IROWIND', 'IDATA']
 
@@ -457,31 +457,6 @@ def extractRows(mat, indices):
         ndata[nrowp[i]:nrowp[i+1]] = data[rowp[indices[i]]:rowp[indices[i]+1]]
 
     return {'csr':[nrowp, ncols, ndata], 'shape':[nn, m]}
-
-def multCOO(mat, x):
-    """
-    Inefficient matrix-vector multiply for COO matrix
-
-    Parameters
-    ----------
-    mat : dict
-        pyoptsparse coo mat
-    x : numpy array
-        vector to multiply with
-
-    Returns
-    -------
-    y : numpy array
-        resulting vector
-        """
-    y = numpy.zeros(mat['shape'][0], dtype=type(x[0]))
-    rows = mat['coo'][IROW]
-    cols = mat['coo'][ICOL]
-    data = mat['coo'][IDATA]
-    for i in range(len(data)):
-        y[rows[i]] += data[i]*x[cols[i]]
-
-    return y
 
 def _denseToCOO(arr):
     """
