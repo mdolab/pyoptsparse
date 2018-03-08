@@ -143,7 +143,7 @@ class SLSQP(Optimizer):
             # least one constraint. So we will add one
             # automatically here:
             self.unconstrained = True
-            optProb.dummyConstraint = False
+            optProb.dummyConstraint = True
 
         # Save the optimization problem and finalize constraint
         # jacobian, in general can only do on root proc
