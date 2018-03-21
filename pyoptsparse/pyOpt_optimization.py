@@ -1494,12 +1494,17 @@ class Optimization(object):
                                               len(con.jac[dvGroup]['coo'][2])))
 
                 # Include data from this jacobian chunk
-                data.extend(tmp['coo'][IDATA])
-                row.extend(tmp['coo'][IROW] + ii)
-                col.extend(tmp['coo'][ICOL] + ss[0])
+                data.append(tmp['coo'][IDATA])
+                row.append(tmp['coo'][IROW] + ii)
+                col.append(tmp['coo'][ICOL] + ss[0])
             # end for (dvGroup in constraint)
             ii += con.ncon
         # end for (constraint loop)
+
+        # now flatten all the data into a single array
+        data = numpy.concatenate(data).ravel()
+        row = numpy.concatenate(row).ravel()
+        col = numpy.concatenate(col).ravel()
 
         # Finally, construct CSR matrix from COO data and perform
         # row and column scaling.
