@@ -396,7 +396,6 @@ def scaleColumns(mat, factor):
         raise Error("scaleColumns only works for CSR pyoptsparse matrix format")
     if mat['shape'][1] != len(factor):
         raise Error("Length of factor is incorrect")
-    # print('SCALE COLUMNS')
     for i in range(mat['shape'][0]):
         iStart = mat['csr'][IROWP][i]
         iEnd = mat['csr'][IROWP][i+1]
