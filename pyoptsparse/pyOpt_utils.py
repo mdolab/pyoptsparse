@@ -399,8 +399,7 @@ def scaleColumns(mat, factor):
     for i in range(mat['shape'][0]):
         iStart = mat['csr'][IROWP][i]
         iEnd = mat['csr'][IROWP][i+1]
-        for j in range(iStart, iEnd):
-            mat['csr'][IDATA][j] *= factor[mat['csr'][ICOLIND][j]]
+        mat['csr'][IDATA][iStart:iEnd] *= factor[mat['csr'][ICOLIND][iStart:iEnd]]
 
 def scaleRows(mat, factor):
     """
