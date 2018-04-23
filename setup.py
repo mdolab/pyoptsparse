@@ -5,6 +5,7 @@ import os,sys
 # Check if we have numpy:
 try:
     from numpy.distutils.misc_util import Configuration
+    from setuptools import setup
     from numpy.distutils.core import setup
 except:
     raise ImportError('pyOptSparse requires numpy version 1.0 or later')
@@ -20,7 +21,7 @@ if len(sys.argv) == 1:
     sys.exit(-1)
 
 def configuration(parent_package='',top_path=None):
-    config = Configuration(None,parent_package,top_path)
+    config = Configuration('pyoptsparse',parent_package,top_path)
     config.set_options(ignore_setup_xxx_py=True,
                        assume_default_configuration=True,
                        delegate_options_to_subpackages=True,
@@ -31,7 +32,7 @@ def configuration(parent_package='',top_path=None):
 if __name__ == '__main__':
 
     setup(
-        name             = 'pyoptsparse',
+        name             = '',
         version          = '1.0.0',
         author           = 'Dr. Gaetan Kenway',
         author_email     = 'gaetank@gmail.com',
@@ -58,4 +59,4 @@ if __name__ == '__main__':
                             'Topic :: Education'],
         configuration = configuration,
     )
-    
+
