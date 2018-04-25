@@ -504,9 +504,7 @@ class Display(object):
         """
         Plots the original data values from the history file.
         """
-        cc = (
-            matplotlib.rcParams['axes.color_cycle'] * 10
-        )
+        cc = plt.rcParams['axes.prop_cycle'].by_key()['color'] * 10
         color = cc[i]
 
         try:
@@ -786,7 +784,7 @@ class Display(object):
                 # Otherwise plot original data
                 else:
                     for i, val in enumerate(values):
-                        cc = (matplotlib.rcParams['axes.color_cycle'] * 10)
+                        cc = plt.rcParams['axes.prop_cycle'].by_key()['color'] * 10
                         par_list[i].set_color_cycle(cc[i])
                         p_list[i], = par_list[i].plot(
                             dat[val], "o-", label=val, markeredgecolor='none', clip_on=False)
