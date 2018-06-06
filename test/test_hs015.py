@@ -31,7 +31,7 @@ class TestHS15(unittest.TestCase):
         conval[1] = x[0] + x[1]**2
         funcs['con'] = conval
         fail = False
-
+        print(funcs)
         return funcs, fail
 
     def sens(self, xdict, funcs):
@@ -43,6 +43,7 @@ class TestHS15(unittest.TestCase):
                                       [1, 2*x[1]]]}
         fail = False
 
+        print(funcs)
         return funcsSens, fail
 
     def optimize(self, optName, optOptions={}, storeHistory=False):
@@ -102,7 +103,10 @@ class TestHS15(unittest.TestCase):
         self.optimize('ipopt')
 
     def test_conmin(self):
-        self.optimize('conmin')
+        opts = {'DELFUN' : 1e-9,
+                'DABFUN' : 1e-9,
+                'ITRM' : 20}
+        self.optimize('conmin', optOptions=opts)
 
     def test_psqp(self):
         self.optimize('psqp')
