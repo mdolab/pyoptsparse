@@ -57,7 +57,7 @@ class CONMIN(Optimizer):
             'DABFUN':[float, 1e-6], # Objective Absolute Tolerance
             'ITRM':[int, 5],
             'NFEASCT':[int, 20],
-            'IPRINT':[int, 4],  # Print Control (0 - None, 1 - Final, 2,3,4,5 - Debug)
+            'IPRINT':[int, 4],  # Print Control (0 - None, 1 - Final, 2,3,4 - Debug)
             'IOUT':[int, 6], # Output Unit Number
             'IFILE':[str, 'CONMIN.out'], # Output File Name
         }
@@ -180,7 +180,7 @@ class CONMIN(Optimizer):
             # CONMIN - Objective/Constraint Gradients Function
             #=================================================================
             def cnmngrad(n1, n2, x, f, g, ct, df, a, ic, nac):
-            
+
                 gobj, gcon, fail = self._masterFunc(x[0:ndv], ['gobj', 'gcon'])
                 df[0:ndv] = gobj.copy()
 
@@ -191,7 +191,7 @@ class CONMIN(Optimizer):
                     if g[j] >= ct:
                         a[0:ndv, nac] = gcon[j, :]
                         ic[nac] = j + 1
-                nac += 1
+                        nac += 1
                 return df, a, ic, nac
 
             # Setup argument list values
@@ -215,10 +215,10 @@ class CONMIN(Optimizer):
             if iprint > 0:
                 if os.path.isfile(ifile):
                     os.remove(ifile)
-                    
+
             itmax = self.getOption('ITMAX')
             delfun = self.getOption('DELFUN')
-            
+
             #finit, ginit = cnmnfun([],[],xx,ff,gg)
             dabfun = self.getOption('DABFUN')
 
@@ -232,7 +232,7 @@ class CONMIN(Optimizer):
 
             # Run CONMIN
             t0 = time.time()
-            conmin.conmin(ndv, ncn, xs, blx, bux, ff, gg, 
+            conmin.conmin(ndv, ncn, xs, blx, bux, ff, gg,
                           nn1, nn2, nn3, nn4, nn5,
                           iprint, iout, ifile, itmax, delfun, dabfun, itrm,
                           nfeasct, nfdg, nfun, ngrd, cnmnfun, cnmngrad)

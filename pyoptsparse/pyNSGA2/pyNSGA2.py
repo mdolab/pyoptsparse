@@ -66,7 +66,7 @@ class NSGA2(Optimizer):
         }
         informs = {}
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
-        
+
         if nsga2 is None:
             raise Error('There was an error importing the compiled \
                         nsga2 module')
@@ -180,12 +180,12 @@ class NSGA2(Optimizer):
             seed = self.getOption('seed')
             if seed == 0:
                 seed = time.time()
-        
+
             # Run NSGA-II
             nsga2.set_pyfunc(objconfunc)
             t0 = time.time()
-            nsga2.nsga2(n, m, l, f, x, g, nfeval, xl, xu, opt('PopSize'), opt('maxGen'), 
-                        opt('pCross_real'), opt('pMut_real'), opt('eta_c'), opt('eta_m'), 
+            nsga2.nsga2(n, m, l, f, x, g, nfeval, xl, xu, opt('PopSize'), opt('maxGen'),
+                        opt('pCross_real'), opt('pMut_real'), opt('eta_c'), opt('eta_m'),
                         opt('pCross_bin'), opt('pMut_bin'), printout,seed, opt('xinit'))
             optTime = time.time() - t0
 
@@ -198,7 +198,7 @@ class NSGA2(Optimizer):
             #sol_inform['text'] = self.informs[inform[0]]
 
             xstar = [0.]*n
-            for i in xrange(n):
+            for i in range(n):
                 xstar[i] = nsga2.doubleArray_getitem(x,i)
 
             # Create the optimization solution

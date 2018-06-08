@@ -31,7 +31,6 @@ class TestHS15(unittest.TestCase):
         conval[1] = x[0] + x[1]**2
         funcs['con'] = conval
         fail = False
-        print(funcs, xdict)
         return funcs, fail
 
     def sens(self, xdict, funcs):
@@ -43,7 +42,6 @@ class TestHS15(unittest.TestCase):
                                       [1, 2*x[1]]]}
         fail = False
 
-        print('deriv', funcsSens)
         return funcsSens, fail
 
     def optimize(self, optName, optOptions={}, storeHistory=False):
@@ -53,7 +51,7 @@ class TestHS15(unittest.TestCase):
         # Design Variables
         lower = [-5.0, -5.0]
         upper = [0.5,  5.0]
-        value = [-2.0, 1.0]
+        value = [-2, 1.0]
         optProb.addVarGroup('xvars', 2, lower=lower, upper=upper, value=value)
 
         # Constraints
@@ -82,7 +80,7 @@ class TestHS15(unittest.TestCase):
         sol = opt(optProb, sens=self.sens, storeHistory=histFileName)
 
         # Check Solution
-        self.assertAlmostEqual(sol.objectives['obj'].value, 306.5)
+        self.assertAlmostEqual(sol.objectives['obj'].value, 306.5, places=5)
 
         self.assertAlmostEqual(sol.variables['xvars'][0].value, 0.5)
         self.assertAlmostEqual(sol.variables['xvars'][1].value, 2.0)
@@ -104,9 +102,8 @@ class TestHS15(unittest.TestCase):
 
     def test_conmin(self):
         opts = {'DELFUN' : 1e-9,
-                'DABFUN' : 1e-9,
-                'ITRM' : 20}
-        self.optimize('conmin')#, optOptions=opts)
+                'DABFUN' : 1e-9}
+        self.optimize('conmin', optOptions=opts)
 
     def test_psqp(self):
         self.optimize('psqp')
