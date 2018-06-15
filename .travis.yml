@@ -16,6 +16,17 @@ env:
     - PY=2.7 NUMPY=1.12
     - PY=3.6 NUMPY=1.14
 
+addons:
+  apt:
+    update: true
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gfortran
+    - libblas-dev
+    - liblapack-dev
+    - libopenmpi-dev
+    - openmpi-bin
 
 install:
 
