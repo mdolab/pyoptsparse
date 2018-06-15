@@ -1,0 +1,45 @@
+branches:
+  only:
+  - master
+
+group: deprecated-2017Q4
+
+filter_secrets: false
+
+os:
+- linux
+
+language: generic
+
+env:
+  matrix:
+    - PY=2.7 NUMPY=1.12
+    - PY=3.6 NUMPY=1.14
+
+
+install:
+
+- wget "https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh" -O miniconda.sh;
+- chmod +x miniconda.sh;
+- ./miniconda.sh -b  -p $HOME/miniconda;
+- export PATH=$HOME/miniconda/bin:$PATH;
+- conda install --yes python=$PY;
+- conda install --yes numpy==$NUMPY scipy=0.19.1 swig pip;
+- pip install --upgrade pip;
+- pip install mpi4py;
+# - pip install petsc4py==$PETSc;
+- pip install git+https://github.com/OpenMDAO/testflo.git;
+- pip install coverage;
+- pip install git+https://github.com/swryan/coveralls-python@work;
+- python setup.py build;
+- python setup.py install;
+
+# display summary of installed packages and their versions
+- conda list;
+- pip list;
+
+script:
+# run the tests from down here to see if it can work without being at top level
+# only do coverage on the upload machine.
+- testflo -v --pre_announce;
+
