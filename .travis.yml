@@ -27,7 +27,7 @@ addons:
     - liblapack-dev
     - libopenmpi-dev
     - openmpi-bin
-  ssh_known_hosts:
+    ssh_known_hosts:
     - web543.webfaction.com
 
 install:
