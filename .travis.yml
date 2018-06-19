@@ -68,5 +68,10 @@ install:
 script:
 # run the tests from down here to see if it can work without being at top level
 # only do coverage on the upload machine.
-- testflo -v --pre_announce;
+- testflo -v --pre_announce --coverage  --coverpkg pyoptsparse --cover-omit \*build/\* --cover-omit \*doc/\* --cover-omit \*examples/\*  --cover-omit \*postprocessing/\* --cover-omit \*test/\* ;
 
+
+after_success:
+- coveralls --rcfile=../../.coveragerc --output=coveralls.json;
+- sed 's/\/home\/travis\/miniconda\/lib\/python'"$PY"'\/site-packages\///g' < coveralls.json > coveralls-upd.json;
+- coveralls --upload=coveralls-upd.json;
