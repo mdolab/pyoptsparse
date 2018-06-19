@@ -53,9 +53,9 @@ install:
 - pip install git+https://github.com/swryan/coveralls-python@work;
 
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-    cd pyoptsparse/pySNOPT/source/;
+    cd pyoptsparse/pySNOPT;
     scp -r "$SNOPT_LOCATION" .;
-    cd ../../..;
+    cd ../..;
   fi
 
 - python setup.py build;
