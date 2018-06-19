@@ -32,7 +32,8 @@ addons:
 
 install:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-    openssl aes-256-cbc -K $encrypted_5ebcf5cee077_key -iv $encrypted_5ebcf5cee077_iv -in /tmp/travis_deploy_rsa.enc -out travis_deploy_rsa -d;
+    openssl aes-256-cbc -K $encrypted_5ebcf5cee077_key -iv $encrypted_5ebcf5cee077_iv -in travis_deploy_rsa.enc -out /tmp/travis_deploy_rsa -d;
+    eval "$(ssh-agent -s)";
     chmod 600 /tmp/travis_deploy_rsa;
     ssh-add /tmp/travis_deploy_rsa;
     echo -e "Host web543.webfaction.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
