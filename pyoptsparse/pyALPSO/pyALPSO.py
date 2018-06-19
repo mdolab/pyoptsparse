@@ -231,6 +231,7 @@ class ALPSO(Optimizer):
     def _communicateSolution(self, sol):
         if sol is not None:
             sol.userObjCalls = self.optProb.comm.allreduce(sol.userObjCalls)
+            sol.comm = None
         sol = self.optProb.comm.bcast(sol)
         sol.objFun = self.optProb.objFun
         sol.comm = self.optProb.comm
