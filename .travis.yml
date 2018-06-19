@@ -13,7 +13,7 @@ language: generic
 
 env:
   matrix:
-    - PY=2.7 NUMPY=1.12
+    - PY=2.7 NUMPY=1.14
     - PY=3.6 NUMPY=1.14
 
 addons:
@@ -27,8 +27,16 @@ addons:
     - liblapack-dev
     - libopenmpi-dev
     - openmpi-bin
+   ssh_known_hosts:
+    - web543.webfaction.com
 
 install:
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+    openssl aes-256-cbc -K $encrypted_5ebcf5cee077_key -iv $encrypted_5ebcf5cee077_iv -in /tmp/travis_deploy_rsa.enc -out travis_deploy_rsa -d;
+    chmod 600 /tmp/travis_deploy_rsa;
+    ssh-add /tmp/travis_deploy_rsa;
+    echo -e "Host web543.webfaction.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+  fi
 
 - wget "https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh" -O miniconda.sh;
 - chmod +x miniconda.sh;
@@ -42,6 +50,10 @@ install:
 - pip install git+https://github.com/OpenMDAO/testflo.git;
 - pip install coverage;
 - pip install git+https://github.com/swryan/coveralls-python@work;
+
+- cd pyoptsparse/pySNOPT/source/pySNOPT;
+- scp -r "$SNOPT_LOCATION" .;
+- cd ../../..;
 - python setup.py build;
 - python setup.py install;
 
