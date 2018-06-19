@@ -51,7 +51,7 @@ install:
 - pip install coverage;
 - pip install git+https://github.com/swryan/coveralls-python@work;
 
-- cd pyoptsparse/pySNOPT/source/pySNOPT;
+- cd pyoptsparse/pySNOPT/source/;
 - scp -r "$SNOPT_LOCATION" .;
 - cd ../../..;
 - python setup.py build;
