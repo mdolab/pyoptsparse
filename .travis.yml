@@ -106,7 +106,8 @@ install:
 script:
 # run the tests from down here to see if it can work without being at top level
 # only do coverage on the upload machine.
-- testflo -v --pre_announce --coverage  --coverpkg pyoptsparse --cover-omit \*build/\* --cover-omit \*doc/\* --cover-omit \*examples/\*  --cover-omit \*postprocessing/\* --cover-omit \*test/\* ;
+# - testflo -v --pre_announce --coverage --cover-omit \*build/\* --cover-omit \*doc/\* --cover-omit \*examples/\*  --cover-omit \*postprocessing/\* --cover-omit \*test/\* ;
+- testflo -v --pre_announce --coverage
 # - testflo -v --pre_announce;
 
 after_success:
