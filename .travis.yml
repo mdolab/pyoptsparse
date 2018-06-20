@@ -30,6 +30,36 @@ addons:
     ssh_known_hosts:
     - web543.webfaction.com
 
+cache:
+  apt: true
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/miniconda
+    - $HOME/pyoptsparse/pyoptsparse/pySNOPT
+
+before_install:
+- if [ -f $HOME/miniconda/bin/python$PY ]; then
+    echo "cached miniconda found -- nothing to do";
+  else
+    NOT_CACHED_CONDA=1;
+    rm -rf $HOME/miniconda;
+  fi
+
+
+- if [ -f $HOME/.cache/pip ]; then
+    echo "cached pip found -- nothing to do";
+  else
+    NOT_CACHED_PIP=1;
+    rm -rf $HOME/.cache/pip;
+  fi
+
+- if [ -d $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse/pyoptsparse/pySNOPT ]; then
+    echo "cached SNOPT source found -- nothing to do";
+  else
+    NOT_CACHED_SNOPT=1;
+    rm -rf $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse/pyoptsparse/pySNOPT ;
+  fi
+
 install:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
     openssl aes-256-cbc -K $encrypted_5ebcf5cee077_key -iv $encrypted_5ebcf5cee077_iv -in travis_deploy_rsa.enc -out /tmp/travis_deploy_rsa -d;
@@ -39,23 +69,32 @@ install:
     echo -e "Host web543.webfaction.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
   fi
 
-- wget "https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh" -O miniconda.sh;
-- chmod +x miniconda.sh;
-- ./miniconda.sh -b  -p $HOME/miniconda;
-- export PATH=$HOME/miniconda/bin:$PATH;
-- conda install --yes python=$PY;
-- conda install --yes numpy==$NUMPY scipy=0.19.1 swig pip;
-- pip install --upgrade pip;
-- pip install mpi4py;
-# - pip install petsc4py==$PETSc;
-- pip install git+https://github.com/OpenMDAO/testflo.git;
-- pip install coverage;
-- pip install git+https://github.com/swryan/coveralls-python@work;
+- if [ "$NOT_CACHED_CONDA" ]; then
+    wget "https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh" -O miniconda.sh;
+    chmod +x miniconda.sh;
+    ./miniconda.sh -b  -p $HOME/miniconda;
+    export PATH=$HOME/miniconda/bin:$PATH;
+    conda install --yes python=$PY;
+    conda install --yes numpy==$NUMPY scipy=0.19.1 swig pip;
+  else
+    export PATH=$HOME/miniconda/bin:$PATH;
+  fi
+
+- if [ "$NOT_CACHED_PIP" ]; then
+    pip install --upgrade pip;
+    pip install mpi4py;
+    # pip install petsc4py==$PETSc;
+    pip install git+https://github.com/OpenMDAO/testflo.git;
+    pip install coverage;
+    pip install git+https://github.com/swryan/coveralls-python@work;
+  fi
 
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-    cd pyoptsparse/pySNOPT;
-    scp -r "$SNOPT_LOCATION" .;
-    cd ../..;
+    if [ "NOT_CACHED_SNOPT" ]; then
+      cd pyoptsparse/pySNOPT;
+      scp -r "$SNOPT_LOCATION" .;
+      cd ../..;
+    fi
   fi
 
 - python setup.py build;
@@ -68,10 +107,10 @@ install:
 script:
 # run the tests from down here to see if it can work without being at top level
 # only do coverage on the upload machine.
-- testflo -v --pre_announce --coverage  --coverpkg pyoptsparse --cover-omit \*build/\* --cover-omit \*doc/\* --cover-omit \*examples/\*  --cover-omit \*postprocessing/\* --cover-omit \*test/\* ;
+# - testflo -v --pre_announce --coverage  --coverpkg pyoptsparse --cover-omit \*build/\* --cover-omit \*doc/\* --cover-omit \*examples/\*  --cover-omit \*postprocessing/\* --cover-omit \*test/\* ;
+- testflo -v --pre_announce;
 
-
-after_success:
-- coveralls --rcfile=../../.coveragerc --output=coveralls.json;
-- sed 's/\/home\/travis\/miniconda\/lib\/python'"$PY"'\/site-packages\///g' < coveralls.json > coveralls-upd.json;
-- coveralls --upload=coveralls-upd.json;
+#after_success:
+#- coveralls --rcfile=../../.coveragerc --output=coveralls.json;
+#- sed 's/\/home\/travis\/miniconda\/lib\/python'"$PY"'\/site-packages\///g' < coveralls.json > coveralls-upd.json;
+#- coveralls --upload=coveralls-upd.json;
