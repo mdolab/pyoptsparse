@@ -108,21 +108,20 @@ install:
 - python setup.py build;
 - python setup.py install;
 # copy the SNOPT library into its proper place before testing
-- if [ -f $HOME/snopt*.so ]; then
-    mv $HOME/snopt*.so $SNOPT_DIR
-  fi
+- for file in $HOME/snopt*.so; do
+    if [[ -f $file ]]; then
+      mv $file $SNOPT_DIR;
+      break;
+    fi
+  done
 
 # display summary of installed packages and their versions
 - conda list;
 - pip list;
 
 script:
-# run the tests from down here to see if it can work without being at top level
-# only do coverage on the upload machine.
 - cd test; #coverage from root directory does not work.
 - testflo -v --pre_announce --coverage  --coverpkg pyoptsparse
-# --cover-omit \*build/\* --cover-omit \*doc/\* --cover-omit \*examples/\*  --cover-omit \*postprocessing/\* --cover-omit \*test/\* ;
-# - testflo -v --pre_announce;
 
 after_success:
 - coveralls --rcfile=.coveragerc --output=coveralls.json;
