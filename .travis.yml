@@ -99,6 +99,8 @@ install:
     pip install git+https://github.com/swryan/coveralls-python@work;
   fi
 
+# for merge builds, grab the SNOPT source from secure SNOPT_LOCATION,
+# and test building that library every time
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
       cd pyoptsparse/pySNOPT/source;
       scp -r "$SNOPT_LOCATION/source/*" .;
@@ -107,13 +109,16 @@ install:
 
 - python setup.py build;
 - python setup.py install;
-# copy the SNOPT library into its proper place before testing
-- for file in $HOME/snopt*.so; do
-    if [[ -f $file ]]; then
-      mv $file $SNOPT_DIR;
-      break;
-    fi
-  done
+# for PRs, copy the cached SNOPT library into its proper place before testing
+# PRs cannot access SNOPT otherwise due to encrypted SNOPT_LOCATION
+- if [ "$TRAVIS_PULL_REQUEST" = "true" ]; then
+    for file in $HOME/snopt*.so; do
+      if [[ -f $file ]]; then
+        mv $file $SNOPT_DIR;
+        break;
+      fi
+    done
+  fi
 
 # display summary of installed packages and their versions
 - conda list;
