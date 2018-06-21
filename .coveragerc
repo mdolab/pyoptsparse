@@ -7,8 +7,6 @@ exclude_lines =
     if __name__ == .__main__.:
 
 [run]
-include =
-    */pyoptsparse/*
 
 omit =
     */build/*
