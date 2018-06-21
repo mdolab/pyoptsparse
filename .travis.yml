@@ -62,7 +62,7 @@ before_install:
 - if [ -d $SNOPT_DIR ]; then
     for file in $SNOPT_DIR/snopt*.so; do
       if [[ -f $file ]]; then
-        cp $file $HOME;
+        cp -v $file $HOME;
         echo "cached SNOPT object found -- keeping it for later use.";
         break;
       fi
@@ -72,6 +72,7 @@ before_install:
 - rm -rf $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse;
 
 install:
+- echo "$TRAVIS_PULL_REQUEST"
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
     openssl aes-256-cbc -K $encrypted_5ebcf5cee077_key -iv $encrypted_5ebcf5cee077_iv -in travis_deploy_rsa.enc -out /tmp/travis_deploy_rsa -d;
     eval "$(ssh-agent -s)";
@@ -114,7 +115,7 @@ install:
 - if [ "$TRAVIS_PULL_REQUEST" = "true" ]; then
     for file in $HOME/snopt*.so; do
       if [[ -f $file ]]; then
-        mv $file $SNOPT_DIR;
+        mv -v $file $SNOPT_DIR;
         break;
       fi
     done
