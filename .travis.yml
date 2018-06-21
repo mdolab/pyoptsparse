@@ -62,7 +62,7 @@ before_install:
 - if [ -d $SNOPT_DIR ]; then
     for file in $SNOPT_DIR/snopt*.so; do
       if [[ -f $file ]]; then
-        cp $file $HOME;
+        cp -v $file $HOME;
         echo "cached SNOPT object found -- keeping it for later use.";
         break;
       fi
@@ -109,12 +109,13 @@ install:
 
 - python setup.py build;
 - python setup.py install;
+
 # for PRs, copy the cached SNOPT library into its proper place before testing
 # PRs cannot access SNOPT otherwise due to encrypted SNOPT_LOCATION
-- if [ "$TRAVIS_PULL_REQUEST" = "true" ]; then
+- if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
     for file in $HOME/snopt*.so; do
       if [[ -f $file ]]; then
-        mv $file $SNOPT_DIR;
+        mv -v $file $SNOPT_DIR;
         break;
       fi
     done
