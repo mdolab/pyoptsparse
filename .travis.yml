@@ -109,7 +109,7 @@ install:
 - python setup.py install;
 # copy the SNOPT library into its proper place before testing
 - if [ -f $HOME/snopt*.so ]; then
-    mv $HOME/snopt.*so $SNOPT_DIR
+    mv $HOME/snopt*.so $SNOPT_DIR
   fi
 
 # display summary of installed packages and their versions
