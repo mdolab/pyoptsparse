@@ -57,13 +57,19 @@ before_install:
     rm -rf $HOME/.cache/pip;
   fi
 
-- if [ -f $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse/pyoptsparse/pySNOPT/snopt*.so ]; then
-    # save snopt library
-    mv $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse/pyoptsparse/pySNOPT/snopt*.so $HOME ;
-    echo "cached SNOPT object found -- keeping it for later use.";
+# possibly save snopt library and remove old installation of pyoptsparse--all we want kept is the SNOPT.
+SNOPT_DIR=$HOME/miniconda/lib/python$PY/site-packages/pyoptsparse/pyoptsparse/pySNOPT
+- if [ -d $SNOPT_DIR ]
+    for file in $SNOPT_DIR/snopt*.so; do
+      if [[ -f $file ]]; then
+        cp $file $HOME ;
+        echo "cached SNOPT object found -- keeping it for later use.";
+        break;
+      fi
+    done
   fi
-  # remove old installation of pyoptsparse--all we wanted was the SNOPT.
-  rm -rf $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse;
+
+- rm -rf $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse;
 
 install:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
@@ -95,7 +101,7 @@ install:
 
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
     if [ "NOT_CACHED_SNOPT" ]; then
-      cd pyoptsparse/pySNOPT;
+      cd pyoptsparse/pySNOPT/source;
       scp -r "$SNOPT_LOCATION" .;
       cd ../..;
     fi
@@ -104,7 +110,9 @@ install:
 - python setup.py build;
 - python setup.py install;
 # copy the SNOPT library into its proper place before testing
-- mv $HOME/*so $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse/pyoptsparse/pySNOPT/
+- if [ -f $HOME/snopt*.so ]; then
+    mv $HOME/snopt.*so $SNOPT_DIR
+  fi
 
 # display summary of installed packages and their versions
 - conda list;
