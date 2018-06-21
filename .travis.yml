@@ -35,9 +35,13 @@ cache:
   directories:
     - $HOME/.cache/pip
     - $HOME/miniconda
-    - $HOME/pyoptsparse/pyoptsparse/pySNOPT
 
 before_install:
+# Check for existence of files to determine if cache exists
+# If the dir doesn't exist, but is slated to be cached later,
+# Travis unhelpfully creates it, which then causes "dir already exists"
+# errors when you go to actually install the thing, so we must non-intuitively
+# delete the file before re-creating it later.
 - if [ -f $HOME/miniconda/bin/python$PY ]; then
     echo "cached miniconda found -- nothing to do";
   else
@@ -53,12 +57,13 @@ before_install:
     rm -rf $HOME/.cache/pip;
   fi
 
-- if [ -f $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse/pyoptsparse/pySNOPT/source/snoptc.f ]; then
-    echo "cached SNOPT source found -- nothing to do";
-  else
-    NOT_CACHED_SNOPT=1;
-    rm -rf $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse/pyoptsparse/pySNOPT ;
+- if [ -f $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse/pyoptsparse/pySNOPT/snopt*.so ]; then
+    # save snopt library
+    mv $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse/pyoptsparse/pySNOPT/snopt*.so $HOME ;
+    echo "cached SNOPT object found -- keeping it for later use.";
   fi
+  # remove old installation of pyoptsparse--all we wanted was the SNOPT.
+  rm -rf $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse;
 
 install:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
@@ -98,6 +103,8 @@ install:
 
 - python setup.py build;
 - python setup.py install;
+# copy the SNOPT library into its proper place before testing
+- mv $HOME/*so $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse/pyoptsparse/pySNOPT/
 
 # display summary of installed packages and their versions
 - conda list;
