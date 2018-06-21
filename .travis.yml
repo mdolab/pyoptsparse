@@ -35,9 +35,13 @@ cache:
   directories:
     - $HOME/.cache/pip
     - $HOME/miniconda
-    - $HOME/pyoptsparse/pyoptsparse/pySNOPT
 
 before_install:
+# Check for existence of files to determine if cache exists
+# If the dir doesn't exist, but is slated to be cached later,
+# Travis unhelpfully creates it, which then causes "dir already exists"
+# errors when you go to actually install the thing, so we must non-intuitively
+# delete the file before re-creating it later.
 - if [ -f $HOME/miniconda/bin/python$PY ]; then
     echo "cached miniconda found -- nothing to do";
   else
@@ -53,12 +57,19 @@ before_install:
     rm -rf $HOME/.cache/pip;
   fi
 
-- if [ -d $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse/pyoptsparse/pySNOPT ]; then
-    echo "cached SNOPT source found -- nothing to do";
-  else
-    NOT_CACHED_SNOPT=1;
-    rm -rf $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse/pyoptsparse/pySNOPT ;
+# possibly save snopt library and remove old installation of pyoptsparse--all we want kept is the SNOPT.
+- SNOPT_DIR=$HOME/miniconda/lib/python$PY/site-packages/pyoptsparse/pySNOPT;
+- if [ -d $SNOPT_DIR ]; then
+    for file in $SNOPT_DIR/snopt*.so; do
+      if [[ -f $file ]]; then
+        cp $file $HOME;
+        echo "cached SNOPT object found -- keeping it for later use.";
+        break;
+      fi
+    done
   fi
+
+- rm -rf $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse;
 
 install:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
@@ -89,27 +100,28 @@ install:
   fi
 
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-    if [ "NOT_CACHED_SNOPT" ]; then
-      cd pyoptsparse/pySNOPT;
-      scp -r "$SNOPT_LOCATION" .;
+      cd pyoptsparse/pySNOPT/source;
+      scp -r "$SNOPT_LOCATION/source/*" .;
       cd ../..;
-    fi
   fi
 
 - python setup.py build;
 - python setup.py install;
+# copy the SNOPT library into its proper place before testing
+- for file in $HOME/snopt*.so; do
+    if [[ -f $file ]]; then
+      mv $file $SNOPT_DIR;
+      break;
+    fi
+  done
 
 # display summary of installed packages and their versions
 - conda list;
 - pip list;
 
 script:
-# run the tests from down here to see if it can work without being at top level
-# only do coverage on the upload machine.
-- cd test;
+- cd test; #coverage from root directory does not work.
 - testflo -v --pre_announce --coverage  --coverpkg pyoptsparse
-# --cover-omit \*build/\* --cover-omit \*doc/\* --cover-omit \*examples/\*  --cover-omit \*postprocessing/\* --cover-omit \*test/\* ;
-# - testflo -v --pre_announce;
 
 after_success:
 - coveralls --rcfile=.coveragerc --output=coveralls.json;
