@@ -110,9 +110,10 @@ install:
 
 - python setup.py build;
 - python setup.py install;
+
 # for PRs, copy the cached SNOPT library into its proper place before testing
 # PRs cannot access SNOPT otherwise due to encrypted SNOPT_LOCATION
-- if [ "$TRAVIS_PULL_REQUEST" = "true" ]; then
+- if [ "$TRAVIS_PULL_REQUEST" ]; then
     for file in $HOME/snopt*.so; do
       if [[ -f $file ]]; then
         mv -v $file $SNOPT_DIR;
