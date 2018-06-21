@@ -58,7 +58,7 @@ before_install:
   fi
 
 # possibly save snopt library and remove old installation of pyoptsparse--all we want kept is the SNOPT.
-SNOPT_DIR=$HOME/miniconda/lib/python$PY/site-packages/pyoptsparse/pyoptsparse/pySNOPT
+- SNOPT_DIR=$HOME/miniconda/lib/python$PY/site-packages/pyoptsparse/pySNOPT;
 - if [ -d $SNOPT_DIR ]
     for file in $SNOPT_DIR/snopt*.so; do
       if [[ -f $file ]]; then
@@ -100,11 +100,9 @@ install:
   fi
 
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-    if [ "NOT_CACHED_SNOPT" ]; then
       cd pyoptsparse/pySNOPT/source;
-      scp -r "$SNOPT_LOCATION" .;
+      scp -r "$SNOPT_LOCATION/source/*" .;
       cd ../..;
-    fi
   fi
 
 - python setup.py build;
