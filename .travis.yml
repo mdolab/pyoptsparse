@@ -102,7 +102,7 @@ install:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
       cd pyoptsparse/pySNOPT/source;
       scp -r "$SNOPT_LOCATION/source/*" .;
-      cd ../..;
+      cd ../../..;
   fi
 
 - python setup.py build;
