@@ -59,10 +59,10 @@ before_install:
 
 # possibly save snopt library and remove old installation of pyoptsparse--all we want kept is the SNOPT.
 - SNOPT_DIR=$HOME/miniconda/lib/python$PY/site-packages/pyoptsparse/pySNOPT;
-- if [ -d $SNOPT_DIR ]
+- if [ -d $SNOPT_DIR ]; then
     for file in $SNOPT_DIR/snopt*.so; do
       if [[ -f $file ]]; then
-        cp $file $HOME ;
+        cp $file $HOME;
         echo "cached SNOPT object found -- keeping it for later use.";
         break;
       fi
