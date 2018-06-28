@@ -1,1 +1,0 @@
-from .pyoptsparse import *
