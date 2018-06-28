@@ -34,6 +34,9 @@ if len(sys.argv) == 1:
     sys.exit(-1)
 
 
+# I had to set package_path here, because otherwise 'pip uninstall pyoptsparse' thinks it needs to
+# remove EVERYTHING under site-packages.
+
 def configuration(parent_package='', top_path=None, package_path='pyoptsparse'):
     config = Configuration(None, parent_package, top_path)
     config.set_options(ignore_setup_xxx_py=True,
