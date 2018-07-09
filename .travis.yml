@@ -1,0 +1,135 @@
+branches:
+  only:
+  - master
+
+group: deprecated-2017Q4
+
+filter_secrets: false
+
+os:
+- linux
+
+language: generic
+
+env:
+  matrix:
+    - PY=2.7 NUMPY=1.14
+    - PY=3.6 NUMPY=1.14
+
+addons:
+  apt:
+    update: true
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gfortran
+    - libblas-dev
+    - liblapack-dev
+    - libopenmpi-dev
+    - openmpi-bin
+    ssh_known_hosts:
+    - web543.webfaction.com
+
+cache:
+  apt: true
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/miniconda
+
+before_install:
+# Check for existence of files to determine if cache exists
+# If the dir doesn't exist, but is slated to be cached later,
+# Travis unhelpfully creates it, which then causes "dir already exists"
+# errors when you go to actually install the thing, so we must non-intuitively
+# delete the file before re-creating it later.
+- if [ -f $HOME/miniconda/bin/python$PY ]; then
+    echo "cached miniconda found -- nothing to do";
+  else
+    NOT_CACHED_CONDA=1;
+    rm -rf $HOME/miniconda;
+  fi
+
+
+- if [ -f $HOME/.cache/pip ]; then
+    echo "cached pip found -- nothing to do";
+  else
+    NOT_CACHED_PIP=1;
+    rm -rf $HOME/.cache/pip;
+  fi
+
+# possibly save snopt library and remove old installation of pyoptsparse--all we want kept is the SNOPT.
+- SNOPT_DIR=$HOME/miniconda/lib/python$PY/site-packages/pyoptsparse/pySNOPT;
+- if [ -d $SNOPT_DIR ]; then
+    for file in $SNOPT_DIR/snopt*.so; do
+      if [[ -f $file ]]; then
+        cp -v $file $HOME;
+        echo "cached SNOPT object found -- keeping it for later use.";
+        break;
+      fi
+    done
+  fi
+
+- rm -rf $HOME/miniconda/lib/python$PY/site-packages/pyoptsparse;
+
+install:
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+    openssl aes-256-cbc -K $encrypted_5ebcf5cee077_key -iv $encrypted_5ebcf5cee077_iv -in travis_deploy_rsa.enc -out /tmp/travis_deploy_rsa -d;
+    eval "$(ssh-agent -s)";
+    chmod 600 /tmp/travis_deploy_rsa;
+    ssh-add /tmp/travis_deploy_rsa;
+    echo -e "Host web543.webfaction.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config;
+  fi
+
+- if [ "$NOT_CACHED_CONDA" ]; then
+    wget "https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh" -O miniconda.sh;
+    chmod +x miniconda.sh;
+    ./miniconda.sh -b  -p $HOME/miniconda;
+    export PATH=$HOME/miniconda/bin:$PATH;
+    conda install --yes python=$PY;
+    conda install --yes numpy==$NUMPY scipy=0.19.1 swig pip;
+  else
+    export PATH=$HOME/miniconda/bin:$PATH;
+  fi
+
+- if [ "$NOT_CACHED_PIP" ]; then
+    pip install --upgrade pip;
+    pip install mpi4py;
+    pip install git+https://github.com/OpenMDAO/testflo.git;
+    pip install coverage;
+    pip install git+https://github.com/swryan/coveralls-python@work;
+  fi
+
+# for merge builds, grab the SNOPT source from secure SNOPT_LOCATION,
+# and test building that library every time
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+      cd pyoptsparse/pySNOPT/source;
+      scp -r "$SNOPT_LOCATION/source/*" .;
+      cd ../../..;
+  fi
+
+- python setup.py build;
+- python setup.py install;
+
+# for PRs, copy the cached SNOPT library into its proper place before testing
+# PRs cannot access SNOPT otherwise due to encrypted SNOPT_LOCATION
+- if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+    for file in $HOME/snopt*.so; do
+      if [[ -f $file ]]; then
+        mv -v $file $SNOPT_DIR;
+        break;
+      fi
+    done
+  fi
+
+# display summary of installed packages and their versions
+- conda list;
+- pip list;
+
+script:
+- cd test; #coverage from root directory does not work.
+- testflo -v --pre_announce --coverage  --coverpkg pyoptsparse
+
+after_success:
+- coveralls --rcfile=.coveragerc --output=coveralls.json;
+- sed 's/\/home\/travis\/miniconda\/lib\/python'"$PY"'\/site-packages\///g' < coveralls.json > coveralls-upd.json;
+- coveralls --upload=coveralls-upd.json;

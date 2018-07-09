@@ -65,8 +65,13 @@ class TestSNOPTBug(unittest.TestCase):
         # Check optimization problem:
         print(optProb)
 
+
         # Optimizer
-        opt = SNOPT(optOptions = {'Major feasibility tolerance' : 1e-1})
+        try:
+            opt = SNOPT(optOptions = {'Major feasibility tolerance' : 1e-1})
+        except:
+            raise unittest.SkipTest('Optimizer not available: SNOPT')
+
         sol = opt(optProb, sens=sens)
 
         # Check Solution 7.166667, -7.833334
