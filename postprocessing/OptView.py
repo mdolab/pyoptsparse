@@ -296,17 +296,17 @@ class Display(object):
 
                 key = '%d' % i
 
-                # If the proper history is stored coming out of
-                # pyoptsparse, use that for filtering major iterations.
-                if self.storedIters:
-                    if db[key]['iu0'] != db[prev_key]['iu0']:
-                        min_array = np.array(min_list)
-                        argmin = np.argmin(min_array[:, 1])
-                        major_key = min_array[argmin, 0]
-                        self.iter_type[int(major_key)] = 1
-                        min_list = []
-                    min_list.append([int(key), db[key]['funcs'][self.obj_key][0]])
-                    prev_key = i
+                # # If the proper history is stored coming out of
+                # # pyoptsparse, use that for filtering major iterations.
+                # if self.storedIters:
+                #     if db[key]['iu0'] != db[prev_key]['iu0']:
+                #         min_array = np.array(min_list)
+                #         argmin = np.argmin(min_array[:, 1])
+                #         major_key = min_array[argmin, 0]
+                #         self.iter_type[int(major_key)] = 1
+                #         min_list = []
+                #     min_list.append([int(key), db[key]['funcs'][self.obj_key]])
+                #     prev_key = i
 
         else: # this is if it's OpenMDAO
             for i, iter_type in enumerate(self.iter_type):
