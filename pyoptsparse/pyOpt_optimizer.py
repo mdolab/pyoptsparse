@@ -858,7 +858,7 @@ def OPT(optName, *args, **kwargs):
 
     optName = optName.lower()
     optList = ['snopt', 'ipopt', 'slsqp', 'fsqp', 'nlpqlp', 'conmin',
-               'nsga2', 'nlpy_auglag', 'psqp', 'alpso']
+               'nsga2', 'nlpy_auglag', 'psqp', 'alpso', 'paropt']
     if optName == 'snopt':
         from .pySNOPT.pySNOPT import SNOPT as opt
     elif optName == 'ipopt':
@@ -881,6 +881,8 @@ def OPT(optName, *args, **kwargs):
         from .pyALPSO.pyALPSO import ALPSO as opt
     # elif optName == 'nomad':
     #     from .pyNOMAD.pyNOMAD import NOMAD as opt
+    elif optName == 'paropt':
+        from .pyParOpt.pyParOpt import ParOpt as opt
     else:
         raise Error("The optimizer specified in 'optName' was \
 not recognized. The current list of supported optimizers is: %s" %
