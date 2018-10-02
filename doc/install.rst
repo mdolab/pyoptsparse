@@ -17,7 +17,7 @@ Notes:
 
 * In Windows MinGW is recommended if c/FORTRAN compilers are not available
 * In Linux, the python header files (python-dev) are also required.
-* Compatibility on Windows 64bit has not been tested 
+* Compatibility on Windows 64bit has not been tested
 
 Building
 --------
@@ -70,3 +70,6 @@ Notes:
       
       >>> python setup.py build --help
 
+    * In macOS, you may need to force an update of gcc using ‘brew uninstall gcc’ followed by a fresh
+      installation of gcc using ‘brew install gcc’ as ‘brew upgrade gcc’ can be insufficient if you
+      have recently updated your macOS version.
