@@ -173,6 +173,14 @@ class Optimizer(object):
             self.hist = History(storeHistory)
             self.storeHistory = True
 
+            if hotStart is not None:
+                varBounds = self.hotStart.readData('varBounds')
+                conBounds = self.hotStart.readData('conBounds')
+                if varBounds is not None:
+                    self.hist.writeData('varBounds', varBounds)
+                if conBounds is not None:
+                    self.hist.writeData('conBounds', conBounds)
+
     def _masterFunc(self, x, evaluate):
         """
         This is the master function that **ALL** optimizers call from
