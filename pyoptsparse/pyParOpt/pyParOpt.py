@@ -113,7 +113,7 @@ class ParOpt(Optimizer):
             **IDENTICAL** to the currently supplied \'optProb\'. By
             identical we mean, **EVERY SINGLE PARAMETER MUST BE
             IDENTICAL**. As soon as he requested evaluation point
-            from SLSQP does not match the history, function and
+            from ParOpt does not match the history, function and
             gradient evaluations revert back to normal evaluations.
 
         storeSens : bool

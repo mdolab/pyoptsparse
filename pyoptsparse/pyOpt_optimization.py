@@ -1245,6 +1245,9 @@ class Optimization(object):
         if self.dummyConstraint:
             return {'dummy':0}
 
+        if not hasattr(self, 'jacIndicesInv'):
+            self.jacIndicesInv = numpy.argsort(self.jacIndices)
+
         if not natural:
             if self.nCon > 0:
                 fcon_in += self.offset

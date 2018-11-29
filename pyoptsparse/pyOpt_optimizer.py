@@ -707,7 +707,8 @@ class Optimizer(object):
 
         return numpy.real(numpy.squeeze(ff))
 
-    def _createSolution(self, optTime, sol_inform, obj, xopt):
+    def _createSolution(self, optTime, sol_inform, obj, xopt,
+                        multipliers=None):
         """
         Generic routine to create the solution after an optimizer
         finishes.
@@ -730,6 +731,12 @@ class Optimizer(object):
             for var in sol.variables[dvGroup]:
                 var.value = xopt[i]
                 i += 1
+
+        if multipliers is not None:
+            # Scale the multipliers (since the constraints may be scaled)
+            scaled_multipliers = multipliers/self.optProb.conScale
+            sol.lambdaStar = self.optProb.deProcessConstraints(scaled_multipliers,
+                                                               scaled=False)
 
         return sol
 

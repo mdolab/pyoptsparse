@@ -520,7 +520,8 @@ class SNOPT(Optimizer):
             sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff, xs)
+            sol = self._createSolution(optTime, sol_inform, ff, xs[:nvar],
+                                       multipliers=pi)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
