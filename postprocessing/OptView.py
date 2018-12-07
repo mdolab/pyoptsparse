@@ -1230,7 +1230,7 @@ class Display(object):
             # over a point on a line
             if point_selected:
                 visibility_changed = True
-                ax = point_selected[0].get_axes()
+                ax = point_selected[0].axes
                 label = point_selected[0].get_label()
                 if point_selected[1] >= 0:
                     label = label + '_' + str(point_selected[1])
