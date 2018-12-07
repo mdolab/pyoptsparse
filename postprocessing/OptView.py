@@ -99,6 +99,7 @@ class Display(object):
         self.histList = histList
         self.outputDir = outputDir
         self.bounds = {}
+        self.scaling = {}
         self.color_bounds = [0., 0.]
 
         # Actually setup and run the GUI
@@ -202,15 +203,22 @@ class Display(object):
                 # Check to see if there is bounds information in the db file.
                 # If so, add them to self.bounds to plot later.
                 try:
-                    bounds_dict = db['varBounds'].copy()
-                    bounds_dict.update(db['conBounds'])
+                    info_dict = db['varInfo'].copy()
+                    info_dict.update(db['conInfo'])
                     # Got to be a little tricky here since we're modifying
-                    # bounds_dict; if we simply loop over it with the generator
+                    # info_dict; if we simply loop over it with the generator
                     # from Python3, it will contain the new keys and then the
                     # names will be mangled incorrectly.
-                    for key in [i for i in bounds_dict.keys()]:
-                        bounds_dict[key + histIndex] = bounds_dict.pop(key)
+                    bounds_dict = {}
+                    scaling_dict = {}
+                    for key in info_dict.keys():
+                        bounds_dict[key + histIndex] = {
+                            'lower': info_dict[key]['lower'],
+                            'upper': info_dict[key]['upper']
+                        }
+                        scaling_dict[key + histIndex] = info_dict[key]['scale']
                     self.bounds.update(bounds_dict)
+                    self.scaling.update(scaling_dict)
                 except KeyError:
                     pass
 
@@ -296,17 +304,17 @@ class Display(object):
 
                 key = '%d' % i
 
-                # If the proper history is stored coming out of
-                # pyoptsparse, use that for filtering major iterations.
-                if self.storedIters:
-                    if db[key]['iu0'] != db[prev_key]['iu0']:
-                        min_array = np.array(min_list)
-                        argmin = np.argmin(min_array[:, 1])
-                        major_key = min_array[argmin, 0]
-                        self.iter_type[int(major_key)] = 1
-                        min_list = []
-                    min_list.append([int(key), db[key]['funcs'][self.obj_key][0]])
-                    prev_key = i
+                # # If the proper history is stored coming out of
+                # # pyoptsparse, use that for filtering major iterations.
+                # if self.storedIters:
+                #     if db[key]['iu0'] != db[prev_key]['iu0']:
+                #         min_array = np.array(min_list)
+                #         argmin = np.argmin(min_array[:, 1])
+                #         major_key = min_array[argmin, 0]
+                #         self.iter_type[int(major_key)] = 1
+                #         min_list = []
+                #     min_list.append([int(key), db[key]['funcs'][self.obj_key]])
+                #     prev_key = i
 
         else: # this is if it's OpenMDAO
             for i, iter_type in enumerate(self.iter_type):
@@ -716,6 +724,33 @@ class Display(object):
                         plots = a.plot(
                             range(1, self.num_iter),
                             newdat[1:],
+                            "o-",
+                            label=val,
+                            markeredgecolor='none', clip_on=False)
+                        if len(plots) > 1:
+                            for i, plot in enumerate(plots):
+                                self.plots.append([plot, i])
+                        else:
+                            self.plots.append([plots[0], -1])
+
+                elif self.var_scale.get():
+                    for idx, val in enumerate(values):
+                        newdat = []
+                        if val not in self.scaling:
+                            for ii, char in enumerate(reversed(val)):
+                                if char == '_':
+                                    split_loc = len(val) - ii
+                                    break
+                            val_name = val[:split_loc - 1]
+                            val_num = int(val[split_loc:])
+                            scale = [self.scaling[val_name][val_num]]
+                        else:
+                            scale = self.scaling[val]
+                        for i, value in enumerate(dat[val]):
+                            newdat.append(value * scale)
+                        plots = a.plot(
+                            range(0, self.num_iter),
+                            newdat,
                             "o-",
                             label=val,
                             markeredgecolor='none', clip_on=False)
@@ -1195,7 +1230,7 @@ class Display(object):
             # over a point on a line
             if point_selected:
                 visibility_changed = True
-                ax = point_selected[0].get_axes()
+                ax = point_selected[0].axes
                 label = point_selected[0].get_label()
                 if point_selected[1] >= 0:
                     label = label + '_' + str(point_selected[1])
@@ -1518,11 +1553,22 @@ class Display(object):
             command=self.update_graph,
             font=font)
 
+        # Option to scale variables or constraints to how
+        # the optimizer sees them
+        self.var_scale = Tk.IntVar()
+        self.c14 = Tk.Checkbutton(
+            options_frame,
+            text="Apply scaling factor",
+            variable=self.var_scale,
+            command=self.update_graph,
+            font=font)
+        self.c14.grid(row=8, column=1, sticky=Tk.W, pady=6)
+
         lab = Tk.Label(
             options_frame,
             text="Search for a function/variable:",
             font=font)
-        lab.grid(row=8, column=0, columnspan=2, pady=10, sticky=Tk.W)
+        lab.grid(row=9, column=0, columnspan=2, pady=10, sticky=Tk.W)
 
         # Search box to filter displayed functions/variables
         vs = Tk.StringVar()
@@ -1530,18 +1576,18 @@ class Display(object):
         self.entry_search = Tk.Entry(
             options_frame, text="Search", textvariable=vs,
             font=font)
-        self.entry_search.grid(row=8, column=2, pady=10, sticky=Tk.W)
+        self.entry_search.grid(row=9, column=2, pady=10, sticky=Tk.W)
 
         lab_font = Tk.Label(
             options_frame,
             text="Font size for plots:",
             font=font)
-        lab_font.grid(row=9, column=0, sticky=Tk.S)
+        lab_font.grid(row=10, column=0, sticky=Tk.S)
 
         w = Tk.Scale(options_frame, from_=6, to=24, orient=Tk.HORIZONTAL,
                      resolution=2, command=self.update_font, font=font)
         w.set(16)
-        w.grid(row=9, column=1)
+        w.grid(row=10, column=1)
 
 if __name__ == '__main__':
     # Called only if this script is run as main.
