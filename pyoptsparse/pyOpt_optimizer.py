@@ -174,12 +174,12 @@ class Optimizer(object):
             self.storeHistory = True
 
             if hotStart is not None:
-                varBounds = self.hotStart.readData('varBounds')
-                conBounds = self.hotStart.readData('conBounds')
-                if varBounds is not None:
-                    self.hist.writeData('varBounds', varBounds)
-                if conBounds is not None:
-                    self.hist.writeData('conBounds', conBounds)
+                varInfo = self.hotStart.readData('varInfo')
+                conInfo = self.hotStart.readData('conInfo')
+                if varInfo is not None:
+                    self.hist.writeData('varInfo', varInfo)
+                if conInfo is not None:
+                    self.hist.writeData('conInfo', conInfo)
 
     def _masterFunc(self, x, evaluate):
         """
@@ -516,30 +516,32 @@ class Optimizer(object):
         # Add constraint and variable bounds at beginning of optimization.
         # This info is used for visualization using OptView.
         if self.callCounter == 0 and self.optProb.comm.rank == 0:
-            conBounds = {}
-            varBounds = {}
+            conInfo = {}
+            varInfo = {}
 
             # Cycle through constraints adding the bounds
             for key in self.optProb.constraints.keys():
                 lower = self.optProb.constraints[key].lower
                 upper = self.optProb.constraints[key].upper
-                conBounds[key] = {'lower':lower, 'upper':upper}
+                scale = self.optProb.constraints[key].scale
+                conInfo[key] = {'lower':lower, 'upper':upper, 'scale':scale}
 
             # Cycle through variables and add the bounds
             for dvGroup in self.optProb.variables:
-                varBounds[dvGroup] = {'lower':[], 'upper':[]}
+                varInfo[dvGroup] = {'lower':[], 'upper':[], 'scale':[]}
                 for var in self.optProb.variables[dvGroup]:
                     if var.type == 'c':
-                        varBounds[dvGroup]['lower'].append(var.lower / var.scale)
-                        varBounds[dvGroup]['upper'].append(var.upper / var.scale)
+                        varInfo[dvGroup]['lower'].append(var.lower / var.scale)
+                        varInfo[dvGroup]['upper'].append(var.upper / var.scale)
+                        varInfo[dvGroup]['scale'].append(var.scale)
 
             # Save objective key for use in OptView
             hist['objKey'] = list(self.optProb.objectives.keys())[0]
 
             # There is a special write for the bounds data
             if self.storeHistory:
-                self.hist.writeData('varBounds', varBounds)
-                self.hist.writeData('conBounds', conBounds)
+                self.hist.writeData('varInfo', varInfo)
+                self.hist.writeData('conInfo', conInfo)
 
         # Write history if necessary
         if (self.optProb.comm.rank == 0 and  writeHist and self.storeHistory):
