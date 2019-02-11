@@ -747,7 +747,7 @@ class Display(object):
                         else:
                             scale = self.scaling[val]
                         for i, value in enumerate(dat[val]):
-                            newdat.append(value / scale)
+                            newdat.append(value * scale)
                         plots = a.plot(
                             range(0, self.num_iter),
                             newdat,
