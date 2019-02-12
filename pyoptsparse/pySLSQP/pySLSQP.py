@@ -238,6 +238,26 @@ class SLSQP(Optimizer):
                         ngrad, slfunc, slgrad)
             optTime = time.time() - t0
 
+            #some entries of W include the lagrange multipliers 
+            # for each constraint, there are two entries (lower, upper). 
+            # if only one is active, look for the nonzero. If both are active, take the first one
+            pi = []
+            idx = 0
+
+            for c_name in optProb.constraints: 
+                c = optProb.constraints[c_name]
+                for j in range(c.ncon): 
+                    pi_lower = -w[2*idx]
+                    pi_upper = -w[2*idx+1]
+                    if abs(pi_lower) > 1e-100: 
+                        pi.append(pi_lower)
+                    else: 
+                        pi.append(pi_upper) 
+                    idx += 1
+
+            
+
+
             if self.storeHistory:
                 self.hist.close()
 
@@ -254,7 +274,7 @@ class SLSQP(Optimizer):
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xs)
-
+            sol.pi = pi
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
             sol = None

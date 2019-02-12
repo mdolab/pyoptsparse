@@ -1602,8 +1602,6 @@ class Optimization(object):
                 pi = [9e100,]*n_c_total
                 pi_label = 'Pi(N/A)'
 
-            print('pi', pi)
-
             text += '\n   Constraints (i - inequality, e - equality)\n'
             # Find the longest name in the constraints
             num_c = max([len(self.constraints[i].name) for i in self.constraints])
