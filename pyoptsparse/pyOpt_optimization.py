@@ -1592,12 +1592,18 @@ class Optimization(object):
                 idx += 1
 
         if len(self.constraints) > 0:
+            try: 
+                pi = self.pi 
+            except AttributeError: 
+                # the optimizer did not set the lagrange multipliers 
+                pi = ['-',] * len(self.constraints)
+
             text += '\n   Constraints (i - inequality, e - equality)\n'
             # Find the longest name in the constraints
             num_c = max([len(self.constraints[i].name) for i in self.constraints])
-            fmt = '    {0:>7s}  {1:{width}s} {2:>4s} {3:>14}  {4:>14}  {5:>14}  {6:>8s}\n'
-            text += fmt.format('Index', 'Name', 'Type', 'Lower', 'Value', 'Upper', 'Status', width=num_c)
-            fmt = '    {0:7d}  {1:{width}s} {2:>4s} {3:>14.6E}  {4:>14.6E}  {5:>14.6E}  {6:>8s}\n'
+            fmt = '    {0:>7s}  {1:{width}s} {2:>4s} {3:>14}  {4:>14}  {5:>14}  {6:>8s}  {7:>8s}\n'
+            text += fmt.format('Index', 'Name', 'Type', 'Lower', 'Value', 'Upper', 'Status', 'Pi', width=num_c)
+            fmt = '    {0:7d}  {1:{width}s} {2:>4s} {3:>14.6E}  {4:>14.6E}  {5:>14.6E}  {6:>8s}  {7:>14.5E}\n'
             idx = 0
             for iCon in self.constraints:
                 c = self.constraints[iCon]
@@ -1605,6 +1611,7 @@ class Optimization(object):
                     lower = c.lower[j] if c.lower[j] is not None else -1.0E20
                     upper = c.upper[j] if c.upper[j] is not None else 1.0E20
                     value = c.value[j]
+                    lagrange_multiplier = pi[j]
                     status = ''
                     typ = 'e' if j in c.equalityConstraints['ind'] else 'i'
                     if typ == 'e':
@@ -1631,7 +1638,7 @@ class Optimization(object):
                             # Active upper bound
                             status += 'u'
 
-                    text += fmt.format(idx, c.name, typ, lower, value, upper, status, width=num_c)
+                    text += fmt.format(idx, c.name, typ, lower, value, upper, status, pi[idx], width=num_c)
                     idx += 1
 
         return text
