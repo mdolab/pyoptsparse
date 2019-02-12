@@ -247,8 +247,8 @@ class SLSQP(Optimizer):
             for c_name in optProb.constraints: 
                 c = optProb.constraints[c_name]
                 for j in range(c.ncon): 
-                    pi_lower = -w[2*idx]
-                    pi_upper = -w[2*idx+1]
+                    pi_lower = w[2*idx]
+                    pi_upper = w[2*idx+1]
                     if abs(pi_lower) > 1e-100: 
                         pi.append(pi_lower)
                     else: 
