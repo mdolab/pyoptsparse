@@ -42,7 +42,9 @@ x0 = [1.0, 5.0, 5.0, 1.0]
 optProb.addVarGroup('xvars', 4, lower=1, upper=5, value=x0)
 
 # Constraints
-optProb.addCon('con1', lower=25, upper=1e19)
+# optProb.addCon('con1', lower=25, upper=1e19)
+optProb.addCon('con1', lower=25)
+# optProb.addCon('con2', lower=40, upper=40)
 optProb.addCon('con2', lower=40, upper=40)
 
 # Objective
