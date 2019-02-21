@@ -719,8 +719,21 @@ class Display(object):
                 if self.var_del.get():
                     for idx, val in enumerate(values):
                         newdat = []
+                        if self.var_scale.get():
+                            if val not in self.scaling:
+                                for ii, char in enumerate(reversed(val)):
+                                    if char == '_':
+                                        split_loc = len(val) - ii
+                                        break
+                                val_name = val[:split_loc - 1]
+                                val_num = int(val[split_loc:])
+                                scale = [self.scaling[val_name][val_num]]
+                            else:
+                                scale = self.scaling[val]
+                        else:
+                            scale = 1.0
                         for i, value in enumerate(dat[val], start=1):
-                            newdat.append(abs(value - dat[val][i - 2]))
+                            newdat.append(abs(value - dat[val][i - 2])*scale)
                         plots = a.plot(
                             range(1, self.num_iter),
                             newdat[1:],
