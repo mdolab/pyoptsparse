@@ -13,8 +13,8 @@ def objfunc(xdict):
     x = xdict['xvars']
     funcs = {}
     funcs['obj'] = x[0] * x[3] * (x[0] + x[1] + x[2]) + x[2]
-    funcs['con'] = [x[0] * x[1] * x[2] * x[3], 
-                   x[0]*x[0] + x[1]*x[1] + x[2]*x[2] + x[3]*x[3]]
+    funcs['con1'] = x[0] * x[1] * x[2] * x[3]
+    funcs['con2'] = x[0]*x[0] + x[1]*x[1] + x[2]*x[2] + x[3]*x[3]
     fail = False
     return funcs, fail
 
@@ -27,9 +27,10 @@ def sens(xdict, funcs):
              x[0] * x[3] + 1.0,
              x[0] * (x[0] + x[1] + x[2])
              ])}
-    jac = [[x[1]*x[2]*x[3], x[0]*x[2]*x[3], x[0]*x[1]*x[3], x[0]*x[1]*x[2]],
-           [2.0*x[0], 2.0*x[1], 2.0*x[2], 2.0*x[3]]]
-    funcsSens['con'] = {'xvars': jac}
+    jac = [[x[1]*x[2]*x[3], x[0]*x[2]*x[3], x[0]*x[1]*x[3], x[0]*x[1]*x[2]]]
+    funcsSens['con1'] = {'xvars': jac}
+    jac = [[2.0*x[0], 2.0*x[1], 2.0*x[2], 2.0*x[3]]]
+    funcsSens['con2'] = {'xvars': jac}
     fail = False
     return funcsSens, fail
 
@@ -41,7 +42,10 @@ x0 = [1.0, 5.0, 5.0, 1.0]
 optProb.addVarGroup('xvars', 4, lower=1, upper=5, value=x0)
 
 # Constraints
-optProb.addConGroup('con', 2, lower=[25,40], upper=[1e19, 40])
+# optProb.addCon('con1', lower=25, upper=1e19)
+optProb.addCon('con1', lower=25)
+# optProb.addCon('con2', lower=40, upper=40)
+optProb.addCon('con2', lower=40, upper=40)
 
 # Objective
 optProb.addObj('obj')
