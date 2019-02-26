@@ -50,6 +50,11 @@ command to run would be (requiring root access)
 
 >>> sudo python setup.py install
 
+SNOPT
+--------
+SNOPT is available for purchase `here 
+<http://www.sbsi-sol-optimize.com/asp/sol_snopt.htm>`_. Upon purchase, you should receive a zip file. Within the zip file, there is a folder called "src". To use SNOPT with pyoptsparse, paste all files from "src" except snopth.f into pyoptsparse/pySNOPT/source .
+
 Notes:
     
     * You may want to uninstall any previous version of pyOpt before installing a new 
