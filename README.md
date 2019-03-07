@@ -1,21 +1,52 @@
 pyOptSparse - PYthon OPTimization (Sparse) Framework
 ====================================================
 
-[![Build Status](https://travis-ci.org/OpenMDAO/pyoptsparse.svg?branch=master)](https://travis-ci.org/OpenMDAO/pyoptsparse)[![Coverage Status](https://coveralls.io/repos/github/OpenMDAO/pyoptsparse/badge.svg?branch=master)](https://coveralls.io/github/OpenMDAO/pyoptsparse?branch=master)
+[![Build Status](https://travis-ci.org/OpenMDAO/pyoptsparse.svg?branch=master)](https://travis-ci.org/OpenMDAO/pyoptsparse)
+[![Coverage Status](https://coveralls.io/repos/github/OpenMDAO/pyoptsparse/badge.svg?branch=master)](https://coveralls.io/github/OpenMDAO/pyoptsparse?branch=master)
 
-Licensing
----------
-Distributed using the GNU Lesser General Public License (LGPL); see 
-the LICENSE file for details.
+pyOptsparse is an object-oriented framework for formulating and solving nonlinear constrained optimization problems in an efficient, reusable, and portable manner.
+It evolved from pyOpt based on taking advantage of sparsity throughout the code.
+Many optimization techniques can be used in pyOptSparse, including SNOPT, IPOPT, SLSQP, NSGA2, and more.
+
+Documentation
+=============
+
+Please see the [documentation](http://mdolab.engin.umich.edu/doc/packages/pyoptsparse/doc/index.html) for installation details and API documentation.
+This link requires credentials currently only available to MDO Lab members.
+
+Citation
+========
 
 Please cite pyOpt and the authors of the respective optimization
-algorithms in any publication for which you find it useful. 
-(This is not a legal requirement, just a polite request.)
+algorithms in any publication for which you find it useful.
+For more background, theory, and figures, see the [pyOptSparse journal article](http://mdolab.engin.umich.edu/sites/default/files/pyOpt.pdf).
+Please cite this article when using OpenAeroStruct in your research or curricula.
 
-Contact and Feedback
---------------------
-If you have questions, comments, problems, want to contribute to the
-framework development, or want to report a bug, please contact the 
-main developer:
-    
-* Gaetan K. W. Kenway (gaetank _ a t _ gmail.com)
+Plain text
+----------
+Perez, R. E., Jansen, P. W., and Martins, J. R. R. A., “pyOpt: A Python-Based Object-Oriented Framework for Nonlinear
+Constrained Optimization,” Structural and Multidisciplinary Optimization, Vol. 45, No. 1, January 2012, pp. 101–118.
+doi:10.1007/s00158-011-0666-3.
+
+Bibtex
+------
+```
+@article{Perez2012a,
+	Author = {Ruben E. Perez and Peter W. Jansen and Joaquim R. R. A. Martins},
+	Doi = {10.1007/s00158-011-0666-3},
+	Journal = {Structural and Multidisciplinary Optimization},
+	Month = {January},
+	Number = {1},
+	Pages = {101--118},
+	Title = {{pyOpt}: A {Python}-Based Object-Oriented Framework for Nonlinear Constrained Optimization},
+	Volume = {45},
+	Year = {2012},
+	Annote = {10.1007/s00158-011-0666-3}}
+```
+
+License
+=======
+Copyright 2019 MDO Lab
+
+Distributed using the GNU Lesser General Public License (LGPL); see 
+the LICENSE file for details.
