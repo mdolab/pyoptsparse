@@ -19,6 +19,7 @@ Please see the [documentation](http://mdolab.engin.umich.edu/doc/packages/pyopts
 This link requires credentials currently only available to MDO Lab members.
 
 To locally build the documentation, enter the `doc` folder and enter `make html` in terminal.
+You can then view the built documentation in the `_build` folder.
 
 Citation
 ========
