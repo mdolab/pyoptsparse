@@ -25,14 +25,10 @@ Please cite pyOpt and the authors of the respective optimization
 algorithms in any publication for which you find it useful.
 For more background, theory, and figures, see the [pyOptSparse journal article](http://mdolab.engin.umich.edu/sites/default/files/pyOpt.pdf).
 
-Plain text
-----------
 Perez, R. E., Jansen, P. W., and Martins, J. R. R. A., “pyOpt: A Python-Based Object-Oriented Framework for Nonlinear
 Constrained Optimization,” Structural and Multidisciplinary Optimization, Vol. 45, No. 1, January 2012, pp. 101–118.
 doi:10.1007/s00158-011-0666-3.
 
-Bibtex
-------
 ```
 @article{Perez2012a,
 	Author = {Ruben E. Perez and Peter W. Jansen and Joaquim R. R. A. Martins},
