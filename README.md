@@ -13,7 +13,7 @@ An example output from OptView is shown below.
 ![Example](doc/OptView.png)
 
 Documentation
-=============
+-------------
 
 Please see the [documentation](http://mdolab.engin.umich.edu/doc/packages/pyoptsparse/doc/index.html) for installation details and API documentation.
 This link requires credentials currently only available to MDO Lab members.
@@ -22,7 +22,7 @@ To locally build the documentation, enter the `doc` folder and enter `make html`
 You can then view the built documentation in the `_build` folder.
 
 Citation
-========
+--------
 
 Please cite pyOpt and the authors of the respective optimization
 algorithms in any publication for which you find it useful.
@@ -47,7 +47,7 @@ doi:10.1007/s00158-011-0666-3.
 ```
 
 License
-=======
+-------
 Copyright 2019 MDO Lab
 
 Distributed using the GNU Lesser General Public License (LGPL); see 
