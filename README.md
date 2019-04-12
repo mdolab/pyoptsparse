@@ -15,7 +15,7 @@ An example output from OptView is shown below.
 Documentation
 -------------
 
-Please see the [documentation](http://mdolab.engin.umich.edu/doc/packages/pyoptsparse/doc/index.html) for installation details and API documentation.
+Please see the [documentation](http://mdolab.engin.umich.edu/docs/packages/pyoptsparse/doc/index.html) for installation details and API documentation.
 This link requires credentials currently only available to MDO Lab members.
 
 To locally build the documentation, enter the `doc` folder and enter `make html` in terminal.
