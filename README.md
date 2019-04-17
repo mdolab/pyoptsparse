@@ -47,7 +47,5 @@ doi:10.1007/s00158-011-0666-3.
 
 License
 -------
-Copyright 2019 MDO Lab
 
-Distributed using the GNU Lesser General Public License (LGPL); see 
-the LICENSE file for details.
+Copyright 2019 MDO Lab. See the LICENSE file for details.
