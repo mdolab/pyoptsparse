@@ -24,6 +24,7 @@ feasibility = []
 f = open(file_name,'r')
 
 QP_line = "    Itn       QPmult  QPstep   nInf   SumInf   rgNorm    QPobjective   +SBS   -SBS    -BS    Pivot     L+U ncp    nS  condHz"
+LP_line = "    Itn       LPmult  LPstep   nInf   SumInf             LPobjective   +SBS   -SBS    -BS    Pivot     L+U ncp    nS"
 NP_line = "   Itns Major Minors    Step   nCon Feasible  Optimal  MeritFunction     L+U BSwap     nS  condHz Penalty"
 EXIT_line = "SNOPTC EXIT"
 
@@ -33,8 +34,8 @@ for line in f:
 
     if EXIT_line in line:
         break
-    
-    if QP_line in line:
+
+    if QP_line in line or LP_line in line:
         read_next_line = False
 
     if NP_line in line:
