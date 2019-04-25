@@ -35,7 +35,7 @@ import warnings
 import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,\
-    NavigationToolbar2TkAgg
+    NavigationToolbar2Tk
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
@@ -85,7 +85,7 @@ class Display(object):
         self.canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
 
         # Add a toolbar to explore the figure like normal MPL behavior
-        toolbar = NavigationToolbar2TkAgg(self.canvas, self.root)
+        toolbar = NavigationToolbar2Tk(self.canvas, self.root)
         toolbar.update()
         self.canvas._tkcanvas.pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
 
@@ -445,7 +445,7 @@ class Display(object):
             "Error: " + string,
             fontsize=20,
             transform=a.transAxes)
-        self.canvas.show()
+        self.canvas.draw()
 
     def warning_display(self, string="That option not supported"):
         """
@@ -456,7 +456,7 @@ class Display(object):
             "Warning: " + string,
             fontsize=20,
             transform=a.transAxes)
-        self.canvas.show()
+        self.canvas.draw()
 
     def note_display(self, string=""):
         """
@@ -467,7 +467,7 @@ class Display(object):
             string,
             fontsize=20,
             transform=a.transAxes)
-        self.canvas.show()
+        self.canvas.draw()
 
     def plot_bounds(self, val, a, color):
         """
@@ -491,7 +491,7 @@ class Display(object):
         upper = list(upper)
 
         a.margins(None, .02)
-        a.set_color_cycle(color)
+        a.set_prop_cycle('color', color)
         for lower_bound in lower:
             if lower_bound is not None and abs(lower_bound) < 1e18:
                 a.plot(
@@ -500,7 +500,7 @@ class Display(object):
                     "--", linewidth=2, clip_on=False
                 )
 
-        a.set_color_cycle(color)
+        a.set_prop_cycle('color', color)
         for upper_bound in upper:
             if upper_bound is not None and abs(upper_bound) < 1e18:
                 a.plot(
@@ -518,7 +518,7 @@ class Display(object):
         try:
             array_size = len(dat[val][0])
             if self.var_minmax.get():
-                a.set_color_cycle(color)
+                a.set_prop_cycle('color', color)
                 minmax_list = []
                 for minmax in dat[val]:
                     minmax_list.append(
@@ -528,7 +528,7 @@ class Display(object):
 
             elif array_size < 20 or self.var_showall.get():
                 if i > 0:
-                    a.set_color_cycle(color)
+                    a.set_prop_cycle('color', color)
                 plots = a.plot(dat[val], "o-", label=val,
                     markeredgecolor='none', clip_on=False)
 
@@ -538,7 +538,7 @@ class Display(object):
                 self.error_display("Too many values to display")
 
         except TypeError:
-            a.set_color_cycle(color)
+            a.set_prop_cycle('color', color)
             if self.var.get() == 0:
                 pass
             else:
@@ -792,7 +792,7 @@ class Display(object):
                 plt.subplots_adjust(right=.95)
                 a.set_xlabel('iteration')
                 a.set_xlim(0, self.num_iter - 1)
-                self.canvas.show()
+                self.canvas.draw()
 
             # Plot on individual vertical axes
             elif self.var.get() == 1 and not fail:
@@ -833,7 +833,7 @@ class Display(object):
                 else:
                     for i, val in enumerate(values):
                         cc = plt.rcParams['axes.prop_cycle'].by_key()['color'] * 10
-                        par_list[i].set_color_cycle(cc[i])
+                        par_list[i].set_prop_cycle('color', cc[i])
                         p_list[i], = par_list[i].plot(
                             dat[val], "o-", label=val, markeredgecolor='none', clip_on=False)
                         par_list[i].set_ylabel(val)
@@ -859,7 +859,7 @@ class Display(object):
                 for i, plot in enumerate(p_list):
                     self.plots.append([plot, i])
 
-                self.canvas.show()
+                self.canvas.draw()
 
             # Plot on stacked axes with shared x-axis
             elif self.var.get() == 2 and not fail:
@@ -908,7 +908,7 @@ class Display(object):
                     ax.set_xlim(0, self.num_iter - 1)
 
                 plt.subplots_adjust(right=.95)
-                self.canvas.show()
+                self.canvas.draw()
 
             # Plot color plots of rectangular pixels showing values,
             # especially useful for constraints
@@ -939,7 +939,7 @@ class Display(object):
                 plt.subplots_adjust(right=.95)
                 a.set_xlabel('iteration')
                 a.set_xlim(0, self.num_iter - 1)
-                self.canvas.show()
+                self.canvas.draw()
 
         except ValueError:
             self.error_display()
@@ -1283,7 +1283,7 @@ class Display(object):
             except (AttributeError, ValueError):
                 pass
 
-        self.canvas.show()
+        self.canvas.draw()
 
     def set_bounds(self, bound):
         try:
