@@ -223,11 +223,8 @@ class Display(object):
                     pass
 
                 # Check to see if there is proper saved info about iter type
-                if 'iu0' in db['0'].keys():
-                    if db[db['last']]['iu0'] > 0:
-                        self.storedIters = True
-                    else:
-                        self.storedIters = False
+                if 'isMajor' in db['0'].keys():
+                    self.storedIters = True
                 else:
                     self.storedIters = False
 
@@ -271,11 +268,10 @@ class Display(object):
                 # actual major iteration. In particular, one has funcs
                 # and the next has funcsSens, but they're both part of the
                 # same major iteration.
-                if any('funcs' == s for s in db[key].keys()):
-
+                if 'funcs' in db[key].keys():
                     # If this iteration has 'funcs' within it, but it's not
                     # flagged as major, then it's a minor iteration.
-                    if i == 0:
+                    if i == 0 or db[key]['isMajor']:
                         self.iter_type[i] = 1
                     else:
                         self.iter_type[i] = 2
@@ -294,27 +290,6 @@ class Display(object):
                 else:
                     self.iter_type[i] = 0 # this is not a real iteration,
                                           # just the sensitivity evaluation
-
-            min_list = []
-            # Loop over each optimization iteration
-            for i, iter_type in enumerate(self.iter_type):
-
-                if iter_type == 0:
-                    continue
-
-                key = '%d' % i
-
-                # # If the proper history is stored coming out of
-                # # pyoptsparse, use that for filtering major iterations.
-                # if self.storedIters:
-                #     if db[key]['iu0'] != db[prev_key]['iu0']:
-                #         min_array = np.array(min_list)
-                #         argmin = np.argmin(min_array[:, 1])
-                #         major_key = min_array[argmin, 0]
-                #         self.iter_type[int(major_key)] = 1
-                #         min_list = []
-                #     min_list.append([int(key), db[key]['funcs'][self.obj_key]])
-                #     prev_key = i
 
         else: # this is if it's OpenMDAO
             for i, iter_type in enumerate(self.iter_type):
