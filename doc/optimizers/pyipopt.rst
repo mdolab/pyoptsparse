@@ -1,7 +1,7 @@
 .. _ipopt:
 
 IPOPT
------
+=====
 
 Install instructions for ``pyIPOPT``.
 
@@ -46,8 +46,9 @@ Install instructions for ``pyIPOPT``.
 
 #. Now the pyOptSparse builder (run from the root directory) should take care of the rest. 
 
-
-.. currentmodule:: pyoptsparse.pyoptsparse.pyIPOPT.pyIPOPT
+API
+---
+.. currentmodule:: pyoptsparse.pyIPOPT.pyIPOPT
 
 .. autoclass:: IPOPT
    :members: __call__
