@@ -4,24 +4,24 @@ Guide
 -----
 
 ``pyOptSparse`` is designed to solve general, constrained nonlinear
-optimization problems of the form::
+optimization problems of the form:
 
-  min f(x) w.r.t. x
-
-  s.t. g_j_L <= g_j(x) <= g_j_U, j = 1, ..., m
-  x_i_L <= x_i <= x_i_U, i = 1, ..., n
+.. math::
+  \min\quad &f(x)\\
+  \text{with respect to}\quad &x\\
+  \text{such that}\quad g_{j,\text{L}} &\le g_j(x) \le g_{j,\text{U}}, \quad j = 1, ..., m\\
+  x_{i,\text{L}} &\le x_i \le x_{i,\text{U}}, \quad i = 1, ..., n
 
 where:
-
-``x`` is the vector of ``n`` design variables
-``f(x)`` is a nonlinear function
-``g(x)`` is a set of ``m`` nonlinear functions
+:math:`x` is the vector of :math:`n` design variables,
+:math:`f(x)` is a nonlinear function,
+and :math:`g(x)` is a set of :math:`m` nonlinear functions.
 
 Equality constraints are specified using the same upper and lower
-bounds for the constraint. ie. g_j_L = g_j_U. The ordering of the
-constraints is arbitrary; ``pyOptSparse`` reorders the problem
-automatically depending on the requirements of each individual
-optimizer.
+bounds for the constraint. ie. :math:`g_{j,\text{L}} = g_{j,\text{U}}`.
+The ordering of the constraints is arbitrary; ``pyOptSparse``
+reorders the problem automatically depending on the requirements
+of each individual optimizer.
 
 The optimization class is created using the following call::
 
