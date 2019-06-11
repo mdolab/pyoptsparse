@@ -603,6 +603,7 @@ class SNOPT(Optimizer):
         returning with iabort != 0 will terminate SNOPT immediately
         """
         self.isMajor = True
+        H = self._getHessian(iw,rw)
         iterDict = {
             'isMajor' : True,
             'time' : time.time() - self.startTime,
@@ -613,13 +614,15 @@ class SNOPT(Optimizer):
             'optimality'  : dualinf,
             'penalty' : penparm[2],
             'pi' : pi,
+            'Hessian' : H,
         }
         if self.storeHistory:
             currX = x[:n] # only the first n component is x, the rest are the slacks
             if nmajor == 0:
                 callCounter = 0
             else:
-                callCounter = self.hist.getCallCounter(currX)
+                xScaled = self.optProb.invXScale * currX + self.optProb.xOffset
+                callCounter = self.hist.getCallCounter(xScaled)
             if callCounter is not None:
                 self.hist.write(callCounter, iterDict)
         iabort = 0

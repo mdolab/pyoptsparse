@@ -43,7 +43,7 @@ class History(object):
        closed
 
     flag : str
-        String speciying the mode. Similar to what was used in
+        String specifying the mode. Similar to what was used in
         shelve. 'n' for a new database and 'r' to read an existing one. 
        """
     def __init__(self, fileName, temp=False, flag='n'):
@@ -137,11 +137,23 @@ class History(object):
         callCounter = None
         for i in range(last,0,-1):
             key = '%d'% i
-            if np.isclose(x,self.db[key]['xuser']['xvars']).all() and 'funcs' in self.db[key].keys():
+            xuser = self.deProcessX(self.db[key]['xuser'])
+            if np.isclose(x,xuser).all() and 'funcs' in self.db[key].keys():
                 callCounter = i
                 break
         return callCounter
 
+    def deProcessX(self,xuser):
+        """
+        This is a much more simple version of pyOpt_history.deProcessX without error checking.
+        We traverse the OrderedDict and stack all the DVs as a single numpy array, preserving 
+        the order so that we get the correct x vector.
+        """
+        x_list = []
+        for key in xuser.keys():
+            x_list.append(xuser[key])
+        x_array = np.hstack(x_list)
+        return x_array
 
     def __del__(self):
         try:
