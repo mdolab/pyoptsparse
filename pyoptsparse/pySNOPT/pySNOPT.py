@@ -588,7 +588,8 @@ class SNOPT(Optimizer):
             if nmajor == 0:
                 callCounter = 0
             else:
-                callCounter = self.hist.getCallCounter(currX)
+                xScaled = self.optProb.invXScale * currX + self.optProb.xOffset
+                callCounter = self.hist.getCallCounter(xScaled)
             if callCounter is not None:
                 self.hist.write(callCounter, iterDict)
         iabort = 0
