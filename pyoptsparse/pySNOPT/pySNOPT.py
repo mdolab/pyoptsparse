@@ -592,6 +592,14 @@ class SNOPT(Optimizer):
         H = numpy.matmul(Umat.T,Umat)
         return H
 
+    def _getPenaltyParam(self,iw,rw):
+        """
+        Retrieves the full penalty parameter vector from the work arrays.
+        """
+        nnCon = iw[23-1]
+        lxPen = iw[304-1]-1
+        xPen = rw[lxPen:lxPen+nnCon]
+        return xPen
 
     def _snstop(self,ktcond,mjrprtlvl,minimize,n,nncon,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,locj,indj,jcol,scales,bl,bu,fx,fcon,gcon,gobj,ycon,pi,rc,rg,x,cu,iu,ru,cw,iw,rw):
         """
