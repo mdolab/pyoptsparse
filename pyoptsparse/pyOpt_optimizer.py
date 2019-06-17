@@ -27,6 +27,7 @@ from .pyOpt_solution import Solution
 from .pyOpt_optimization import INFINITY
 from .pyOpt_utils import convertToDense, convertToCOO, extractRows, \
     mapToCSC, scaleRows, IDATA
+from collections import OrderedDict
 eps = numpy.finfo(1.0).eps
 
 # =============================================================================
@@ -516,8 +517,8 @@ class Optimizer(object):
         # Add constraint and variable bounds at beginning of optimization.
         # This info is used for visualization using OptView.
         if self.callCounter == 0 and self.optProb.comm.rank == 0:
-            conInfo = {}
-            varInfo = {}
+            conInfo = OrderedDict()
+            varInfo = OrderedDict()
 
             # Cycle through constraints adding the bounds
             for key in self.optProb.constraints.keys():
