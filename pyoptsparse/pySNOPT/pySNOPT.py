@@ -571,6 +571,29 @@ class SNOPT(Optimizer):
 
         return mode, fobj, gobj, fcon, gcon
 
+    def _getHessian(self,iw,rw):
+        """
+        This function retrieves the approximate Hessian from the SNOPT workspace arrays
+        Call it for example from the _snstop routine or after SNOPT has finished, where iw and rw arrays are available 
+        Currently only full memory Hessian mode is implemented, do not use this for limited-memory case.
+
+        The FM Hessian in SNOPT is stored with its Cholesky factor
+        which has been flattened to 1D
+        """
+        lvlHes    = iw[72-1] # 0,1,2 => LM, FM, Exact Hessian
+        if lvlHes != 1:
+            Error('Limited-memory Hessian not supported!')
+        lU   = iw[391-1]-1       # U(lenU), BFGS Hessian H = U'U
+        lenU = iw[392-1]
+        Uvec = rw[lU:lU+lenU]
+        # nnH = int((-1+numpy.sqrt(1+8*lenU))/2) # can we access nnH from iw?
+        nnH = iw[24-1]
+        Umat = numpy.zeros((nnH,nnH))
+        Umat[numpy.triu_indices(nnH)] = Uvec
+        H = numpy.matmul(Umat.T,Umat)
+        return H
+
+
     def _snstop(self,ktcond,mjrprtlvl,minimize,n,nncon,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,locj,indj,jcol,scales,bl,bu,fx,fcon,gcon,gobj,ycon,pi,rc,rg,x,cu,iu,ru,cw,iw,rw):
         """
         This routine is called every major iteration in SNOPT, after solving QP but before line search
