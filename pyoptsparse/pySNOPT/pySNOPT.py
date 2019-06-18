@@ -314,9 +314,7 @@ class SNOPT(Optimizer):
 
         # Store the starting time if the keyword timeLimit is given:
         self.timeLimit = timeLimit
-        self.startTime = None
-        if self.timeLimit is not None:
-            self.startTime = time.time()
+        self.startTime = time.time()
 
         if len(optProb.constraints) == 0:
             # If the user *actually* has an unconstrained problem,
@@ -493,8 +491,8 @@ class SNOPT(Optimizer):
 
             # The snopt c interface
             timeA = time.time()
-            snopt.snoptc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
-                         self._userfg_wrap, Acol, indA, locA, bl, bu,
+            snopt.snkerc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
+                         self._userfg_wrap, snopt.snlog, snopt.snlog2, snopt.sqlog, self._snstop, Acol, indA, locA, bl, bu,
                          Names, hs, xs, pi, rc, inform, mincw, miniw, minrw,
                          nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
             optTime = time.time()-timeA
@@ -546,7 +544,7 @@ class SNOPT(Optimizer):
         which will take care of everything else.
         """
         fail = False
-        self.iu0 = iu[0]
+        self.isMajor = False
         if mode == 0 or mode == 2:
             fobj, fcon, fail = self._masterFunc(x, ['fobj', 'fcon'])
         if not fail:
@@ -572,6 +570,30 @@ class SNOPT(Optimizer):
                 mode = -2 # User requested termination
 
         return mode, fobj, gobj, fcon, gcon
+
+    def _snstop(self,ktcond,mjrprtlvl,minimize,n,nncon,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,locj,indj,jcol,scales,bl,bu,fx,fcon,gcon,gobj,ycon,pi,rc,rg,x,cu,iu,ru,cw,iw,rw):
+        """
+        This routine is called every major iteration in SNOPT, after solving QP but before line search
+        Currently we use it just to determine the correct major iteration counting,
+        and save some parameters in history if needed
+
+        returning with iabort != 0 will terminate SNOPT immediately
+        """
+        self.isMajor = True
+        iterDict = {
+            'isMajor' : True,
+        }
+        if self.storeHistory:
+            currX = x[:n] # only the first n component is x, the rest are the slacks
+            if nmajor == 0:
+                callCounter = 0
+            else:
+                callCounter = self.hist.getCallCounter(currX)
+            if callCounter is not None:
+                self.hist.write(callCounter, iterDict)
+        iabort = 0
+        return iabort
+
 
     def _set_snopt_options(self, iPrint, iSumm, cw, iw, rw):
         """

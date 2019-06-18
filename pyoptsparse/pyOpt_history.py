@@ -21,6 +21,7 @@ from __future__ import print_function
 # External Python modules
 # =============================================================================
 import os
+import numpy as np
 from .pyOpt_error import Error
 from .sqlitedict.sqlitedict import SqliteDict
 # =============================================================================
@@ -80,10 +81,16 @@ class History(object):
         
         # String key to database on disk
         key = '%d'% callCounter
-
-        self.db[key] = data
+        # if the point exists, we merely update with new data
+        if self.pointExists(callCounter):
+            oldData = self.read(callCounter)
+            oldData.update(data)
+            self.db[key] = oldData
+        else:
+            self.db[key] = data
         self.db['last'] = key
         self.db.sync()
+        self.keys = list(self.db.keys())
         
     def writeData(self, key, data):
         """
@@ -91,6 +98,7 @@ class History(object):
         """
         self.db[key] = data
         self.db.commit()
+        self.keys = list(self.db.keys())
 
     def pointExists(self, callCounter):
         """
@@ -120,6 +128,21 @@ class History(object):
         except KeyError:
             return None
     
+    def getCallCounter(self,x):
+        """
+        Returns the callCounter corresponding to the function evaluation at 'x',
+        returns None if the point did not match previous evaluations
+        """
+        last = int(self.db['last'])
+        callCounter = None
+        for i in range(last,0,-1):
+            key = '%d'% i
+            if np.isclose(x,self.db[key]['xuser']['xvars']).all() and 'funcs' in self.db[key].keys():
+                callCounter = i
+                break
+        return callCounter
+
+
     def __del__(self):
         try:
             self.db.close()

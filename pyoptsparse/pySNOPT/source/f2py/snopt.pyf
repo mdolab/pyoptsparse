@@ -28,7 +28,197 @@ python module snoptc__user__routines
                 integer intent(in) :: leniu
                 double precision intent(in) :: ru(lenru)
                 integer intent(in) :: lenru
-	    end subroutine userfg
+        end subroutine userfg
+        subroutine snstop(iabort,ktcond,mjrprtlvl,minimize,m,maxs,n,nb,nncon0,nncon,nnobj0,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,nej,nlocj,locj,indj,jcol,negcon,scales,bl,bu,fx,fcon,gcon,gobj,ycon,pi,rc,rg,x,cu,lencu,iu,leniu,ru,lenru,cw,lencw,iw,leniw,rw,lenrw) ! in test.f
+            integer, intent(out) :: iabort
+            logical dimension(2) :: ktcond
+            integer :: mjrprtlvl
+            integer :: minimize
+            integer, optional,check(len(pi)>=m),depend(pi) :: m=len(pi)
+            integer, optional,check(len(rg)>=maxs),depend(rg) :: maxs=len(rg)
+            integer :: n
+            integer, optional,check(len(hs)>=nb),depend(hs) :: nb=len(hs)
+            integer, optional,check(len(fx)>=nncon0),depend(fx) :: nncon0=len(fx)
+            integer :: nncon
+            integer, optional,check(len(gobj)>=nnobj0),depend(gobj) :: nnobj0=len(gobj)
+            integer :: nnobj
+            integer :: ns
+            integer :: itn
+            integer :: nmajor
+            integer :: nminor
+            integer :: nswap
+            double precision :: condzhz
+            integer :: iobj
+            double precision :: scaleobj
+            double precision :: objadd
+            double precision :: fobj
+            double precision :: fmerit
+            double precision dimension(4) :: penparm
+            double precision :: step
+            double precision :: primalinf
+            double precision :: dualinf
+            double precision :: maxvi
+            double precision :: maxvirel
+            integer dimension(nb) :: hs
+            integer, optional,check(len(indj)>=nej),depend(indj) :: nej=len(indj)
+            integer, optional,check(len(locj)>=nlocj),depend(locj) :: nlocj=len(locj)
+            integer dimension(nlocj) :: locj
+            integer dimension(nej) :: indj
+            double precision dimension(nej),depend(nej) :: jcol
+            integer, optional,check(len(gcon)>=negcon),depend(gcon) :: negcon=len(gcon)
+            double precision dimension(nb),depend(nb) :: scales
+            double precision dimension(nb),depend(nb) :: bl
+            double precision dimension(nb),depend(nb) :: bu
+            double precision dimension(nncon0) :: fx
+            double precision dimension(nncon0),depend(nncon0) :: fcon
+            double precision dimension(negcon) :: gcon
+            double precision dimension(nnobj0) :: gobj
+            double precision dimension(nncon0),depend(nncon0) :: ycon
+            double precision dimension(m) :: pi
+            double precision dimension(nb),depend(nb) :: rc
+            double precision dimension(maxs) :: rg
+            double precision dimension(nb),depend(nb) :: x
+            character dimension(lencu,8) :: cu
+            integer, optional,check(shape(cu,0)==lencu),depend(cu) :: lencu=shape(cu,0)
+            integer dimension(leniu) :: iu
+            integer, optional,check(len(iu)>=leniu),depend(iu) :: leniu=len(iu)
+            double precision dimension(lenru) :: ru
+            integer, optional,check(len(ru)>=lenru),depend(ru) :: lenru=len(ru)
+            character dimension(lencw,8) :: cw
+            integer, optional,check(shape(cw,0)==lencw),depend(cw) :: lencw=shape(cw,0)
+            integer dimension(leniw) :: iw
+            integer, optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
+            double precision dimension(lenrw) :: rw
+            integer, optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
+        end subroutine snstop
+        subroutine snlog(iabort,ktcond,mjrprtlvl,minimize,n,nb,nncon0,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,nej,nlocj,locj,indj,jcol,scales,bl,bu,fx,fcon,ycon,x,cu,lencu,iu,leniu,ru,lenru,cw,lencw,iw,leniw,rw,lenrw) ! in test.f
+            integer :: iabort
+            logical dimension(2) :: ktcond
+            integer :: mjrprtlvl
+            integer :: minimize
+            integer :: n
+            integer, optional,check(len(hs)>=nb),depend(hs) :: nb=len(hs)
+            integer, optional,check(len(fx)>=nncon0),depend(fx) :: nncon0=len(fx)
+            integer :: nnobj
+            integer :: ns
+            integer :: itn
+            integer :: nmajor
+            integer :: nminor
+            integer :: nswap
+            double precision :: condzhz
+            integer :: iobj
+            double precision :: scaleobj
+            double precision :: objadd
+            double precision :: fobj
+            double precision :: fmerit
+            double precision dimension(4) :: penparm
+            double precision :: step
+            double precision :: primalinf
+            double precision :: dualinf
+            double precision :: maxvi
+            double precision :: maxvirel
+            integer dimension(nb) :: hs
+            integer, optional,check(len(indj)>=nej),depend(indj) :: nej=len(indj)
+            integer, optional,check(len(locj)>=nlocj),depend(locj) :: nlocj=len(locj)
+            integer dimension(nlocj) :: locj
+            integer dimension(nej) :: indj
+            double precision dimension(nej),depend(nej) :: jcol
+            double precision dimension(nb),depend(nb) :: scales
+            double precision dimension(nb),depend(nb) :: bl
+            double precision dimension(nb),depend(nb) :: bu
+            double precision dimension(nncon0) :: fx
+            double precision dimension(nncon0),depend(nncon0) :: fcon
+            double precision dimension(nncon0),depend(nncon0) :: ycon
+            double precision dimension(nb),depend(nb) :: x
+            character dimension(lencu,8) :: cu
+            integer, optional,check(shape(cu,0)==lencu),depend(cu) :: lencu=shape(cu,0)
+            integer dimension(leniu) :: iu
+            integer, optional,check(len(iu)>=leniu),depend(iu) :: leniu=len(iu)
+            double precision dimension(lenru) :: ru
+            integer, optional,check(len(ru)>=lenru),depend(ru) :: lenru=len(ru)
+            character dimension(lencw,8) :: cw
+            integer, optional,check(shape(cw,0)==lencw),depend(cw) :: lencw=shape(cw,0)
+            integer dimension(leniw) :: iw
+            integer, optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
+            double precision dimension(lenrw) :: rw
+            integer, optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
+        end subroutine snlog
+        subroutine snlog2(probtype,probtag,elastic,gotr,firstfeas,feasible,justphase1,m,mbs,nnh,ns,jsq,jbr,jsr,linesp,liness,itn,itqp,kprc,lvlobje,pivot,step,ninf,sinf,ninfe,sinfe,wtinf,nonopt,objprt,condzhz,djqprt,rgnorm,kbs,xbs,iw,leniw) ! in test.f
+            integer :: probtype
+            character*20 :: probtag
+            logical :: elastic
+            logical :: gotr
+            logical :: firstfeas
+            logical :: feasible
+            logical :: justphase1
+            integer :: m
+            integer, optional,check(len(kbs)>=mbs),depend(kbs) :: mbs=len(kbs)
+            integer :: nnh
+            integer :: ns
+            integer :: jsq
+            integer :: jbr
+            integer :: jsr
+            integer :: linesp
+            integer :: liness
+            integer :: itn
+            integer :: itqp
+            integer :: kprc
+            integer :: lvlobje
+            double precision :: pivot
+            double precision :: step
+            integer :: ninf
+            double precision :: sinf
+            integer :: ninfe
+            double precision :: sinfe
+            double precision :: wtinf
+            integer :: nonopt
+            double precision :: objprt
+            double precision :: condzhz
+            double precision :: djqprt
+            double precision :: rgnorm
+            integer dimension(mbs) :: kbs
+            double precision dimension(mbs),depend(mbs) :: xbs
+            integer dimension(leniw) :: iw
+            integer, optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
+        end subroutine snlog2
+        subroutine sqlog(probtype,probtag,elastic,gotr,firstfeas,feasible,justphase1,m,mbs,nnh,ns,jsq,jbr,jsr,linesp,liness,itn,itqp,kprc,lvlobje,pivot,step,ninf,sinf,ninfe,sinfe,wtinf,nonopt,objprt,condzhz,djqprt,rgnorm,kbs,xbs,iw,leniw) ! in test.f
+            integer :: probtype
+            character*20 :: probtag
+            logical :: elastic
+            logical :: gotr
+            logical :: firstfeas
+            logical :: feasible
+            logical :: justphase1
+            integer :: m
+            integer, optional,check(len(kbs)>=mbs),depend(kbs) :: mbs=len(kbs)
+            integer :: nnh
+            integer :: ns
+            integer :: jsq
+            integer :: jbr
+            integer :: jsr
+            integer :: linesp
+            integer :: liness
+            integer :: itn
+            integer :: itqp
+            integer :: kprc
+            integer :: lvlobje
+            double precision :: pivot
+            double precision :: step
+            integer :: ninf
+            double precision :: sinf
+            integer :: ninfe
+            double precision :: sinfe
+            double precision :: wtinf
+            integer :: nonopt
+            double precision :: objprt
+            double precision :: condzhz
+            double precision :: djqprt
+            double precision :: rgnorm
+            integer dimension(mbs) :: kbs
+            double precision dimension(mbs),depend(mbs) :: xbs
+            integer dimension(leniw) :: iw
+            integer, optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
+        end subroutine sqlog
     end interface snoptc_user_interface
 end python module snoptc__user__routines
 python module snopt ! in 
@@ -203,6 +393,179 @@ python module snopt ! in
             double precision dimension(lenrw) :: rw
             integer optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
         end subroutine snoptc
+        subroutine snkerc(start,m,n,ne,nname,nncon,nnobj,nnjac,iobj,objadd,prob,userfg,snlog,snlog2,sqlog,snstop,jcol,indj,locj,bl,bu,names,hs,x,pi,rc,inform,mincw,miniw,minrw,ns,ninf,sinf,obj,cu,lencu,iu,leniu,ru,lenru,cw,lencw,iw,leniw,rw,lenrw) ! in :snopt:snoptc.f
+            use snoptc__user__routines
+            character*(*) intent(inout) :: start
+            integer optional,check(len(pi)>=m),depend(pi) :: m=len(pi)
+            integer optional,check((len(locj)-1)>=n),depend(locj) :: n=(len(locj)-1)
+            integer optional,check(len(jcol)>=ne),depend(jcol) :: ne=len(jcol)
+            integer :: nncon 
+            integer :: nnobj
+            integer :: nnjac
+            integer :: iobj
+            double precision :: objadd
+            character*8 :: prob
+            external userfg,snlog,snlog2,sqlog,snstop
+            double precision dimension(ne) :: jcol
+            integer intent(inout), dimension(ne),depend(ne) :: indj
+            integer intent(inout), dimension(n + 1) :: locj
+            double precision intent(inout), dimension(n+m),depend(m,n) :: bl
+            double precision intent(inout), dimension(n+m),depend(m,n) :: bu
+            character*8 intent(in), dimension(nname) :: names
+            integer optional,check(len(names)==nname),depend(names) :: nname=len(names)
+            integer intent(inout), dimension(n+m),depend(m,n) :: hs
+            double precision intent(inout), dimension(n+m),depend(m,n) :: x
+            double precision intent(inout), dimension(m) :: pi
+            double precision intent(inout), dimension(n+m),depend(m,n) :: rc 
+            integer intent(inout) :: inform
+            integer intent(inout) :: mincw
+            integer intent(inout) :: miniw
+            integer intent(inout) :: minrw
+            integer :: ns
+            integer :: ninf
+            double precision :: sinf
+            double precision intent(inout) :: obj
+            character*8 intent(in,out), dimension(lencu) :: cu
+            integer optional,check(len(cu)==lencu),depend(cu) :: lencu=len(cu)
+            integer dimension(leniu) :: iu
+            integer optional,check(len(iu)>=leniu),depend(iu) :: leniu=len(iu)
+            double precision dimension(lenru) :: ru
+            integer optional,check(len(ru)>=lenru),depend(ru) :: lenru=len(ru)
+            character*8 intent(in,out), dimension(lencw) :: cw
+            integer optional,check(len(cw)==lencw),depend(cw) :: lencw=len(cw)
+            integer intent(inout), dimension(leniw) :: iw
+            integer optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
+            double precision dimension(lenrw) :: rw
+            integer optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
+        end subroutine snkerc
+        subroutine snlog(iabort,ktcond,mjrprtlvl,minimize,n,nb,nncon0,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,nej,nlocj,locj,indj,jcol,scales,bl,bu,fx,fcon,ycon,x,cu,lencu,iu,leniu,ru,lenru,cw,lencw,iw,leniw,rw,lenrw) ! in test.f
+            integer :: iabort
+            logical dimension(2) :: ktcond
+            integer :: mjrprtlvl
+            integer :: minimize
+            integer :: n
+            integer, optional,check(len(hs)>=nb),depend(hs) :: nb=len(hs)
+            integer, optional,check(len(fx)>=nncon0),depend(fx) :: nncon0=len(fx)
+            integer :: nnobj
+            integer :: ns
+            integer :: itn
+            integer :: nmajor
+            integer :: nminor
+            integer :: nswap
+            double precision :: condzhz
+            integer :: iobj
+            double precision :: scaleobj
+            double precision :: objadd
+            double precision :: fobj
+            double precision :: fmerit
+            double precision dimension(4) :: penparm
+            double precision :: step
+            double precision :: primalinf
+            double precision :: dualinf
+            double precision :: maxvi
+            double precision :: maxvirel
+            integer dimension(nb) :: hs
+            integer, optional,check(len(indj)>=nej),depend(indj) :: nej=len(indj)
+            integer, optional,check(len(locj)>=nlocj),depend(locj) :: nlocj=len(locj)
+            integer dimension(nlocj) :: locj
+            integer dimension(nej) :: indj
+            double precision dimension(nej),depend(nej) :: jcol
+            double precision dimension(nb),depend(nb) :: scales
+            double precision dimension(nb),depend(nb) :: bl
+            double precision dimension(nb),depend(nb) :: bu
+            double precision dimension(nncon0) :: fx
+            double precision dimension(nncon0),depend(nncon0) :: fcon
+            double precision dimension(nncon0),depend(nncon0) :: ycon
+            double precision dimension(nb),depend(nb) :: x
+            character dimension(lencu,8) :: cu
+            integer, optional,check(shape(cu,0)==lencu),depend(cu) :: lencu=shape(cu,0)
+            integer dimension(leniu) :: iu
+            integer, optional,check(len(iu)>=leniu),depend(iu) :: leniu=len(iu)
+            double precision dimension(lenru) :: ru
+            integer, optional,check(len(ru)>=lenru),depend(ru) :: lenru=len(ru)
+            character dimension(lencw,8) :: cw
+            integer, optional,check(shape(cw,0)==lencw),depend(cw) :: lencw=shape(cw,0)
+            integer dimension(leniw) :: iw
+            integer, optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
+            double precision dimension(lenrw) :: rw
+            integer, optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
+        end subroutine snlog
+        subroutine snlog2(probtype,probtag,elastic,gotr,firstfeas,feasible,justphase1,m,mbs,nnh,ns,jsq,jbr,jsr,linesp,liness,itn,itqp,kprc,lvlobje,pivot,step,ninf,sinf,ninfe,sinfe,wtinf,nonopt,objprt,condzhz,djqprt,rgnorm,kbs,xbs,iw,leniw) ! in test.f
+            integer :: probtype
+            character*20 :: probtag
+            logical :: elastic
+            logical :: gotr
+            logical :: firstfeas
+            logical :: feasible
+            logical :: justphase1
+            integer :: m
+            integer, optional,check(len(kbs)>=mbs),depend(kbs) :: mbs=len(kbs)
+            integer :: nnh
+            integer :: ns
+            integer :: jsq
+            integer :: jbr
+            integer :: jsr
+            integer :: linesp
+            integer :: liness
+            integer :: itn
+            integer :: itqp
+            integer :: kprc
+            integer :: lvlobje
+            double precision :: pivot
+            double precision :: step
+            integer :: ninf
+            double precision :: sinf
+            integer :: ninfe
+            double precision :: sinfe
+            double precision :: wtinf
+            integer :: nonopt
+            double precision :: objprt
+            double precision :: condzhz
+            double precision :: djqprt
+            double precision :: rgnorm
+            integer dimension(mbs) :: kbs
+            double precision dimension(mbs),depend(mbs) :: xbs
+            integer dimension(leniw) :: iw
+            integer, optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
+        end subroutine snlog2
+        subroutine sqlog(probtype,probtag,elastic,gotr,firstfeas,feasible,justphase1,m,mbs,nnh,ns,jsq,jbr,jsr,linesp,liness,itn,itqp,kprc,lvlobje,pivot,step,ninf,sinf,ninfe,sinfe,wtinf,nonopt,objprt,condzhz,djqprt,rgnorm,kbs,xbs,iw,leniw) ! in test.f
+            integer :: probtype
+            character*20 :: probtag
+            logical :: elastic
+            logical :: gotr
+            logical :: firstfeas
+            logical :: feasible
+            logical :: justphase1
+            integer :: m
+            integer, optional,check(len(kbs)>=mbs),depend(kbs) :: mbs=len(kbs)
+            integer :: nnh
+            integer :: ns
+            integer :: jsq
+            integer :: jbr
+            integer :: jsr
+            integer :: linesp
+            integer :: liness
+            integer :: itn
+            integer :: itqp
+            integer :: kprc
+            integer :: lvlobje
+            double precision :: pivot
+            double precision :: step
+            integer :: ninf
+            double precision :: sinf
+            integer :: ninfe
+            double precision :: sinfe
+            double precision :: wtinf
+            integer :: nonopt
+            double precision :: objprt
+            double precision :: condzhz
+            double precision :: djqprt
+            double precision :: rgnorm
+            integer dimension(mbs) :: kbs
+            double precision dimension(mbs),depend(mbs) :: xbs
+            integer dimension(leniw) :: iw
+            integer, optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
+        end subroutine sqlog
     end interface 
 end python module snopt
 

@@ -88,7 +88,7 @@ class Optimizer(object):
 
         # Create object to pass information about major iterations.
         # Only relevant for SNOPT.
-        self.iu0 = 0
+        self.isMajor = False
 
         # Store the jacobian conversion maps
         self._jac_map_csr_to_csc = None
@@ -511,7 +511,7 @@ class Optimizer(object):
         hist['fail'] = masterFail
 
         # Save information about major iteration counting (only matters for SNOPT).
-        hist['iu0'] = self.iu0
+        hist['isMajor'] = False # this will be updated in _snstop if it is major
 
         # Add constraint and variable bounds at beginning of optimization.
         # This info is used for visualization using OptView.
