@@ -580,6 +580,12 @@ class SNOPT(Optimizer):
         """
         iterDict = {
             'isMajor' : True,
+            'nMajor' : nmajor,
+            'nMinor' : nminor,
+            'merit' : fmerit,
+            'feasibility' : primalinf,
+            'optimality'  : dualinf,
+            'penalty' : penparm[2],
         }
         if self.storeHistory:
             currX = x[:n] # only the first n component is x, the rest are the slacks
