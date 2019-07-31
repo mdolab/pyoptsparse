@@ -545,6 +545,12 @@ class SNOPT(Optimizer):
         All we do here is call the generic masterFunc in the baseclass
         which will take care of everything else.
         """
+        # nState >=2 means this is the final call which is redundant
+        # here we just return without doing anything since we don't
+        # need to do any cleanup or anything
+        if nState >= 2:
+            return
+
         fail = False
         self.iu0 = iu[0]
         if mode == 0 or mode == 2:
