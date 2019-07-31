@@ -544,7 +544,6 @@ class SNOPT(Optimizer):
         which will take care of everything else.
         """
         fail = False
-        self.isMajor = False
         if mode == 0 or mode == 2:
             fobj, fcon, fail = self._masterFunc(x, ['fobj', 'fcon'])
         if not fail:
@@ -579,7 +578,6 @@ class SNOPT(Optimizer):
 
         returning with iabort != 0 will terminate SNOPT immediately
         """
-        self.isMajor = True
         iterDict = {
             'isMajor' : True,
         }

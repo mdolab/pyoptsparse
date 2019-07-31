@@ -271,7 +271,8 @@ class Display(object):
                 if 'funcs' in db[key].keys():
                     # If this iteration has 'funcs' within it, but it's not
                     # flagged as major, then it's a minor iteration.
-                    if i == 0 or db[key]['isMajor']:
+                    # If isMajor doesn't exist, assume all iterations are major
+                    if i == 0 or (self.storedIters and db[key]['isMajor']):
                         self.iter_type[i] = 1
                     else:
                         self.iter_type[i] = 2

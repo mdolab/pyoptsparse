@@ -86,10 +86,6 @@ class Optimizer(object):
         self.storedData = {}
         self.storedData['x'] = None
 
-        # Create object to pass information about major iterations.
-        # Only relevant for SNOPT.
-        self.isMajor = False
-
         # Store the jacobian conversion maps
         self._jac_map_csr_to_csc = None
 
@@ -511,7 +507,10 @@ class Optimizer(object):
         hist['fail'] = masterFail
 
         # Save information about major iteration counting (only matters for SNOPT).
-        hist['isMajor'] = False # this will be updated in _snstop if it is major
+        if self.name == 'SNOPT':
+            hist['isMajor'] = False # this will be updated in _snstop if it is major
+        else:
+            hist['isMajor'] = True # for other optimizers we assume everything's major
 
         # Add constraint and variable bounds at beginning of optimization.
         # This info is used for visualization using OptView.
