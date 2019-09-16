@@ -203,8 +203,15 @@ class Display(object):
                 # Check to see if there is bounds information in the db file.
                 # If so, add them to self.bounds to plot later.
                 try:
-                    info_dict = db['varInfo'].copy()
-                    info_dict.update(db['conInfo'])
+                    try:
+                        info_dict = db['varInfo'].copy()
+                        info_dict.update(db['conInfo'])
+                    except KeyError:
+                        print('WARNING : This is an older optimization history file. \
+                            Only bounds information has been stored, not scalar info.')
+                        info_dict = db['varBounds'].copy()
+                        info_dict.update(db['conBounds'])
+                        
                     # Got to be a little tricky here since we're modifying
                     # info_dict; if we simply loop over it with the generator
                     # from Python3, it will contain the new keys and then the
@@ -217,6 +224,7 @@ class Display(object):
                             'upper': info_dict[key]['upper']
                         }
                         scaling_dict[key + histIndex] = info_dict[key]['scale']
+                        
                     self.bounds.update(bounds_dict)
                     self.scaling.update(scaling_dict)
                 except KeyError:
