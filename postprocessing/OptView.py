@@ -206,11 +206,13 @@ class Display(object):
                     try:
                         info_dict = db['varInfo'].copy()
                         info_dict.update(db['conInfo'])
+                        scale_info = True
                     except KeyError:
-                        print('WARNING : This is an older optimization history file. \
-                            Only bounds information has been stored, not scalar info.')
+                        self.warning_display('This is an older optimization history file.\n' +
+                            'Only bounds information has been stored, not scalar info.')
                         info_dict = db['varBounds'].copy()
                         info_dict.update(db['conBounds'])
+                        scale_info = False
                         
                     # Got to be a little tricky here since we're modifying
                     # info_dict; if we simply loop over it with the generator
@@ -223,10 +225,12 @@ class Display(object):
                             'lower': info_dict[key]['lower'],
                             'upper': info_dict[key]['upper']
                         }
-                        scaling_dict[key + histIndex] = info_dict[key]['scale']
+                        if scale_info:
+                            scaling_dict[key + histIndex] = info_dict[key]['scale']
                         
                     self.bounds.update(bounds_dict)
-                    self.scaling.update(scaling_dict)
+                    if scale_info:
+                        self.scaling.update(scaling_dict)
                 except KeyError:
                     pass
 
@@ -447,7 +451,7 @@ class Display(object):
         Display warning message on canvas as necessary.
         """
         a = plt.gca()
-        a.text(0.05, 1.04,
+        a.text(0.05, 0.9,
             "Warning: " + string,
             fontsize=20,
             transform=a.transAxes)
@@ -458,7 +462,7 @@ class Display(object):
         Display warning message on canvas as necessary.
         """
         a = plt.gca()
-        a.text(0.05, 1.04,
+        a.text(0.05, .5,
             string,
             fontsize=20,
             transform=a.transAxes)
@@ -481,7 +485,7 @@ class Display(object):
         else:
             lower = self.bounds[val]['lower']
             upper = self.bounds[val]['upper']
-
+            
         lower = list(lower)
         upper = list(upper)
 
