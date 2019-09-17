@@ -1,46 +1,61 @@
-#!/usr/bin/python
-import dash
-import dash_core_components as dcc
-import dash_html_components as html
-import plotly.graph_objs as go
-from plotly import tools
-import numpy as np
+"""
+
+Shared base class for both OptView and OptView_dash.
+This reduces code duplication by having both OptViews read from this baseclass.
+
+John Jasa 2015-2019
+
+"""
+
+# ======================================================================
+# Standard Python modules
+# ======================================================================
+from __future__ import print_function
+import os
 import argparse
-from sqlitedict import SqliteDict
 import shelve
+
 import sys
-
-from OptView_baseclass import OVBaseClass
-
-
 major_python_version = sys.version_info[0]
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    'histFile', nargs='*', type=str, default='opt_hist.hst',
-    help="Specify the history file to be plotted")
 
-args = parser.parse_args()
-histList = args.histFile
+if major_python_version == 2:
+    import tkFont
+    import Tkinter as Tk
+else:
+    import tkinter as Tk
+    from tkinter import font as tkFont
 
-class ReadOptHist(OVBaseClass):
+import re
+import warnings
+
+# ======================================================================
+# External Python modules
+# ======================================================================
+import matplotlib
+matplotlib.use('TkAgg')
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,\
+    NavigationToolbar2Tk
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import host_subplot
+import mpl_toolkits.axisartist as AA
+try:
+    warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
+    warnings.filterwarnings("ignore",category=UserWarning)
+except:
+    pass
+import numpy as np
+try:
+    from sqlitedict import SqliteDict
+except:
+    from pyoptsparse import SqliteDict
+import traceback
+
+class OVBaseClass(object):
+
     """
     Container for display parameters, properties, and objects.
     This includes a canvas for MPL plots and a bottom area with widgets.
     """
-
-    def __init__(self, histList):
-
-        # Initialize lists, dicts, and save inputs from user
-        self.arr_active = 0
-        self.plots = []
-        self.annotate = None
-        self.histList = histList
-        self.bounds = {}
-        self.scaling = {}
-        self.color_bounds = [0., 0.]
-
-        # Actually setup and run the GUI
-        self.OptimizationHistory()
 
     def OptimizationHistory(self):
         """
@@ -66,15 +81,15 @@ class ReadOptHist(OVBaseClass):
             # If they only have one history file, we don't change the keys' names
             if len(self.histList) == 1:
                 histIndex = ''
-            else:  # If multiple history files, append letters to the keys,
-                # such that 'key' becomes 'key_A', 'key_B', etc
+            else: # If multiple history files, append letters to the keys,
+                  # such that 'key' becomes 'key_A', 'key_B', etc
                 histIndex = '_' + chr(histIndex + ord('A'))
             self.histIndex = histIndex
 
-            try:  # This is the classic method of storing history files
+            try: # This is the classic method of storing history files
                 db = shelve.open(histFileName, 'r')
                 OpenMDAO = False
-            except:  # Bare except because error is not in standard Python.
+            except: # Bare except because error is not in standard Python.
                 # If the db has the 'iterations' tag, it's an OpenMDAO db.
                 db = SqliteDict(histFileName, 'iterations')
                 OpenMDAO = True
@@ -125,7 +140,7 @@ class ReadOptHist(OVBaseClass):
                     db = SqliteDict(histFileName, 'metadata')
                     self.SaveOpenMDAOData(db)
 
-                except KeyError:  # Skip metadata info if not included in OpenMDAO hist file
+                except KeyError: # Skip metadata info if not included in OpenMDAO hist file
                     pass
 
             else:
@@ -140,8 +155,17 @@ class ReadOptHist(OVBaseClass):
                 # Check to see if there is bounds information in the db file.
                 # If so, add them to self.bounds to plot later.
                 try:
-                    info_dict = db['varInfo'].copy()
-                    info_dict.update(db['conInfo'])
+                    try:
+                        info_dict = db['varInfo'].copy()
+                        info_dict.update(db['conInfo'])
+                        scale_info = True
+                    except KeyError:
+                        self.warning_display('This is an older optimization history file.\n' +
+                            'Only bounds information has been stored, not scalar info.')
+                        info_dict = db['varBounds'].copy()
+                        info_dict.update(db['conBounds'])
+                        scale_info = False
+                        
                     # Got to be a little tricky here since we're modifying
                     # info_dict; if we simply loop over it with the generator
                     # from Python3, it will contain the new keys and then the
@@ -153,9 +177,12 @@ class ReadOptHist(OVBaseClass):
                             'lower': info_dict[key]['lower'],
                             'upper': info_dict[key]['upper']
                         }
-                        scaling_dict[key + histIndex] = info_dict[key]['scale']
+                        if scale_info:
+                            scaling_dict[key + histIndex] = info_dict[key]['scale']
+                        
                     self.bounds.update(bounds_dict)
-                    self.scaling.update(scaling_dict)
+                    if scale_info:
+                        self.scaling.update(scaling_dict)
                 except KeyError:
                     pass
 
@@ -216,20 +243,20 @@ class ReadOptHist(OVBaseClass):
                     else:
                         self.iter_type[i] = 2
 
-                    if not self.storedIters:  # Otherwise, use a spotty heuristic to see if the
+                    if not self.storedIters: # Otherwise, use a spotty heuristic to see if the
                         # iteration is major or not. NOTE: this is often
                         # inaccurate, especially if the optimization used
                         # gradient-enhanced line searches.
                         try:
                             keyp1 = '%d' % (i + 1)
                             db[keyp1]['funcsSens']
-                            self.iter_type[i] = 1  # for 'major' iterations
+                            self.iter_type[i] = 1 # for 'major' iterations
                         except KeyError:
-                            self.iter_type[i] = 2  # for 'minor' iterations
+                            self.iter_type[i] = 2 # for 'minor' iterations
 
                 else:
-                    self.iter_type[i] = 0  # this is not a real iteration,
-                    # just the sensitivity evaluation
+                    self.iter_type[i] = 0 # this is not a real iteration,
+                                          # just the sensitivity evaluation
 
             min_list = []
             # Loop over each optimization iteration
@@ -240,9 +267,9 @@ class ReadOptHist(OVBaseClass):
 
                 key = '%d' % i
 
-        else:  # this is if it's OpenMDAO
+        else: # this is if it's OpenMDAO
             for i, iter_type in enumerate(self.iter_type):
-                key = '{}|{}'.format(self.solver_name, i + 1)  # OpenMDAO uses 1-indexing
+                key = '{}|{}'.format(self.solver_name, i+1) # OpenMDAO uses 1-indexing
                 if i in self.deriv_keys:
                     self.iter_type[i] = 1.
 
@@ -263,8 +290,8 @@ class ReadOptHist(OVBaseClass):
             # If this is an OpenMDAO file, the keys are of the format
             # 'rank0:SNOPT|1', etc
             if OpenMDAO:
-                key = '{}|{}'.format(self.solver_name, i + 1)  # OpenMDAO uses 1-indexing
-            else:  # Otherwise the keys are simply a number
+                key = '{}|{}'.format(self.solver_name, i+1) # OpenMDAO uses 1-indexing
+            else: # Otherwise the keys are simply a number
                 key = '%d' % i
 
             # Do this for both major and minor iterations
@@ -349,256 +376,3 @@ class ReadOptHist(OVBaseClass):
 
                         except KeyError:
                             pass
-
-    def refresh_history(self):
-        """
-        Refresh opt_his data if the history file has been updated.
-        """
-        # old_funcs = []
-        # for key in self.func_data:
-        #     old_funcs.append(key)
-        # old_vars = []
-        # for key in self.var_data:
-        #     old_vars.append(key)
-
-        self.OptimizationHistory()
-
-        # new_funcs = []
-        # for key in self.func_data:
-        #     new_funcs.append(key)
-        # new_vars = []
-        # for key in self.var_data:
-        #     new_vars.append(key)
-        #
-        # if not (old_funcs == new_funcs and old_vars == new_vars):
-        #     self.var_search('dummy')
-
-
-Opt = ReadOptHist(histList)
-app = dash.Dash(__name__)
-app.layout = \
-    html.Div([
-        html.Div(className="banner", children=[
-            # Change App Name here
-            html.Div(className='container scalable', children=[
-                # Change App Name here
-                html.H2(html.A(
-                    'MACH Dashboard',
-                    style={
-                        'text-decoration': 'none',
-                        'color': 'inherit'
-                    }
-                )),
-            ]),
-        ]),
-        html.Div(id='body', className='container scalable', children=[
-            html.Div(className='row', children=[
-                html.Div(
-                    className='ten columns',
-                    style={
-                        'min-width': '24.5%',
-                        'height': 'calc(100vh - 120px)',
-                        'margin-top': '5px',
-
-                        # Remove possibility to select the text for better UX
-                        'user-select': 'none',
-                        '-moz-user-select': 'none',
-                        '-webkit-user-select': 'none',
-                        '-ms-user-select': 'none'
-                    },
-                    children=[
-                        html.Div([
-                            dcc.Dropdown(
-                                id='dvar',
-                                options=[{'label': i, 'value': i} for i in Opt.var_data_all.keys()],
-                                multi=True,
-                                placeholder="Choose design group"
-                            ),
-                        ], style={'width': '50%', 'display': 'inline-block'}),
-                        html.Div([
-                            dcc.Dropdown(
-                                id='func',
-                                options=[{'label': i, 'value': i} for i in Opt.func_data_all.keys()],
-                                multi=True,
-                                placeholder="Choose func group"
-                            ),
-                        ], style={'width': '50%', 'display': 'inline-block'}),
-                        html.Div([
-                            dcc.Dropdown(
-                                id='dvar-child',
-                                multi=True,
-                                placeholder="Choose design var"
-                            )
-                        ], style={'width': '50%', 'display': 'inline-block'}),
-                        html.Div(
-                            dcc.Dropdown(
-                                id='func-child',
-                                multi=True,
-                                placeholder="Choose func var"
-                            )
-                            , style={'width': '50%', 'display': 'inline-block'}),
-                        html.Div(
-                            dcc.RadioItems(
-                                id='axis_scale',
-                                options=[
-                                    {'label': 'linear', 'value': 'linear'},
-                                    {'label': 'log', 'value': 'log'}
-                                ],
-                                value='linear',
-                                labelStyle={'display': 'inline-block'}
-                            ), style={'width': '50%', 'display': 'inline-block'}
-                        ),
-                        html.Div(
-                            dcc.RadioItems(
-                                id='scale_type',
-                                options=[
-                                    {'label': 'shared axes', 'value': 'shared'},
-                                    {'label': 'multiple axes', 'value': 'multi'}
-                                ],
-                                value='shared',
-                                labelStyle={'display': 'inline-block'}
-                            ), style={'width': '50%', 'display': 'inline-block'}
-                        ),
-                        dcc.Graph(
-                            id='2Dscatter'
-                        ),
-                        dcc.Interval(
-                            id='interval-component',
-                            interval=1 * 1000,  # in milliseconds
-                            n_intervals=0
-                        ),
-                        html.Div(id="hidden-div", style={"display":"none"})
-                    ])
-            ])
-        ])
-    ])
-
-external_css = [
-    # Normalize the CSS
-    "https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css",
-    # Fonts
-    "https://fonts.googleapis.com/css?family=Open+Sans|Roboto",
-    "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
-]
-
-for css in external_css:
-    app.css.append_css({"external_url": css})
-
-app.config.supress_callback_exceptions = True
-
-
-@app.callback(
-    dash.dependencies.Output('2Dscatter', 'figure'),
-    [dash.dependencies.Input('dvar-child', 'value'),
-     dash.dependencies.Input('func-child', 'value'),
-     dash.dependencies.Input('axis_scale', 'value'),
-     dash.dependencies.Input('scale_type', 'value'),
-     dash.dependencies.Input('hidden-div', 'value')]
-    )
-def update_2d_scatter(dvar, func, axisscale, type, n):
-    trace = []
-    i = 0
-    if dvar:
-        for var in dvar:
-            index = var.split('_')[-1]
-            varname = var[::-1].replace(index+'_', '',1)[::-1]
-            trace.append(go.Scatter(
-                x=range(Opt.num_iter),
-                y=[data[int(index)] for data in Opt.var_data[varname]],
-                name=var,
-                mode='lines+markers'
-            ))
-            i+=1
-
-    if func:
-        for var in func:
-            index = var.split('_')[-1]
-            varname = var[::-1].replace(index+'_', '', 1)[::-1]
-            trace.append(go.Scatter(
-                x=range(Opt.num_iter),
-                y=[data[int(index)] for data in Opt.func_data_all[varname]],
-                name=var,
-                mode='lines+markers',
-            ))
-            i+=1
-
-    fig={}
-    fig['layout'] = {}
-    if dvar or func:
-        if type=='multi':
-            fig = tools.make_subplots(rows=i,cols=1)
-            for k in range(i):
-                fig.append_trace(trace[k],k+1,1)
-        else:
-            fig['data'] = trace
-
-
-    fig['layout'].update(
-        xaxis={                                               
-            'title': {'text': 'iterations',                   
-                  'font': {                                   
-                      'family': 'Courier New, monospace',     
-                      'size': 24,                             
-                      'color': '#7f7f7f'                      
-                  }},                                         
-            'type': axisscale,                                
-        },                                                    
-        yaxis={                                               
-            'title': {'text': 'Data',                         
-                  'font': {                                   
-                      'family': 'Courier New, monospace',     
-                      'size': 24,                             
-                      'color': '#7f7f7f'                      
-                  }},                                         
-            'type': axisscale,                                
-        },                                                    
-        height=900,                                           
-        showlegend=True                                       
-    )
-
-    return (fig)
-
-
-@app.callback(
-    dash.dependencies.Output('dvar-child', 'options'),
-    [dash.dependencies.Input('dvar', 'value')]
-)
-def update_dvar_child(dvar):
-    strlist = []
-    if dvar:
-        for var in dvar:
-            num = len(Opt.var_data[var][0])
-            strlist += [var + '_' + str(i) for i in range(num)]
-    return (
-        [{'label': i, 'value': i} for i in strlist]
-
-    )
-
-
-@app.callback(
-    dash.dependencies.Output('func-child', 'options'),
-    [dash.dependencies.Input('func', 'value')]
-)
-def update_func_child(func):
-    strlist = []
-    if func:
-        for var in func:
-            num = len(Opt.func_data_all[var][0])
-            strlist += [var + '_' + str(i) for i in range(num)]
-
-    return (
-        [{'label': i, 'value': i} for i in strlist]
-
-    )
-
-@app.callback(
-    dash.dependencies.Output('hidden-div', 'value'),
-    [dash.dependencies.Input('interval-component', 'n_intervals')]
-)
-def update_opt_history(n):
-    Opt.refresh_history()
-    return n
-
-
-if __name__ == '__main__':
-    app.run_server(debug=True, port=50002, host='0.0.0.0')
