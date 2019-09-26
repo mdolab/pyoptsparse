@@ -3,7 +3,7 @@
 Constraint
 ----------
 
-.. currentmodule:: pyoptsparse.pyoptsparse.pyOpt_constraint
+.. currentmodule:: pyoptsparse.pyOpt_constraint
 
 .. autoclass:: Constraint
    :members:
