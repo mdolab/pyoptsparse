@@ -465,11 +465,12 @@ class SNOPT(Optimizer):
             # Setup argument list values
             start = numpy.array(self.options['Start'][1])
             ObjAdd = numpy.array([0.], numpy.float)
-            ProbNm = self.optProb.name
-            cw[51,:] = -1111111 # we set these to cdummy so that a placeholder is used in printout
-            cw[52,:] = -1111111
-            cw[53,:] = -1111111
-            cw[54,:] = -1111111
+            ProbNm = numpy.array(self.optProb.name,'c')	
+            cdummy = -1111111 # this is a magic variable defined in SNOPT for undefined strings
+            cw[51,:] = cdummy # we set these to cdummy so that a placeholder is used in printout
+            cw[52,:] = cdummy
+            cw[53,:] = cdummy
+            cw[54,:] = cdummy
             xs = numpy.concatenate((xs, numpy.zeros(ncon, numpy.float)))
             bl = numpy.concatenate((blx, blc))
             bu = numpy.concatenate((bux, buc))
