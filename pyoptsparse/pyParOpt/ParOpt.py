@@ -159,7 +159,7 @@ class ParOpt(Optimizer):
             # Set history/hotstart
             self._setHistory(storeHistory, hotStart)
 
-            class Problem(_ParOpt.pyParOptProblem):
+            class Problem(_ParOpt.Problem):
                 def __init__(self, ptr, n, m, xs, blx, bux):
                     super(Problem, self).__init__(MPI.COMM_SELF, n, m)
                     self.ptr = ptr
@@ -202,8 +202,8 @@ class ParOpt(Optimizer):
             optTime = MPI.Wtime()
             if algorithm == 'ip':
                 # Create the optimizer
-                opt = _ParOpt.pyParOpt(problem, qn_subspace_size,
-                                       _ParOpt.BFGS)
+                opt = _ParOpt.InteriorPoint(problem, qn_subspace_size,
+                                            _ParOpt.BFGS)
 
                 # Set the ParOpt options
                 self._set_paropt_options(opt)
@@ -230,13 +230,13 @@ class ParOpt(Optimizer):
                 qn = _ParOpt.LBFGS(problem, subspace=qn_subspace_size)
 
                 # Create the trust region problem
-                tr = _ParOpt.pyTrustRegion(problem, qn, tr_init_size,
-                                           tr_min_size, tr_max_size,
-                                           tr_eta, tr_penalty_gamma)
+                tr = _ParOpt.TrustRegion(problem, qn, tr_init_size,
+                                         tr_min_size, tr_max_size,
+                                         tr_eta, tr_penalty_gamma)
 
                 # Create the ParOpt problem
-                opt = _ParOpt.pyParOpt(tr, qn_subspace_size,
-                                       _ParOpt.NO_HESSIAN_APPROX)
+                opt = _ParOpt.InteriorPoint(tr, qn_subspace_size,
+                                            _ParOpt.NO_HESSIAN_APPROX)
 
                 # Set the ParOpt options
                 self._set_paropt_options(opt)

@@ -21,5 +21,6 @@ from .pyNLPQLP.pyNLPQLP import NLPQLP
 from .pyNSGA2.pyNSGA2 import NSGA2
 from .pyNLPY_AUGLAG.pyNLPY_AUGLAG import NLPY_AUGLAG
 from .pyALPSO.pyALPSO import ALPSO
+from .pyParOpt import ParOpt
 # from .pyNOMAD.pyNOMAD import NOMAD
 from .sqlitedict.sqlitedict import SqliteDict
