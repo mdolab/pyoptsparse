@@ -35,7 +35,7 @@ import warnings
 import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,\
-    NavigationToolbar2TkAgg
+    NavigationToolbar2Tk
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
@@ -85,7 +85,7 @@ class Display(object):
         self.canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
 
         # Add a toolbar to explore the figure like normal MPL behavior
-        toolbar = NavigationToolbar2TkAgg(self.canvas, self.root)
+        toolbar = NavigationToolbar2Tk(self.canvas, self.root)
         toolbar.update()
         self.canvas._tkcanvas.pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
 
@@ -99,6 +99,7 @@ class Display(object):
         self.histList = histList
         self.outputDir = outputDir
         self.bounds = {}
+        self.scaling = {}
         self.color_bounds = [0., 0.]
 
         # Actually setup and run the GUI
@@ -202,15 +203,22 @@ class Display(object):
                 # Check to see if there is bounds information in the db file.
                 # If so, add them to self.bounds to plot later.
                 try:
-                    bounds_dict = db['varBounds'].copy()
-                    bounds_dict.update(db['conBounds'])
+                    info_dict = db['varInfo'].copy()
+                    info_dict.update(db['conInfo'])
                     # Got to be a little tricky here since we're modifying
-                    # bounds_dict; if we simply loop over it with the generator
+                    # info_dict; if we simply loop over it with the generator
                     # from Python3, it will contain the new keys and then the
                     # names will be mangled incorrectly.
-                    for key in [i for i in bounds_dict.keys()]:
-                        bounds_dict[key + histIndex] = bounds_dict.pop(key)
+                    bounds_dict = {}
+                    scaling_dict = {}
+                    for key in info_dict.keys():
+                        bounds_dict[key + histIndex] = {
+                            'lower': info_dict[key]['lower'],
+                            'upper': info_dict[key]['upper']
+                        }
+                        scaling_dict[key + histIndex] = info_dict[key]['scale']
                     self.bounds.update(bounds_dict)
+                    self.scaling.update(scaling_dict)
                 except KeyError:
                     pass
 
@@ -437,7 +445,7 @@ class Display(object):
             "Error: " + string,
             fontsize=20,
             transform=a.transAxes)
-        self.canvas.show()
+        self.canvas.draw()
 
     def warning_display(self, string="That option not supported"):
         """
@@ -448,7 +456,7 @@ class Display(object):
             "Warning: " + string,
             fontsize=20,
             transform=a.transAxes)
-        self.canvas.show()
+        self.canvas.draw()
 
     def note_display(self, string=""):
         """
@@ -459,7 +467,7 @@ class Display(object):
             string,
             fontsize=20,
             transform=a.transAxes)
-        self.canvas.show()
+        self.canvas.draw()
 
     def plot_bounds(self, val, a, color):
         """
@@ -483,7 +491,7 @@ class Display(object):
         upper = list(upper)
 
         a.margins(None, .02)
-        a.set_color_cycle(color)
+        a.set_prop_cycle('color', color)
         for lower_bound in lower:
             if lower_bound is not None and abs(lower_bound) < 1e18:
                 a.plot(
@@ -492,7 +500,7 @@ class Display(object):
                     "--", linewidth=2, clip_on=False
                 )
 
-        a.set_color_cycle(color)
+        a.set_prop_cycle('color', color)
         for upper_bound in upper:
             if upper_bound is not None and abs(upper_bound) < 1e18:
                 a.plot(
@@ -510,7 +518,7 @@ class Display(object):
         try:
             array_size = len(dat[val][0])
             if self.var_minmax.get():
-                a.set_color_cycle(color)
+                a.set_prop_cycle('color', color)
                 minmax_list = []
                 for minmax in dat[val]:
                     minmax_list.append(
@@ -520,7 +528,7 @@ class Display(object):
 
             elif array_size < 20 or self.var_showall.get():
                 if i > 0:
-                    a.set_color_cycle(color)
+                    a.set_prop_cycle('color', color)
                 plots = a.plot(dat[val], "o-", label=val,
                     markeredgecolor='none', clip_on=False)
 
@@ -530,7 +538,7 @@ class Display(object):
                 self.error_display("Too many values to display")
 
         except TypeError:
-            a.set_color_cycle(color)
+            a.set_prop_cycle('color', color)
             if self.var.get() == 0:
                 pass
             else:
@@ -711,11 +719,51 @@ class Display(object):
                 if self.var_del.get():
                     for idx, val in enumerate(values):
                         newdat = []
+                        if self.var_scale.get():
+                            if val not in self.scaling:
+                                for ii, char in enumerate(reversed(val)):
+                                    if char == '_':
+                                        split_loc = len(val) - ii
+                                        break
+                                val_name = val[:split_loc - 1]
+                                val_num = int(val[split_loc:])
+                                scale = [self.scaling[val_name][val_num]]
+                            else:
+                                scale = self.scaling[val]
+                        else:
+                            scale = 1.0
                         for i, value in enumerate(dat[val], start=1):
-                            newdat.append(abs(value - dat[val][i - 2]))
+                            newdat.append(abs(value - dat[val][i - 2])*scale)
                         plots = a.plot(
                             range(1, self.num_iter),
                             newdat[1:],
+                            "o-",
+                            label=val,
+                            markeredgecolor='none', clip_on=False)
+                        if len(plots) > 1:
+                            for i, plot in enumerate(plots):
+                                self.plots.append([plot, i])
+                        else:
+                            self.plots.append([plots[0], -1])
+
+                elif self.var_scale.get():
+                    for idx, val in enumerate(values):
+                        newdat = []
+                        if val not in self.scaling:
+                            for ii, char in enumerate(reversed(val)):
+                                if char == '_':
+                                    split_loc = len(val) - ii
+                                    break
+                            val_name = val[:split_loc - 1]
+                            val_num = int(val[split_loc:])
+                            scale = [self.scaling[val_name][val_num]]
+                        else:
+                            scale = self.scaling[val]
+                        for i, value in enumerate(dat[val]):
+                            newdat.append(value * scale)
+                        plots = a.plot(
+                            range(0, self.num_iter),
+                            newdat,
                             "o-",
                             label=val,
                             markeredgecolor='none', clip_on=False)
@@ -744,7 +792,7 @@ class Display(object):
                 plt.subplots_adjust(right=.95)
                 a.set_xlabel('iteration')
                 a.set_xlim(0, self.num_iter - 1)
-                self.canvas.show()
+                self.canvas.draw()
 
             # Plot on individual vertical axes
             elif self.var.get() == 1 and not fail:
@@ -785,7 +833,7 @@ class Display(object):
                 else:
                     for i, val in enumerate(values):
                         cc = plt.rcParams['axes.prop_cycle'].by_key()['color'] * 10
-                        par_list[i].set_color_cycle(cc[i])
+                        par_list[i].set_prop_cycle('color', cc[i])
                         p_list[i], = par_list[i].plot(
                             dat[val], "o-", label=val, markeredgecolor='none', clip_on=False)
                         par_list[i].set_ylabel(val)
@@ -811,7 +859,7 @@ class Display(object):
                 for i, plot in enumerate(p_list):
                     self.plots.append([plot, i])
 
-                self.canvas.show()
+                self.canvas.draw()
 
             # Plot on stacked axes with shared x-axis
             elif self.var.get() == 2 and not fail:
@@ -860,7 +908,7 @@ class Display(object):
                     ax.set_xlim(0, self.num_iter - 1)
 
                 plt.subplots_adjust(right=.95)
-                self.canvas.show()
+                self.canvas.draw()
 
             # Plot color plots of rectangular pixels showing values,
             # especially useful for constraints
@@ -891,7 +939,7 @@ class Display(object):
                 plt.subplots_adjust(right=.95)
                 a.set_xlabel('iteration')
                 a.set_xlim(0, self.num_iter - 1)
-                self.canvas.show()
+                self.canvas.draw()
 
         except ValueError:
             self.error_display()
@@ -1195,7 +1243,7 @@ class Display(object):
             # over a point on a line
             if point_selected:
                 visibility_changed = True
-                ax = point_selected[0].get_axes()
+                ax = point_selected[0].axes
                 label = point_selected[0].get_label()
                 if point_selected[1] >= 0:
                     label = label + '_' + str(point_selected[1])
@@ -1235,7 +1283,7 @@ class Display(object):
             except (AttributeError, ValueError):
                 pass
 
-        self.canvas.show()
+        self.canvas.draw()
 
     def set_bounds(self, bound):
         try:
@@ -1518,11 +1566,22 @@ class Display(object):
             command=self.update_graph,
             font=font)
 
+        # Option to scale variables or constraints to how
+        # the optimizer sees them
+        self.var_scale = Tk.IntVar()
+        self.c14 = Tk.Checkbutton(
+            options_frame,
+            text="Apply scaling factor",
+            variable=self.var_scale,
+            command=self.update_graph,
+            font=font)
+        self.c14.grid(row=8, column=1, sticky=Tk.W, pady=6)
+
         lab = Tk.Label(
             options_frame,
             text="Search for a function/variable:",
             font=font)
-        lab.grid(row=8, column=0, columnspan=2, pady=10, sticky=Tk.W)
+        lab.grid(row=9, column=0, columnspan=2, pady=10, sticky=Tk.W)
 
         # Search box to filter displayed functions/variables
         vs = Tk.StringVar()
@@ -1530,18 +1589,18 @@ class Display(object):
         self.entry_search = Tk.Entry(
             options_frame, text="Search", textvariable=vs,
             font=font)
-        self.entry_search.grid(row=8, column=2, pady=10, sticky=Tk.W)
+        self.entry_search.grid(row=9, column=2, pady=10, sticky=Tk.W)
 
         lab_font = Tk.Label(
             options_frame,
             text="Font size for plots:",
             font=font)
-        lab_font.grid(row=9, column=0, sticky=Tk.S)
+        lab_font.grid(row=10, column=0, sticky=Tk.S)
 
         w = Tk.Scale(options_frame, from_=6, to=24, orient=Tk.HORIZONTAL,
                      resolution=2, command=self.update_font, font=font)
         w.set(16)
-        w.grid(row=9, column=1)
+        w.grid(row=10, column=1)
 
 if __name__ == '__main__':
     # Called only if this script is run as main.

@@ -3,7 +3,7 @@
 Gradient
 --------
 
-.. currentmodule:: pyoptsparse.pyoptsparse.pyOpt_gradient
+.. currentmodule:: pyoptsparse.pyOpt_gradient
 
 .. autoclass:: Gradient
    :members:

@@ -133,3 +133,15 @@ More features are being developed on an as-needed basis.
 Feel free to edit the code as you see fit and submit a pull request if you
 would like to see a feature added.
 Alternatively, you can submit an issue ticket to discuss possible features.
+
+
+Parsing SNOPT Printout files
+----------------------------
+
+The script ``SNOPT_parse.py`` has been included in the ``postprocessing`` folder for extracting the optimality, feasibility and meric function values for each major iteration. It then generates a ``.dat`` file for use with Tecplot. 
+
+The file can be run via terminal as::
+
+    python SNOPT_parse.py filename
+
+Here, ``filename`` is the name of the SNOPT printout file to be examined. If no filename is provided the default name ``SNOPT_print.out`` will be assumed.

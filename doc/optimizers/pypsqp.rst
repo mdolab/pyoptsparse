@@ -1,11 +1,13 @@
 .. _psqp:
 
 PSQP
-----
+====
 This optimizer implements a sequential quadratic programming method
 with a BFGS variable metric update
 
-.. currentmodule:: pyoptsparse.pyoptsparse.pyPSQP.pyPSQP
+API
+---
+.. currentmodule:: pyoptsparse.pyPSQP.pyPSQP
 
 .. autoclass:: PSQP
    :members: __call__
