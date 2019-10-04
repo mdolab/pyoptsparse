@@ -37,7 +37,7 @@ class ParOpt(Optimizer):
             'max_iterations': [int, 1000],
             'abs_optimality_tol': [float, 1e-6],
             'rel_function_tol': [float, 0.0],
-            'penalty_gamma': [float, 0.0],
+            'penalty_gamma': [float, 1000.0],
             'barrier_fraction': [float, 0.25],
             'barrier_power': [float, 1.0],
             'reset_hessian_frequency': [int, 100000],

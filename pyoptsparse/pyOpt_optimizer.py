@@ -900,7 +900,7 @@ def OPT(optName, *args, **kwargs):
     # elif optName == 'nomad':
     #     from .pyNOMAD.pyNOMAD import NOMAD as opt
     elif optName == 'paropt':
-        from .pyParOpt.pyParOpt import ParOpt as opt
+        from .pyParOpt.ParOpt import ParOpt as opt
     else:
         raise Error("The optimizer specified in 'optName' was \
 not recognized. The current list of supported optimizers is: %s" %
