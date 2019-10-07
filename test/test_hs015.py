@@ -99,6 +99,9 @@ class TestHS15(unittest.TestCase):
 
     def test_ipopt(self):
         self.optimize('ipopt')
+        
+    def test_paropt(self):
+        self.optimize('paropt')
 
     def test_conmin(self):
         opts = {'DELFUN' : 1e-9,
