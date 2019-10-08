@@ -79,21 +79,21 @@ class TestHS15(unittest.TestCase):
 
         sol = opt(optProb, sens=self.sens, storeHistory=histFileName)
 
-# Check Solution
-fobj = sol.objectives['obj'].value
-diff = np.min(np.abs([fobj - 306.5, fobj - 360.379767]))
-self.assertAlmostEqual(diff, 0.0, places=5)
+        # Check Solution
+        fobj = sol.objectives['obj'].value
+        diff = np.min(np.abs([fobj - 306.5, fobj - 360.379767]))
+        self.assertAlmostEqual(diff, 0.0, places=5)
 
-xstar1 = (0.5, 2.0)
-xstar2 = (-0.79212322, -1.26242985)
-x1 = sol.variables['xvars'][0].value
-x2 = sol.variables['xvars'][1].value
+        xstar1 = (0.5, 2.0)
+        xstar2 = (-0.79212322, -1.26242985)
+        x1 = sol.variables['xvars'][0].value
+        x2 = sol.variables['xvars'][1].value
 
-diff = np.min(np.abs([xstar1[0] - x1, xstar2[0] - x1]))
-self.assertAlmostEqual(diff, 0.0, places=5)
+        diff = np.min(np.abs([xstar1[0] - x1, xstar2[0] - x1]))
+        self.assertAlmostEqual(diff, 0.0, places=5)
 
-diff = np.min(np.abs([xstar1[1] - x2, xstar2[1] - x2]))
-self.assertAlmostEqual(diff, 0.0, places=5)
+        diff = np.min(np.abs([xstar1[1] - x2, xstar2[1] - x2]))
+        self.assertAlmostEqual(diff, 0.0, places=5)
 
     def test_snopt(self):
         self.optimize('snopt')
