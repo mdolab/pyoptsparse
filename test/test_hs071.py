@@ -44,7 +44,7 @@ class TestHS71(unittest.TestCase):
         optProb.addVarGroup('xvars', 4, lower=1, upper=5, value=x0)
 
         # Constraints
-        optProb.addConGroup('con', 2, lower=[25, 40], upper=[1e19, 40])
+        optProb.addConGroup('con', 2, lower=[25, 40], upper=[None, 40])
 
         # Objective
         optProb.addObj('obj')
@@ -87,6 +87,9 @@ class TestHS71(unittest.TestCase):
 
     def test_psqp(self):
         self.optimize('psqp')
+
+    def test_paropt(self):
+        self.optimize('paropt')
 
 if __name__ == "__main__":
     unittest.main()
