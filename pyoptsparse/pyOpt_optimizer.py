@@ -536,9 +536,6 @@ class Optimizer(object):
                         varInfo[dvGroup]['upper'].append(var.upper / var.scale)
                         varInfo[dvGroup]['scale'].append(var.scale)
 
-            # Save objective key for use in OptView
-            hist['objKey'] = list(self.optProb.objectives.keys())[0]
-
             # There is a special write for the bounds data
             if self.storeHistory:
                 self.hist.writeData('varInfo', varInfo)

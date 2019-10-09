@@ -187,6 +187,7 @@ class SNOPT(Optimizer):
         53 : 'the QP Hessian is indefinite',
         54 : 'incorrect second derivatives',
         55 : 'incorrect derivatives',
+        56 : 'irregular or badly scaled problem functions',
         60 : 'undefined user-supplied functions',
         61 : 'undefined function at the first feasible point',
         62 : 'undefined function at the initial point',
