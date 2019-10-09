@@ -297,9 +297,12 @@ class ParOpt(Optimizer):
             # Get the optimized point
             x, z, zw, zl, zu = opt.getOptimizedPoint()
 
-            # Create the optimization solution
+            # Create the optimization solution. Note that the signs on the multipliers
+            # are switch since ParOpt uses a formulation with c(x) >= 0, while pyOpt
+            # uses g(x) = -c(x) <= 0. Therefore the multipliers are reversed.
             sol_inform = {}
-            sol = self._createSolution(optTime, sol_inform, fobj, x[:])
+            sol = self._createSolution(optTime, sol_inform, fobj, x[:],
+                                       multipliers=-z)
 
             # Indicate solution finished
             self.optProb.comm.bcast(-1, root=0)

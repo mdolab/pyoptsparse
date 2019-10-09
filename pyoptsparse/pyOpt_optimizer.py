@@ -744,7 +744,7 @@ class Optimizer(object):
             # Scale the multipliers (since the constraints may be scaled)
             scaled_multipliers = multipliers/self.optProb.conScale
             sol.lambdaStar = self.optProb.deProcessConstraints(scaled_multipliers,
-                                                               scaled=False)
+                                                               scaled=False, multipliers=True)
 
         return sol
 
