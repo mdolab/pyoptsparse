@@ -27,6 +27,7 @@ from .pyOpt_solution import Solution
 from .pyOpt_optimization import INFINITY
 from .pyOpt_utils import convertToDense, convertToCOO, extractRows, \
     mapToCSC, scaleRows, IDATA
+from collections import OrderedDict
 eps = numpy.finfo(1.0).eps
 
 # =============================================================================
@@ -516,8 +517,8 @@ class Optimizer(object):
         # Add constraint and variable bounds at beginning of optimization.
         # This info is used for visualization using OptView.
         if self.callCounter == 0 and self.optProb.comm.rank == 0:
-            conInfo = {}
-            varInfo = {}
+            conInfo = OrderedDict()
+            varInfo = OrderedDict()
 
             # Cycle through constraints adding the bounds
             for key in self.optProb.constraints.keys():
@@ -717,7 +718,8 @@ class Optimizer(object):
 
         return numpy.real(numpy.squeeze(ff))
 
-    def _createSolution(self, optTime, sol_inform, obj, xopt):
+    def _createSolution(self, optTime, sol_inform, obj, xopt,
+                        multipliers=None):
         """
         Generic routine to create the solution after an optimizer
         finishes.
@@ -740,6 +742,12 @@ class Optimizer(object):
             for var in sol.variables[dvGroup]:
                 var.value = xopt[i]
                 i += 1
+
+        if multipliers is not None:
+            # Scale the multipliers (since the constraints may be scaled)
+            scaled_multipliers = multipliers/self.optProb.conScale
+            sol.lambdaStar = self.optProb.deProcessConstraints(scaled_multipliers,
+                                                               scaled=False)
 
         return sol
 
@@ -868,7 +876,7 @@ def OPT(optName, *args, **kwargs):
 
     optName = optName.lower()
     optList = ['snopt', 'ipopt', 'slsqp', 'fsqp', 'nlpqlp', 'conmin',
-               'nsga2', 'nlpy_auglag', 'psqp', 'alpso']
+               'nsga2', 'nlpy_auglag', 'psqp', 'alpso', 'paropt']
     if optName == 'snopt':
         from .pySNOPT.pySNOPT import SNOPT as opt
     elif optName == 'ipopt':
@@ -891,6 +899,8 @@ def OPT(optName, *args, **kwargs):
         from .pyALPSO.pyALPSO import ALPSO as opt
     # elif optName == 'nomad':
     #     from .pyNOMAD.pyNOMAD import NOMAD as opt
+    elif optName == 'paropt':
+        from .pyParOpt.ParOpt import ParOpt as opt
     else:
         raise Error("The optimizer specified in 'optName' was \
 not recognized. The current list of supported optimizers is: %s" %

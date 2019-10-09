@@ -3,7 +3,7 @@
 History
 -------
 
-.. currentmodule:: pyoptsparse.pyoptsparse.pyOpt_history
+.. currentmodule:: pyoptsparse.pyOpt_history
 
 .. autoclass:: History
    :members:

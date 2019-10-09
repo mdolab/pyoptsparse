@@ -3,7 +3,7 @@
 Variable
 --------
 
-.. currentmodule:: pyoptsparse.pyoptsparse.pyOpt_variable
+.. currentmodule:: pyoptsparse.pyOpt_variable
 
 .. autoclass:: Variable
    :members:

@@ -3,7 +3,7 @@ from __future__ import print_function
 
 import unittest
 
-import numpy
+import numpy as np
 from pyoptsparse import Optimization, OPT
 
 
@@ -26,7 +26,7 @@ class TestHS15(unittest.TestCase):
         x = xdict['xvars']
         funcs = {}
         funcs['obj'] = [100*(x[1] - x[0]**2)**2 + (1-x[0])**2]
-        conval = numpy.zeros(2, 'D')
+        conval = np.zeros(2, 'D')
         conval[0] = x[0]*x[1]
         conval[1] = x[0] + x[1]**2
         funcs['con'] = conval
@@ -80,10 +80,20 @@ class TestHS15(unittest.TestCase):
         sol = opt(optProb, sens=self.sens, storeHistory=histFileName)
 
         # Check Solution
-        self.assertAlmostEqual(sol.objectives['obj'].value, 306.5, places=5)
+        fobj = sol.objectives['obj'].value
+        diff = np.min(np.abs([fobj - 306.5, fobj - 360.379767]))
+        self.assertAlmostEqual(diff, 0.0, places=5)
 
-        self.assertAlmostEqual(sol.variables['xvars'][0].value, 0.5)
-        self.assertAlmostEqual(sol.variables['xvars'][1].value, 2.0)
+        xstar1 = (0.5, 2.0)
+        xstar2 = (-0.79212322, -1.26242985)
+        x1 = sol.variables['xvars'][0].value
+        x2 = sol.variables['xvars'][1].value
+
+        diff = np.min(np.abs([xstar1[0] - x1, xstar2[0] - x1]))
+        self.assertAlmostEqual(diff, 0.0, places=5)
+
+        diff = np.min(np.abs([xstar1[1] - x2, xstar2[1] - x2]))
+        self.assertAlmostEqual(diff, 0.0, places=5)
 
     def test_snopt(self):
         self.optimize('snopt')
@@ -99,6 +109,9 @@ class TestHS15(unittest.TestCase):
 
     def test_ipopt(self):
         self.optimize('ipopt')
+        
+    def test_paropt(self):
+        self.optimize('paropt')
 
     def test_conmin(self):
         opts = {'DELFUN' : 1e-9,
@@ -108,6 +121,8 @@ class TestHS15(unittest.TestCase):
     def test_psqp(self):
         self.optimize('psqp')
 
+    def test_paropt(self):
+        self.optimize('paropt')
 
 if __name__ == "__main__":
     unittest.main()

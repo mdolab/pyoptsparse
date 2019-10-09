@@ -1,9 +1,6 @@
 pyOptSparse - PYthon OPTimization (Sparse) Framework
 ====================================================
 
-[![Build Status](https://travis-ci.org/OpenMDAO/pyoptsparse.svg?branch=master)](https://travis-ci.org/OpenMDAO/pyoptsparse)
-[![Coverage Status](https://coveralls.io/repos/github/OpenMDAO/pyoptsparse/badge.svg?branch=master)](https://coveralls.io/github/OpenMDAO/pyoptsparse?branch=master)
-
 pyOptsparse is an object-oriented framework for formulating and solving nonlinear constrained optimization problems in an efficient, reusable, and portable manner.
 It evolved from pyOpt through the usage of sparse matrices throughout the code.
 Many optimization techniques can be used in pyOptSparse, including SNOPT, IPOPT, SLSQP, NSGA2, and more.

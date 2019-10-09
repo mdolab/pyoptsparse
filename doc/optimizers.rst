@@ -9,8 +9,9 @@ Optimizers
    optimizers/pysnopt
    optimizers/pyipopt
    optimizers/pyslsqp
-   optimizers/pynlpql
+   optimizers/pynlpqlp
    optimizers/pyfsqp
    optimizers/pynsga2
    optimizers/pypsqp
+   optimizers/paropt
 
