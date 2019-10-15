@@ -65,6 +65,10 @@ class TestHS71(unittest.TestCase):
         self.assertAlmostEqual(sol.variables['xvars'][2].value, 3.82115, places=places)
         self.assertAlmostEqual(sol.variables['xvars'][3].value, 1.37941, places=places)
 
+        if hasattr(sol, 'lambdaStar'):
+            self.assertAlmostEqual(sol.lambdaStar['con'][0], 0.55229366, places=places)
+            self.assertAlmostEqual(sol.lambdaStar['con'][1], -0.16146857, places=places)
+
     def test_snopt(self):
         self.optimize('snopt')
 

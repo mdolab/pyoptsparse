@@ -1216,7 +1216,8 @@ class Optimization(object):
             else:
                 return fcon
 
-    def deProcessConstraints(self, fcon_in, scaled=True, dtype='d', natural=False):
+    def deProcessConstraints(self, fcon_in, scaled=True, dtype='d',
+                             natural=False, multipliers=False):
         """
         **This function should not need to be called by the user**
 
@@ -1240,6 +1241,11 @@ class Optimization(object):
             Flag to specify if the input data is in the
             natural ordering. This is only used when computing
             gradient automatically with FD/CS.
+
+        multipliers : bool
+            Flag that indicates whether this deprocessing is for the
+            multipliers or the constraint values. In the case of multipliers,
+            no constraint offset should be applied.
             """
 
         if self.dummyConstraint:
@@ -1248,14 +1254,20 @@ class Optimization(object):
         if not hasattr(self, 'jacIndicesInv'):
             self.jacIndicesInv = numpy.argsort(self.jacIndices)
 
+        # Unscale the nonlinear constraints
         if not natural:
             if self.nCon > 0:
-                fcon_in += self.offset
+                m = len(self.jacIndices)
+                # Apply the offset (if this is for constraint values)
+                if not multipliers:
+                    fcon_in[:m] += self.offset
+
                 # Since self.fact elements are unit magnitude and the
                 # values are either 1 or -1...
-                fcon_in = self.fact * fcon_in
+                fcon_in[:m] = self.fact * fcon_in[:m]
+
                 # Undo the ordering
-                fcon_in = fcon_in[self.jacIndicesInv]
+                fcon_in[:m] = fcon_in[self.jacIndicesInv]
 
         # Perform constraint scaling
         if scaled:
@@ -1263,7 +1275,6 @@ class Optimization(object):
 
         # We REQUIRE that fcon_in is an array:
         fcon = {}
-        index = 0
         for iCon in self.constraints:
             con = self.constraints[iCon]
             fcon[iCon] = fcon_in[..., con.rs:con.re]

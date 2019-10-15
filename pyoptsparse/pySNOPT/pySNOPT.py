@@ -526,7 +526,8 @@ class SNOPT(Optimizer):
             sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff, xs[:nvar])
+            sol = self._createSolution(optTime, sol_inform, ff, xs[:nvar],
+                                       multipliers=pi)
 
             sol.pi = pi # store the lagrange multipliers in the solution
 
