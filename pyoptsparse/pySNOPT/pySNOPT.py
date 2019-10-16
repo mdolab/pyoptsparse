@@ -529,7 +529,6 @@ class SNOPT(Optimizer):
             sol = self._createSolution(optTime, sol_inform, ff, xs[:nvar],
                                        multipliers=pi)
 
-            sol.pi = pi # store the lagrange multipliers in the solution
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
