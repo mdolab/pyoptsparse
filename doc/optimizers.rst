@@ -13,5 +13,6 @@ Optimizers
    optimizers/pyfsqp
    optimizers/pynsga2
    optimizers/pypsqp
-   optimizers/paropt
-
+   optimizers/pyparopt
+   optimizers/pyconmin
+   optimizers/pyalpso

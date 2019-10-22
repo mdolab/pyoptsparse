@@ -44,7 +44,7 @@ class TestHS15(unittest.TestCase):
 
         return funcsSens, fail
 
-    def optimize(self, optName, optOptions={}, storeHistory=False):
+    def optimize(self, optName, optOptions={}, storeHistory=False,places=5):
         # Optimization Object
         optProb = Optimization('HS15 Constraint Problem', self.objfunc)
 
@@ -82,7 +82,7 @@ class TestHS15(unittest.TestCase):
         # Check Solution
         fobj = sol.objectives['obj'].value
         diff = np.min(np.abs([fobj - 306.5, fobj - 360.379767]))
-        self.assertAlmostEqual(diff, 0.0, places=5)
+        self.assertAlmostEqual(diff, 0.0, places=places)
 
         xstar1 = (0.5, 2.0)
         xstar2 = (-0.79212322, -1.26242985)
@@ -90,10 +90,10 @@ class TestHS15(unittest.TestCase):
         x2 = sol.variables['xvars'][1].value
 
         diff = np.min(np.abs([xstar1[0] - x1, xstar2[0] - x1]))
-        self.assertAlmostEqual(diff, 0.0, places=5)
+        self.assertAlmostEqual(diff, 0.0, places=places)
 
         diff = np.min(np.abs([xstar1[1] - x2, xstar2[1] - x2]))
-        self.assertAlmostEqual(diff, 0.0, places=5)
+        self.assertAlmostEqual(diff, 0.0, places=places)
 
     def test_snopt(self):
         self.optimize('snopt')
@@ -104,11 +104,8 @@ class TestHS15(unittest.TestCase):
     def test_nlpqlp(self):
         self.optimize('nlpqlp')
 
-    def test_fsqp(self):
-        self.optimize('fsqp')
-
     def test_ipopt(self):
-        self.optimize('ipopt')
+        self.optimize('ipopt',places=4)
         
     def test_paropt(self):
         self.optimize('paropt')
@@ -120,9 +117,6 @@ class TestHS15(unittest.TestCase):
 
     def test_psqp(self):
         self.optimize('psqp')
-
-    def test_paropt(self):
-        self.optimize('paropt')
 
 if __name__ == "__main__":
     unittest.main()

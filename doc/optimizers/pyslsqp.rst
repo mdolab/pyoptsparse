@@ -8,6 +8,8 @@ the B–matrix and an L1–test function in the step–length algorithm. The
 optimizer uses a slightly modified version of Lawson and Hanson’s NNLS
 nonlinear least-squares solver.
 
+The version provided is the original source code from 1991 by Dieter Kraft.
+
 API
 ---
 .. currentmodule:: pyoptsparse.pySLSQP.pySLSQP
