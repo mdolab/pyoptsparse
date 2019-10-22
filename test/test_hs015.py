@@ -104,9 +104,6 @@ class TestHS15(unittest.TestCase):
     def test_nlpqlp(self):
         self.optimize('nlpqlp')
 
-    def test_fsqp(self):
-        self.optimize('fsqp')
-
     def test_ipopt(self):
         self.optimize('ipopt',places=4)
         
