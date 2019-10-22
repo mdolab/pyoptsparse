@@ -10,7 +10,10 @@ Lagrangian function and a linearization of the constraints. To
 generate a search direction a quadratic subproblem is formulated and
 solved. The line search can be performed with respect to two
 alternative merit functions, and the Hessian approximation is updated
-by a modified BFGS formula. 
+by a modified BFGS formula.
+
+NLPQLP is a proprietary software, which can be obtained `here <http://www.ai7.uni-bayreuth.de/nlpqlp.htm>`_.
+The latest version supported is v4.2.2.
 
 API
 ---

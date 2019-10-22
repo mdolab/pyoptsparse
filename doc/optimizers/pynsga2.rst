@@ -9,10 +9,10 @@ optimization problems. The algorithm attempts to perform global
 optimization, while enforcing constraints using a tournament
 selection-based strategy
 
-.. warning:: Currently, the Python wrapper currently does catch
+.. warning:: Currently, the Python wrapper does not catch
   exceptions. If there is **any** error in the user-supplied function,
   you will get a seg-fault and no idea where it happened. Please make
-  sure the objective is without errors before trying to nsga2. 
+  sure the objective is without errors before trying to use nsga2.
 
 API
 ---
