@@ -6,6 +6,9 @@ IPOPT (Interior Point OPTimizer) is an open source interior point optimizer, des
 The source code can be found `here <https://github.com/coin-or/Ipopt>`_.
 The latest version we support is 3.11.7.
 
+.. warning:: Currently only Python 2 is supported for IPOPT. Python 3 support
+     will be provided once the IPOPT support is upgraded to a more recent package.
+
 Installation
 ------------
 
