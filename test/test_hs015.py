@@ -78,6 +78,9 @@ class TestHS15(unittest.TestCase):
             histFileName = None
 
         sol = opt(optProb, sens=self.sens, storeHistory=histFileName)
+        
+        # Test printing solution to screen
+        print(sol)
 
         # Check Solution
         fobj = sol.objectives['obj'].value
