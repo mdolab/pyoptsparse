@@ -1657,7 +1657,7 @@ class Optimization(object):
                             status += 'u'
 
                     text += fmt.format(idx, c.name, typ, lower, value, upper,
-                        status, lambdaStar[con_name][idx], width=num_c)
+                        status, lambdaStar[con_name][j], width=num_c)
                     idx += 1
 
         return text
