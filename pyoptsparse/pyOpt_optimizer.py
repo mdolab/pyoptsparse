@@ -743,7 +743,11 @@ class Optimizer(object):
 
         if multipliers is not None:
             # Scale the multipliers (since the constraints may be scaled)
-            scaled_multipliers = multipliers/self.optProb.conScale
+            if self.optProb.conScale is not None:
+                scaled_multipliers = multipliers/self.optProb.conScale
+            else:
+                scaled_multipliers = multipliers
+
             sol.lambdaStar = self.optProb.deProcessConstraints(scaled_multipliers,
                                                                scaled=False, multipliers=True)
 
