@@ -12,6 +12,7 @@ pyOpt has the following dependencies:
 * Swig 1.3+
 * c/FORTRAN compiler (compatible with f2py)
 * mpi4py
+* six 1.13
 
 Notes:
 
