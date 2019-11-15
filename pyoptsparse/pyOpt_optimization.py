@@ -30,16 +30,15 @@ try:
 except ImportError:
     try:
         from ordereddict import OrderedDict
-    except ImportError:
-        print('Could not find any OrderedDict class. For 2.6 and earlier, \
+    except:
+        raise ImportError('Could not find any OrderedDict class. For 2.6 and earlier, \
 use:\n pip install ordereddict')
 
 try:
     import six
     from six import iteritems, iterkeys, next
-except ImportError:
-    six = None
-    print ('Could not import \'six\' OpenMDAO type tuple return not available.')
+except:
+    raise ImportError('Could not import \'six\'. To install, use\n pip install six')
 
 from .sqlitedict.sqlitedict import SqliteDict
 
@@ -1325,12 +1324,8 @@ class Optimization(object):
         gobj = numpy.zeros((nobj, self.ndvs))
 
         cond = False
-        if six:
-            # this version is required for python 3 compatibility
-            cond = isinstance(next(iterkeys(funcsSens)), str)
-        else:
-            # fallback if six is not available
-            cond = isinstance(funcsSens.keys()[0], str)
+        # this version is required for python 3 compatibility
+        cond = isinstance(next(iterkeys(funcsSens)), str)
 
         if cond:
             iObj = 0
