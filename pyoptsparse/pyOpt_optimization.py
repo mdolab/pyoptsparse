@@ -1607,13 +1607,14 @@ class Optimization(object):
 
         if len(self.constraints) > 0:
 
-            try: 
+            try:
                 lambdaStar = self.lambdaStar
                 lambdaStar_label = 'Lagrange Multiplier'
-            except AttributeError: 
-                # the optimizer did not set the lagrange multipliers so set them to something obviously wrong 
-                n_c_total = sum([self.constraints[c].ncon for c in self.constraints])
-                lambdaStar = [9e100,]*n_c_total
+            except AttributeError:
+                # the optimizer did not set the lagrange multipliers so set them to something obviously wrong
+                lambdaStar = {}
+                for c in self.constraints:
+                    lambdaStar[c] = [9e100]*self.constraints[c].ncon
                 lambdaStar_label = 'Lagrange Multiplier (N/A)'
 
             text += '\n   Constraints (i - inequality, e - equality)\n'
@@ -1623,8 +1624,8 @@ class Optimization(object):
             text += fmt.format('Index', 'Name', 'Type', 'Lower', 'Value', 'Upper', 'Status', lambdaStar_label, width=num_c)
             fmt = '    {0:7d}  {1:{width}s} {2:>4s} {3:>14.6E}  {4:>14.6E}  {5:>14.6E}  {6:>8s}  {7:>14.5E}\n'
             idx = 0
-            for iCon in self.constraints:
-                c = self.constraints[iCon]
+            for con_name in self.constraints:
+                c = self.constraints[con_name]
                 for j in range(c.ncon):
                     lower = c.lower[j] if c.lower[j] is not None else -1.0E20
                     upper = c.upper[j] if c.upper[j] is not None else 1.0E20
@@ -1655,7 +1656,8 @@ class Optimization(object):
                             # Active upper bound
                             status += 'u'
 
-                    text += fmt.format(idx, c.name, typ, lower, value, upper, status, lambdaStar[idx], width=num_c)
+                    text += fmt.format(idx, c.name, typ, lower, value, upper,
+                        status, lambdaStar[con_name][idx], width=num_c)
                     idx += 1
 
         return text
