@@ -78,7 +78,7 @@ class TestHS15(unittest.TestCase):
             histFileName = None
 
         sol = opt(optProb, sens=self.sens, storeHistory=histFileName)
-        
+
         # Test printing solution to screen
         print(sol)
 
@@ -91,6 +91,10 @@ class TestHS15(unittest.TestCase):
         xstar2 = (-0.79212322, -1.26242985)
         x1 = sol.variables['xvars'][0].value
         x2 = sol.variables['xvars'][1].value
+
+        dv = sol.getDVs()
+        self.assertAlmostEqual(x1, dv['xvars'][0], places=10)
+        self.assertAlmostEqual(x2, dv['xvars'][1], places=10)
 
         diff = np.min(np.abs([xstar1[0] - x1, xstar2[0] - x1]))
         self.assertAlmostEqual(diff, 0.0, places=places)
@@ -109,7 +113,7 @@ class TestHS15(unittest.TestCase):
 
     def test_ipopt(self):
         self.optimize('ipopt',places=4)
-        
+
     def test_paropt(self):
         self.optimize('paropt')
 
