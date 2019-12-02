@@ -10,6 +10,8 @@ env:
     - REPO_NAME=pyoptsparse
     - DOCKER_WORKING_DIR=/home/mdolabuser/repos/$REPO_NAME
     - DOCKER_MOUNT_DIR=/home/mdolabuser/travis/$REPO_NAME
+    - SNOPT_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pySNOPT/source/
+    - NLPQLP_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pyNLPQLP/source/
   jobs:
     - DOCKER_TAG=current
     - DOCKER_TAG=new-baseline
@@ -26,10 +28,13 @@ before_install:
         /bin/bash
 
 install:
+  # We back up the proprietary source codes first
+  - docker exec -it app /bin/bash -c "cp $SNOPT_DIR \$HOME/SNOPT"
+  - docker exec -it app /bin/bash -c "cp $NLPQLP_DIR \$HOME/NLPQLP"
   # We thrown away the existing repo in Docker, and copy the new one in-place
   - docker exec -it app /bin/bash -c "rm -rf $DOCKER_WORKING_DIR && cp -r $DOCKER_MOUNT_DIR $DOCKER_WORKING_DIR"
+  - docker exec -it app /bin/bash -c "mv \$HOME/NLPQLP $NLPQLP_DIR && mv \$HOME/SNOPT $SNOPT_DIR"
   - docker exec -it app /bin/bash -c ". \$HOME/.bashrc_mdolab && cd $DOCKER_WORKING_DIR && python setup.py build_ext --inplace && python setup.py install --user"
-  - docker exec -it app /bin/bash -c "pip install testflo"
 script:
   # We need to source the mdolab bashrc before running anything
   - docker exec -it app /bin/bash -c ". \$HOME/.bashrc_mdolab && testflo -n 1 -v pyoptsparse --coverage --coverpkg pyoptsparse --cover-omit \*tests/\* --cover-omit \*docs/\*"
