@@ -29,8 +29,8 @@ before_install:
 
 install:
   # We back up the proprietary source codes first
-  - docker exec -it app /bin/bash -c "cp $SNOPT_DIR \$HOME/SNOPT"
-  - docker exec -it app /bin/bash -c "cp $NLPQLP_DIR \$HOME/NLPQLP"
+  - docker exec -it app /bin/bash -c "mv $SNOPT_DIR \$HOME/SNOPT"
+  - docker exec -it app /bin/bash -c "mv $NLPQLP_DIR \$HOME/NLPQLP"
   # We thrown away the existing repo in Docker, and copy the new one in-place
   - docker exec -it app /bin/bash -c "rm -rf $DOCKER_WORKING_DIR && cp -r $DOCKER_MOUNT_DIR $DOCKER_WORKING_DIR"
   - docker exec -it app /bin/bash -c "mv \$HOME/NLPQLP $NLPQLP_DIR && mv \$HOME/SNOPT $SNOPT_DIR"
