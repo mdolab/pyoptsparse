@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
     setup(
         name             = 'pyoptsparse',
-        version          = '1.0.0',
+        version          = '1.1.0',
         author           = 'Dr. Gaetan Kenway',
         author_email     = 'gaetank@gmail.com',
         maintainer       = 'Dr. Gaetan Kenway',
