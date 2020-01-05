@@ -98,7 +98,7 @@ static void problem_dealloc(PyObject * self)
 {
 	problem *temp = (problem *) self;
 	SAFE_FREE(temp->data);
-	self->ob_type->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 PyObject *solve(PyObject * self, PyObject * args);
@@ -191,12 +191,14 @@ PyMethodDef problem_methods[] = {
 	,
 };
 
+#if PY_MAJOR_VERSION < 3
 PyObject *problem_getattr(PyObject * self, char *attrname)
 {
 	PyObject *result = NULL;
 	result = Py_FindMethod(problem_methods, self, attrname);
 	return result;
 }
+
 
 /*
  * had to replace PyObject_HEAD_INIT(&PyType_Type) in order to get this to
@@ -227,6 +229,43 @@ PyTypeObject IpoptProblemType = {
 	"The IPOPT problem object in python",	/* tp_doc */
 };
 
+#else
+
+PyDoc_STRVAR(IpoptProblemType__doc__, "The IPOPT problem object in python");
+
+PyTypeObject IpoptProblemType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pyipoptcore.Problem",	/* tp_name */
+    sizeof(problem),         /*tp_basicsize*/
+    0,                       /*tp_itemsize*/
+    /* methods */
+    (destructor)problem_dealloc,   /*tp_dealloc*/
+    (printfunc)0,           /*tp_print*/
+    0,                      /*tp_getattr*/
+    0,                      /*tp_setattr*/
+    0,                      /*tp_reserved*/
+    (reprfunc)0,            /*tp_repr*/
+    0,                      /*tp_as_number*/
+    0,                      /*tp_as_sequence*/
+    0,                      /*tp_as_mapping*/
+    (hashfunc)0,            /*tp_hash*/
+    (ternaryfunc)0,         /*tp_call*/
+    (reprfunc)0,            /*tp_str*/
+    (getattrofunc)0,        /* tp_getattro */
+    (setattrofunc)0,        /* tp_setattro */
+    0,                      /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,     /*tp_flags*/
+    IpoptProblemType__doc__,    /* tp_doc - Documentation string */
+    (traverseproc)0,        /* tp_traverse */
+    (inquiry)0,                /* tp_clear */
+    0,                              /* tp_richcompare */
+    0,                              /* tp_weaklistoffset */
+    0,                              /* tp_iter */
+    0,                              /* tp_iternext */
+    problem_methods,               /* tp_methods */
+};
+#endif
+
 /*
  * FIXME: use module or package constants for the log levels,
  * either in pyipoptcore or in the parent package.
@@ -236,7 +275,7 @@ static PyObject *set_loglevel(PyObject * obj, PyObject * args)
 {
 	int l;
 	if (!PyArg_ParseTuple(args, "i", &l)) {
-		printf("l is %d \n", l);
+		PySys_WriteStdout("l is %d \n", l);
 		return NULL;
 	}
 	if (l < 0 || l > 2) {
@@ -551,6 +590,17 @@ PyObject *solve(PyObject * self, PyObject * args)
 		SAFE_FREE(newx0);
 		return retval;
 	}
+	if (x0->nd != 1){ //If x0 is not 1-dimensional then solve will fail and cause a segmentation fault.
+		logger("[ERROR] x0 must be a 1-dimensional array");
+		Py_XDECREF(x);
+		Py_XDECREF(mL);
+		Py_XDECREF(mU);
+		Py_XDECREF(lambda);
+		PyErr_SetString(PyExc_TypeError,
+				"x0 passed to solve is not 1-dimensional.");
+		return NULL;
+	}
+
 	if (myuserdata != NULL) {
 		bigfield->userdata = myuserdata;
 		/*
@@ -681,31 +731,51 @@ PyObject *close_model(PyObject * self, PyObject * args)
 
 /* Begin Python Module code section */
 static PyMethodDef ipoptMethods[] = {
-	/* { "solve", solve, METH_VARARGS, PYIPOPT_SOLVE_DOC}, */
-	{"create", create, METH_VARARGS, PYIPOPT_CREATE_DOC},
-	/* { "close",  close_model, METH_VARARGS, PYIPOPT_CLOSE_DOC},  */
-	/* { "test",   test,                 METH_VARARGS, PYTEST}, */
-	{"set_loglevel", set_loglevel, METH_VARARGS, PYIPOPT_LOG_DOC},
-	{NULL, NULL}
+    /* { "solve", solve, METH_VARARGS, PYIPOPT_SOLVE_DOC}, */
+    {"create", create, METH_VARARGS, PYIPOPT_CREATE_DOC},
+    /* { "close",  close_model, METH_VARARGS, PYIPOPT_CLOSE_DOC},  */
+    /* { "test",   test,                 METH_VARARGS, PYTEST}, */
+    {"set_loglevel", set_loglevel, METH_VARARGS, PYIPOPT_LOG_DOC},
+    {NULL, NULL}
 };
 
-PyMODINIT_FUNC initpyipoptcore(void)
+#if PY_MAJOR_VERSION >= 3
+  #define MOD_ERROR_VAL NULL
+  #define MOD_SUCCESS_VAL(val) val
+  #define MOD_INIT(name) PyMODINIT_FUNC PyInit_##name(void)
+  #define MOD_DEF(ob, name, doc, methods) \
+          static struct PyModuleDef moduledef = { \
+            PyModuleDef_HEAD_INIT, name, doc, -1, methods, }; \
+          ob = PyModule_Create(&moduledef);
+#else
+  #define MOD_ERROR_VAL
+  #define MOD_SUCCESS_VAL(val)
+  #define MOD_INIT(name) void init##name(void)
+  #define MOD_DEF(ob, name, doc, methods) \
+          ob = Py_InitModule3(name, methods, doc);
+#endif
+
+MOD_INIT(pyipoptcore)
 {
-	/* Finish initialization of the problem type */
-  if (PyType_Ready(&IpoptProblemType) < 0) {
-		return;
-  }
+    PyObject * m;
+    /* Finish initialization of the problem type */
+    if (PyType_Ready(&IpoptProblemType) < 0) {
+        return MOD_ERROR_VAL;
+    }
 
-	Py_InitModule3(
-      "pyipoptcore", ipoptMethods, "A hook between Ipopt and Python");
+    MOD_DEF(m, "pyipoptcore", "A hook between Ipopt and Python", ipoptMethods)
 
-  /* Initialize numpy. */
-	/* A segfault will occur if I use numarray without this.. */
-	import_array();
-	if (PyErr_Occurred()) {
-		Py_FatalError("Unable to initialize module pyipoptcore");
-  }
-	return;
+    if (m == NULL)
+        return MOD_ERROR_VAL;
+
+    /* Initialize numpy. */
+    /* A segfault will occur if I use numarray without this.. */
+    import_array();
+    if (PyErr_Occurred()) {
+        Py_FatalError("Unable to initialize module pyipoptcore");
+    }
+
+    return MOD_SUCCESS_VAL(m);
 }
 
 /* End Python Module code section */
