@@ -49,7 +49,10 @@ typedef struct {
 	PyObject *userdata;
 } DispatchData;
 
+
+#if PY_MAJOR_VERSION < 3
 PyObject *problem_getattr(PyObject * self, char *attrname);
+#endif
 
 /* Logging */
 #define VERBOSE 2
