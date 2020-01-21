@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-from pyoptsparse.pyoptsparse.sqlitedict.sqlitedict import SqliteDict
+from sqlitedict import SqliteDict
 
 db = SqliteDict()
 opts = ['ipopt', 'slsqp', 'snopt', 'fsqp', 'conmin', 'nlpqlp', 'psqp']

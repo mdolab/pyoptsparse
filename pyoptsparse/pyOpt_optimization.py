@@ -40,7 +40,7 @@ try:
 except:
     raise ImportError('Could not import \'six\'. To install, use\n pip install six')
 
-from .sqlitedict.sqlitedict import SqliteDict
+from sqlitedict import SqliteDict
 
 # =============================================================================
 # External Python modules

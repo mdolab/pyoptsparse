@@ -22,7 +22,7 @@ from __future__ import print_function
 # =============================================================================
 import os
 from .pyOpt_error import Error
-from .sqlitedict.sqlitedict import SqliteDict
+from sqlitedict import SqliteDict
 # =============================================================================
 # History Class
 # =============================================================================
