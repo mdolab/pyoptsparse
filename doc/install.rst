@@ -13,6 +13,10 @@ pyOpt has the following dependencies:
 * c/FORTRAN compiler (compatible with f2py)
 * mpi4py
 * six 1.13
+* sqlitedict
+
+Please make sure these are installed and available for use.
+In the future, we hope to make the package pip-installable so that dependencies can be managed more easily.
 
 Notes:
 
