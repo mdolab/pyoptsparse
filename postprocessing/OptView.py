@@ -107,7 +107,6 @@ class Display(OVBaseClass):
         # Actually setup and run the GUI
         self.OptimizationHistory()
 
-<<<<<<< HEAD
     def OptimizationHistory(self):
         """
         Reads in database history file and stores contents.
@@ -407,8 +406,6 @@ class Display(OVBaseClass):
                         except KeyError:
                             pass
 
-=======
->>>>>>> master
     def quit(self):
         """
         Destroy GUI window cleanly if quit button pressed.
