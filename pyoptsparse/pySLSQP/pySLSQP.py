@@ -241,18 +241,20 @@ class SLSQP(Optimizer):
             #some entries of W include the lagrange multipliers 
             # for each constraint, there are two entries (lower, upper). 
             # if only one is active, look for the nonzero. If both are active, take the first one
-            pi = []
+            # FIXME: this does not currently work, so we do not save lambdaStar
+            # to the solution object
+            lambdaStar = []
             idx = 0
 
             for c_name in optProb.constraints: 
                 c = optProb.constraints[c_name]
                 for j in range(c.ncon): 
-                    pi_lower = w[2*idx]
-                    pi_upper = w[2*idx+1]
-                    if abs(pi_lower) > 1e-100: 
-                        pi.append(pi_lower)
+                    lambdaStar_lower = w[2*idx]
+                    lambdaStar_upper = w[2*idx+1]
+                    if abs(lambdaStar_lower) > 1e-100: 
+                        lambdaStar.append(lambdaStar_lower)
                     else: 
-                        pi.append(pi_upper) 
+                        lambdaStar.append(lambdaStar_upper) 
                     idx += 1
 
             
@@ -274,7 +276,7 @@ class SLSQP(Optimizer):
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xs)
-            sol.pi = pi
+
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
             sol = None

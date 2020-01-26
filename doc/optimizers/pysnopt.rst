@@ -11,6 +11,7 @@ infeasibility in the original problem and in the quadratic programming
 subproblems. The Hessian of the Lagrangian is approximated using the
 BFGS quasi-Newton update.
 
+We currently test against both v7.2 and v7.7.
 
 Installation
 ------------

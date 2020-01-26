@@ -1,31 +1,37 @@
-pyOptSparse - PYthon OPTimization (Sparse) Framework
-====================================================
-
-[![Build Status](https://travis-ci.org/OpenMDAO/pyoptsparse.svg?branch=master)](https://travis-ci.org/OpenMDAO/pyoptsparse)
-[![Coverage Status](https://coveralls.io/repos/github/OpenMDAO/pyoptsparse/badge.svg?branch=master)](https://coveralls.io/github/OpenMDAO/pyoptsparse?branch=master)
+# pyOptSparse - PYthon OPTimization (Sparse) Framework
 
 pyOptsparse is an object-oriented framework for formulating and solving nonlinear constrained optimization problems in an efficient, reusable, and portable manner.
-It evolved from pyOpt through the usage of sparse matrices throughout the code.
-Many optimization techniques can be used in pyOptSparse, including SNOPT, IPOPT, SLSQP, NSGA2, and more.
+It is a fork of pyOpt that uses sparse matrices throughout the code to more efficiently handle large-scale optimization problems.
+Many optimization techniques can be used in pyOptSparse, including both gradient-based and gradient-free methods.
 A visualization tool called OptView also comes packaged with pyOptSparse, which shows the optimization history through an interactive GUI.
 An example output from OptView is shown below.
 
 ![Example](doc/OptView.png)
 
-Documentation
--------------
+## Optimizer Support
+pyOptSparse provides Python interfaces for a number of optimizers.
+ALPSO, CONMIN, IPOPT, NLPQLP, NSGA2, PSQP, ParOpt, SLSQP, and SNOPT are currently tested and supported.
+FSQP, AUGLAG, and NOMAD interfaces are also provided, but they are not tested nor supported.
 
+We do not provide the source code for SNOPT and NLPQLP, due to their restrictive license requirements.
+Please contact the authors of the respective codes if you wish to obtain them.
+Furthermore, ParOpt and IPOPT are available as a open source package but must be installed separately.
+Please see the documentation page of each optimizer for purchase and installation instructions.
+
+## Documentation
 Please see the [documentation](http://mdolab.engin.umich.edu/docs/packages/pyoptsparse/doc/index.html) for installation details and API documentation.
 
 To locally build the documentation, enter the `doc` folder and enter `make html` in terminal.
 You can then view the built documentation in the `_build` folder.
 
-Citation
---------
+## Testing
+Testing is done with the `testflo` package developed by the openMDAO team, which can be installed via `pip install testflo`.
+To run the tests, simply type `testflo .` in the root directory.
 
-Please cite pyOpt and the authors of the respective optimization
+## Citation
+A pyOptSparse journal paper does not exist, instead please cite pyOpt and the authors of the respective optimization
 algorithms in any publication for which you find it useful.
-For more background, theory, and figures, see the [pyOptSparse journal article](http://mdolab.engin.umich.edu/sites/default/files/pyOpt.pdf).
+For more background, theory, and figures, see the [pyOpt journal article](http://mdolab.engin.umich.edu/sites/default/files/pyOpt.pdf).
 
 Perez, R. E., Jansen, P. W., and Martins, J. R. R. A., “pyOpt: A Python-Based Object-Oriented Framework for Nonlinear
 Constrained Optimization,” Structural and Multidisciplinary Optimization, Vol. 45, No. 1, January 2012, pp. 101–118.
@@ -45,7 +51,5 @@ doi:10.1007/s00158-011-0666-3.
 	Annote = {10.1007/s00158-011-0666-3}}
 ```
 
-License
--------
-
+## License
 Copyright 2019 MDO Lab. See the LICENSE file for details.

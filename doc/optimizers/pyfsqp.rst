@@ -9,6 +9,8 @@ of handling multiple competing linear and nonlinear objective
 functions (minimax), linear and nonlinear inequality constraints, as
 well as linear and nonlinear equality constraints
 
+.. warning:: FSQP build fails, and is therefore deprecated.
+
 API
 ---
 
