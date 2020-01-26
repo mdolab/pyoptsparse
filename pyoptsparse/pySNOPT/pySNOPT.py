@@ -187,6 +187,7 @@ class SNOPT(Optimizer):
         53 : 'the QP Hessian is indefinite',
         54 : 'incorrect second derivatives',
         55 : 'incorrect derivatives',
+        56 : 'irregular or badly scaled problem functions',
         60 : 'undefined user-supplied functions',
         61 : 'undefined function at the first feasible point',
         62 : 'undefined function at the initial point',
@@ -463,7 +464,12 @@ class SNOPT(Optimizer):
             # Setup argument list values
             start = numpy.array(self.options['Start'][1])
             ObjAdd = numpy.array([0.], numpy.float)
-            ProbNm = numpy.array(self.optProb.name)
+            ProbNm = numpy.array(self.optProb.name,'c')
+            cdummy = -1111111 # this is a magic variable defined in SNOPT for undefined strings
+            cw[51,:] = cdummy # we set these to cdummy so that a placeholder is used in printout
+            cw[52,:] = cdummy
+            cw[53,:] = cdummy
+            cw[54,:] = cdummy
             xs = numpy.concatenate((xs, numpy.zeros(ncon, numpy.float)))
             bl = numpy.concatenate((blx, blc))
             bu = numpy.concatenate((bux, buc))
@@ -518,9 +524,9 @@ class SNOPT(Optimizer):
             sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff, xs)
+            sol = self._createSolution(optTime, sol_inform, ff, xs[:nvar],
+                                       multipliers=pi)
 
-            sol.pi = pi # store the lagrange multipliers in the solution
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
@@ -543,20 +549,33 @@ class SNOPT(Optimizer):
         All we do here is call the generic masterFunc in the baseclass
         which will take care of everything else.
         """
+<<<<<<< HEAD
         fail = False
+=======
+        # nState >=2 means this is the final call which is redundant
+        # here we just return without doing anything since we don't
+        # need to do any cleanup or anything
+        if nState >= 2:
+            return
+
+        fail = 0
+        self.iu0 = iu[0]
+>>>>>>> master
         if mode == 0 or mode == 2:
             fobj, fcon, fail = self._masterFunc(x, ['fobj', 'fcon'])
-        if not fail:
+        if fail == 0:
             if mode == 1:
                 if self.getOption('Derivative level') != 0:
                     gobj, gcon, fail = self._masterFunc(x, ['gobj', 'gcon'])
             if mode == 2:
                 if self.getOption('Derivative level') != 0:
                     gobj, gcon, fail2 = self._masterFunc(x, ['gobj', 'gcon'])
-                    fail = fail or fail2
+                    fail = max(fail, fail2)
 
-        if fail:
+        if fail == 1:
             mode = -1
+        elif fail == 2:
+            mode = -2
 
         # Flush the files to the buffer for all the people who like to
         # monitor the residual

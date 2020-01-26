@@ -30,16 +30,15 @@ try:
 except ImportError:
     try:
         from ordereddict import OrderedDict
-    except ImportError:
-        print('Could not find any OrderedDict class. For 2.6 and earlier, \
+    except:
+        raise ImportError('Could not find any OrderedDict class. For 2.6 and earlier, \
 use:\n pip install ordereddict')
 
 try:
     import six
     from six import iteritems, iterkeys, next
-except ImportError:
-    six = None
-    print ('Could not import \'six\' OpenMDAO type tuple return not available.')
+except:
+    raise ImportError('Could not import \'six\'. To install, use\n pip install six')
 
 from .sqlitedict.sqlitedict import SqliteDict
 
@@ -1216,7 +1215,8 @@ class Optimization(object):
             else:
                 return fcon
 
-    def deProcessConstraints(self, fcon_in, scaled=True, dtype='d', natural=False):
+    def deProcessConstraints(self, fcon_in, scaled=True, dtype='d',
+                             natural=False, multipliers=False):
         """
         **This function should not need to be called by the user**
 
@@ -1240,19 +1240,33 @@ class Optimization(object):
             Flag to specify if the input data is in the
             natural ordering. This is only used when computing
             gradient automatically with FD/CS.
+
+        multipliers : bool
+            Flag that indicates whether this deprocessing is for the
+            multipliers or the constraint values. In the case of multipliers,
+            no constraint offset should be applied.
             """
 
         if self.dummyConstraint:
             return {'dummy':0}
 
+        if not hasattr(self, 'jacIndicesInv'):
+            self.jacIndicesInv = numpy.argsort(self.jacIndices)
+
+        # Unscale the nonlinear constraints
         if not natural:
             if self.nCon > 0:
-                fcon_in += self.offset
+                m = len(self.jacIndices)
+                # Apply the offset (if this is for constraint values)
+                if not multipliers:
+                    fcon_in[:m] += self.offset
+
                 # Since self.fact elements are unit magnitude and the
                 # values are either 1 or -1...
-                fcon_in = self.fact * fcon_in
+                fcon_in[:m] = self.fact * fcon_in[:m]
+
                 # Undo the ordering
-                fcon_in = fcon_in[self.jacIndicesInv]
+                fcon_in[:m] = fcon_in[self.jacIndicesInv]
 
         # Perform constraint scaling
         if scaled:
@@ -1260,7 +1274,6 @@ class Optimization(object):
 
         # We REQUIRE that fcon_in is an array:
         fcon = {}
-        index = 0
         for iCon in self.constraints:
             con = self.constraints[iCon]
             fcon[iCon] = fcon_in[..., con.rs:con.re]
@@ -1311,12 +1324,8 @@ class Optimization(object):
         gobj = numpy.zeros((nobj, self.ndvs))
 
         cond = False
-        if six:
-            # this version is required for python 3 compatibility
-            cond = isinstance(next(iterkeys(funcsSens)), str)
-        else:
-            # fallback if six is not available
-            cond = isinstance(funcsSens.keys()[0], str)
+        # this version is required for python 3 compatibility
+        cond = isinstance(next(iterkeys(funcsSens)), str)
 
         if cond:
             iObj = 0
@@ -1593,29 +1602,29 @@ class Optimization(object):
 
         if len(self.constraints) > 0:
 
-            try: 
-                pi = self.pi 
-                pi_label = 'Pi'
-            except AttributeError: 
-                # the optimizer did not set the lagrange multipliers so set them to something obviously wrong 
-                n_c_total = sum([self.constraints[c].ncon for c in self.constraints])
-                pi = [9e100,]*n_c_total
-                pi_label = 'Pi(N/A)'
+            try:
+                lambdaStar = self.lambdaStar
+                lambdaStar_label = 'Lagrange Multiplier'
+            except AttributeError:
+                # the optimizer did not set the lagrange multipliers so set them to something obviously wrong
+                lambdaStar = {}
+                for c in self.constraints:
+                    lambdaStar[c] = [9e100]*self.constraints[c].ncon
+                lambdaStar_label = 'Lagrange Multiplier (N/A)'
 
             text += '\n   Constraints (i - inequality, e - equality)\n'
             # Find the longest name in the constraints
             num_c = max([len(self.constraints[i].name) for i in self.constraints])
-            fmt = '    {0:>7s}  {1:{width}s} {2:>4s} {3:>14}  {4:>14}  {5:>14}  {6:>8s}  {7:>8s}\n'
-            text += fmt.format('Index', 'Name', 'Type', 'Lower', 'Value', 'Upper', 'Status', pi_label, width=num_c)
+            fmt = '    {0:>7s}  {1:{width}s} {2:>4s} {3:>14}  {4:>14}  {5:>14}  {6:>8s}  {7:>14s}\n'
+            text += fmt.format('Index', 'Name', 'Type', 'Lower', 'Value', 'Upper', 'Status', lambdaStar_label, width=num_c)
             fmt = '    {0:7d}  {1:{width}s} {2:>4s} {3:>14.6E}  {4:>14.6E}  {5:>14.6E}  {6:>8s}  {7:>14.5E}\n'
             idx = 0
-            for iCon in self.constraints:
-                c = self.constraints[iCon]
+            for con_name in self.constraints:
+                c = self.constraints[con_name]
                 for j in range(c.ncon):
                     lower = c.lower[j] if c.lower[j] is not None else -1.0E20
                     upper = c.upper[j] if c.upper[j] is not None else 1.0E20
                     value = c.value[j]
-                    lagrange_multiplier = pi[j]
                     status = ''
                     typ = 'e' if j in c.equalityConstraints['ind'] else 'i'
                     if typ == 'e':
@@ -1642,7 +1651,8 @@ class Optimization(object):
                             # Active upper bound
                             status += 'u'
 
-                    text += fmt.format(idx, c.name, typ, lower, value, upper, status, pi[idx], width=num_c)
+                    text += fmt.format(idx, c.name, typ, lower, value, upper,
+                        status, lambdaStar[con_name][j], width=num_c)
                     idx += 1
 
         return text

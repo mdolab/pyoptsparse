@@ -41,9 +41,9 @@ where:
 
  * ``funcs`` is the dictionary of constraints and objective value(s)
 
- * ``fail`` is a Boolean. False for successful evaluation and True for unsuccessful
+ * ``fail`` can be a Boolean or an int. False (or 0) for successful evaluation and True (or 1) for unsuccessful. Can also be 2 when using SNOPT and requesting a clean termination of the run.
 
-If the Optimization problem is unconstrained, ``funcs`` will contain only the objective key(s). 
+If the Optimization problem is unconstrained, ``funcs`` will contain only the objective key(s).
 
 Design Variables
 ++++++++++++++++
@@ -64,7 +64,7 @@ non-zero initial value::
   >>> optProb.addVar('var_name',lower=-10, upper=5, value=-2)
 
 The ``lower`` or ``upper`` keywords may be specified as ``None`` to
-signify there is no bound on the variable. 
+signify there is no bound on the variable.
 
 Finally, an additional keyword argument ``scale`` can be specified
 which will perform an internal design variable scaling. The ``scale``
@@ -75,7 +75,7 @@ keyword will result in the following::
 The purpose of the scale factor is ensure that design variables of
 widely different magnitudes can be used in the same optimization. Is
 it desirable to have the magnitude of all variables within an order of
-magnitude or two of each other. 
+magnitude or two of each other.
 
 The ``addVarGroup`` call is similar to ``addVar`` except that it adds
 a group of 1 or more variables. These variables are then returned as a
@@ -83,7 +83,7 @@ numpy array within the x-dictionary. For example, to add 10 variables
 with no lower bound, and a scale factor of 0.1::
 
   >>> optProb.addVarGroup('con_group', 10, upper=2.5, scale=0.1)
-  
+
 
 Constraints
 +++++++++++
@@ -113,14 +113,14 @@ will use the scaling factor to produce the following constraint::
   con_optimizer = con_user * scale
 
 In the example above, the constraint values are divided by 10000,
-which results in a upper bound (that the optimizer sees) of 1.0. 
+which results in a upper bound (that the optimizer sees) of 1.0.
 
 Constraints may also be flagged as liner using the ``linear=True``
 keyword option. Some optimizers can perform special treatment on
 linear constraint, often ensuring that they are always satisfied
 exactly on every function call (SNOPT for example). Linear constraints
 also require the use of the ``wrt`` and ``jac`` keyword
-arguments. These are explained below. 
+arguments. These are explained below.
 
 One of the major goals of ``pyOptSparse`` is to enable the use of
 sparse constraint jacobians. (Hence the 'Sparse` in the name!).
@@ -134,7 +134,7 @@ representing the constraint jacobian, a ``dictionary of keys``
 approach is used which allows incrementally specifying parts of the
 constraint jacobain. Consider the optimization problem given below::
 
-              varA (3)   varB (1)   varC (3)  
+              varA (3)   varB (1)   varC (3)
             +--------------------------------+
    conA (2) |          |     X    |     X    |
             ----------------------------------
@@ -162,7 +162,7 @@ that generates the  hypothetical optimization problem is as follows::
 
 Note that the order of the ``wrt`` (which stands for with-respect-to)
 is not significant. Furthermore, if the ``wrt`` argument is omitted
-altogether, ``pyOptSparse`` assumes that the constraint is dense. 
+altogether, ``pyOptSparse`` assumes that the constraint is dense.
 
 Using the ``wrt`` keyword allows the user to determine the overall
 sparsity structure of the constraint jacobian. However, we have
@@ -187,18 +187,18 @@ have then provided this constraint jacobian using the ``jac=`` keyword
 argument. This argument is a dictionary, and the keys must match the
 design variable sets given in the ``wrt`` to keyword. Essentially what
 we have done is specified the which blocks of the constraint rows are
-non-zero, and provided the sparsity structure of ones that are sparse. 
+non-zero, and provided the sparsity structure of ones that are sparse.
 
 For linear constraints the values in ``jac`` are meaningful: They must
 be the actual linear constraint jacobian values (which do not
 change). For non-linear constraints, on the sparsity structure
 (non-zero pattern) is significant. The values themselves will be
-determined by a call the sens() function. 
+determined by a call the sens() function.
 
 Also note, that the ``wrt`` and ``jac`` keyword arguments are only
 supported when user-supplied sensitivity is used. If one used the
 automatic gradient in ``pyOptSparse`` the constraint jacobian will
-necessarily be dense. 
+necessarily be dense.
 
 Objectives
 ++++++++++
@@ -212,4 +212,4 @@ What this does is tell ``pyOptSparse`` that the key ``obj`` in the
 function returns will be taken as the objective. For optimizers that
 can do multi-objective optimization, (NSGA2 for example) multiple
 objectives can be added. Optimizers that can only handle one objective
-enforce that only a single objective is added to the optimization description. 
+enforce that only a single objective is added to the optimization description.

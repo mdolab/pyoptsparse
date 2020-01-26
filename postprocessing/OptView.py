@@ -4,7 +4,7 @@ Provides interactive visualization of optimization results created by
 pyOptSparse. Figures produced here can be saved as images or pickled
 for future customization.
 
-John Jasa 2015-2017
+John Jasa 2015-2019
 
 """
 
@@ -50,8 +50,10 @@ try:
 except:
     from pyoptsparse import SqliteDict
 import traceback
+from OptView_baseclass import OVBaseClass
 
-class Display(object):
+
+class Display(OVBaseClass):
 
     """
     Container for display parameters, properties, and objects.
@@ -105,6 +107,7 @@ class Display(object):
         # Actually setup and run the GUI
         self.OptimizationHistory()
 
+<<<<<<< HEAD
     def OptimizationHistory(self):
         """
         Reads in database history file and stores contents.
@@ -404,6 +407,8 @@ class Display(object):
                         except KeyError:
                             pass
 
+=======
+>>>>>>> master
     def quit(self):
         """
         Destroy GUI window cleanly if quit button pressed.
@@ -428,7 +433,7 @@ class Display(object):
         Display warning message on canvas as necessary.
         """
         a = plt.gca()
-        a.text(0.05, 1.04,
+        a.text(0.05, 0.9,
             "Warning: " + string,
             fontsize=20,
             transform=a.transAxes)
@@ -439,7 +444,7 @@ class Display(object):
         Display warning message on canvas as necessary.
         """
         a = plt.gca()
-        a.text(0.05, 1.04,
+        a.text(0.05, .5,
             string,
             fontsize=20,
             transform=a.transAxes)
@@ -462,7 +467,7 @@ class Display(object):
         else:
             lower = self.bounds[val]['lower']
             upper = self.bounds[val]['upper']
-
+            
         lower = list(lower)
         upper = list(upper)
 

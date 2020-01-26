@@ -229,8 +229,8 @@ class NLPQLP(Optimizer):
             # xs, ff, and gg have to have an extra dimension
             # associated with them for the NP. We will do this
             # correctly even though np is hard-coded to 1. 
-            xs = numpy.array([xs]).T
-            f = numpy.array([ff])
+            xs = numpy.array(xs).T
+            f = numpy.array(ff)
             g = numpy.zeros((mmax, np))
                 
             df = numpy.zeros(nmax)

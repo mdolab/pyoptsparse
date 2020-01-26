@@ -46,9 +46,16 @@ def configuration(parent_package='', top_path=None):
 
 if __name__ == '__main__':
 
+    import re
+
+    __version__ = re.findall(
+        r"""__version__ = ["']+([0-9\.]*)["']+""",
+        open('pyoptsparse/__init__.py').read(),
+    )[0]
+
     setup(
         name             = 'pyoptsparse',
-        version          = '1.0.0',
+        version          = __version__,
         author           = 'Dr. Gaetan Kenway',
         author_email     = 'gaetank@gmail.com',
         maintainer       = 'Dr. Gaetan Kenway',
