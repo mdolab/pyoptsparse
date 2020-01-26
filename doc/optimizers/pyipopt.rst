@@ -19,7 +19,7 @@ Install instructions for ``pyIPOPT``.
 
    and run::
 
-      sh ./get.Blas
+     sh ./get.Blas
 
    This will download a blas copy and ``Ipopt`` will use that.
 
@@ -29,19 +29,19 @@ Install instructions for ``pyIPOPT``.
 
    and run::
 
-      sh ./get.Lapack
+     sh ./get.Lapack
 
-#. Run in the root directory
-   ::
+#. Run in the root directory::
+
      $ ./configure --disable-linear-solver-loader
 
-#. Now make
-   ::
+#. Now make::
+
      $ make install
 
 #. You must add the ``lib`` directory ``Ipopt`` to your
-   ``LD_LIBRARY_PATH`` variable for things to work right
-   ::
+``LD_LIBRARY_PATH`` variable for things to work right::
+
      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/user/hg/pyoptsparse/pyoptsparse/pyIPOPT/Ipopt/lib
 
 #. Now the pyOptSparse builder (run from the root directory) should take care of the rest. 
