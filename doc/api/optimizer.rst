@@ -8,5 +8,4 @@ Optimzer
 .. autoclass:: Optimizer
    :members:
 
-.. automodule:: pyoptsparse.pyOpt_optimizer
-   :members: OPT
+.. autofunction:: pyoptsparse.pyOpt_optimizer.OPT
