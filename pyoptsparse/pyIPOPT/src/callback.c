@@ -41,10 +41,9 @@ void logger(const char *fmt, ...)
 	if (user_log_level == VERBOSE) {
 		va_list ap;
 		va_start(ap, fmt);
-		vprintf(fmt, ap);
+		PySys_WriteStdout(fmt, ap);
 		va_end(ap);
-		printf("\n");
-		fflush(stdout);
+		PySys_WriteStdout("\n");
 	}
 }
 
@@ -56,7 +55,7 @@ Bool eval_intermediate_callback(Index alg_mod,	/* 0 is regular, 1 is resto */
 				Number alpha_du, Number alpha_pr,
 				Index ls_trials, UserDataPtr data)
 {
-	logger("[Callback:E]intermediate_callback");
+	//logger("[Callback:E]intermediate_callback");
 
 	DispatchData *myowndata = (DispatchData *) data;
 	UserDataPtr user_data = (UserDataPtr) myowndata->userdata;
@@ -113,19 +112,19 @@ Bool eval_intermediate_callback(Index alg_mod,	/* 0 is regular, 1 is resto */
 	if (!result)
 		PyErr_Print();
 
-	result_as_long = PyInt_AsLong(result);
+	result_as_long = PyLong_AsLong(result);
 	result_as_bool = (Bool) result_as_long;
 
 	Py_DECREF(result);
 	Py_CLEAR(arglist);
-	logger("[Callback:R] intermediate_callback");
+	//logger("[Callback:R] intermediate_callback");
 	return result_as_bool;
 }
 
 Bool
 eval_f(Index n, Number * x, Bool new_x, Number * obj_value, UserDataPtr data)
 {
-	logger("[Callback:E] eval_f");
+	//logger("[Callback:E] eval_f");
 
 	npy_intp dims[1];
 	dims[0] = n;
@@ -188,14 +187,14 @@ eval_f(Index n, Number * x, Bool new_x, Number * obj_value, UserDataPtr data)
 	Py_DECREF(result);
 	Py_DECREF(arrayx);
 	Py_CLEAR(arglist);
-	logger("[Callback:R] eval_f");
+	//logger("[Callback:R] eval_f");
 	return TRUE;
 }
 
 Bool
 eval_grad_f(Index n, Number * x, Bool new_x, Number * grad_f, UserDataPtr data)
 {
-	logger("[Callback:E] eval_grad_f");
+	//logger("[Callback:E] eval_grad_f");
 
 	DispatchData *myowndata = (DispatchData *) data;
 	UserDataPtr user_data = (UserDataPtr) myowndata->userdata;
@@ -263,7 +262,7 @@ eval_grad_f(Index n, Number * x, Bool new_x, Number * grad_f, UserDataPtr data)
 	Py_DECREF(result);
 	Py_CLEAR(arrayx);
 	Py_CLEAR(arglist);
-	logger("[Callback:R] eval_grad_f");
+	//logger("[Callback:R] eval_grad_f");
 	return TRUE;
 }
 
@@ -271,7 +270,7 @@ Bool
 eval_g(Index n, Number * x, Bool new_x, Index m, Number * g, UserDataPtr data)
 {
 
-	logger("[Callback:E] eval_g");
+	//logger("[Callback:E] eval_g");
 
 	DispatchData *myowndata = (DispatchData *) data;
 	UserDataPtr user_data = (UserDataPtr) myowndata->userdata;
@@ -341,7 +340,7 @@ eval_g(Index n, Number * x, Bool new_x, Index m, Number * g, UserDataPtr data)
 	Py_DECREF(result);
 	Py_CLEAR(arrayx);
 	Py_CLEAR(arglist);
-	logger("[Callback:R] eval_g");
+	//logger("[Callback:R] eval_g");
 	return TRUE;
 }
 
@@ -351,7 +350,7 @@ eval_jac_g(Index n, Number * x, Bool new_x,
 	   Index * iRow, Index * jCol, Number * values, UserDataPtr data)
 {
 
-	logger("[Callback:E] eval_jac_g");
+	//logger("[Callback:E] eval_jac_g");
 
 	DispatchData *myowndata = (DispatchData *) data;
 	UserDataPtr user_data = (UserDataPtr) myowndata->userdata;
@@ -419,7 +418,7 @@ eval_jac_g(Index n, Number * x, Bool new_x,
 		Py_CLEAR(arrayx);
 		Py_DECREF(result);
 		Py_CLEAR(arglist);
-		logger("[Callback:R] eval_jac_g(1)");
+		//logger("[Callback:R] eval_jac_g(1)");
 	} else {
 		PyObject *arrayx =
 		    PyArray_SimpleNewFromData(1, dims, PyArray_DOUBLE,
@@ -478,9 +477,9 @@ eval_jac_g(Index n, Number * x, Bool new_x,
 		Py_DECREF(result);
 		Py_CLEAR(arrayx);
 		Py_CLEAR(arglist);
-		logger("[Callback:R] eval_jac_g(2)");
+		//logger("[Callback:R] eval_jac_g(2)");
 	}
-	logger("[Callback:R] eval_jac_g");
+	//logger("[Callback:R] eval_jac_g");
 	return TRUE;
 }
 
@@ -490,7 +489,7 @@ eval_h(Index n, Number * x, Bool new_x, Number obj_factor,
        Index nele_hess, Index * iRow, Index * jCol,
        Number * values, UserDataPtr data)
 {
-	logger("[Callback:E] eval_h");
+	//logger("[Callback:E] eval_h");
 
 	DispatchData *myowndata = (DispatchData *) data;
 	UserDataPtr user_data = (UserDataPtr) myowndata->userdata;
@@ -504,7 +503,7 @@ eval_h(Index n, Number * x, Bool new_x, Number obj_factor,
 		return FALSE;
 	}
 	if (values == NULL) {
-    logger("[Callback:E] eval_h (1a)");
+    //logger("[Callback:E] eval_h (1a)");
 		PyObject *newx = Py_True;
 		PyObject *objfactor = Py_BuildValue("d", obj_factor);
 		PyObject *lagrange = Py_True;
@@ -552,7 +551,7 @@ eval_h(Index n, Number * x, Bool new_x, Number obj_factor,
       return FALSE;
     }
 
-    logger("[Callback:E] eval_h (tuple is the right length)");
+    //logger("[Callback:E] eval_h (tuple is the right length)");
 
 		PyArrayObject *row = (PyArrayObject *) PyTuple_GetItem(result, 0);
 		PyArrayObject *col = (PyArrayObject *) PyTuple_GetItem(result, 1);
@@ -569,14 +568,14 @@ eval_h(Index n, Number * x, Bool new_x, Number obj_factor,
 			 */
 		}
 
-    logger("[Callback:E] eval_h (clearing stuff now)");
+    //logger("[Callback:E] eval_h (clearing stuff now)");
 
 		Py_DECREF(objfactor);
 		Py_DECREF(result);
 		Py_CLEAR(arglist);
-		logger("[Callback:R] eval_h (1b)");
+		//logger("[Callback:R] eval_h (1b)");
 	} else {
-		logger("[Callback:R] eval_h (2a)");
+		//logger("[Callback:R] eval_h (2a)");
 
 		PyObject *objfactor = Py_BuildValue("d", obj_factor);
 
@@ -635,14 +634,13 @@ eval_h(Index n, Number * x, Bool new_x, Number obj_factor,
 		double *tempdata = (double *)result->data;
 		for (i = 0; i < nele_hess; i++) {
 			values[i] = tempdata[i];
-      logger("PyDebug %lf", values[i]);
 		}
 		Py_CLEAR(arrayx);
 		Py_CLEAR(lagrangex);
 		Py_CLEAR(objfactor);
 		Py_DECREF(result);
 		Py_CLEAR(arglist);
-		logger("[Callback:R] eval_h (2b)");
+		//logger("[Callback:R] eval_h (2b)");
 	}
 	return TRUE;
 }

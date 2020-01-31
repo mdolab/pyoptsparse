@@ -44,7 +44,7 @@ class TestHS71(unittest.TestCase):
         optProb.addVarGroup('xvars', 4, lower=1, upper=5, value=x0)
 
         # Constraints
-        optProb.addConGroup('con', 2, lower=[25, 40], upper=[1e19, 40])
+        optProb.addConGroup('con', 2, lower=[25, 40], upper=[None, 40])
 
         # Objective
         optProb.addObj('obj')
@@ -65,6 +65,10 @@ class TestHS71(unittest.TestCase):
         self.assertAlmostEqual(sol.variables['xvars'][2].value, 3.82115, places=places)
         self.assertAlmostEqual(sol.variables['xvars'][3].value, 1.37941, places=places)
 
+        if hasattr(sol, 'lambdaStar'):
+            self.assertAlmostEqual(sol.lambdaStar['con'][0], 0.55229366, places=places)
+            self.assertAlmostEqual(sol.lambdaStar['con'][1], -0.16146857, places=places)
+
     def test_snopt(self):
         self.optimize('snopt')
 
@@ -73,9 +77,6 @@ class TestHS71(unittest.TestCase):
 
     def test_nlpqlp(self):
         self.optimize('nlpqlp')
-
-    def test_fsqp(self):
-        self.optimize('fsqp')
 
     def test_ipopt(self):
         self.optimize('ipopt')
@@ -87,6 +88,9 @@ class TestHS71(unittest.TestCase):
 
     def test_psqp(self):
         self.optimize('psqp')
+
+    def test_paropt(self):
+        self.optimize('paropt')
 
 if __name__ == "__main__":
     unittest.main()
