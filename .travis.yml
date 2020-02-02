@@ -17,7 +17,11 @@ env:
     - DOCKER_TAG=current
 
 before_install:
-  - echo $TRAVIS_PULL_REQUEST
+  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+      echo "YES"
+    else
+      echo "NO"
+    fi
   # extra step for login to Docker using Travis encrypted credentials
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker pull mdolab/opt:$DOCKER_TAG
