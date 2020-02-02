@@ -20,7 +20,8 @@ before_install:
   - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
       export DOCKER_REPO=public
     else
-      export DOCKER_REPO=opt
+      export DOCKER_REPO=opt;
+      echo "YES"
     fi
   # extra step for login to Docker using Travis encrypted credentials
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
