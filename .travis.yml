@@ -8,7 +8,7 @@ services:
 env:
   global:
     - REPO_NAME=pyoptsparse
-    - DOCKER_WORKING_DIR=/home/mdolabuser/repos/$REPO_NAME
+    - DOCKER_WORKING_DIR=/home/mdolabuser/packages/$REPO_NAME
     - DOCKER_MOUNT_DIR=/home/mdolabuser/travis/$REPO_NAME
     - SNOPT_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pySNOPT/source
     - NLPQLP_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pyNLPQLP/source
