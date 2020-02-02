@@ -24,3 +24,5 @@ from .pyALPSO.pyALPSO import ALPSO
 from .pyParOpt import ParOpt
 # from .pyNOMAD.pyNOMAD import NOMAD
 from .sqlitedict.sqlitedict import SqliteDict
+
+__version__ = '1.1.0'

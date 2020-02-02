@@ -316,7 +316,7 @@ class Optimizer(object):
         xScaled = self.optProb.invXScale * x + self.optProb.xOffset
         xuser = self.optProb.processX(xScaled)
 
-        masterFail = False
+        masterFail = 0
 
         # Set basic parameters in history
         hist = {'xuser': xuser}
@@ -337,7 +337,8 @@ class Optimizer(object):
                                 "return \"funcs\" *OR* \"funcs, fail\"")
                 else:
                     funcs = args
-                    fail = False
+                    fail = 0
+
                 self.userObjTime += time.time()-timeA
                 if self.optProb.bulk is None:
                     self.userObjCalls += 1
@@ -359,7 +360,7 @@ class Optimizer(object):
                 self.cache['fcon'] = copy.deepcopy(fcon)
 
                 # Update fail flag
-                masterFail = masterFail or fail
+                masterFail = max(masterFail, fail)
 
             # fobj is now in cache
             returns.append(self.cache['fobj'])
@@ -379,7 +380,7 @@ class Optimizer(object):
                                 "return \"funcs\" *OR* \"funcs, fail\"")
                 else:
                     funcs = args
-                    fail = False
+                    fail = 0
 
                 self.userObjTime += time.time()-timeA
                 self.userObjCalls += 1
@@ -399,7 +400,7 @@ class Optimizer(object):
                 self.cache['fcon'] = copy.deepcopy(fcon)
 
                 # Update fail flag
-                masterFail = masterFail or fail
+                masterFail = max(masterFail, fail)
 
             # fcon is now in cache
             returns.append(self.cache['fcon'])
@@ -430,7 +431,7 @@ class Optimizer(object):
                                 "return \"funcsSens\" *OR* \"funcsSens, fail\"")
                 else:
                     funcsSens = args
-                    fail = False
+                    fail = 0
 
                 self.userSensTime += time.time()-timeA
                 self.userSensCalls += 1
@@ -450,7 +451,7 @@ class Optimizer(object):
                 self.cache['gcon'] = gcon.copy()
 
                 # Update fail flag
-                masterFail = masterFail or fail
+                masterFail = max(masterFail, fail)
 
             # gobj is now in the cache
             returns.append(self.cache['gobj'])
@@ -482,7 +483,7 @@ class Optimizer(object):
                                 "return \"funcsSens\" *OR* \"funcsSens, fail\"")
                 else:
                     funcsSens = args
-                    fail = False
+                    fail = 0
 
                 self.userSensTime += time.time()-timeA
                 self.userSensCalls += 1
@@ -501,7 +502,7 @@ class Optimizer(object):
                 self.cache['gcon'] = gcon.copy()
 
                 # Update fail flag
-                masterFail = masterFail or fail
+                masterFail = max(masterFail, fail)
 
             # gcon is now in the cache
             returns.append(self.cache['gcon'])
@@ -742,7 +743,11 @@ class Optimizer(object):
 
         if multipliers is not None:
             # Scale the multipliers (since the constraints may be scaled)
-            scaled_multipliers = multipliers/self.optProb.conScale
+            if self.optProb.conScale is not None:
+                scaled_multipliers = multipliers/self.optProb.conScale
+            else:
+                scaled_multipliers = multipliers
+
             sol.lambdaStar = self.optProb.deProcessConstraints(scaled_multipliers,
                                                                scaled=False, multipliers=True)
 
