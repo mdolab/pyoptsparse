@@ -14,19 +14,22 @@ env:
     - NLPQLP_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pyNLPQLP/source
     - IPOPT_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pyIPOPT/Ipopt
   jobs:
-    - DOCKER_TAG=current
+    include:
+      - if: branch = master
+        envs:
+          - DOCKER_REPO=opt
+          - DOCKER_TAG=current
+      - if: NOT (branch = master)
+        envs:
+          - DOCKER_REPO=public
+          - DOCKER_TAG=current
 
-before_install:
-  # This is PR
-  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-      export DOCKER_REPO=public
-      docker pull mdolab/$DOCKER_REPO:$DOCKER_TAG
-    else
-      # This is merge to master, requires login to Docker using Travis encrypted credentials
-      export DOCKER_REPO=opt
+before_install:  
+  - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+      # extra step for login to Docker using Travis encrypted credentials
       echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-      docker pull mdolab/$DOCKER_REPO:$DOCKER_TAG
     fi
+  - docker pull mdolab/$DOCKER_REPO:$DOCKER_TAG
   # run Docker, key is we mount the current Travis directory into Docker to access content of repo
   - docker run -t -d 
         --name app
