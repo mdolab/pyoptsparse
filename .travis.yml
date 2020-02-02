@@ -14,18 +14,13 @@ env:
     - NLPQLP_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pyNLPQLP/source
     - IPOPT_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pyIPOPT/Ipopt
   jobs:
-    include:
-      - if: branch = master
-        envs:
-          - DOCKER_REPO=opt
-          - DOCKER_TAG=current
-      - if: NOT (branch = master)
-        envs:
-          - DOCKER_REPO=public
-          - DOCKER_TAG=current
+    - DOCKER_TAG=current
 
 before_install:  
-  - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+      export DOCKER_REPO=public
+    else
+      export DOCKER_REPO=opt
       # extra step for login to Docker using Travis encrypted credentials
       echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
     fi
