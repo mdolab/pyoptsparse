@@ -20,8 +20,7 @@ before_install:
   - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
       export DOCKER_REPO=public
     else
-      export DOCKER_REPO=opt;
-      # extra step for login to Docker using Travis encrypted credentials
+      export DOCKER_REPO=opt
       echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
     fi
   - docker pull mdolab/$DOCKER_REPO:$DOCKER_TAG
