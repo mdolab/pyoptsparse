@@ -17,14 +17,21 @@ env:
     - DOCKER_TAG=current
 
 before_install:
-  # login to Docker using Travis encrypted credentials
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - docker pull mdolab/opt:$DOCKER_TAG
+  # This is PR
+  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+      export DOCKER_REPO=public
+      docker pull mdolab/$DOCKER_REPO:$DOCKER_TAG
+    else
+      # This is merge to master, requires login to Docker using Travis encrypted credentials
+      export DOCKER_REPO=opt
+      echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+      docker pull mdolab/$DOCKER_REPO:$DOCKER_TAG
+    fi
   # run Docker, key is we mount the current Travis directory into Docker to access content of repo
   - docker run -t -d 
         --name app
         --mount "type=bind,src=$(pwd),target=$DOCKER_MOUNT_DIR"
-        mdolab/opt:$DOCKER_TAG
+        mdolab/$DOCKER_REPO:$DOCKER_TAG
         /bin/bash
 
 install:
