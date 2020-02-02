@@ -17,16 +17,16 @@ env:
     - DOCKER_TAG=current
 
 before_install:  
-  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-      export DOCKER_REPO=public;
-    else
-      export DOCKER_REPO=opt;
-      # extra step for login to Docker using Travis encrypted credentials
-      echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin;
-    fi
-  - docker pull mdolab/$DOCKER_REPO:$DOCKER_TAG
-  # run Docker, key is we mount the current Travis directory into Docker to access content of repo
-  - docker run -t -d 
+- if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+    export DOCKER_REPO=public
+  else
+    export DOCKER_REPO=opt
+    # extra step for login to Docker using Travis encrypted credentials
+    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  fi
+- docker pull mdolab/$DOCKER_REPO:$DOCKER_TAG
+# run Docker, key is we mount the current Travis directory into Docker to access content of repo
+- docker run -t -d 
         --name app
         --mount "type=bind,src=$(pwd),target=$DOCKER_MOUNT_DIR"
         mdolab/$DOCKER_REPO:$DOCKER_TAG
