@@ -18,7 +18,7 @@ env:
 
 before_install:
   - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-      echo "YES"
+      export DOCKER_REPO=public
     else
       echo "NO"
     fi
