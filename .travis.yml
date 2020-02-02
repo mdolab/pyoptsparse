@@ -44,3 +44,8 @@ script:
 
 after_script:
   - docker rm -f app
+
+after_success:
+  - coveralls --rcfile=.coveragerc --output=coveralls.json;
+  - sed 's/\/home\/travis\/miniconda\/lib\/python'"$PY"'\/site-packages\///g' < coveralls.json > coveralls-upd.json;
+  - coveralls --upload=coveralls-upd.json;
