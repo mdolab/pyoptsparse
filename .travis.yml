@@ -18,10 +18,10 @@ env:
 
 before_install:
   - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-      export DOCKER_REPO=public
+      export DOCKER_REPO=public;
     else
-      export DOCKER_REPO=opt
-      echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+      export DOCKER_REPO=opt;
+      echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin;
     fi
   - docker pull mdolab/$DOCKER_REPO:$DOCKER_TAG
   # run Docker, key is we mount the current Travis directory into Docker to access content of repo
