@@ -25,7 +25,7 @@ before_install:
     fi
   - docker pull mdolab/$DOCKER_REPO:$DOCKER_TAG
   # run Docker, key is we mount the current Travis directory into Docker to access content of repo
-  - docker run -t -d 
+  - docker run -t -d --rm
         --name app
         --mount "type=bind,src=$(pwd),target=$DOCKER_MOUNT_DIR"
         mdolab/opt:$DOCKER_TAG
