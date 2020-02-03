@@ -1,5 +1,7 @@
 # pyOptSparse - PYthon OPTimization (Sparse) Framework
 
+[![Build Status](https://travis-ci.com/mdolab/pyoptsparse.svg?branch=master)](https://travis-ci.com/mdolab/pyoptsparse)
+
 pyOptsparse is an object-oriented framework for formulating and solving nonlinear constrained optimization problems in an efficient, reusable, and portable manner.
 It is a fork of pyOpt that uses sparse matrices throughout the code to more efficiently handle large-scale optimization problems.
 Many optimization techniques can be used in pyOptSparse, including both gradient-based and gradient-free methods.
