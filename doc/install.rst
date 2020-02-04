@@ -8,14 +8,22 @@ Requirements
 pyOpt has the following dependencies:
 
 * Python 2.7+ (Python 3.2+)
-* Numpy 1.0+
-* Swig 1.3+
-* c/FORTRAN compiler (compatible with f2py)
-* mpi4py
+* Numpy 1.16+
+* Scipy 1.3+
 * six 1.13
-* sqlitedict
+* sqlitedict 1.6.0
+* c/FORTRAN compiler (compatible with f2py)
 
 Please make sure these are installed and available for use.
+In order to use NSGA2 and NOMAD, swig (v1.3+) is also required.
+
+To facilitate the installation of Python dependencies, there is a file called ``requirements.txt`` which can be used together with ``pip``.
+Simply type
+
+.. code-block:: bash
+
+  pip install -r requirements.txt
+
 In the future, we hope to make the package pip-installable so that dependencies can be managed more easily.
 
 Notes:
