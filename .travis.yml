@@ -44,6 +44,6 @@ script:
   - docker exec -it app /bin/bash -c ". \$HOME/.bashrc_mdolab && cd $DOCKER_WORKING_DIR && testflo --pre_announce -v . --coverage --coverpkg pyoptsparse --cover-omit \*tests/\* --cover-omit \*docs/\*"
 
 after_success:
-  - docker exec -it app /bin/bash -c "pip install python-coveralls"
+  - docker exec -it app /bin/bash -c "pip install coveralls python-coveralls"
   - docker exec -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" -e TRAVIS_BRANCH="$TRAVIS_BRANCH" -it app /bin/bash -c 
     ". \$HOME/.bashrc_mdolab && cd $DOCKER_WORKING_DIR && coveralls"
