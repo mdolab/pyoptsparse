@@ -21,7 +21,6 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('pyALPSO')
 #    config.add_subpackage('pyNOMAD')
     config.add_subpackage('pyParOpt')
-    config.add_subpackage('sqlitedict')
     config.add_data_files('LICENSE')
     
     return config
