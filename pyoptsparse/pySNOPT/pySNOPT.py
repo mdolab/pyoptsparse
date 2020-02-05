@@ -156,6 +156,8 @@ class SNOPT(Optimizer):
         #SNOPT Miscellaneous Options
         'Debug level':[int,1], # (0 - Normal, 1 - for developers)
         'Timing level':[int,3], # (3 - print cpu times)
+        #pySNOPT Options
+        'Save major iteration variables':[list,['merit','feasibility','optimailty','penalty','Hessian']],
         }
         informs = {
         0 : 'finished successfully',
@@ -628,11 +630,20 @@ class SNOPT(Optimizer):
             'isMajor' : True,
             'nMajor' : nmajor,
             'nMinor' : nminor,
-            'merit' : fmerit,
-            'feasibility' : primalinf,
-            'optimality'  : dualinf,
-            'penalty' : penparm[2],
         }
+        for saveVar in self.getOption('Save major iteration variables'):
+            if saveVar == 'merit':
+                iterDict['merit'] = fmerit
+            elif saveVar == 'feasibility':
+                iterDict['feasibility'] = primalinf
+            elif saveVar == 'optimality':
+                iterDict['optimality'] = dualinf
+            elif saveVar == 'penalty':
+                penParam = self._getPenaltyParam(iw,rw)
+                iterDict['penalty'] = penParam
+            elif saveVar == 'Hessian':
+                H = self._getHessian(iw,rw)
+                iterDict['Hessian'] = H
         if self.storeHistory:
             currX = x[:n] # only the first n component is x, the rest are the slacks
             if nmajor == 0:
