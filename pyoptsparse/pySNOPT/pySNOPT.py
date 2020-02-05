@@ -598,11 +598,11 @@ class SNOPT(Optimizer):
         """
         lvlHes    = iw[72-1] # 0,1,2 => LM, FM, Exact Hessian
         if lvlHes != 1:
-            Error('Limited-memory Hessian not supported!')
+            print('pyOptSparse Error! Limited-memory Hessian not supported for history file!')
+            return None
         lU   = iw[391-1]-1       # U(lenU), BFGS Hessian H = U'U
         lenU = iw[392-1]
         Uvec = rw[lU:lU+lenU]
-        # nnH = int((-1+numpy.sqrt(1+8*lenU))/2) # can we access nnH from iw?
         nnH = iw[24-1]
         Umat = numpy.zeros((nnH,nnH))
         Umat[numpy.triu_indices(nnH)] = Uvec
