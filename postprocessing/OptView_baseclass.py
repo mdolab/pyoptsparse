@@ -44,10 +44,7 @@ try:
 except:
     pass
 import numpy as np
-try:
-    from sqlitedict import SqliteDict
-except:
-    from pyoptsparse import SqliteDict
+from sqlitedict import SqliteDict
 import traceback
 
 class OVBaseClass(object):

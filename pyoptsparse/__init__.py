@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from __future__ import absolute_import
-from .sqlitedict.sqlitedict import SqliteDict
 from .pyOpt_history import History
 from .pyOpt_variable import Variable
 from .pyOpt_gradient import Gradient
@@ -23,6 +22,5 @@ from .pyNLPY_AUGLAG.pyNLPY_AUGLAG import NLPY_AUGLAG
 from .pyALPSO.pyALPSO import ALPSO
 from .pyParOpt import ParOpt
 # from .pyNOMAD.pyNOMAD import NOMAD
-from .sqlitedict.sqlitedict import SqliteDict
 
 __version__ = '1.1.0'
