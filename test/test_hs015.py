@@ -23,6 +23,7 @@ class TestHS15(unittest.TestCase):
     ##
 
     def objfunc(self, xdict):
+        self.nf += 1
         x = xdict['xvars']
         funcs = {}
         funcs['obj'] = [100*(x[1] - x[0]**2)**2 + (1-x[0])**2]
@@ -34,6 +35,7 @@ class TestHS15(unittest.TestCase):
         return funcs, fail
 
     def sens(self, xdict, funcs):
+        self.ng += 1
         x = xdict['xvars']
         funcsSens = {}
         funcsSens['obj'] = {'xvars': [2*100*(x[1]-x[0]**2)*(-2*x[0]) - 2*(1-x[0]),
@@ -44,7 +46,9 @@ class TestHS15(unittest.TestCase):
 
         return funcsSens, fail
 
-    def optimize(self, optName, optOptions={}, storeHistory=False,places=5):
+    def optimize(self, optName, optOptions={}, storeHistory=False,places=5, hotStart=None):
+        self.nf = 0 # number of function evaluations
+        self.ng = 0 # number of gradient evaluations
         # Optimization Object
         optProb = Optimization('HS15 Constraint Problem', self.objfunc)
 
@@ -77,7 +81,7 @@ class TestHS15(unittest.TestCase):
         else:
             self.histFileName = None
 
-        sol = opt(optProb, sens=self.sens, storeHistory=self.histFileName)
+        sol = opt(optProb, sens=self.sens, storeHistory=self.histFileName, hotStart=hotStart)
 
         # Test printing solution to screen
         print(sol)
@@ -114,6 +118,17 @@ class TestHS15(unittest.TestCase):
         self.assertEqual(7,hist['19']['nMajor'])
         for var in store_vars:
             self.assertIn(var,hist['19'].keys())
+    
+    def test_snopt_hotstart(self):
+        # we first run one optimization to write out the history file
+        self.optimize('snopt',storeHistory=True)
+        # we should have called function and gradient 
+        self.assertGreater(self.nf,0)
+        self.assertGreater(self.ng,0)
+        self.optimize('snopt',storeHistory=False,hotStart=self.histFileName)
+        # now we should do the same optimization without calling them
+        self.assertEqual(self.nf,0)
+        self.assertEqual(self.ng,0)
 
     def test_slsqp(self):
         self.optimize('slsqp')
