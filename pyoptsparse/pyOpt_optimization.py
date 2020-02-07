@@ -1123,7 +1123,7 @@ class Optimization(object):
             if objKey in funcs:
                 if self.bulk is None:
                     try:
-                        f = numpy.asscalar(numpy.squeeze(funcs[objKey]))
+                        f = numpy.squeeze(funcs[objKey]).item()
                     except ValueError:
                         raise Error("The objective return value, '%s' must be a "
                                     "scalar!"% objKey)
