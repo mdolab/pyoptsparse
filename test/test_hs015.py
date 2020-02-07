@@ -73,11 +73,11 @@ class TestHS15(unittest.TestCase):
 
         # Solution
         if storeHistory:
-            histFileName = '%s_hs015_Hist.hst' % (optName.lower())
+            self.histFileName = '%s_hs015_Hist.hst' % (optName.lower())
         else:
-            histFileName = None
+            self.histFileName = None
 
-        sol = opt(optProb, sens=self.sens, storeHistory=histFileName)
+        sol = opt(optProb, sens=self.sens, storeHistory=self.histFileName)
 
         # Test printing solution to screen
         print(sol)
@@ -103,7 +103,11 @@ class TestHS15(unittest.TestCase):
         self.assertAlmostEqual(diff, 0.0, places=places)
 
     def test_snopt(self):
-        self.optimize('snopt')
+        self.optimize('snopt',storeHistory=True)
+        from sqlitedict import SqliteDict
+        hist = SqliteDict(self.histFileName)
+        self.assertIn('isMajor',hist['0'].keys())
+        self.assertEqual(7,hist['19']['nMajor'])
 
     def test_slsqp(self):
         self.optimize('slsqp')
