@@ -103,11 +103,17 @@ class TestHS15(unittest.TestCase):
         self.assertAlmostEqual(diff, 0.0, places=places)
 
     def test_snopt(self):
-        self.optimize('snopt',storeHistory=True)
+        store_vars = ['step','merit','feasibility','optimality','penalty','Hessian','condZHZ','slack','lambda']
+        optOptions = {
+            'Save major iteration variables': store_vars
+        }
+        self.optimize('snopt',optOptions=optOptions,storeHistory=True)
         from sqlitedict import SqliteDict
         hist = SqliteDict(self.histFileName)
         self.assertIn('isMajor',hist['0'].keys())
         self.assertEqual(7,hist['19']['nMajor'])
+        for var in store_vars:
+            self.assertIn(var,hist['19'].keys())
 
     def test_slsqp(self):
         self.optimize('slsqp')
