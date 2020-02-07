@@ -157,7 +157,7 @@ class SNOPT(Optimizer):
         'Debug level':[int,1], # (0 - Normal, 1 - for developers)
         'Timing level':[int,3], # (3 - print cpu times)
         #pySNOPT Options
-        'Save major iteration variables':[list,['merit','feasibility','optimailty','penalty','Hessian']],
+        'Save major iteration variables':[list,['step','merit','feasibility','optimality','penalty']], # 'Hessian', 'slack', 'lambda' and 'condZHZ' are also supported
         }
         informs = {
         0 : 'finished successfully',
@@ -633,17 +633,25 @@ class SNOPT(Optimizer):
         }
         for saveVar in self.getOption('Save major iteration variables'):
             if saveVar == 'merit':
-                iterDict['merit'] = fmerit
+                iterDict[saveVar] = fmerit
             elif saveVar == 'feasibility':
-                iterDict['feasibility'] = primalinf
+                iterDict[saveVar] = primalinf
             elif saveVar == 'optimality':
-                iterDict['optimality'] = dualinf
+                iterDict[saveVar] = dualinf
             elif saveVar == 'penalty':
                 penParam = self._getPenaltyParam(iw,rw)
-                iterDict['penalty'] = penParam
+                iterDict[saveVar] = penParam
             elif saveVar == 'Hessian':
                 H = self._getHessian(iw,rw)
-                iterDict['Hessian'] = H
+                iterDict[saveVar] = H
+            elif saveVar == 'step':
+                iterDict[saveVar] = step
+            elif saveVar == 'condZHZ':
+                iterDict[saveVar] = condzhz
+            elif saveVar == 'slack':
+                iterDict[saveVar] = x[n:]
+            elif saveVar == 'lambda':
+                iterDict[saveVar] = pi
         if self.storeHistory:
             currX = x[:n] # only the first n component is x, the rest are the slacks
             if nmajor == 0:
