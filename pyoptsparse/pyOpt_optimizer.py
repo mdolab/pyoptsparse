@@ -540,6 +540,10 @@ class Optimizer(object):
             if self.storeHistory:
                 self.hist.writeData('varInfo', varInfo)
                 self.hist.writeData('conInfo', conInfo)
+                # we also append some other info
+                from pyoptsparse import __version__
+                self.hist.writeData('version',__version__)
+                self.hist.writeData('optimizer',self.name)
 
         # Write history if necessary
         if (self.optProb.comm.rank == 0 and  writeHist and self.storeHistory):
