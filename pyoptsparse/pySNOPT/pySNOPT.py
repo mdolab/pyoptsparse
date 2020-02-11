@@ -558,7 +558,6 @@ class SNOPT(Optimizer):
             return
 
         fail = 0
-        self.iu0 = iu[0]
         if mode == 0 or mode == 2:
             fobj, fcon, fail = self._masterFunc(x, ['fobj', 'fcon'])
         if fail == 0:
