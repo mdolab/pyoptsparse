@@ -158,6 +158,8 @@ class SNOPT(Optimizer):
         'Timing level':[int,3], # (3 - print cpu times)
         #pySNOPT Options
         'Save major iteration variables':[list,['step','merit','feasibility','optimality','penalty']], # 'Hessian', 'slack', 'lambda' and 'condZHZ' are also supported
+        'User specified snSTOP':[bool,False], 
+        'snSTOP function handle':[type(lambda: None),lambda: None] # called every major iteration
         }
         informs = {
         0 : 'finished successfully',
@@ -660,7 +662,11 @@ class SNOPT(Optimizer):
                 callCounter = self.hist.getCallCounter(xScaled)
             if callCounter is not None:
                 self.hist.write(callCounter, iterDict)
-        iabort = 0
+        if self.getOption('User specified snSTOP'):
+            snstop_handle = self.getOption('snSTOP function handle')
+            iabort = snstop_handle(ktcond,mjrprtlvl,minimize,n,nncon,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,locj,indj,jcol,scales,bl,bu,fx,fcon,gcon,gobj,ycon,pi,rc,rg,x,cu,iu,ru,cw,iw,rw)
+        else:
+            iabort = 0
         return iabort
 
 
