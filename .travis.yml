@@ -39,6 +39,7 @@ install:
   - docker exec -it app /bin/bash -c "rm -rf $DOCKER_WORKING_DIR && cp -r $DOCKER_MOUNT_DIR $DOCKER_WORKING_DIR"
   # We also remove the python installation
   - docker exec -it app /bin/bash -c "rm -rf \$HOME/.local/lib/python2.7/site-packages/pyoptsparse*"
+  - docker exec -it app /bin/bash -c "rm -rf $DOCKER_WORKING_DIR/pyoptsparse/pySNOPT/snopt*.so"
   # Copy back the proprietary codes
   - docker exec -it app /bin/bash -c "cp -r \$HOME/NLPQLP/* $NLPQLP_DIR/ && cp -r \$HOME/SNOPT/* $SNOPT_DIR/ && cp -r \$HOME/IPOPT/ $IPOPT_DIR"
   # Build and install
