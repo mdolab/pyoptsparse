@@ -236,6 +236,7 @@ class Optimizer(object):
                     if validPoint:
                         if self.storeHistory:
                             # Just dump the (exact) dictionary back out:
+                            data['isMajor'] = False
                             self.hist.write(self.callCounter, data)
 
                         fail = data['fail']
