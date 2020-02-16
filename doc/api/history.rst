@@ -23,7 +23,7 @@ In this case, the history file would have the following layout::
     │   │   └── xvars
     │   ├── funcs
     │   │   ├── obj
-    │   │   ├── con
+    │   │   └── con
     │   ├── fail
     │   └── isMajor
     ├── 1
@@ -31,9 +31,9 @@ In this case, the history file would have the following layout::
     │   │   └── xvars
     │   ├── funcsSens
     │   │   ├── obj
-    │   │   │   ├── xvars
-    │   │   ├── con
-    │   │   │   ├── xvars
+    │   │   │   └── xvars
+    │   │   └── con
+    │   │       └── xvars
     │   ├── fail
     │   └── isMajor
     ├── last
