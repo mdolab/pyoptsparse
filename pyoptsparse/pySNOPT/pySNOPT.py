@@ -667,6 +667,9 @@ class SNOPT(Optimizer):
         if self.getOption('User specified snSTOP'):
             snstop_handle = self.getOption('snSTOP function handle')
             iabort = snstop_handle(ktcond,mjrprtlvl,minimize,n,nncon,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,locj,indj,jcol,scales,bl,bu,fx,fcon,gcon,gobj,ycon,pi,rc,rg,x,cu,iu,ru,cw,iw,rw,iterDict)
+            # if no return, assume everything went fine
+            if iabort is None:
+                iabort = 0
         else:
             iabort = 0
         return iabort
