@@ -653,18 +653,20 @@ class SNOPT(Optimizer):
                 iterDict[saveVar] = x[n:]
             elif saveVar == 'lambda':
                 iterDict[saveVar] = pi
+        currX = x[:n] # only the first n component is x, the rest are the slacks
+        if nmajor == 0:
+            callCounter = 0
+        else:
+            xScaled = self.optProb.invXScale * currX + self.optProb.xOffset
+            callCounter = self.hist.getCallCounter(xScaled)
         if self.storeHistory:
-            currX = x[:n] # only the first n component is x, the rest are the slacks
-            if nmajor == 0:
-                callCounter = 0
-            else:
-                xScaled = self.optProb.invXScale * currX + self.optProb.xOffset
-                callCounter = self.hist.getCallCounter(xScaled)
-            if callCounter is not None:
-                self.hist.write(callCounter, iterDict)
+            self.hist.write(callCounter, iterDict)
+            iterDict = self.hist.read(callCounter)
+        else:
+            iterDict = None
         if self.getOption('User specified snSTOP'):
             snstop_handle = self.getOption('snSTOP function handle')
-            iabort = snstop_handle(ktcond,mjrprtlvl,minimize,n,nncon,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,locj,indj,jcol,scales,bl,bu,fx,fcon,gcon,gobj,ycon,pi,rc,rg,x,cu,iu,ru,cw,iw,rw)
+            iabort = snstop_handle(ktcond,mjrprtlvl,minimize,n,nncon,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,locj,indj,jcol,scales,bl,bu,fx,fcon,gcon,gobj,ycon,pi,rc,rg,x,cu,iu,ru,cw,iw,rw,iterDict)
         else:
             iabort = 0
         return iabort
