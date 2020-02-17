@@ -216,7 +216,7 @@ class Optimizer(object):
 
                 # Validated x-point point to use:
                 xScaled = x*self.optProb.invXScale + self.optProb.xOffset
-                if numpy.linalg.norm(xScaled - xuser) < eps:
+                if numpy.isclose(xScaled,xuser,rtol=eps,atol=eps).all():
 
                     # However, we may need a sens that *isn't* in the
                     # the dictionary:
@@ -322,7 +322,7 @@ class Optimizer(object):
         tmpObjCalls = self.userObjCalls
         tmpSensCalls = self.userSensCalls
         if 'fobj' in evaluate:
-            if numpy.linalg.norm(x-self.cache['x']) > eps:
+            if not numpy.isclose(x,self.cache['x'],atol=eps,rtol=eps).all():
                 timeA = time.time()
                 args = self.optProb.objFun(xuser)
                 if isinstance(args, tuple):
@@ -364,7 +364,7 @@ class Optimizer(object):
             hist['funcs'] = self.cache['funcs']
 
         if 'fcon' in evaluate:
-            if numpy.linalg.norm(x-self.cache['x']) > eps:
+            if not numpy.isclose(x,self.cache['x'],atol=eps,rtol=eps).all():
                 timeA = time.time()
 
                 args = self.optProb.objFun(xuser)
@@ -404,7 +404,7 @@ class Optimizer(object):
             hist['funcs'] = self.cache['funcs']
 
         if 'gobj' in evaluate:
-            if numpy.linalg.norm(x-self.cache['x']) > eps:
+            if not numpy.isclose(x,self.cache['x'],atol=eps,rtol=eps).all():
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recursively call
                 # the routine with ['fobj', and 'fcon']
@@ -456,7 +456,7 @@ class Optimizer(object):
                 hist['funcsSens'] = self.cache['funcsSens']
 
         if 'gcon' in evaluate:
-            if numpy.linalg.norm(x-self.cache['x']) > eps:
+            if not numpy.isclose(x,self.cache['x'],atol=eps,rtol=eps).all():
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recursively call
                 # the routine with ['fobj', and 'fcon']

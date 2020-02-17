@@ -21,9 +21,10 @@ from __future__ import print_function
 # External Python modules
 # =============================================================================
 import os
-import numpy as np
+import numpy
 from .pyOpt_error import Error
 from sqlitedict import SqliteDict
+eps = numpy.finfo(1.0).eps
 # =============================================================================
 # History Class
 # =============================================================================
@@ -138,7 +139,7 @@ class History(object):
         for i in range(last,0,-1):
             key = '%d'% i
             xuser = self.deProcessX(self.db[key]['xuser'])
-            if np.isclose(x,xuser).all() and 'funcs' in self.db[key].keys():
+            if numpy.isclose(xuser,x,atol=eps,rtol=eps).all() and 'funcs' in self.db[key].keys():
                 callCounter = i
                 break
         return callCounter
@@ -152,7 +153,7 @@ class History(object):
         x_list = []
         for key in xuser.keys():
             x_list.append(xuser[key])
-        x_array = np.hstack(x_list)
+        x_array = numpy.hstack(x_list)
         return x_array
 
     def __del__(self):
