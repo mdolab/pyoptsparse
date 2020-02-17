@@ -23,7 +23,7 @@ In this case, the history file would have the following layout::
     │   │   └── xvars
     │   ├── funcs
     │   │   ├── obj
-    │   │   ├── con
+    │   │   └── con
     │   ├── fail
     │   └── isMajor
     ├── 1
@@ -31,14 +31,13 @@ In this case, the history file would have the following layout::
     │   │   └── xvars
     │   ├── funcsSens
     │   │   ├── obj
-    │   │   │   ├── xvars
-    │   │   ├── con
-    │   │   │   ├── xvars
+    │   │   │   └── xvars
+    │   │   └── con
+    │   │       └── xvars
     │   ├── fail
     │   └── isMajor
-    ├── last
-    ├── xs
-    └── hs
+    └── last
+
 
 The main optimization history is indexed via call counters, in this example ``0`` and ``1``.
 Note that they do not match the major/minor iterations of a given optimizer, since gradient evaluations are stored separate from the function evaluation.
