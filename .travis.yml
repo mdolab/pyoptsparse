@@ -28,7 +28,7 @@ before_install:
   - docker run -t -d --rm
         --name app
         --mount "type=bind,src=$(pwd),target=$DOCKER_MOUNT_DIR"
-        mdolab/opt:$DOCKER_TAG
+        mdolab/$DOCKER_REPO:$DOCKER_TAG
         /bin/bash
   # set envars for coveralls inside docker
 
