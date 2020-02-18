@@ -28,7 +28,7 @@ from .pyOpt_optimization import INFINITY
 from .pyOpt_utils import convertToDense, convertToCOO, extractRows, \
     mapToCSC, scaleRows, IDATA
 from collections import OrderedDict
-eps = numpy.finfo(1.0).eps
+eps = numpy.finfo(numpy.float64).eps
 
 # =============================================================================
 # Optimizer Class
