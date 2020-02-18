@@ -512,7 +512,7 @@ class SNOPT(Optimizer):
                 self.hist.writeData('xs', xs)
                 self.hist.writeData('hs', hs)
                 self.metadata['endTime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                self.metadata['optTime (s)'] = optTime
+                self.metadata['optTime'] = optTime
                 self.hist.writeData('metadata',self.metadata)
                 self.hist.close()
 
