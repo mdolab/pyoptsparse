@@ -173,10 +173,13 @@ class Optimizer(object):
             if hotStart is not None:
                 varInfo = self.hotStart.readData('varInfo')
                 conInfo = self.hotStart.readData('conInfo')
+                objInfo = self.hotStart.readData('objInfo')
                 if varInfo is not None:
                     self.hist.writeData('varInfo', varInfo)
                 if conInfo is not None:
                     self.hist.writeData('conInfo', conInfo)
+                if objInfo is not None:
+                    self.hist.writeData('objInfo', objInfo)
 
     def _masterFunc(self, x, evaluate):
         """
@@ -520,6 +523,7 @@ class Optimizer(object):
         if self.callCounter == 0 and self.optProb.comm.rank == 0:
             conInfo = OrderedDict()
             varInfo = OrderedDict()
+            objInfo = OrderedDict()
 
             # Cycle through constraints adding the bounds
             for key in self.optProb.constraints.keys():
@@ -537,14 +541,30 @@ class Optimizer(object):
                         varInfo[dvGroup]['upper'].append(var.upper / var.scale)
                         varInfo[dvGroup]['scale'].append(var.scale)
 
+            for objKey in self.optProb.objectives.keys():
+                objInfo[objKey] = {'scale':self.optProb.objectives[objKey].scale}
+
             # There is a special write for the bounds data
             if self.storeHistory:
                 self.hist.writeData('varInfo', varInfo)
                 self.hist.writeData('conInfo', conInfo)
-                # we also append some other info
-                from pyoptsparse import __version__
-                self.hist.writeData('version',__version__)
-                self.hist.writeData('optimizer',self.name)
+                self.hist.writeData('objInfo', objInfo)
+                # we also add some metadata
+                from pyoptsparse import __version__ as pyoptsparse_version
+                from .pyOpt_MPI import MPI
+                options = copy.deepcopy(self.options)
+                options.pop('defaults') # remove the default list
+                # we retrieve only the second item which is the actual value
+                for key,val in options.items():
+                    options[key] = val[1]
+                metadata = {
+                    'version'   : pyoptsparse_version,
+                    'optimizer' : self.name,
+                    'optName'   : self.optProb.name,
+                    'nprocs'    : MPI.COMM_WORLD.size,
+                    'optOptions': options
+                }
+                self.hist.writeData('metadata',metadata)
 
         # Write history if necessary
         if (self.optProb.comm.rank == 0 and  writeHist and self.storeHistory):
