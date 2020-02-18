@@ -14,7 +14,7 @@ env:
     - NLPQLP_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pyNLPQLP/source
     - IPOPT_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pyIPOPT/Ipopt
   jobs:
-    - DOCKER_TAG=current
+    - DOCKER_TAG=py2
 
 before_install:
   - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
