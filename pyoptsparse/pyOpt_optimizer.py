@@ -28,6 +28,8 @@ from .pyOpt_optimization import INFINITY
 from .pyOpt_utils import convertToDense, convertToCOO, extractRows, \
     mapToCSC, scaleRows, IDATA
 from collections import OrderedDict
+import datetime
+import subprocess
 eps = numpy.finfo(numpy.float64).eps
 
 # =============================================================================
@@ -557,14 +559,25 @@ class Optimizer(object):
                 # we retrieve only the second item which is the actual value
                 for key,val in options.items():
                     options[key] = val[1]
-                metadata = {
+                # retrieve the git commit hash of the current version of pyoptsparse
+                try:
+                    sha = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'])
+                    sha = str(sha,'utf-8').replace('\n','') # converting byte to string, then trimming the newline character
+                except:
+                    # Not a git repo, perhaps the code was downloaded directly from GitHub instead of cloned
+                    sha = None
+                # we store the metadata now, and write it later in optimizer calls
+                # since we need the runtime at the end of optimization
+                self.metadata = {
                     'version'   : pyoptsparse_version,
                     'optimizer' : self.name,
                     'optName'   : self.optProb.name,
                     'nprocs'    : MPI.COMM_WORLD.size,
-                    'optOptions': options
+                    'optOptions': options,
+                    'startTime' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    'gitHash'   : sha,
                 }
-                self.hist.writeData('metadata',metadata)
+                self.hist.writeData('metadata',self.metadata)
 
         # Write history if necessary
         if (self.optProb.comm.rank == 0 and  writeHist and self.storeHistory):
