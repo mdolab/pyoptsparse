@@ -184,11 +184,8 @@ class OVBaseClass(object):
                     pass
 
                 # Check to see if there is proper saved info about iter type
-                if 'iu0' in db['0'].keys():
-                    if db[db['last']]['iu0'] > 0:
-                        self.storedIters = True
-                    else:
-                        self.storedIters = False
+                if 'isMajor' in db['0'].keys():
+                    self.storedIters = True
                 else:
                     self.storedIters = False
 
@@ -231,38 +228,18 @@ class OVBaseClass(object):
                 # actual major iteration. In particular, one has funcs
                 # and the next has funcsSens, but they're both part of the
                 # same major iteration.
-                if any('funcs' == s for s in db[key].keys()):
-
-                    # If this iteration has 'funcs' within it, but it's not
-                    # flagged as major, then it's a minor iteration.
-                    if i == 0:
+                if 'funcs' in db[key].keys():
+                    # if we did not store major iteration info, everything's major
+                    if not self.storedIters:
+                        self.iter_type[i] = 1
+                    # this is major iteration
+                    elif self.storedIters and db[key]['isMajor']:
                         self.iter_type[i] = 1
                     else:
                         self.iter_type[i] = 2
-
-                    if not self.storedIters: # Otherwise, use a spotty heuristic to see if the
-                        # iteration is major or not. NOTE: this is often
-                        # inaccurate, especially if the optimization used
-                        # gradient-enhanced line searches.
-                        try:
-                            keyp1 = '%d' % (i + 1)
-                            db[keyp1]['funcsSens']
-                            self.iter_type[i] = 1 # for 'major' iterations
-                        except KeyError:
-                            self.iter_type[i] = 2 # for 'minor' iterations
-
                 else:
                     self.iter_type[i] = 0 # this is not a real iteration,
                                           # just the sensitivity evaluation
-
-            min_list = []
-            # Loop over each optimization iteration
-            for i, iter_type in enumerate(self.iter_type):
-
-                if iter_type == 0:
-                    continue
-
-                key = '%d' % i
 
         else: # this is if it's OpenMDAO
             for i, iter_type in enumerate(self.iter_type):

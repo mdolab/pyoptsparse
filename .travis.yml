@@ -37,11 +37,16 @@ install:
   - docker exec -it app /bin/bash -c "cp -r $SNOPT_DIR \$HOME/SNOPT && cp -r $NLPQLP_DIR \$HOME/NLPQLP && cp -r $IPOPT_DIR \$HOME/IPOPT"
   # We thrown away the existing repo in Docker, and copy the new one in-place
   - docker exec -it app /bin/bash -c "rm -rf $DOCKER_WORKING_DIR && cp -r $DOCKER_MOUNT_DIR $DOCKER_WORKING_DIR"
+  # We also remove the python installation
+  - docker exec -it app /bin/bash -c "rm -rf \$HOME/.local/lib/python2.7/site-packages/pyoptsparse*"
+  - docker exec -it app /bin/bash -c "rm -rf $DOCKER_WORKING_DIR/build"
+  # Copy back the proprietary codes
   - docker exec -it app /bin/bash -c "cp -r \$HOME/NLPQLP/* $NLPQLP_DIR/ && cp -r \$HOME/SNOPT/* $SNOPT_DIR/ && cp -r \$HOME/IPOPT/ $IPOPT_DIR"
+  # Build and install
   - docker exec -it app /bin/bash -c ". \$HOME/.bashrc_mdolab && cd $DOCKER_WORKING_DIR && python setup.py build_ext --inplace && python setup.py install --user"
 script:
   # We need to source the mdolab bashrc before running anything
-  - docker exec -it app /bin/bash -c ". \$HOME/.bashrc_mdolab && cd $DOCKER_WORKING_DIR && testflo -n 1 --pre_announce -v . --coverage --coverpkg pyoptsparse --cover-omit \*tests/\* --cover-omit \*docs/\*"
+  - docker exec -it app /bin/bash -c ". \$HOME/.bashrc_mdolab && cd $DOCKER_WORKING_DIR && testflo --pre_announce -v . --coverage --coverpkg pyoptsparse --cover-omit \*tests/\* --cover-omit \*docs/\*"
 
 after_success:
   - docker exec -it app /bin/bash -c ". \$HOME/.bashrc_mdolab && pip install coveralls"

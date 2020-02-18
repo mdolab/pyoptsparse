@@ -23,7 +23,7 @@ import numpy
 from .pyOpt_error import Error
 from .pyOpt_utils import convertToCOO
 INFINITY = 1e20
-eps = numpy.finfo(1.0).eps
+eps = numpy.finfo(numpy.float64).eps
 # =============================================================================
 # Constraint Class
 # =============================================================================

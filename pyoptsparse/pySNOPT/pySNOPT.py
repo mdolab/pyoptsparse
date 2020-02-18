@@ -73,7 +73,7 @@ class SNOPT(Optimizer):
         'System information':[str,'No'], # Print System Information on the Print File
         # SNOPT Problem Specification Options
         'Problem Type':[str,'Minimize'], # Or 'Maximize', or 'Feasible point'
-        'Objective row':[int,1], # (has precedence over ObjRow (snOptA))
+        'Objective row':[int,1], # row number of objective in F(x) (has precedence over ObjRow (snOptA))
         'Infinite bound':[float,1.0e+20], # Infinite Bound Value
         # SNOPT Convergence Tolerances Options
         'Major feasibility tolerance':[float,1.0e-6], # Target Nonlinear Constraint Violation
@@ -112,7 +112,6 @@ class SNOPT(Optimizer):
         'Difference interval':[float,5.5e-7], # Function precision^(1/2)
         'Central difference interval':[float,6.7e-5], # Function precision^(1/3)
         'New superbasics limit':[int,99], # controls early termination of QPs
-        'Objective row':[int,1], # row number of objective in F(x)
         'Penalty parameter':[float,0.0], # initial penalty parameter
         'Proximal point method':[int,1], # (1 - satisfies linear constraints near x0)
         'Reduced Hessian dimension':[int,2000], # (or Superbasics limit if that is less)
@@ -156,6 +155,8 @@ class SNOPT(Optimizer):
         #SNOPT Miscellaneous Options
         'Debug level':[int,1], # (0 - Normal, 1 - for developers)
         'Timing level':[int,3], # (3 - print cpu times)
+        #pySNOPT Options
+        'Save major iteration variables':[list,['step','merit','feasibility','optimality','penalty']], # 'Hessian', 'slack', 'lambda' and 'condZHZ' are also supported
         }
         informs = {
         0 : 'finished successfully',
@@ -228,7 +229,6 @@ class SNOPT(Optimizer):
         140 : 'system error',
         141 : 'wrong no of basic variables',
         142 : 'error in basis package',
-        142 : 'Problem dimensions are too large'
         }
 
         if snopt is None:
@@ -315,9 +315,7 @@ class SNOPT(Optimizer):
 
         # Store the starting time if the keyword timeLimit is given:
         self.timeLimit = timeLimit
-        self.startTime = None
-        if self.timeLimit is not None:
-            self.startTime = time.time()
+        self.startTime = time.time()
 
         if len(optProb.constraints) == 0:
             # If the user *actually* has an unconstrained problem,
@@ -499,10 +497,10 @@ class SNOPT(Optimizer):
 
             # The snopt c interface
             timeA = time.time()
-            snopt.snoptc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
-                         self._userfg_wrap, Acol, indA, locA, bl, bu,
-                         Names, hs, xs, pi, rc, inform, mincw, miniw, minrw,
-                         nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
+            snopt.snkerc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
+                         self._userfg_wrap, snopt.snlog, snopt.snlog2, snopt.sqlog, self._snstop,
+                         Acol, indA, locA, bl, bu, Names, hs, xs, pi, rc, inform,
+                         mincw, miniw, minrw, nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
             optTime = time.time()-timeA
 
             # Indicate solution finished
@@ -558,7 +556,6 @@ class SNOPT(Optimizer):
             return
 
         fail = 0
-        self.iu0 = iu[0]
         if mode == 0 or mode == 2:
             fobj, fcon, fail = self._masterFunc(x, ['fobj', 'fcon'])
         if fail == 0:
@@ -586,6 +583,86 @@ class SNOPT(Optimizer):
                 mode = -2 # User requested termination
 
         return mode, fobj, gobj, fcon, gcon
+
+    def _getHessian(self,iw,rw):
+        """
+        This function retrieves the approximate Hessian from the SNOPT workspace arrays
+        Call it for example from the _snstop routine or after SNOPT has finished, where iw and rw arrays are available 
+        Currently only full memory Hessian mode is implemented, do not use this for limited-memory case.
+
+        The FM Hessian in SNOPT is stored with its Cholesky factor
+        which has been flattened to 1D
+        """
+        lvlHes    = iw[72-1] # 0,1,2 => LM, FM, Exact Hessian
+        if lvlHes != 1:
+            print('pyOptSparse Error! Limited-memory Hessian not supported for history file!')
+            return None
+        lU   = iw[391-1]-1       # U(lenU), BFGS Hessian H = U'U
+        lenU = iw[392-1]
+        Uvec = rw[lU:lU+lenU]
+        nnH = iw[24-1]
+        Umat = numpy.zeros((nnH,nnH))
+        Umat[numpy.triu_indices(nnH)] = Uvec
+        H = numpy.matmul(Umat.T,Umat)
+        return H
+
+    def _getPenaltyParam(self,iw,rw):
+        """
+        Retrieves the full penalty parameter vector from the work arrays.
+        """
+        nnCon = iw[23-1]
+        lxPen = iw[304-1]-1
+        xPen = rw[lxPen:lxPen+nnCon]
+        return xPen
+
+    def _snstop(self,ktcond,mjrprtlvl,minimize,n,nncon,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,
+        iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,
+        locj,indj,jcol,scales,bl,bu,fx,fcon,gcon,gobj,ycon,pi,rc,rg,x,cu,iu,ru,cw,iw,rw):
+        """
+        This routine is called every major iteration in SNOPT, after solving QP but before line search
+        Currently we use it just to determine the correct major iteration counting,
+        and save some parameters in history if needed
+
+        returning with iabort != 0 will terminate SNOPT immediately
+        """
+        iterDict = {
+            'isMajor' : True,
+            'nMajor' : nmajor,
+            'nMinor' : nminor,
+        }
+        for saveVar in self.getOption('Save major iteration variables'):
+            if saveVar == 'merit':
+                iterDict[saveVar] = fmerit
+            elif saveVar == 'feasibility':
+                iterDict[saveVar] = primalinf
+            elif saveVar == 'optimality':
+                iterDict[saveVar] = dualinf
+            elif saveVar == 'penalty':
+                penParam = self._getPenaltyParam(iw,rw)
+                iterDict[saveVar] = penParam
+            elif saveVar == 'Hessian':
+                H = self._getHessian(iw,rw)
+                iterDict[saveVar] = H
+            elif saveVar == 'step':
+                iterDict[saveVar] = step
+            elif saveVar == 'condZHZ':
+                iterDict[saveVar] = condzhz
+            elif saveVar == 'slack':
+                iterDict[saveVar] = x[n:]
+            elif saveVar == 'lambda':
+                iterDict[saveVar] = pi
+        if self.storeHistory:
+            currX = x[:n] # only the first n component is x, the rest are the slacks
+            if nmajor == 0:
+                callCounter = 0
+            else:
+                xScaled = self.optProb.invXScale * currX + self.optProb.xOffset
+                callCounter = self.hist.getCallCounter(xScaled)
+            if callCounter is not None:
+                self.hist.write(callCounter, iterDict)
+        iabort = 0
+        return iabort
+
 
     def _set_snopt_options(self, iPrint, iSumm, cw, iw, rw):
         """

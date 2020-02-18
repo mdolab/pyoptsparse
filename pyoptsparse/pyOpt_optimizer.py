@@ -28,7 +28,7 @@ from .pyOpt_optimization import INFINITY
 from .pyOpt_utils import convertToDense, convertToCOO, extractRows, \
     mapToCSC, scaleRows, IDATA
 from collections import OrderedDict
-eps = numpy.finfo(1.0).eps
+eps = numpy.finfo(numpy.float64).eps
 
 # =============================================================================
 # Optimizer Class
@@ -86,10 +86,6 @@ class Optimizer(object):
         # for each constraint. (eg. PSQP, FSQP, etc)
         self.storedData = {}
         self.storedData['x'] = None
-
-        # Create object to pass information about major iterations.
-        # Only relevant for SNOPT.
-        self.iu0 = 0
 
         # Store the jacobian conversion maps
         self._jac_map_csr_to_csc = None
@@ -220,7 +216,7 @@ class Optimizer(object):
 
                 # Validated x-point point to use:
                 xScaled = x*self.optProb.invXScale + self.optProb.xOffset
-                if numpy.linalg.norm(xScaled - xuser) < eps:
+                if numpy.isclose(xScaled,xuser,rtol=eps,atol=eps).all():
 
                     # However, we may need a sens that *isn't* in the
                     # the dictionary:
@@ -240,6 +236,7 @@ class Optimizer(object):
                     if validPoint:
                         if self.storeHistory:
                             # Just dump the (exact) dictionary back out:
+                            data['isMajor'] = False
                             self.hist.write(self.callCounter, data)
 
                         fail = data['fail']
@@ -325,7 +322,7 @@ class Optimizer(object):
         tmpObjCalls = self.userObjCalls
         tmpSensCalls = self.userSensCalls
         if 'fobj' in evaluate:
-            if numpy.linalg.norm(x-self.cache['x']) > eps:
+            if not numpy.isclose(x,self.cache['x'],atol=eps,rtol=eps).all():
                 timeA = time.time()
                 args = self.optProb.objFun(xuser)
                 if isinstance(args, tuple):
@@ -367,7 +364,7 @@ class Optimizer(object):
             hist['funcs'] = self.cache['funcs']
 
         if 'fcon' in evaluate:
-            if numpy.linalg.norm(x-self.cache['x']) > eps:
+            if not numpy.isclose(x,self.cache['x'],atol=eps,rtol=eps).all():
                 timeA = time.time()
 
                 args = self.optProb.objFun(xuser)
@@ -407,7 +404,7 @@ class Optimizer(object):
             hist['funcs'] = self.cache['funcs']
 
         if 'gobj' in evaluate:
-            if numpy.linalg.norm(x-self.cache['x']) > eps:
+            if not numpy.isclose(x,self.cache['x'],atol=eps,rtol=eps).all():
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recursively call
                 # the routine with ['fobj', and 'fcon']
@@ -459,7 +456,7 @@ class Optimizer(object):
                 hist['funcsSens'] = self.cache['funcsSens']
 
         if 'gcon' in evaluate:
-            if numpy.linalg.norm(x-self.cache['x']) > eps:
+            if not numpy.isclose(x,self.cache['x'],atol=eps,rtol=eps).all():
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recursively call
                 # the routine with ['fobj', and 'fcon']
@@ -513,7 +510,10 @@ class Optimizer(object):
         hist['fail'] = masterFail
 
         # Save information about major iteration counting (only matters for SNOPT).
-        hist['iu0'] = self.iu0
+        if self.name == 'SNOPT':
+            hist['isMajor'] = False # this will be updated in _snstop if it is major
+        else:
+            hist['isMajor'] = True # for other optimizers we assume everything's major
 
         # Add constraint and variable bounds at beginning of optimization.
         # This info is used for visualization using OptView.
@@ -541,6 +541,10 @@ class Optimizer(object):
             if self.storeHistory:
                 self.hist.writeData('varInfo', varInfo)
                 self.hist.writeData('conInfo', conInfo)
+                # we also append some other info
+                from pyoptsparse import __version__
+                self.hist.writeData('version',__version__)
+                self.hist.writeData('optimizer',self.name)
 
         # Write history if necessary
         if (self.optProb.comm.rank == 0 and  writeHist and self.storeHistory):

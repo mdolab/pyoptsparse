@@ -264,8 +264,7 @@ def convertToCSR(mat):
     newMat : dict
         A coo representation of the same matrix
     """
-
-    if 'csr' in mat:
+    if isinstance(mat, dict) and 'csr' in mat:
         return mat
 
     mat = convertToCOO(mat)

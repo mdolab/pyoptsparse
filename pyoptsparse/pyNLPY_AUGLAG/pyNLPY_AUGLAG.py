@@ -56,7 +56,7 @@ from contextlib import contextmanager
 # External Python modules
 # =============================================================================
 import numpy
-eps = numpy.finfo(1.0).eps
+eps = numpy.finfo(numpy.float64).eps
 import logging
 # ===========================================================================
 # Extension modules
