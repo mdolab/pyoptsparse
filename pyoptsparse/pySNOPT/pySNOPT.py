@@ -31,7 +31,7 @@ except ImportError:
 # Standard Python modules
 # =============================================================================
 import os
-import time
+import time, datetime
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -511,6 +511,9 @@ class SNOPT(Optimizer):
                 # that we could perform a warm start.
                 self.hist.writeData('xs', xs)
                 self.hist.writeData('hs', hs)
+                self.metadata['endTime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.metadata['optTime'] = optTime
+                self.hist.writeData('metadata',self.metadata)
                 self.hist.close()
 
             if iPrint != 0 and iPrint != 6:
