@@ -6,6 +6,16 @@ History
 Suppose we have an optimization problem with one DV group ``xvars``, one constraint ``con``, and the objective is called ``obj``.
 In this case, the history file would have the following layout::
 
+    ├── metadata
+    │   ├── optName
+    │   ├── optOptions
+    │   ├── nprocs
+    │   ├── startTime
+    │   ├── endTime
+    │   ├── optTime
+    │   ├── optimizer
+    │   ├── version
+    │   └── gitHash
     ├── varInfo
     │   └── xvars
     │       ├── lower
@@ -16,8 +26,9 @@ In this case, the history file would have the following layout::
     │       ├── lower
     │       ├── upper
     │       └── scale
-    ├── version
-    ├── optimizer
+    ├── objInfo
+    │   └── obj
+    │       └── scale
     ├── 0
     │   ├── xuser
     │   │   └── xvars

@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import numpy as np
-
+import datetime
 try:
     from paropt import ParOpt as _ParOpt
     from mpi4py import MPI
@@ -296,6 +296,12 @@ class ParOpt(Optimizer):
 
             # Get the optimized point
             x, z, zw, zl, zu = opt.getOptimizedPoint()
+
+            if self.storeHistory:
+                self.metadata['endTime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.metadata['optTime'] = optTime
+                self.hist.writeData('metadata',self.metadata)
+                self.hist.close()
 
             # Create the optimization solution. Note that the signs on the multipliers
             # are switch since ParOpt uses a formulation with c(x) >= 0, while pyOpt

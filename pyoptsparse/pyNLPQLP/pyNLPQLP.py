@@ -31,7 +31,7 @@ except ImportError:
 # Standard Python modules
 # =============================================================================
 import os
-import time
+import time, datetime
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -41,7 +41,7 @@ import numpy
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
-eps = numpy.finfo(1.0).eps
+eps = numpy.finfo(numpy.float64).eps
 # =============================================================================
 # NLPQL Optimizer Class
 # =============================================================================
@@ -262,6 +262,12 @@ class NLPQLP(Optimizer):
                
             # Broadcast a -1 to indcate NLPQL has finished
             self.optProb.comm.bcast(-1, root=0)
+
+            if self.storeHistory:
+                self.metadata['endTime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.metadata['optTime'] = optTime
+                self.hist.writeData('metadata',self.metadata)
+                self.hist.close()
 
             # Store Results
             sol_inform = {}

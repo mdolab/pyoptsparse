@@ -24,7 +24,7 @@ import os
 import numpy
 from .pyOpt_error import Error
 from sqlitedict import SqliteDict
-eps = numpy.finfo(1.0).eps
+eps = numpy.finfo(numpy.float64).eps
 # =============================================================================
 # History Class
 # =============================================================================

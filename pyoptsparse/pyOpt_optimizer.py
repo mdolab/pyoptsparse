@@ -28,7 +28,9 @@ from .pyOpt_optimization import INFINITY
 from .pyOpt_utils import convertToDense, convertToCOO, extractRows, \
     mapToCSC, scaleRows, IDATA
 from collections import OrderedDict
-eps = numpy.finfo(1.0).eps
+import datetime
+import subprocess
+eps = numpy.finfo(numpy.float64).eps
 
 # =============================================================================
 # Optimizer Class
@@ -173,10 +175,13 @@ class Optimizer(object):
             if hotStart is not None:
                 varInfo = self.hotStart.readData('varInfo')
                 conInfo = self.hotStart.readData('conInfo')
+                objInfo = self.hotStart.readData('objInfo')
                 if varInfo is not None:
                     self.hist.writeData('varInfo', varInfo)
                 if conInfo is not None:
                     self.hist.writeData('conInfo', conInfo)
+                if objInfo is not None:
+                    self.hist.writeData('objInfo', objInfo)
 
     def _masterFunc(self, x, evaluate):
         """
@@ -520,6 +525,7 @@ class Optimizer(object):
         if self.callCounter == 0 and self.optProb.comm.rank == 0:
             conInfo = OrderedDict()
             varInfo = OrderedDict()
+            objInfo = OrderedDict()
 
             # Cycle through constraints adding the bounds
             for key in self.optProb.constraints.keys():
@@ -537,14 +543,41 @@ class Optimizer(object):
                         varInfo[dvGroup]['upper'].append(var.upper / var.scale)
                         varInfo[dvGroup]['scale'].append(var.scale)
 
+            for objKey in self.optProb.objectives.keys():
+                objInfo[objKey] = {'scale':self.optProb.objectives[objKey].scale}
+
             # There is a special write for the bounds data
             if self.storeHistory:
                 self.hist.writeData('varInfo', varInfo)
                 self.hist.writeData('conInfo', conInfo)
-                # we also append some other info
-                from pyoptsparse import __version__
-                self.hist.writeData('version',__version__)
-                self.hist.writeData('optimizer',self.name)
+                self.hist.writeData('objInfo', objInfo)
+                # we also add some metadata
+                from pyoptsparse import __version__ as pyoptsparse_version
+                from .pyOpt_MPI import MPI
+                options = copy.deepcopy(self.options)
+                options.pop('defaults') # remove the default list
+                # we retrieve only the second item which is the actual value
+                for key,val in options.items():
+                    options[key] = val[1]
+                # retrieve the git commit hash of the current version of pyoptsparse
+                try:
+                    sha = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'])
+                    sha = str(sha,'utf-8').replace('\n','') # converting byte to string, then trimming the newline character
+                except:
+                    # Not a git repo, perhaps the code was downloaded directly from GitHub instead of cloned
+                    sha = None
+                # we store the metadata now, and write it later in optimizer calls
+                # since we need the runtime at the end of optimization
+                self.metadata = {
+                    'version'   : pyoptsparse_version,
+                    'optimizer' : self.name,
+                    'optName'   : self.optProb.name,
+                    'nprocs'    : MPI.COMM_WORLD.size,
+                    'optOptions': options,
+                    'startTime' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    'gitHash'   : sha,
+                }
+                self.hist.writeData('metadata',self.metadata)
 
         # Write history if necessary
         if (self.optProb.comm.rank == 0 and  writeHist and self.storeHistory):

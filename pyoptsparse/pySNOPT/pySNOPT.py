@@ -31,7 +31,7 @@ except ImportError:
 # Standard Python modules
 # =============================================================================
 import os
-import time
+import time, datetime
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -73,7 +73,7 @@ class SNOPT(Optimizer):
         'System information':[str,'No'], # Print System Information on the Print File
         # SNOPT Problem Specification Options
         'Problem Type':[str,'Minimize'], # Or 'Maximize', or 'Feasible point'
-        'Objective row':[int,1], # (has precedence over ObjRow (snOptA))
+        'Objective row':[int,1], # row number of objective in F(x) (has precedence over ObjRow (snOptA))
         'Infinite bound':[float,1.0e+20], # Infinite Bound Value
         # SNOPT Convergence Tolerances Options
         'Major feasibility tolerance':[float,1.0e-6], # Target Nonlinear Constraint Violation
@@ -112,7 +112,6 @@ class SNOPT(Optimizer):
         'Difference interval':[float,5.5e-7], # Function precision^(1/2)
         'Central difference interval':[float,6.7e-5], # Function precision^(1/3)
         'New superbasics limit':[int,99], # controls early termination of QPs
-        'Objective row':[int,1], # row number of objective in F(x)
         'Penalty parameter':[float,0.0], # initial penalty parameter
         'Proximal point method':[int,1], # (1 - satisfies linear constraints near x0)
         'Reduced Hessian dimension':[int,2000], # (or Superbasics limit if that is less)
@@ -232,7 +231,6 @@ class SNOPT(Optimizer):
         140 : 'system error',
         141 : 'wrong no of basic variables',
         142 : 'error in basis package',
-        142 : 'Problem dimensions are too large'
         }
 
         if snopt is None:
@@ -502,9 +500,9 @@ class SNOPT(Optimizer):
             # The snopt c interface
             timeA = time.time()
             snopt.snkerc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
-                         self._userfg_wrap, snopt.snlog, snopt.snlog2, snopt.sqlog, self._snstop, Acol, indA, locA, bl, bu,
-                         Names, hs, xs, pi, rc, inform, mincw, miniw, minrw,
-                         nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
+                         self._userfg_wrap, snopt.snlog, snopt.snlog2, snopt.sqlog, self._snstop,
+                         Acol, indA, locA, bl, bu, Names, hs, xs, pi, rc, inform,
+                         mincw, miniw, minrw, nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
             optTime = time.time()-timeA
 
             # Indicate solution finished
@@ -515,6 +513,9 @@ class SNOPT(Optimizer):
                 # that we could perform a warm start.
                 self.hist.writeData('xs', xs)
                 self.hist.writeData('hs', hs)
+                self.metadata['endTime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.metadata['optTime'] = optTime
+                self.hist.writeData('metadata',self.metadata)
                 self.hist.close()
 
             if iPrint != 0 and iPrint != 6:
@@ -619,7 +620,9 @@ class SNOPT(Optimizer):
         xPen = rw[lxPen:lxPen+nnCon]
         return xPen
 
-    def _snstop(self,ktcond,mjrprtlvl,minimize,n,nncon,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,locj,indj,jcol,scales,bl,bu,fx,fcon,gcon,gobj,ycon,pi,rc,rg,x,cu,iu,ru,cw,iw,rw):
+    def _snstop(self,ktcond,mjrprtlvl,minimize,n,nncon,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,
+        iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,
+        locj,indj,jcol,scales,bl,bu,fx,fcon,gcon,gobj,ycon,pi,rc,rg,x,cu,iu,ru,cw,iw,rw):
         """
         This routine is called every major iteration in SNOPT, after solving QP but before line search
         Currently we use it just to determine the correct major iteration counting,
@@ -653,17 +656,15 @@ class SNOPT(Optimizer):
                 iterDict[saveVar] = x[n:]
             elif saveVar == 'lambda':
                 iterDict[saveVar] = pi
-        currX = x[:n] # only the first n component is x, the rest are the slacks
-        if nmajor == 0:
-            callCounter = 0
-        else:
-            xScaled = self.optProb.invXScale * currX + self.optProb.xOffset
-            callCounter = self.hist.getCallCounter(xScaled)
         if self.storeHistory:
-            self.hist.write(callCounter, iterDict)
-            iterDict = self.hist.read(callCounter)
-        else:
-            iterDict = None
+            currX = x[:n] # only the first n component is x, the rest are the slacks
+            if nmajor == 0:
+                callCounter = 0
+            else:
+                xScaled = self.optProb.invXScale * currX + self.optProb.xOffset
+                callCounter = self.hist.getCallCounter(xScaled)
+            if callCounter is not None:
+                self.hist.write(callCounter, iterDict)
         if self.getOption('User specified snSTOP'):
             snstop_handle = self.getOption('snSTOP function handle')
             iabort = snstop_handle(ktcond,mjrprtlvl,minimize,n,nncon,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,locj,indj,jcol,scales,bl,bu,fx,fcon,gcon,gobj,ycon,pi,rc,rg,x,cu,iu,ru,cw,iw,rw,iterDict)

@@ -23,4 +23,4 @@ from .pyALPSO.pyALPSO import ALPSO
 from .pyParOpt import ParOpt
 # from .pyNOMAD.pyNOMAD import NOMAD
 
-__version__ = '1.2.0'
+__version__ = '2.0.0'

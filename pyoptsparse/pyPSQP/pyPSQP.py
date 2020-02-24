@@ -30,7 +30,7 @@ except ImportError:
 # Standard Python modules
 # =============================================================================
 import os
-import time
+import time, datetime
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -272,6 +272,11 @@ Must be <= 2')
             sol_inform = {}
             # sol_inform['value'] = inform
             # sol_inform['text'] = self.informs[inform[0]]
+            if self.storeHistory:
+                self.metadata['endTime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.metadata['optTime'] = optTime
+                self.hist.writeData('metadata',self.metadata)
+                self.hist.close()
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xs)
