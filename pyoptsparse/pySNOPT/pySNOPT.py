@@ -670,7 +670,7 @@ class SNOPT(Optimizer):
             if not self.storeHistory:
                 raise Error('User specified snSTOP must be used with storeHistory=True')
             snstop_handle = self.getOption('snSTOP function handle')
-            iabort = snstop_handle(ktcond,mjrprtlvl,minimize,n,nncon,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,locj,indj,jcol,scales,bl,bu,fx,fcon,gcon,gobj,ycon,pi,rc,rg,x,cu,iu,ru,cw,iw,rw,iterDict)
+            iabort = snstop_handle(iterDict)
             # if no return, assume everything went fine
             if iabort is None:
                 iabort = 0
