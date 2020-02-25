@@ -556,6 +556,8 @@ class Optimizer(object):
                 from .pyOpt_MPI import MPI
                 options = copy.deepcopy(self.options)
                 options.pop('defaults') # remove the default list
+                if 'snSTOP function handle' in options.keys():
+                    options.pop('snSTOP function handle')
                 # we retrieve only the second item which is the actual value
                 for key,val in options.items():
                     options[key] = val[1]
