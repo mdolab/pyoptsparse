@@ -14,8 +14,7 @@ In this case, the history file would have the following layout::
     │   ├── endTime
     │   ├── optTime
     │   ├── optimizer
-    │   ├── version
-    │   └── gitHash
+    │   └── version
     ├── varInfo
     │   └── xvars
     │       ├── lower
