@@ -20,7 +20,7 @@ from __future__ import print_function
 # =============================================================================
 # External Python modules
 # =============================================================================
-import os
+import os, copy
 import numpy
 from .pyOpt_error import Error
 from sqlitedict import SqliteDict
@@ -186,9 +186,6 @@ class History(object):
         # metadata
         self.metadata = self.readData('metadata')
 
-
-#TODO: make return self.* into copy.deepcopy(*)
-    
     def getIterKeys(self):
         return self.iterKeys
     
@@ -208,19 +205,22 @@ class History(object):
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
-        return self.objName[0]
+        if len(self.objName) == 1:
+            return self.objName[0]
+        else:
+            return self.objName
     
     def getObjInfo(self, key=None):
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
         if key is not None:
-            return self.objInfo[key]
+            return copy.deepcopy(self.objInfo[key])
         else:
             if len(self.objName) == 1:
-                return self.objInfo[self.objName[0]]
+                return copy.deepcopy(self.objInfo[self.objName[0]])
             else:
-                return self.objInfo
+                return copy.deepcopy(self.objInfo)
     
     def getConInfo(self,key=None):
         # only do this if we open the file with 'r' flag
@@ -228,14 +228,14 @@ class History(object):
             return
         if key is not None:
             if isinstance(key,str):
-                return self.conInfo[key]
+                return copy.deepcopy(self.conInfo[key])
             elif isinstance(key,list):
                 d = OrderedDict()
                 for k in key:
                     d[k] = self.conInfo[k]
                 return d
         else:
-            return self.conInfo
+            return copy.deepcopy(self.conInfo)
     
     def getDVInfo(self,key=None):
         # only do this if we open the file with 'r' flag
@@ -243,14 +243,14 @@ class History(object):
             return
         if key is not None:
             if isinstance(key,str):
-                return self.DVInfo[key]
+                return copy.deepcopy(self.DVInfo[key])
             elif isinstance(key,list):
                 d = OrderedDict()
                 for k in key:
                     d[k] = self.DVInfo[k]
                 return d
         else:
-            return self.DVInfo
+            return copy.deepcopy(self.DVInfo)
         
     def getMetadata(self):
         # only do this if we open the file with 'r' flag
@@ -259,6 +259,10 @@ class History(object):
         return self.metadata
     
     def _scaleValues(self, name, values):
+        """
+        This function scales the values, where the factor is extracted from the
+        Info dictionaries, according to "name"
+        """
         if name in self.objName:
             factor = self.objInfo[name]['scale']
         elif name in self.conNames:
@@ -267,7 +271,6 @@ class History(object):
             factor = self.DVInfo[name]['scale']
         return values * factor
 
-# TODO: implement scaling
     def getIterValues(self, names=None, callCounters=None, major=True, scaled=False):
         """
         Parses an existing history file and returns a data dictionary used to post-process optimization results.
