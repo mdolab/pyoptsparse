@@ -24,6 +24,7 @@ import os
 import numpy
 from .pyOpt_error import Error
 from sqlitedict import SqliteDict
+from collections import OrderedDict
 eps = numpy.finfo(numpy.float64).eps
 # =============================================================================
 # History Class
@@ -61,14 +62,12 @@ class History(object):
             else:
                 raise Error("The requested history file %s to open in "
                             "read-only mode does not exist."% fileName)
+            self._processDB()
         else:
             raise Error('The flag argument to History must be \'r\' or \'n\'.')
         self.temp = temp
         self.fileName = fileName
         self.flag = flag
-
-        # Load any keys it happens to have:
-        self.keys = list(self.db.keys())
 
     def close(self):
         """Close the underlying database"""
@@ -157,64 +156,186 @@ class History(object):
         x_array = numpy.hstack(x_list)
         return x_array
     
-    def getHistory(self, onlyMajor=True, deProcessX=False):
+    def _processDB(self):
+        """
+        Pre-processes the DB file and store various values into class attributes.
+        These will be used later when calling self.getXX functions.
+        """
+        # Load any keys it happens to have:
+        self.keys = list(self.db.keys())
+        # load info
+        self.DVInfo = self.readData('varInfo')
+        self.conInfo = self.readData('conInfo')
+        self.objInfo = self.readData('objInfo')
+        # load names
+        self.DVNames = self.DVInfo.keys()
+        self.conNames = self.conInfo.keys()
+        self.objName = self.objInfo.keys()
+
+        # extract list of callCounters from self.keys
+        # this just checks if each key contains only digits, then cast into int
+        self.callCounters = sorted([int(x) for x in self.keys if x.isdigit()])
+
+        # extract all information stored in the call counters
+        self.iterKeys = set()
+        for i in self.callCounters:
+            val = self.read(i)
+            self.iterKeys.update(val.keys())
+        self.iterKeys = list(self.iterKeys)
+
+        # metadata
+        self.metadata = self.readData('metadata')
+
+
+#TODO: make return self.* into copy.deepcopy(*)
+    
+    def getIterKeys(self):
+        return self.iterKeys
+    
+    def getDVNames(self):
+        # only do this if we open the file with 'r' flag
+        if self.flag != 'r':
+            return
+        return self.DVNames
+
+    def getConNames(self):
+        # only do this if we open the file with 'r' flag
+        if self.flag != 'r':
+            return
+        return self.conNames
+    
+    def getObjName(self):
+        # only do this if we open the file with 'r' flag
+        if self.flag != 'r':
+            return
+        return self.objName[0]
+    
+    def getObjInfo(self, key=None):
+        # only do this if we open the file with 'r' flag
+        if self.flag != 'r':
+            return
+        if key is not None:
+            return self.objInfo[key]
+        else:
+            if len(self.objName) == 1:
+                return self.objInfo[self.objName[0]]
+            else:
+                return self.objInfo
+    
+    def getConInfo(self,key=None):
+        # only do this if we open the file with 'r' flag
+        if self.flag != 'r':
+            return
+        if key is not None:
+            if isinstance(key,str):
+                return self.conInfo[key]
+            elif isinstance(key,list):
+                d = OrderedDict()
+                for k in key:
+                    d[k] = self.conInfo[k]
+                return d
+        else:
+            return self.conInfo
+    
+    def getDVInfo(self,key=None):
+        # only do this if we open the file with 'r' flag
+        if self.flag != 'r':
+            return
+        if key is not None:
+            if isinstance(key,str):
+                return self.DVInfo[key]
+            elif isinstance(key,list):
+                d = OrderedDict()
+                for k in key:
+                    d[k] = self.DVInfo[k]
+                return d
+        else:
+            return self.DVInfo
+        
+    def getMetadata(self):
+        # only do this if we open the file with 'r' flag
+        if self.flag != 'r':
+            return
+        return self.metadata
+    
+    def _scaleValues(self, name, values):
+        if name in self.objName:
+            factor = self.objInfo[name]['scale']
+        elif name in self.conNames:
+            factor = self.conInfo[name]['scale']
+        elif name in self.DVNames:
+            factor = self.DVInfo[name]['scale']
+        return values * factor
+
+# TODO: implement scaling
+    def getIterValues(self, names=None, callCounters=None, major=True, scaled=False):
         """
         Parses an existing history file and returns a data dictionary used to post-process optimization results.
 
         Parameters
         ----------
-        onlyMajor : bool
+        names : list or str
+            the values of interest, can be the name of any DV, objective or constraint,
+            or a list of them. If None, all values are returned.
+        
+        callCounters : list of ints
+            a list of callCounters to extract information from.
+            If the callCounter is invalid, i.e. outside the range or is a funcsSens evaluation, then it is skipped.
+            If None, all callCounters are looped over.
+
+        major : bool
             flag to specify whether to include only major iterations.
         
-        deProcessX : bool
-            flag to specify whether to return x as an OrderedDict or de-process into a single numpy array
+        scaled : bool
+            flag to specify whether to apply scaling for the values. True means
+            to return values that are scaled the same way as the actual optimization.
 
-        Note that regardless of the onlyMajor flag, failed evaluations are not returned.
+        Note that regardless of the major flag, failed evaluations are not returned.
         """
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
         
-        # extract list of callCounters from self.keys
-        callCounters = sorted([int(x) for x in self.keys if x.isdigit()])
-
+        allNames = self.DVNames + self.conNames + self.objName
+        # cast string input into a single list
+        if isinstance(names,str):
+            names = [names]
+        elif names is None:
+            names = allNames
+        # error if names isn't either a DV, con or obj
+        if not set(names).issubset(set(allNames)):
+            raise ValueError("The name provided is not one of DVNames, conNames or objNames")
+        
         # set up dictionary to return
         data = {}
-        # copy only certain keys over
-        for key in ['metadata','conInfo','objInfo','varInfo']:
-            if key in self.keys:
-                data[key] = self.readData(key)
-        
         # pre-allocate list for each input
-        if deProcessX:
-            inputs = ['xuser']
-        else:
-            inputs = self.read(0)['xuser'].keys()
-        for input in inputs:
-            data[input] = []
+        for name in names:
+            data[name] = []
 
-        # pre-allocate list for each output
-        outputs = self.read(0)['funcs'].keys()
-        for output in outputs:
-            data[output] = []
+        if callCounters is None:
+            callCounters = self.callCounters
         
         for i in callCounters:
-            val = self.read(i)
-            if 'funcs' in val.keys(): # we have function evaluation
-                if ((onlyMajor and val['isMajor']) or not onlyMajor) and not val['fail']:
-                    for output in outputs:
-                        data[output].append(val['funcs'][output])
-                    for input in inputs:
-                        if deProcessX:
-                            data[input].append(self.deProcessX(val['xuser']))
-                        else:
-                            data[input].append(val['xuser'][input])
+            if self.pointExists(i):
+                val = self.read(i)
+                if 'funcs' in val.keys(): # we have function evaluation
+                    if ((major and val['isMajor']) or not major) and not val['fail']:
+                        for name in names:
+                            if name in self.DVNames:
+                                data[name].append(val['xuser'][name])
+                            else:
+                                data[name].append(val['funcs'][name])
                         
         # reshape inputs and outputs into numpy arrays
-        for output in outputs:
-            data[output] = numpy.vstack(data[output])
-        for input in inputs:
-            data[input] = numpy.vstack(data[input])
+        for name in names:
+            # only stack if there's more than one value
+            if len(callCounters) > 1:
+                data[name] = numpy.vstack(data[name])
+            else:
+                data[name] = data[name][0]
+            # scale the values if needed
+            if scaled:
+                data[name] = self._scaleValues(name,data[name])
 
         return data
 
