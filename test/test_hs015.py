@@ -74,11 +74,15 @@ class TestHS15(unittest.TestCase):
             raise unittest.SkipTest('Optimizer not available:', optName)
 
         # Solution
-        if storeHistory:
-            self.histFileName = '%s_hs015_Hist.hst' % (optName.lower())
+        if storeHistory is not None:
+            if storeHistory == True:
+                self.histFileName = '%s_hs015_Hist.hst' % (optName.lower())
+            elif isinstance(storeHistory,str):
+                self.histFileName = storeHistory
         else:
             self.histFileName = None
-
+        print('histFileName: ', self.histFileName)
+        print('hotStart: ', hotStart)
         sol = opt(optProb, sens=self.sens, storeHistory=self.histFileName, hotStart=hotStart)
 
         # Test printing solution to screen
@@ -118,6 +122,16 @@ class TestHS15(unittest.TestCase):
             self.assertIn(var,hist['19'].keys())
         # re-optimize with hotstart
         self.optimize('snopt',storeHistory=False,hotStart=self.histFileName)
+        # now we should do the same optimization without calling them
+        self.assertEqual(self.nf,0)
+        self.assertEqual(self.ng,0)
+        # another test with hotstart, this time with storeHistory = hotStart
+        self.optimize('snopt',storeHistory=True,hotStart=self.histFileName)
+        # now we should do the same optimization without calling them
+        self.assertEqual(self.nf,0)
+        self.assertEqual(self.ng,0)
+        # final test with hotstart, this time with a different storeHistory
+        self.optimize('snopt',storeHistory='snopt_new_hotstart.hst',hotStart=self.histFileName)
         # now we should do the same optimization without calling them
         self.assertEqual(self.nf,0)
         self.assertEqual(self.ng,0)

@@ -30,6 +30,7 @@ from .pyOpt_utils import convertToDense, convertToCOO, extractRows, \
 from collections import OrderedDict
 import datetime
 import subprocess
+from .pyOpt_MPI import MPI
 eps = numpy.finfo(numpy.float64).eps
 
 # =============================================================================
@@ -182,6 +183,9 @@ class Optimizer(object):
                     self.hist.writeData('conInfo', conInfo)
                 if objInfo is not None:
                     self.hist.writeData('objInfo', objInfo)
+                self._setMetadata()
+                self.hist.writeData('metadata',self.metadata)
+
 
     def _masterFunc(self, x, evaluate):
         """
@@ -551,26 +555,9 @@ class Optimizer(object):
                 self.hist.writeData('varInfo', varInfo)
                 self.hist.writeData('conInfo', conInfo)
                 self.hist.writeData('objInfo', objInfo)
-                # we also add some metadata
-                from pyoptsparse import __version__ as pyoptsparse_version
-                from .pyOpt_MPI import MPI
-                options = copy.deepcopy(self.options)
-                options.pop('defaults') # remove the default list
-                if 'snSTOP function handle' in options.keys():
-                    options.pop('snSTOP function handle')
-                # we retrieve only the second item which is the actual value
-                for key,val in options.items():
-                    options[key] = val[1]
-                # we store the metadata now, and write it later in optimizer calls
-                # since we need the runtime at the end of optimization
-                self.metadata = {
-                    'version'   : pyoptsparse_version,
-                    'optimizer' : self.name,
-                    'optName'   : self.optProb.name,
-                    'nprocs'    : MPI.COMM_WORLD.size,
-                    'optOptions': options,
-                    'startTime' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                }
+                self._setMetadata()
+                if 'snSTOP function handle' in self.metadata['optOptions'].keys():
+                    self.metadata['optOptions'].pop('snSTOP function handle')
                 self.hist.writeData('metadata',self.metadata)
 
         # Write history if necessary
@@ -798,6 +785,31 @@ class Optimizer(object):
         sol.comm = self.optProb.comm
 
         return sol
+    
+    def _setMetadata(self):
+        """
+        This function is used to set the self.metadata object.
+        Importantly, this sets the startTime, so should be called just before the start
+        of the optimization. endTime should be directly appended to the dictionary
+        after optimization finishes.
+        """
+        options = copy.deepcopy(self.options)
+        options.pop('defaults') # remove the default list
+        # we retrieve only the second item which is the actual value
+        for key,val in options.items():
+            options[key] = val[1]
+        
+        from .__init__ import __version__ # importing the pyoptsparse version
+        # we store the metadata now, and write it later in optimizer calls
+        # since we need the runtime at the end of optimization
+        self.metadata = {
+            'version'   : __version__,
+            'optimizer' : self.name,
+            'optName'   : self.optProb.name,
+            'nprocs'    : MPI.COMM_WORLD.size,
+            'optOptions': options,
+            'startTime' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
 
     def _on_setOption(self, name, value):
         """
