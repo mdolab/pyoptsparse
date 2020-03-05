@@ -556,8 +556,6 @@ class Optimizer(object):
                 self.hist.writeData('conInfo', conInfo)
                 self.hist.writeData('objInfo', objInfo)
                 self._setMetadata()
-                if 'snSTOP function handle' in self.metadata['optOptions'].keys():
-                    self.metadata['optOptions'].pop('snSTOP function handle')
                 self.hist.writeData('metadata',self.metadata)
 
         # Write history if necessary
@@ -798,6 +796,8 @@ class Optimizer(object):
         # we retrieve only the second item which is the actual value
         for key,val in options.items():
             options[key] = val[1]
+        if 'snSTOP function handle' in options.keys():
+            options.pop('snSTOP function handle')
         
         from .__init__ import __version__ # importing the pyoptsparse version
         # we store the metadata now, and write it later in optimizer calls
