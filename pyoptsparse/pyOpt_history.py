@@ -168,9 +168,9 @@ class History(object):
         self.conInfo = self.readData('conInfo')
         self.objInfo = self.readData('objInfo')
         # load names
-        self.DVNames = self.DVInfo.keys()
-        self.conNames = self.conInfo.keys()
-        self.objName = self.objInfo.keys()
+        self.DVNames = list(self.DVInfo.keys())
+        self.conNames = list(self.conInfo.keys())
+        self.objName = list(self.objInfo.keys())
 
         # extract list of callCounters from self.keys
         # this just checks if each key contains only digits, then cast into int
@@ -187,28 +187,28 @@ class History(object):
         self.metadata = self.readData('metadata')
 
     def getIterKeys(self):
-        return self.iterKeys
+        return copy.deepcopy(self.iterKeys)
     
     def getDVNames(self):
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
-        return self.DVNames
+        return copy.deepcopy(self.DVNames)
 
     def getConNames(self):
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
-        return self.conNames
+        return copy.deepcopy(self.conNames)
     
     def getObjName(self):
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
         if len(self.objName) == 1:
-            return self.objName[0]
+            return copy.deepcopy(self.objName[0])
         else:
-            return self.objName
+            return copy.deepcopy(self.objName)
     
     def getObjInfo(self, key=None):
         # only do this if we open the file with 'r' flag
