@@ -256,7 +256,7 @@ class History(object):
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
-        return self.metadata
+        return copy.deepcopy(self.metadata)
     
     def _scaleValues(self, name, values):
         """
@@ -270,6 +270,13 @@ class History(object):
         elif name in self.DVNames:
             factor = self.DVInfo[name]['scale']
         return values * factor
+
+    def getCallCounters(self):
+        # only do this if we open the file with 'r' flag
+        if self.flag != 'r':
+            return
+        return copy.deepcopy(self.callCounters)
+
 
     def getIterValues(self, names=None, callCounters=None, major=True, scaled=False):
         """
