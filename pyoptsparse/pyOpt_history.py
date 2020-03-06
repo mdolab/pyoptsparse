@@ -58,7 +58,9 @@ class History(object):
             self.db = SqliteDict(fileName)
         elif flag == 'r':
             if os.path.exists(fileName):
-                self.db = SqliteDict(fileName)
+                # we cast the db to OrderedDict so we do not have to
+                # manually close the underlying db at the end
+                self.db = OrderedDict(SqliteDict(fileName))
             else:
                 raise Error("The requested history file %s to open in "
                             "read-only mode does not exist."% fileName)
@@ -70,10 +72,15 @@ class History(object):
         self.flag = flag
 
     def close(self):
-        """Close the underlying database"""
-        self.db.close()
-        if self.temp:
-            os.remove(self.fileName)
+        """
+        Close the underlying database.
+        This should only be used in write mode. In read mode, we close the db
+        during initialization.
+        """
+        if self.flag == 'n':
+            self.db.close()
+            if self.temp:
+                os.remove(self.fileName)
 
     def write(self, callCounter, data):
         """This is the main to write data. Basically, we just pass in
@@ -106,11 +113,8 @@ class History(object):
         Determine if callCounter is in the database
         """
         key = '%d'% callCounter
+        return key in self.keys
 
-        if key in self.keys:
-            return True
-        else:
-            return False
 
     def read(self, callCounter):
         """
