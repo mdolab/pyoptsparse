@@ -22,7 +22,7 @@ from __future__ import print_function
 # =============================================================================
 import os, copy
 import numpy
-from .pyOpt_error import Error
+from .pyOpt_error import Error, pyOptSparseWarning
 from sqlitedict import SqliteDict
 from collections import OrderedDict
 eps = numpy.finfo(numpy.float64).eps
@@ -148,15 +148,23 @@ class History(object):
                 break
         return callCounter
 
-    def deProcessX(self,xuser):
+    def deProcessX(self,xuser, scale=False):
         """
         This is a much more simple version of pyOpt_history.deProcessX without error checking.
         We traverse the OrderedDict and stack all the DVs as a single numpy array, preserving 
         the order so that we get the correct x vector.
+
+        Parameters
+        ----------
+        scale : bool
+            flag to specify whether the stacked values should be scaled or not.
         """
         x_list = []
         for key in xuser.keys():
-            x_list.append(xuser[key])
+            if scale:
+                x_list.append(self._scaleValues(key, xuser[key]))
+            else:
+                x_list.append(xuser[key])
         x_array = numpy.hstack(x_list)
         return x_array
     
@@ -172,9 +180,11 @@ class History(object):
         self.conInfo = self.readData('conInfo')
         self.objInfo = self.readData('objInfo')
         # load names
-        self.DVNames = list(self.DVInfo.keys())
-        self.conNames = list(self.conInfo.keys())
-        self.objName = list(self.objInfo.keys())
+        self.DVNames = set(self.DVInfo.keys())
+        self.conNames = set(self.conInfo.keys())
+        self.objName = set(self.objInfo.keys())
+        if len(self.objName) == 1:
+            self.objName = list(self.objName)[0]
 
         # extract list of callCounters from self.keys
         # this just checks if each key contains only digits, then cast into int
@@ -185,46 +195,48 @@ class History(object):
         for i in self.callCounters:
             val = self.read(i)
             self.iterKeys.update(val.keys())
-        self.iterKeys = list(self.iterKeys)
 
         # metadata
         self.metadata = self.readData('metadata')
 
     def getIterKeys(self):
-        return copy.deepcopy(self.iterKeys)
+        return copy.deepcopy(list(self.iterKeys))
     
     def getDVNames(self):
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
-        return copy.deepcopy(self.DVNames)
+        return copy.deepcopy(list(self.DVNames))
 
     def getConNames(self):
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
-        return copy.deepcopy(self.conNames)
+        return copy.deepcopy(list(self.conNames))
     
     def getObjName(self):
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
-        if len(self.objName) == 1:
-            return copy.deepcopy(self.objName[0])
+        if isinstance(self.objName, str):
+            return self.objName
         else:
-            return copy.deepcopy(self.objName)
+            return copy.deepcopy(list(self.objName))
     
     def getObjInfo(self, key=None):
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
         if key is not None:
-            return copy.deepcopy(self.objInfo[key])
+            if isinstance(key,str):
+                return copy.deepcopy(self.objInfo[key])
+            elif isinstance(key,list):
+                d = OrderedDict()
+                for k in key:
+                    d[k] = self.objInfo[k]
+                return d
         else:
-            if len(self.objName) == 1:
-                return copy.deepcopy(self.objInfo[self.objName[0]])
-            else:
-                return copy.deepcopy(self.objInfo)
+            return copy.deepcopy(self.objInfo)
     
     def getConInfo(self,key=None):
         # only do this if we open the file with 'r' flag
@@ -282,7 +294,7 @@ class History(object):
         return copy.deepcopy(self.callCounters)
 
 
-    def getIterValues(self, names=None, callCounters=None, major=True, scaled=False):
+    def getValues(self, names=None, callCounters=None, major=True, scale=False, stack=False):
         """
         Parses an existing history file and returns a data dictionary used to post-process optimization results.
 
@@ -300,7 +312,7 @@ class History(object):
         major : bool
             flag to specify whether to include only major iterations.
         
-        scaled : bool
+        scale : bool
             flag to specify whether to apply scaling for the values. True means
             to return values that are scaled the same way as the actual optimization.
 
@@ -310,16 +322,36 @@ class History(object):
         if self.flag != 'r':
             return
         
-        allNames = self.DVNames + self.conNames + self.objName
+        allNames = self.DVNames.union(self.conNames).union(self.objName).union(self.iterKeys)
         # cast string input into a single list
         if isinstance(names,str):
             names = [names]
         elif names is None:
             names = allNames
+        else:
+            names = set(names)
         # error if names isn't either a DV, con or obj
-        if not set(names).issubset(set(allNames)):
-            raise ValueError("The name provided is not one of DVNames, conNames or objNames")
+        if not names.issubset(allNames):
+            raise Error("The names provided are not one of DVNames, conNames or objNames.\n\
+                The names must be a subset of {}".format(allNames))
+        DVsAsFuncs = self.DVNames.intersection(self.conNames)
+        if len(DVsAsFuncs) > 0:
+            ambiguousNames = names.intersection(DVsAsFuncs)
+            if len(ambiguousNames) > 0:
+                print("Warning: The names provided {} is ambiguous, since it is both a DV as well as an objective/constraint. It is being assumed to be a DV. If it was set up via addDVsAsFunctions, then there's nothing to worry. Otherwise, consider renaming the variable or manually editing the history file.".format(ambiguousNames))
+
+        if len(names.intersection(self.iterKeys)) > 0:
+            if not major:
+                print("Warning: major flag has been set to True, since some names specified only exist on major iterations.")
+                major = True
         
+        if stack:
+            DVinNames = names.intersection(self.DVNames)
+            for DV in DVinNames:
+                names.remove(DV)
+            names.add('xuser')
+            print("Warning: stack was set to True. All DV names have been removed, and replaced with a single key 'xuser'.")
+
         # set up dictionary to return
         data = {}
         # pre-allocate list for each input
@@ -335,20 +367,25 @@ class History(object):
                 if 'funcs' in val.keys(): # we have function evaluation
                     if ((major and val['isMajor']) or not major) and not val['fail']:
                         for name in names:
-                            if name in self.DVNames:
+                            if name == 'xuser':
+                                data[name].append(self.deProcessX(val['xuser'], scale=scale))
+                            elif name in self.DVNames:
                                 data[name].append(val['xuser'][name])
-                            else:
+                            elif name in self.conNames.union(self.objName):
                                 data[name].append(val['funcs'][name])
+                            else: # must be opt
+                                data[name].append(val[name])
                         
         # reshape inputs and outputs into numpy arrays
         for name in names:
-            # only stack if there's more than one value
+            # only convert to 2D if there's more than one callCounter
             if len(callCounters) > 1:
                 data[name] = numpy.vstack(data[name])
             else:
                 data[name] = data[name][0]
             # scale the values if needed
-            if scaled:
+            # xuser has already been scaled
+            if scale and name in self.DVNames.union(self.conNames).union(self.objName):
                 data[name] = self._scaleValues(name,data[name])
 
         return data
