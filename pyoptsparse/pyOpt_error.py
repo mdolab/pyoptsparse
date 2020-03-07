@@ -45,7 +45,7 @@ class pyOptSparseWarning(object):
         i = 23
         for word in message.split():
             if len(word) + i + 1 > 78: # Finish line and start new one
-                msg += ' '*(78-i)+'|\n| ' + word + ' '
+                msg += ' '*(79-i)+'|\n| ' + word + ' '
                 i = 1 + len(word)+1
             else:
                 msg += word + ' '

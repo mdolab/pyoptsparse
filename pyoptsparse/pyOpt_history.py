@@ -338,11 +338,11 @@ class History(object):
         if len(DVsAsFuncs) > 0:
             ambiguousNames = names.intersection(DVsAsFuncs)
             if len(ambiguousNames) > 0:
-                print("Warning: The names provided {} is ambiguous, since it is both a DV as well as an objective/constraint. It is being assumed to be a DV. If it was set up via addDVsAsFunctions, then there's nothing to worry. Otherwise, consider renaming the variable or manually editing the history file.".format(ambiguousNames))
+                pyOptSparseWarning("The names provided {} is ambiguous, since it is both a DV as well as an objective/constraint. It is being assumed to be a DV. If it was set up via addDVsAsFunctions, then there's nothing to worry. Otherwise, consider renaming the variable or manually editing the history file.".format(ambiguousNames))
 
         if len(names.intersection(self.iterKeys)) > 0:
             if not major:
-                print("Warning: major flag has been set to True, since some names specified only exist on major iterations.")
+                pyOptSparseWarning("The major flag has been set to True, since some names specified only exist on major iterations.")
                 major = True
         
         if stack:
@@ -350,7 +350,7 @@ class History(object):
             for DV in DVinNames:
                 names.remove(DV)
             names.add('xuser')
-            print("Warning: stack was set to True. All DV names have been removed, and replaced with a single key 'xuser'.")
+            pyOptSparseWarning("The stack flag was set to True. Therefore all DV names have been removed, and replaced with a single key 'xuser'.")
 
         # set up dictionary to return
         data = {}

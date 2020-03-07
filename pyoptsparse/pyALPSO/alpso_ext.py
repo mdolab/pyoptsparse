@@ -52,7 +52,7 @@ from math import floor
 # External Python modules
 # =============================================================================
 import numpy
-
+from ..pyOpt_error import pyOptSparseWarning
 # =============================================================================
 # Extension modules
 # =============================================================================
@@ -91,7 +91,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
         if isinstance(x0, list):
             x0 = numpy.array(x0)
         elif not isinstance(x0, numpy.ndarray):
-            print("""Warning: Initial x must be either list or numpy.array,
+            pyOptSparseWarning("""Initial x must be either list or numpy.array,
                 all initial positions randomly generated""")
 
     #
@@ -215,7 +215,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
 
         else:
             if x0.shape[0] > swarmsize:
-                print('Warning: %d initial positions specified for %d particles, last %d positions ignored'
+                pyOptSparseWarning('%d initial positions specified for %d particles, last %d positions ignored'
                       % (x0.shape[0], swarmsize, x0.shape[0] - swarmsize))
                 x0 = x0[0:swarmsize, :]
 

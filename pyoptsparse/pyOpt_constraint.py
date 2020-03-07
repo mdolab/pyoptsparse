@@ -253,7 +253,7 @@ class Constraint(object):
             wrt_uniq = list(set(self.wrt))
             if len(wrt_uniq) < len(self.wrt):
                 duplicate_vars = list(set([x for x in self.wrt if self.wrt.count(x) > 1]))
-                print("pyOptSparse Warning: The constraint %s was created with "
+                pyOptSparseWarning("The constraint %s was created with "
                       "duplicate\nvariables in 'wrt'. The following duplicates "
                       "were automatically removed: "%self.name)
                 for var in duplicate_vars:
@@ -340,7 +340,7 @@ class Constraint(object):
 
             # If there is anything left in jac print a warning:
             for dvGroup in tmp:
-                print("pyOptSparse Warning: A jacobian with dvGroup key of "
+                pyOptSparseWarning("A jacobian with dvGroup key of "
                       "'%s' was unused in constraint %s. This will be "
                       "ignored."% (dvGroup, self.name))
 
