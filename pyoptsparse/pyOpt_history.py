@@ -182,9 +182,7 @@ class History(object):
         # load names
         self.DVNames = set(self.DVInfo.keys())
         self.conNames = set(self.conInfo.keys())
-        self.objName = set(self.objInfo.keys())
-        if len(self.objName) == 1:
-            self.objName = list(self.objName)[0]
+        self.objNames = set(self.objInfo.keys())
 
         # extract list of callCounters from self.keys
         # this just checks if each key contains only digits, then cast into int
@@ -206,22 +204,19 @@ class History(object):
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
-        return copy.deepcopy(list(self.DVNames))
+        return copy.deepcopy(list(self.DVInfo.keys()))
 
     def getConNames(self):
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
-        return copy.deepcopy(list(self.conNames))
+        return copy.deepcopy(list(self.conInfo.keys()))
     
     def getObjName(self):
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
-        if isinstance(self.objName, str):
-            return self.objName
-        else:
-            return copy.deepcopy(list(self.objName))
+        return copy.deepcopy(list(self.objInfo.keys()))
     
     def getObjInfo(self, key=None):
         # only do this if we open the file with 'r' flag
@@ -279,7 +274,7 @@ class History(object):
         This function scales the values, where the factor is extracted from the
         Info dictionaries, according to "name"
         """
-        if name in self.objName:
+        if name in self.objNames:
             factor = self.objInfo[name]['scale']
         elif name in self.conNames:
             factor = self.conInfo[name]['scale']
@@ -304,10 +299,11 @@ class History(object):
             the values of interest, can be the name of any DV, objective or constraint,
             or a list of them. If None, all values are returned.
         
-        callCounters : list of ints
+        callCounters : list of ints, or 'last'
             a list of callCounters to extract information from.
             If the callCounter is invalid, i.e. outside the range or is a funcsSens evaluation, then it is skipped.
-            If None, all callCounters are looped over.
+            'last' will return only from the last major iteration.
+            If None, values from all callCounters are returned.
 
         major : bool
             flag to specify whether to include only major iterations.
@@ -322,7 +318,7 @@ class History(object):
         if self.flag != 'r':
             return
         
-        allNames = self.DVNames.union(self.conNames).union(self.objName).union(self.iterKeys)
+        allNames = self.DVNames.union(self.conNames).union(self.objNames).union(self.iterKeys).difference(set(['funcs','funcsSens','xuser']))
         # cast string input into a single list
         if isinstance(names,str):
             names = [names]
@@ -330,6 +326,8 @@ class History(object):
             names = allNames
         else:
             names = set(names)
+        if stack:
+            allNames.add('xuser')
         # error if names isn't either a DV, con or obj
         if not names.issubset(allNames):
             raise Error("The names provided are not one of DVNames, conNames or objNames.\n\
@@ -360,6 +358,9 @@ class History(object):
 
         if callCounters is None:
             callCounters = self.callCounters
+        elif callCounters == 'last':
+            callCounters = [int(self.readData('last'))]
+        # TODO: unify readData and read()
         
         for i in callCounters:
             if self.pointExists(i):
@@ -371,7 +372,7 @@ class History(object):
                                 data[name].append(self.deProcessX(val['xuser'], scale=scale))
                             elif name in self.DVNames:
                                 data[name].append(val['xuser'][name])
-                            elif name in self.conNames.union(self.objName):
+                            elif name in self.conNames.union(self.objNames):
                                 data[name].append(val['funcs'][name])
                             else: # must be opt
                                 data[name].append(val[name])
@@ -385,7 +386,7 @@ class History(object):
                 data[name] = data[name][0]
             # scale the values if needed
             # xuser has already been scaled
-            if scale and name in self.DVNames.union(self.conNames).union(self.objName):
+            if scale and name in self.DVNames.union(self.conNames).union(self.objNames):
                 data[name] = self._scaleValues(name,data[name])
 
         return data
