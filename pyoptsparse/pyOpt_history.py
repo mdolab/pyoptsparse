@@ -112,22 +112,23 @@ class History(object):
         """
         Determine if callCounter is in the database
         """
-        key = '%d'% callCounter
-        return key in self.keys
+        if isinstance(callCounter, int):
+            callCounter = str(callCounter)
+        return callCounter in self.keys
 
 
-    def read(self, callCounter):
+    def read(self, key):
         """
-        Read data for index 'callCounter'. Note that this
-        point should be verified by calling pointExists() first.
+        Read data for an arbitrary key. Returns None if key is not found.
+        If passing in a callCounter, it should be verified by calling pointExists() first.
+
+        Parameters
+        ----------
+        key : str or int
+            generic key[str] or callCounter[int]
         """
-        key = '%d'% callCounter
-        return self.db[key]
-    
-    def readData(self, key):
-        """
-        Read data for generic key 'key'.
-        """
+        if isinstance(key, int):
+            key = str(key)
         try:
             return self.db[key]
         except KeyError:
@@ -176,9 +177,9 @@ class History(object):
         # Load any keys it happens to have:
         self.keys = list(self.db.keys())
         # load info
-        self.DVInfo = self.readData('varInfo')
-        self.conInfo = self.readData('conInfo')
-        self.objInfo = self.readData('objInfo')
+        self.DVInfo = self.read('varInfo')
+        self.conInfo = self.read('conInfo')
+        self.objInfo = self.read('objInfo')
         # load names
         self.DVNames = set(self.DVInfo.keys())
         self.conNames = set(self.conInfo.keys())
@@ -195,7 +196,7 @@ class History(object):
             self.iterKeys.update(val.keys())
 
         # metadata
-        self.metadata = self.readData('metadata')
+        self.metadata = self.read('metadata')
 
     def getIterKeys(self):
         return copy.deepcopy(list(self.iterKeys))
@@ -299,10 +300,10 @@ class History(object):
             the values of interest, can be the name of any DV, objective or constraint,
             or a list of them. If None, all values are returned.
         
-        callCounters : list of ints, or 'last'
+        callCounters : list of ints, can also contain 'last'
             a list of callCounters to extract information from.
             If the callCounter is invalid, i.e. outside the range or is a funcsSens evaluation, then it is skipped.
-            'last' will return only from the last major iteration.
+            'last' represents the last major iteration.
             If None, values from all callCounters are returned.
 
         major : bool
@@ -358,10 +359,12 @@ class History(object):
 
         if callCounters is None:
             callCounters = self.callCounters
-        elif callCounters == 'last':
-            callCounters = [int(self.readData('last'))]
-        # TODO: unify readData and read()
-        
+        elif isinstance(callCounters, str):
+            callCounters = [callCounters]
+        if isinstance(callCounters, list) and 'last' in callCounters:
+            callCounters.append(self.read('last'))
+            callCounters.remove('last')
+
         for i in callCounters:
             if self.pointExists(i):
                 val = self.read(i)
@@ -383,7 +386,7 @@ class History(object):
             if len(callCounters) > 1:
                 data[name] = numpy.vstack(data[name])
             else:
-                data[name] = data[name][0]
+                data[name] = numpy.array(data[name][0])
             # scale the values if needed
             # xuser has already been scaled
             if scale and name in self.DVNames.union(self.conNames).union(self.objNames):

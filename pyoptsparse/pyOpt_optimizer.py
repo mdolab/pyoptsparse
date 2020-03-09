@@ -173,9 +173,9 @@ class Optimizer(object):
             self.storeHistory = True
 
             if hotStart is not None:
-                varInfo = self.hotStart.readData('varInfo')
-                conInfo = self.hotStart.readData('conInfo')
-                objInfo = self.hotStart.readData('objInfo')
+                varInfo = self.hotStart.read('varInfo')
+                conInfo = self.hotStart.read('conInfo')
+                objInfo = self.hotStart.read('objInfo')
                 if varInfo is not None:
                     self.hist.writeData('varInfo', varInfo)
                 if conInfo is not None:
