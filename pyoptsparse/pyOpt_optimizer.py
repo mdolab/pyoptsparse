@@ -763,7 +763,6 @@ class Optimizer(object):
             # objective scaling
             if len(self.optProb.objectives.keys()) == 1: # we assume there is only one objective
                 obj = list(self.optProb.objectives.keys())[0]
-                sol.fStar = self.optProb.objectives[obj].value # FIXME we actually populate fStar here, very hacky
                 for con in multipliers.keys():
                     multipliers[con] /= self.optProb.objectives[obj].scale
             sol.lambdaStar = multipliers

@@ -58,7 +58,7 @@ class TestHS71(unittest.TestCase):
         sol = opt(optProb, sens=sens)
 
         # Check Solution
-        self.assertAlmostEqual(sol.fStar, 17.0140172, places=places)
+        self.assertAlmostEqual(sol.objectives['obj'].value, 17.0140172, places=places)
 
         self.assertAlmostEqual(sol.xStar['xvars'][0], 1.0, places=places)
         self.assertAlmostEqual(sol.xStar['xvars'][1], 4.743, places=places)
