@@ -745,7 +745,7 @@ class Optimizer(object):
         sol.userSensCalls = self.userSensCalls
         sol.interfaceTime = self.interfaceTime - self.userSensTime - self.userObjTime
         sol.optCodeTime = sol.optTime - self.interfaceTime
-        sol.fStar = obj
+        sol.fStar = obj # FIXME: this doesn't work, at least for SNOPT
         n = len(self.optProb.invXScale)
         xScaled = self.optProb.invXScale * xopt[0:n] + self.optProb.xOffset[0:n]
         sol.xStar = self.optProb.processX(xScaled)
@@ -758,15 +758,15 @@ class Optimizer(object):
                 i += 1
 
         if multipliers is not None:
-            # Scale the multipliers (since the constraints may be scaled)
-            if self.optProb.conScale is not None:
-                scaled_multipliers = multipliers/self.optProb.conScale
-            else:
-                scaled_multipliers = multipliers
+            multipliers = self.optProb.deProcessConstraints(multipliers,scaled=True, multipliers=True)
 
-            sol.lambdaStar = self.optProb.deProcessConstraints(scaled_multipliers,
-                                                               scaled=False, multipliers=True)
-
+            # objective scaling
+            if len(self.optProb.objectives.keys()) == 1: # we assume there is only one objective
+                obj = list(self.optProb.objectives.keys())[0]
+                sol.fStar = self.optProb.objectives[obj].value # FIXME we actually populate fStar here, very hacky
+                for con in multipliers.keys():
+                    multipliers[con] /= self.optProb.objectives[obj].scale
+            sol.lambdaStar = multipliers
         return sol
 
     def _communicateSolution(self, sol):
