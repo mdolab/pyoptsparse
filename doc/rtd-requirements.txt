@@ -1,0 +1,5 @@
+# As RTD supports only single requirements file for a project, we need to
+# have one such file which will include all our requirements
+
+-r ../requirements.txt
+-r requirements.txt
