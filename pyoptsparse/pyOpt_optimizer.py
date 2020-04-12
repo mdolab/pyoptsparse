@@ -559,13 +559,6 @@ class Optimizer(object):
                 # we retrieve only the second item which is the actual value
                 for key,val in options.items():
                     options[key] = val[1]
-                # retrieve the git commit hash of the current version of pyoptsparse
-                try:
-                    sha = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'])
-                    sha = str(sha,'utf-8').replace('\n','') # converting byte to string, then trimming the newline character
-                except:
-                    # Not a git repo, perhaps the code was downloaded directly from GitHub instead of cloned
-                    sha = None
                 # we store the metadata now, and write it later in optimizer calls
                 # since we need the runtime at the end of optimization
                 self.metadata = {
@@ -575,7 +568,6 @@ class Optimizer(object):
                     'nprocs'    : MPI.COMM_WORLD.size,
                     'optOptions': options,
                     'startTime' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    'gitHash'   : sha,
                 }
                 self.hist.writeData('metadata',self.metadata)
 
