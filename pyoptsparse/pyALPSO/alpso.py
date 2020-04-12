@@ -91,8 +91,8 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
         if isinstance(x0, list):
             x0 = numpy.array(x0)
         elif not isinstance(x0, numpy.ndarray):
-            pyOptSparseWarning("""Initial x must be either list or numpy.array,
-                all initial positions randomly generated""")
+            pyOptSparseWarning(("Initial x must be either list or numpy.array, "
+                "all initial positions randomly generated"))
 
     #
     if hstfile is not None:
