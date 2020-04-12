@@ -47,7 +47,7 @@ class History(object):
     flag : str
         String specifying the mode. Similar to what was used in
         shelve. 'n' for a new database and 'r' to read an existing one. 
-       """
+    """
     def __init__(self, fileName, temp=False, flag='n'):
 
         if flag == 'n':
@@ -83,9 +83,18 @@ class History(object):
                 os.remove(self.fileName)
 
     def write(self, callCounter, data):
-        """This is the main to write data. Basically, we just pass in
+        """
+        This is the main to write data. Basically, we just pass in
         the callCounter, the integer forming the key, and a dictionary
-        which will be written to the key"""
+        which will be written to the key
+
+        Parameters
+        ----------
+        callCounter : int
+            the callCounter to write to
+        data : dict
+            the dictionary corresponding to the callCounter
+        """
         
         # String key to database on disk
         key = '%d'% callCounter
@@ -102,7 +111,15 @@ class History(object):
         
     def writeData(self, key, data):
         """
-        Write arbitrary key:data value to db
+        Write arbitrary `key:data` value to db.
+
+        Parameters
+        ----------
+        key : str
+            The key to be added to the history file
+        data
+            The data corresponding to the key. It can be anything as long as it is serializable
+            in `sqlitedict`.
         """
         self.db[key] = data
         self.db.commit()
@@ -111,6 +128,16 @@ class History(object):
     def pointExists(self, callCounter):
         """
         Determine if callCounter is in the database
+
+        Parameters
+        ----------
+        callCounter : int or str of int
+
+        Returns
+        -------
+        bool
+            True if the callCounter exists in the history file.
+            False otherwise.
         """
         if isinstance(callCounter, int):
             callCounter = str(callCounter)
@@ -126,6 +153,12 @@ class History(object):
         ----------
         key : str or int
             generic key[str] or callCounter[int]
+        
+        Returns
+        -------
+        dict
+            The value corresponding to `key` is returned.
+            If the key is not found, `None` is returned instead.
         """
         if isinstance(key, int):
             key = str(key)
@@ -137,7 +170,22 @@ class History(object):
     def getCallCounter(self,x):
         """
         Returns the callCounter corresponding to the function evaluation at 'x',
-        returns None if the point did not match previous evaluations
+        returns `None` if the point did not match previous evaluations
+
+        Parameters
+        ----------
+        x : ndarray
+            The unscaled DV as a single array.
+
+        Returns
+        -------
+        int
+            The callCounter corresponding to the DV `x`.
+            `None` is returned if no match was found.
+        
+        Note
+        ----
+        The tolerance used for this is the value `numpy.finfo(numpy.float64).eps`.
         """
         last = int(self.db['last'])
         callCounter = None
@@ -199,27 +247,90 @@ class History(object):
         self.metadata = self.read('metadata')
 
     def getIterKeys(self):
+        """
+        Returns the keys available at each optimization iteration.
+        This function is useful for inspecting the history file, to determine
+        what information is saved at each iteration.
+
+        Returns
+        -------
+        list of str
+            A list containing the names of keys stored at each optimization iteration.
+        """
         return copy.deepcopy(list(self.iterKeys))
     
     def getDVNames(self):
+        """
+        Returns the names of the DVs.
+
+        Returns
+        -------
+        list of str
+            A list containing the names of DVs.
+        """
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
         return copy.deepcopy(list(self.DVInfo.keys()))
 
     def getConNames(self):
+        """
+        Returns the names of constraints.
+
+        Returns
+        -------
+        list of str
+            A list containing the names of constraints.
+        """
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
         return copy.deepcopy(list(self.conInfo.keys()))
     
-    def getObjName(self):
+    def getObjNames(self):
+        """
+        Returns the names of the objectives.
+
+        Returns
+        -------
+        list of str
+            A list containing the names of objectives.
+        
+        Notes
+        -----
+        Recall that for the sake of generality, pyOptSparse allows for multiple objectives to be
+        added. This feature is not used currently, but does make `ObjNames` follow the same structure
+        as `ConNames` and `DVNames`.
+        """
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
         return copy.deepcopy(list(self.objInfo.keys()))
     
     def getObjInfo(self, key=None):
+        """
+        Returns the `ObjInfo`, for all keys by default. A `key` parameter can also
+        be supplied, to retrieve `ObjInfo` corresponding to specific keys.
+
+
+        Parameters
+        ----------
+        key : str or list of str, optional
+            Specifies for which obj to extract `ObjInfo`.
+
+        Returns
+        -------
+        dict
+            A dictionary containing ObjInfo. For a single key, the return is one level deeper.
+        
+        Notes
+        -----
+        Recall that for the sake of generality, pyOptSparse allows for multiple objectives to be
+        added. This feature is not used currently, but does make `ObjInfo` follow the same structure
+        as `ConInfo` and `DVInfo`.
+        Because of this, it is recommended that this function be accessed using the optional `key`
+        argument.
+        """
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
@@ -235,6 +346,20 @@ class History(object):
             return copy.deepcopy(self.objInfo)
     
     def getConInfo(self,key=None):
+        """
+        Returns the `ConInfo`, for all keys by default. A `key` parameter can also
+        be supplied, to retrieve `ConInfo` corresponding to specific constraints.
+
+        Parameters
+        ----------
+        key : str or list of str, optional
+            Specifies for which constraint to extract `ConInfo`.
+
+        Returns
+        -------
+        dict
+            A dictionary containing ConInfo. For a single key, the return is one level deeper.
+        """
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
@@ -250,6 +375,20 @@ class History(object):
             return copy.deepcopy(self.conInfo)
     
     def getDVInfo(self,key=None):
+        """
+        Returns the `DVInfo`, for all keys by default. A `key` parameter can also
+        be supplied, to retrieve `DVInfo` corresponding to specific DVs.
+
+        Parameters
+        ----------
+        key : str or list of str, optional
+            Specifies for which DV to extract `DVInfo`.
+
+        Returns
+        -------
+        dict
+            A dictionary containing DVInfo. For a single key, the return is one level deeper.
+        """
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
@@ -265,6 +404,14 @@ class History(object):
             return copy.deepcopy(self.DVInfo)
         
     def getMetadata(self):
+        """
+        Returns a copy of the metadata stored in the history file.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the metadata.
+        """
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
@@ -284,6 +431,14 @@ class History(object):
         return values * factor
 
     def getCallCounters(self):
+        """
+        Returns a list of all call counters stored in the history file.
+
+        Returns
+        -------
+        list
+            a list of strings, each entry being a call counter.
+        """
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
