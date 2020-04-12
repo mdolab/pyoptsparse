@@ -167,9 +167,10 @@ class History(object):
         except KeyError:
             return None
     
-    def getCallCounter(self,x):
+    def _searchCallCounter(self,x):
         """
-        Returns the callCounter corresponding to the function evaluation at 'x',
+        Searches through existing callCounters, and finds the one corresponding
+        to an evaluation at the design vector `x`.
         returns `None` if the point did not match previous evaluations
 
         Parameters
