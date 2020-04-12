@@ -35,19 +35,19 @@ def sens(xdict, funcs):
 
 class TestHS71(unittest.TestCase):
 
-    def optimize(self, optName, optOptions={}, storeHistory=False, places=5):
+    def optimize(self, optName, optOptions={}, storeHistory=False, places=5, xScale=1.0, objScale=1.0, conScale=1.0):
         # Optimization Object
         optProb = Optimization('HS071 Constraint Problem', objfunc)
 
         # Design Variables
         x0 = [1.0, 5.0, 5.0, 1.0]
-        optProb.addVarGroup('xvars', 4, lower=1, upper=5, value=x0)
+        optProb.addVarGroup('xvars', 4, lower=1, upper=5, value=x0, scale=xScale)
 
         # Constraints
-        optProb.addConGroup('con', 2, lower=[25, 40], upper=[None, 40])
+        optProb.addConGroup('con', 2, lower=[25, 40], upper=[None, 40], scale=conScale)
 
         # Objective
-        optProb.addObj('obj')
+        optProb.addObj('obj', scale=objScale)
 
         # Optimizer
         try:
@@ -60,10 +60,10 @@ class TestHS71(unittest.TestCase):
         # Check Solution
         self.assertAlmostEqual(sol.objectives['obj'].value, 17.0140172, places=places)
 
-        self.assertAlmostEqual(sol.variables['xvars'][0].value, 1.0, places=places)
-        self.assertAlmostEqual(sol.variables['xvars'][1].value, 4.743, places=places)
-        self.assertAlmostEqual(sol.variables['xvars'][2].value, 3.82115, places=places)
-        self.assertAlmostEqual(sol.variables['xvars'][3].value, 1.37941, places=places)
+        self.assertAlmostEqual(sol.xStar['xvars'][0], 1.0, places=places)
+        self.assertAlmostEqual(sol.xStar['xvars'][1], 4.743, places=places)
+        self.assertAlmostEqual(sol.xStar['xvars'][2], 3.82115, places=places)
+        self.assertAlmostEqual(sol.xStar['xvars'][3], 1.37941, places=places)
 
         if hasattr(sol, 'lambdaStar'):
             self.assertAlmostEqual(sol.lambdaStar['con'][0], 0.55229366, places=places)
@@ -71,6 +71,9 @@ class TestHS71(unittest.TestCase):
 
     def test_snopt(self):
         self.optimize('snopt')
+    
+    def test_snopt_scaling(self):
+        self.optimize('snopt', objScale=4.2, xScale=[2,3,4,5], conScale=[0.6, 1.7])
 
     def test_slsqp(self):
         self.optimize('slsqp')
