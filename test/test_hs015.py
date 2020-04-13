@@ -128,7 +128,6 @@ class TestHS15(unittest.TestCase):
         self.assertEqual(7,data['nMajor'])
         for var in store_vars:
             self.assertIn(var,data.keys())
-        hist.close()
 
         # re-optimize with hotstart
         self.optimize('snopt',storeHistory=False,hotStart=self.histFileName)
@@ -154,7 +153,6 @@ class TestHS15(unittest.TestCase):
         metadata = hist.getMetadata()
         self.assertEqual(metadata['optimizer'], 'SLSQP')
         self.assertIn('optTime',metadata.keys())
-        hist.close()
 
         # re-optimize with hotstart
         self.optimize('slsqp',storeHistory=False,hotStart=self.histFileName)
@@ -171,7 +169,6 @@ class TestHS15(unittest.TestCase):
         metadata = hist.getMetadata()
         self.assertEqual(metadata['optimizer'], 'NLPQLP')
         self.assertIn('optTime',metadata.keys())
-        hist.close()
 
         # re-optimize with hotstart
         self.optimize('nlpqlp',storeHistory=False,hotStart=self.histFileName)
@@ -187,7 +184,6 @@ class TestHS15(unittest.TestCase):
         metadata = hist.getMetadata()
         self.assertEqual(metadata['optimizer'], 'IPOPT')
         self.assertIn('optTime',metadata.keys())
-        hist.close()
 
         # re-optimize with hotstart
         self.optimize('ipopt',storeHistory=False,hotStart=self.histFileName, places=4)
@@ -203,7 +199,6 @@ class TestHS15(unittest.TestCase):
         metadata = hist.getMetadata()
         self.assertEqual(metadata['optimizer'], 'ParOpt')
         self.assertIn('optTime',metadata.keys())
-        hist.close()
 
         # re-optimize with hotstart
         self.optimize('paropt',storeHistory=False,hotStart=self.histFileName)
@@ -229,7 +224,6 @@ class TestHS15(unittest.TestCase):
         metadata = hist.getMetadata()
         self.assertEqual(metadata['optimizer'], 'PSQP')
         self.assertIn('optTime',metadata.keys())
-        hist.close()
 
         # re-optimize with hotstart
         self.optimize('psqp',storeHistory=False,hotStart=self.histFileName)
