@@ -107,16 +107,20 @@ class TestHS15(unittest.TestCase):
         diff = np.min(np.abs([xstar1[1] - x2, xstar2[1] - x2]))
         self.assertAlmostEqual(diff, 0.0, places=places)
 
+    def check_hist_file(self, optimizer):
+        hist = History(self.histFileName, flag='r')
+        metadata = hist.getMetadata()
+        self.assertEqual(metadata['optimizer'], optimizer)
+        self.assertIn('optTime',metadata.keys())
+
     def test_snopt(self):
         store_vars = ['step','merit','feasibility','optimality','penalty','Hessian','condZHZ','slack','lambda']
         optOptions = {
             'Save major iteration variables': store_vars
         }
         self.optimize('snopt',optOptions=optOptions,storeHistory=True)
+        self.check_hist_file('SNOPT')
         hist = History(self.histFileName, flag='r')
-        metadata = hist.getMetadata()
-        self.assertEqual(metadata['optimizer'], 'SNOPT')
-        self.assertIn('optTime',metadata.keys())
         callCounters = hist.getCallCounters()
         self.assertIn('0',callCounters)
         self.assertIn('19',callCounters)
@@ -149,10 +153,7 @@ class TestHS15(unittest.TestCase):
         self.optimize('slsqp', storeHistory=True)
         self.assertGreater(self.nf,0)
         self.assertGreater(self.ng,0)
-        hist = History(self.histFileName, flag='r')
-        metadata = hist.getMetadata()
-        self.assertEqual(metadata['optimizer'], 'SLSQP')
-        self.assertIn('optTime',metadata.keys())
+        self.check_hist_file('SLSQP')
 
         # re-optimize with hotstart
         self.optimize('slsqp',storeHistory=False,hotStart=self.histFileName)
@@ -165,10 +166,7 @@ class TestHS15(unittest.TestCase):
         self.optimize('nlpqlp', storeHistory=True)
         self.assertGreater(self.nf,0)
         self.assertGreater(self.ng,0)
-        hist = History(self.histFileName, flag='r')
-        metadata = hist.getMetadata()
-        self.assertEqual(metadata['optimizer'], 'NLPQLP')
-        self.assertIn('optTime',metadata.keys())
+        self.check_hist_file('NLPQLP')
 
         # re-optimize with hotstart
         self.optimize('nlpqlp',storeHistory=False,hotStart=self.histFileName)
@@ -180,10 +178,7 @@ class TestHS15(unittest.TestCase):
         self.optimize('ipopt', places=4, storeHistory=True)
         self.assertGreater(self.nf,0)
         self.assertGreater(self.ng,0)
-        hist = History(self.histFileName, flag='r')
-        metadata = hist.getMetadata()
-        self.assertEqual(metadata['optimizer'], 'IPOPT')
-        self.assertIn('optTime',metadata.keys())
+        self.check_hist_file('IPOPT')
 
         # re-optimize with hotstart
         self.optimize('ipopt',storeHistory=False,hotStart=self.histFileName, places=4)
@@ -195,10 +190,7 @@ class TestHS15(unittest.TestCase):
         self.optimize('paropt', storeHistory=True)
         self.assertGreater(self.nf,0)
         self.assertGreater(self.ng,0)
-        hist = History(self.histFileName, flag='r')
-        metadata = hist.getMetadata()
-        self.assertEqual(metadata['optimizer'], 'ParOpt')
-        self.assertIn('optTime',metadata.keys())
+        self.check_hist_file('ParOpt')
 
         # re-optimize with hotstart
         self.optimize('paropt',storeHistory=False,hotStart=self.histFileName)
@@ -220,10 +212,7 @@ class TestHS15(unittest.TestCase):
         self.optimize('psqp', storeHistory=True)
         self.assertGreater(self.nf,0)
         self.assertGreater(self.ng,0)
-        hist = History(self.histFileName, flag='r')
-        metadata = hist.getMetadata()
-        self.assertEqual(metadata['optimizer'], 'PSQP')
-        self.assertIn('optTime',metadata.keys())
+        self.check_hist_file('PSQP')
 
         # re-optimize with hotstart
         self.optimize('psqp',storeHistory=False,hotStart=self.histFileName)
