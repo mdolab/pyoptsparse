@@ -491,11 +491,11 @@ class History(object):
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
-        
+
         allNames = self.DVNames.union(self.conNames).union(self.objNames).union(self.iterKeys).difference(set(['funcs','funcsSens','xuser']))
         # cast string input into a single list
         if isinstance(names,str):
-            names = [names]
+            names = set([names])
         elif names is None:
             names = allNames
         else:
