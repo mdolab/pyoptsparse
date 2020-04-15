@@ -192,15 +192,15 @@ class History(object):
         callCounter = None
         for i in range(last,0,-1):
             key = '%d'% i
-            xuser = self.deProcessX(self.db[key]['xuser'])
+            xuser = self._deProcessX(self.db[key]['xuser'])
             if numpy.isclose(xuser,x,atol=eps,rtol=eps).all() and 'funcs' in self.db[key].keys():
                 callCounter = i
                 break
         return callCounter
 
-    def deProcessX(self,xuser, scale=False):
+    def _deProcessX(self,xuser, scale=False):
         """
-        This is a much more simple version of pyOpt_history.deProcessX without error checking.
+        This is a much more simple version of `pyOpt_optimization.deProcessX` without error checking.
         We traverse the OrderedDict and stack all the DVs as a single numpy array, preserving 
         the order so that we get the correct x vector.
 
@@ -545,7 +545,7 @@ class History(object):
                     if ((major and val['isMajor']) or not major) and not val['fail']:
                         for name in names:
                             if name == 'xuser':
-                                data[name].append(self.deProcessX(val['xuser'], scale=scale))
+                                data[name].append(self._deProcessX(val['xuser'], scale=scale))
                             elif name in self.DVNames:
                                 data[name].append(val['xuser'][name])
                             elif name in self.conNames.union(self.objNames):
