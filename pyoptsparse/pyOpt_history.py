@@ -208,6 +208,11 @@ class History(object):
         ----------
         scale : bool
             flag to specify whether the stacked values should be scaled or not.
+
+        Returns
+        -------
+        ndarray
+            The stacked x vector constructed from `xuser`
         """
         x_list = []
         for key in xuser.keys():
@@ -418,10 +423,22 @@ class History(object):
             return
         return copy.deepcopy(self.metadata)
     
-    def _scaleValues(self, name, values):
+    def _scaleValues(self, name, value):
         """
-        This function scales the values, where the factor is extracted from the
-        Info dictionaries, according to "name"
+        This function scales the value, where the factor is extracted from the
+        `Info` dictionaries, according to "name"
+
+        Parameters
+        ----------
+        name : str
+            The name of the value to be scaled.
+        value : float or ndarray
+            The value corresponding to the name.
+
+        Returns
+        -------
+        float or ndarray
+            The scaled value to return
         """
         if name in self.objNames:
             factor = self.objInfo[name]['scale']
@@ -429,7 +446,7 @@ class History(object):
             factor = self.conInfo[name]['scale']
         elif name in self.DVNames:
             factor = self.DVInfo[name]['scale']
-        return values * factor
+        return value * factor
 
     def getCallCounters(self):
         """
