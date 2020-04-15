@@ -202,6 +202,8 @@ class TestHS15(unittest.TestCase):
         opts = {'DELFUN' : 1e-9,
                 'DABFUN' : 1e-9}
         self.optimize('conmin', optOptions=opts, storeHistory=True)
+        self.check_hist_file('CONMIN')
+
         # re-optimize with hotstart
         self.optimize('conmin',optOptions=opts,storeHistory=False,hotStart=self.histFileName)
         # now we should do the same optimization without calling them
