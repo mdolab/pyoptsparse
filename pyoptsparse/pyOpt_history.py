@@ -184,8 +184,8 @@ class History(object):
             The callCounter corresponding to the DV `x`.
             `None` is returned if no match was found.
         
-        Note
-        ----
+        Notes
+        -----
         The tolerance used for this is the value `numpy.finfo(numpy.float64).eps`.
         """
         last = int(self.db['last'])
@@ -486,7 +486,34 @@ class History(object):
             flag to specify whether to apply scaling for the values. True means
             to return values that are scaled the same way as the actual optimization.
 
-        Note that regardless of the major flag, failed evaluations are not returned.
+        stack : bool
+            flag to specify whether the DV should be stacked into a single numpy array with
+            the key `xuser`, or retain their separate DVGroups.
+
+        Notes
+        -----
+        Regardless of the major flag, failed function evaluations are not returned.
+
+        Examples
+        --------
+        First we can request DV history over all major iterations:
+
+        >>> hist.getValues(names='xvars')
+        {'xvars': array([[-2.00000000e+00,  1.00000000e+00],
+            [-1.00000000e+00,  9.00000000e-01],
+            [-5.00305827e-17,  4.21052632e-01],
+            [ 1.73666171e-06,  4.21049838e-01],
+            [ 9.08477459e-06,  4.21045261e-01],
+            [ 5.00000000e-01,  2.84786405e-01],
+            [ 5.00000000e-01,  5.57279939e-01],
+            [ 5.00000000e-01,  2.00000000e+00]])}
+
+        Next we can look at DV and optimality for the first and last iteration only:
+
+        >>> hist.getValues(names=['xvars','optimality'],callCounters=[0,'last'])
+        {'optimality': array([1.27895528, 0. ]),
+        'xvars': array([[-2. , 1. ],
+                        [ 0.5, 2. ]])}
         """
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
