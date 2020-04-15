@@ -65,7 +65,7 @@ class TestHS15(unittest.TestCase):
         optProb.addObj('obj')
 
         # Check optimization problem:
-        # print(optProb)
+        print(optProb)
 
         # Optimizer
         try:

@@ -39,7 +39,7 @@ class TestNSGA2(unittest.TestCase):
         try:
             opt = NSGA2(options=options)
         except:
-            raise unittest.SkipTest('Optimizer not available:', optName)
+            raise unittest.SkipTest('Optimizer not available:', 'NSGA2')
 
         sol = opt(optProb)
 
