@@ -530,11 +530,17 @@ class History(object):
         for name in names:
             data[name] = []
 
-        if callCounters is None:
+        # this flag is used for error printing only
+        user_specified_callCounter = False
+        if callCounters is not None:
+            user_specified_callCounter = True
+            if isinstance(callCounters, str):
+                callCounters = [callCounters]
+        else:
             callCounters = self.callCounters
-        elif isinstance(callCounters, str):
-            callCounters = [callCounters]
-        if isinstance(callCounters, list) and 'last' in callCounters:
+
+        # parse the 'last' callCounter
+        if 'last' in callCounters:
             callCounters.append(self.read('last'))
             callCounters.remove('last')
 
@@ -552,16 +558,28 @@ class History(object):
                                 data[name].append(val['funcs'][name])
                             else: # must be opt
                                 data[name].append(val[name])
-                        
-        # reshape inputs and outputs into numpy arrays
+                    elif val['fail'] and user_specified_callCounter:
+                            pyOptSparseWarning(("callCounter {} contained a failed function evaluation and is skipped!").format(i))
+                elif user_specified_callCounter:
+                    pyOptSparseWarning(("callCounter {} did not contain a function evaluation and is skipped! Was it a gradient evaluation step?").format(i))
+            elif user_specified_callCounter:
+                pyOptSparseWarning(("callCounter {} was not found and is skipped!").format(i))
+        # reshape lists into numpy arrays
         for name in names:
-            # only convert to 2D if there's more than one callCounter
+            # if we have more than one callCounter
             if len(callCounters) > 1:
-                data[name] = numpy.vstack(data[name])
+                # if it is a list of floats or numpy 1-D array then we just cast to 1-D array
+                if isinstance(data[name][0],float) or (isinstance(data[name][0],numpy.ndarray) and data[name][0].ndim == 1):
+                    data[name] = numpy.array(data[name])
+                # otherwise convert to 2-D array
+                else:
+                    data[name] = numpy.vstack(data[name])
+            # if one callCounter then use a simple 1-D array also
             else:
                 data[name] = numpy.array(data[name][0])
+
             # scale the values if needed
-            # xuser has already been scaled
+            # note that xuser has already been scaled
             if scale and name in self.DVNames.union(self.conNames).union(self.objNames):
                 data[name] = self._scaleValues(name,data[name])
 
