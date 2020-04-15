@@ -108,10 +108,54 @@ class TestHS15(unittest.TestCase):
         self.assertAlmostEqual(diff, 0.0, places=places)
 
     def check_hist_file(self, optimizer):
+        """
+        We check the history file here along with the API
+        """
         hist = History(self.histFileName, flag='r')
+        # Metadata checks
         metadata = hist.getMetadata()
         self.assertEqual(metadata['optimizer'], optimizer)
-        self.assertIn('optTime',metadata.keys())
+        metadata_def_keys = ['optName', 'optOptions', 'nprocs', 'startTime', 'endTime', 'optTime', 'version']
+        for key in metadata_def_keys:
+            self.assertIn(key,metadata)
+
+        # Info checks
+        self.assertEqual(hist.getDVNames(), ['xvars'])
+        self.assertEqual(hist.getConNames(), ['con'])
+        self.assertEqual(hist.getObjNames(), ['obj'])
+        dvInfo = hist.getDVInfo()
+        self.assertEqual(len(dvInfo),1)
+        self.assertEqual(dvInfo['xvars'], hist.getDVInfo(key='xvars'))
+        conInfo = hist.getConInfo()
+        self.assertEqual(len(conInfo),1)
+        self.assertEqual(conInfo['con'], hist.getConInfo(key='con'))
+        objInfo = hist.getObjInfo()
+        self.assertEqual(len(objInfo),1)
+        self.assertEqual(objInfo['obj'], hist.getObjInfo(key='obj'))
+        for key in ['lower', 'upper', 'scale']:
+            self.assertIn(key,dvInfo['xvars'])
+            self.assertIn(key,conInfo['con'])
+        self.assertIn('scale',objInfo['obj'])
+
+        # callCounter checks
+        callCounters = hist.getCallCounters()
+        last = hist.read('last') # 'last' key should be present
+        self.assertIn(last,callCounters)
+
+        # iterKey checks
+        iterKeys = hist.getIterKeys()
+        for key in ['xuser', 'fail', 'isMajor']:
+            self.assertIn(key, iterKeys)
+
+        # getValues check
+        hist.getValues()
+        hist.getValues(stack=True, major=False, scale=True)
+        # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
+        if optimizer in ['SNOPT', 'SLSQP', 'PSQP']:
+            val = hist.getValues(callCounters=['0','last'])
+            self.assertEqual(val['isMajor'].size,2)
+            self.assertTrue(val['isMajor'][0]) # the first callCounter must be a major iteration
+            self.assertTrue(val['isMajor'][-1]) # the last callCounter must be a major iteration
 
     def test_snopt(self):
         store_vars = ['step','merit','feasibility','optimality','penalty','Hessian','condZHZ','slack','lambda']
@@ -121,11 +165,6 @@ class TestHS15(unittest.TestCase):
         self.optimize('snopt',optOptions=optOptions,storeHistory=True)
         self.check_hist_file('SNOPT')
         hist = History(self.histFileName, flag='r')
-        callCounters = hist.getCallCounters()
-        self.assertIn('0',callCounters)
-        self.assertIn('19',callCounters)
-        self.assertIn('20',callCounters)
-        self.assertNotIn('21',callCounters)
         data = hist.getValues(callCounters=['last'])
         keys = hist.getIterKeys()
         self.assertIn('isMajor',keys)
