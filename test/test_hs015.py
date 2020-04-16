@@ -4,7 +4,7 @@ from __future__ import print_function
 import unittest
 
 import numpy as np
-from pyoptsparse import Optimization, OPT
+from pyoptsparse import Optimization, OPT, History
 from sqlitedict import SqliteDict
 class TestHS15(unittest.TestCase):
 
@@ -65,7 +65,7 @@ class TestHS15(unittest.TestCase):
         optProb.addObj('obj')
 
         # Check optimization problem:
-        # print(optProb)
+        print(optProb)
 
         # Optimizer
         try:
@@ -81,8 +81,7 @@ class TestHS15(unittest.TestCase):
                 self.histFileName = storeHistory
         else:
             self.histFileName = None
-        print('histFileName: ', self.histFileName)
-        print('hotStart: ', hotStart)
+
         sol = opt(optProb, sens=self.sens, storeHistory=self.histFileName, hotStart=hotStart)
 
         # Test printing solution to screen
@@ -108,18 +107,71 @@ class TestHS15(unittest.TestCase):
         diff = np.min(np.abs([xstar1[1] - x2, xstar2[1] - x2]))
         self.assertAlmostEqual(diff, 0.0, places=places)
 
+    def check_hist_file(self, optimizer):
+        """
+        We check the history file here along with the API
+        """
+        hist = History(self.histFileName, flag='r')
+        # Metadata checks
+        metadata = hist.getMetadata()
+        self.assertEqual(metadata['optimizer'], optimizer)
+        metadata_def_keys = ['optName', 'optOptions', 'nprocs', 'startTime', 'endTime', 'optTime', 'version']
+        for key in metadata_def_keys:
+            self.assertIn(key,metadata)
+
+        # Info checks
+        self.assertEqual(hist.getDVNames(), ['xvars'])
+        self.assertEqual(hist.getConNames(), ['con'])
+        self.assertEqual(hist.getObjNames(), ['obj'])
+        dvInfo = hist.getDVInfo()
+        self.assertEqual(len(dvInfo),1)
+        self.assertEqual(dvInfo['xvars'], hist.getDVInfo(key='xvars'))
+        conInfo = hist.getConInfo()
+        self.assertEqual(len(conInfo),1)
+        self.assertEqual(conInfo['con'], hist.getConInfo(key='con'))
+        objInfo = hist.getObjInfo()
+        self.assertEqual(len(objInfo),1)
+        self.assertEqual(objInfo['obj'], hist.getObjInfo(key='obj'))
+        for key in ['lower', 'upper', 'scale']:
+            self.assertIn(key,dvInfo['xvars'])
+            self.assertIn(key,conInfo['con'])
+        self.assertIn('scale',objInfo['obj'])
+
+        # callCounter checks
+        callCounters = hist.getCallCounters()
+        last = hist.read('last') # 'last' key should be present
+        self.assertIn(last,callCounters)
+
+        # iterKey checks
+        iterKeys = hist.getIterKeys()
+        for key in ['xuser', 'fail', 'isMajor']:
+            self.assertIn(key, iterKeys)
+
+        # getValues check
+        hist.getValues()
+        hist.getValues(stack=True, major=False, scale=True)
+        # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
+        if optimizer in ['SNOPT', 'SLSQP', 'PSQP']:
+            val = hist.getValues(callCounters=['0','last'])
+            self.assertEqual(val['isMajor'].size,2)
+            self.assertTrue(val['isMajor'][0]) # the first callCounter must be a major iteration
+            self.assertTrue(val['isMajor'][-1]) # the last callCounter must be a major iteration
+
     def test_snopt(self):
         store_vars = ['step','merit','feasibility','optimality','penalty','Hessian','condZHZ','slack','lambda']
         optOptions = {
             'Save major iteration variables': store_vars
         }
         self.optimize('snopt',optOptions=optOptions,storeHistory=True)
-        hist = SqliteDict(self.histFileName)
-        self.assertIn('isMajor',hist['0'].keys())
-        self.assertIn('optTime',hist['metadata'].keys())
-        self.assertEqual(7,hist['19']['nMajor'])
+        self.check_hist_file('SNOPT')
+        hist = History(self.histFileName, flag='r')
+        data = hist.getValues(callCounters=['last'])
+        keys = hist.getIterKeys()
+        self.assertIn('isMajor',keys)
+        self.assertEqual(7,data['nMajor'])
         for var in store_vars:
-            self.assertIn(var,hist['19'].keys())
+            self.assertIn(var,data.keys())
+
         # re-optimize with hotstart
         self.optimize('snopt',storeHistory=False,hotStart=self.histFileName)
         # now we should do the same optimization without calling them
@@ -140,8 +192,8 @@ class TestHS15(unittest.TestCase):
         self.optimize('slsqp', storeHistory=True)
         self.assertGreater(self.nf,0)
         self.assertGreater(self.ng,0)
-        hist = SqliteDict(self.histFileName)
-        self.assertIn('optTime',hist['metadata'].keys())
+        self.check_hist_file('SLSQP')
+
         # re-optimize with hotstart
         self.optimize('slsqp',storeHistory=False,hotStart=self.histFileName)
         # now we should do the same optimization without calling them
@@ -153,8 +205,8 @@ class TestHS15(unittest.TestCase):
         self.optimize('nlpqlp', storeHistory=True)
         self.assertGreater(self.nf,0)
         self.assertGreater(self.ng,0)
-        hist = SqliteDict(self.histFileName)
-        self.assertIn('optTime',hist['metadata'].keys())
+        self.check_hist_file('NLPQLP')
+
         # re-optimize with hotstart
         self.optimize('nlpqlp',storeHistory=False,hotStart=self.histFileName)
         # now we should do the same optimization without calling them
@@ -165,8 +217,8 @@ class TestHS15(unittest.TestCase):
         self.optimize('ipopt', places=4, storeHistory=True)
         self.assertGreater(self.nf,0)
         self.assertGreater(self.ng,0)
-        hist = SqliteDict(self.histFileName)
-        self.assertIn('optTime',hist['metadata'].keys())
+        self.check_hist_file('IPOPT')
+
         # re-optimize with hotstart
         self.optimize('ipopt',storeHistory=False,hotStart=self.histFileName, places=4)
         # now we should do the same optimization without calling them
@@ -177,8 +229,8 @@ class TestHS15(unittest.TestCase):
         self.optimize('paropt', storeHistory=True)
         self.assertGreater(self.nf,0)
         self.assertGreater(self.ng,0)
-        hist = SqliteDict(self.histFileName)
-        self.assertIn('optTime',hist['metadata'].keys())
+        self.check_hist_file('ParOpt')
+
         # re-optimize with hotstart
         self.optimize('paropt',storeHistory=False,hotStart=self.histFileName)
         # now we should do the same optimization without calling them
@@ -189,6 +241,8 @@ class TestHS15(unittest.TestCase):
         opts = {'DELFUN' : 1e-9,
                 'DABFUN' : 1e-9}
         self.optimize('conmin', optOptions=opts, storeHistory=True)
+        self.check_hist_file('CONMIN')
+
         # re-optimize with hotstart
         self.optimize('conmin',optOptions=opts,storeHistory=False,hotStart=self.histFileName)
         # now we should do the same optimization without calling them
@@ -199,8 +253,8 @@ class TestHS15(unittest.TestCase):
         self.optimize('psqp', storeHistory=True)
         self.assertGreater(self.nf,0)
         self.assertGreater(self.ng,0)
-        hist = SqliteDict(self.histFileName)
-        self.assertIn('optTime',hist['metadata'].keys())
+        self.check_hist_file('PSQP')
+
         # re-optimize with hotstart
         self.optimize('psqp',storeHistory=False,hotStart=self.histFileName)
         # now we should do the same optimization without calling them

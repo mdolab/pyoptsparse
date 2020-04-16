@@ -660,7 +660,7 @@ class SNOPT(Optimizer):
                 callCounter = 0
             else:
                 xScaled = self.optProb.invXScale * currX + self.optProb.xOffset
-                callCounter = self.hist.getCallCounter(xScaled)
+                callCounter = self.hist._searchCallCounter(xScaled)
             if callCounter is not None:
                 self.hist.write(callCounter, iterDict)
         iabort = 0

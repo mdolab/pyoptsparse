@@ -32,6 +32,7 @@ except ImportError:
 # =============================================================================
 import os
 import time
+import datetime
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -237,6 +238,12 @@ class CONMIN(Optimizer):
                           iprint, iout, ifile, itmax, delfun, dabfun, itrm,
                           nfeasct, nfdg, nfun, ngrd, cnmnfun, cnmngrad)
             optTime = time.time() - t0
+
+            if self.storeHistory:
+                self.metadata['endTime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.metadata['optTime'] = optTime
+                self.hist.writeData('metadata',self.metadata)
+                self.hist.close()
 
             if iprint > 0:
                 conmin.closeunit(self.getOption('IOUT'))
