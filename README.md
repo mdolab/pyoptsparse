@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/mdolab/pyoptsparse.svg?branch=master)](https://travis-ci.com/mdolab/pyoptsparse)
 [![Coverage Status](https://coveralls.io/repos/github/mdolab/pyoptsparse/badge.svg?branch=master)](https://coveralls.io/github/mdolab/pyoptsparse?branch=master)
-[![Documentation Status](https://readthedocs.org/projects/pyoptsparse/badge/?version=latest)](https://pyoptsparse.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.com/projects/mdolab-pyoptsparse/badge/?version=latest)](https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/?badge=latest)
 
 pyOptsparse is an object-oriented framework for formulating and solving nonlinear constrained optimization problems in an efficient, reusable, and portable manner.
 It is a fork of pyOpt that uses sparse matrices throughout the code to more efficiently handle large-scale optimization problems.
