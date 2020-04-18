@@ -7,7 +7,7 @@ from __future__ import print_function
 import unittest
 
 import numpy as np
-
+from numpy.testing import assert_almost_equal
 from pyoptsparse import Optimization, SNOPT
 
 
@@ -58,8 +58,6 @@ def sens(xdict, funcs):
 
     funcsSens['obj', 'x'] = 2.0*x - 6.0 + y
     funcsSens['obj', 'y'] = 2.0*y + 8.0 + x
-    #funcsSens['con', 'x'] = -1.0
-    #funcsSens['con', 'y'] = 1.0
 
     fail = False
     return funcsSens, fail
@@ -100,8 +98,8 @@ class TestSNOPTBug(unittest.TestCase):
         sol = opt(optProb, sens=sens)
 
         # Check Solution 7.166667, -7.833334
-        self.assertAlmostEqual(sol.variables['x'][0].value, 7.166667, places=6)
-        self.assertAlmostEqual(sol.variables['y'][0].value, -7.833333, places=6)
+        assert_almost_equal(sol.variables['x'][0].value, 7.166667, decimal=6)
+        assert_almost_equal(sol.variables['y'][0].value, -7.833333, decimal=6)
 
     def test_opt_bug1(self):
         # Due to a new feature, there is a TypeError when you optimize a model without a constraint.

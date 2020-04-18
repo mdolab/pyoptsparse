@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 import unittest
-
+from numpy.testing import assert_almost_equal
 from pyoptsparse import Optimization, NSGA2
 
 
@@ -44,9 +44,9 @@ class TestNSGA2(unittest.TestCase):
         sol = opt(optProb)
 
         # Check Solution
-        self.assertAlmostEqual(sol.variables['x'][0].value, 1.0, places=2)
+        assert_almost_equal(sol.variables['x'][0].value, 1.0, decimal=2)
 
-        self.assertAlmostEqual(sol.variables['y'][0].value, 1.0, places=2)
+        assert_almost_equal(sol.variables['y'][0].value, 1.0, decimal=2)
 
 
 if __name__ == "__main__":

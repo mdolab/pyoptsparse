@@ -32,7 +32,7 @@ class TestHS71(unittest.TestCase):
         fail = False
         return funcsSens, fail
 
-    def optimize(self, optName, optOptions={}, storeHistory=False, places=5, xScale=1.0, objScale=1.0, conScale=1.0):
+    def optimize(self, optName, optOptions={}, storeHistory=False, decimal=5, xScale=1.0, objScale=1.0, conScale=1.0):
         # Optimization Object
         optProb = Optimization('HS071 Constraint Problem', self.objfunc)
 
@@ -58,13 +58,11 @@ class TestHS71(unittest.TestCase):
         self.fStar = 17.0140172
         self.xStar = (1.0, 4.743, 3.82115, 1.37941)
         self.lambdaStar = (0.55229366, -0.16146857)
-        self.assertAlmostEqual(sol.objectives['obj'].value, self.fStar, places=places)
-        for i in range(4):
-            self.assertAlmostEqual(sol.xStar['xvars'][i], self.xStar[i], places=places)
+        assert_almost_equal(sol.objectives['obj'].value, self.fStar, decimal=decimal)
+        assert_almost_equal(sol.xStar['xvars'], self.xStar, decimal=decimal)
 
         if hasattr(sol, 'lambdaStar'):
-            for i in range(2):
-                self.assertAlmostEqual(sol.lambdaStar['con'][i], self.lambdaStar[i], places=places)
+            assert_almost_equal(sol.lambdaStar['con'], self.lambdaStar, decimal=decimal)
 
     def test_snopt(self):
         self.optimize('snopt')
@@ -97,7 +95,7 @@ class TestHS71(unittest.TestCase):
     def test_conmin(self):
         opts = {'DELFUN' : 1e-9,
                 'DABFUN' : 1e-9}
-        self.optimize('conmin', optOptions=opts, places=2)
+        self.optimize('conmin', optOptions=opts, decimal=2)
 
     def test_psqp(self):
         self.optimize('psqp')
