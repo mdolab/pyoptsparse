@@ -465,13 +465,14 @@ class History(object):
 
     def getValues(self, names=None, callCounters=None, major=True, scale=False, stack=False):
         """
-        Parses an existing history file and returns a data dictionary used to post-process optimization results.
+        Parses an existing history file and returns a data dictionary used to post-process optimization results, containing the requested optimization iteration history.
 
         Parameters
         ----------
         names : list or str
             the values of interest, can be the name of any DV, objective or constraint,
-            or a list of them. If None, all values are returned.
+            or a list of them. If None, all values are returned. This includes the DVs,
+            funcs, and any values stored by the optimizer.
         
         callCounters : list of ints, can also contain 'last'
             a list of callCounters to extract information from.
@@ -489,6 +490,13 @@ class History(object):
         stack : bool
             flag to specify whether the DV should be stacked into a single numpy array with
             the key `xuser`, or retain their separate DVGroups.
+
+        Returns
+        -------
+        dict
+            a dictionary containing the information requested. The keys of the dictionary
+            correspond to the `names` requested. Each value is a numpy array with the first
+            dimension equal to the number of callCounters requested.
 
         Notes
         -----
@@ -593,17 +601,8 @@ class History(object):
                 pyOptSparseWarning(("callCounter {} was not found and is skipped!").format(i))
         # reshape lists into numpy arrays
         for name in names:
-            # if we have more than one callCounter
-            if len(callCounters) > 1:
-                # if it is a list of floats or numpy 1-D array then we just cast to 1-D array
-                if isinstance(data[name][0],float) or (isinstance(data[name][0],numpy.ndarray) and data[name][0].ndim == 1):
-                    data[name] = numpy.array(data[name])
-                # otherwise convert to 2-D array
-                else:
-                    data[name] = numpy.vstack(data[name])
-            # if one callCounter then use a simple 1-D array also
-            else:
-                data[name] = numpy.array(data[name][0])
+            # we just stack along axis 0
+            data[name] = numpy.stack(data[name],axis=0)
 
             # scale the values if needed
             # note that xuser has already been scaled

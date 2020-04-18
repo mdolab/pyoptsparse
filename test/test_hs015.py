@@ -88,26 +88,24 @@ class TestHS15(unittest.TestCase):
         print(sol)
 
         # Check Solution
+        self.fStar1 = 306.5
+        self.fStar2 = 360.379767
         fobj = sol.objectives['obj'].value
-        diff = np.min(np.abs([fobj - 306.5, fobj - 360.379767]))
+        diff = np.min(np.abs([fobj - self.fStar1, fobj - self.fStar2]))
         self.assertAlmostEqual(diff, 0.0, places=places)
 
-        xstar1 = (0.5, 2.0)
-        xstar2 = (-0.79212322, -1.26242985)
-        x1 = sol.variables['xvars'][0].value
-        x2 = sol.variables['xvars'][1].value
+        self.xStar1 = (0.5, 2.0)
+        self.xStar2 = (-0.79212322, -1.26242985)
 
         dv = sol.getDVs()
-        self.assertAlmostEqual(x1, dv['xvars'][0], places=10)
-        self.assertAlmostEqual(x2, dv['xvars'][1], places=10)
+        for i in range(2):
+            self.assertAlmostEqual(sol.variables['xvars'][i].value, dv['xvars'][i], places=10)
 
-        diff = np.min(np.abs([xstar1[0] - x1, xstar2[0] - x1]))
-        self.assertAlmostEqual(diff, 0.0, places=places)
+            diff = np.min(np.abs([self.xStar1[i] - sol.variables['xvars'][i].value,
+                                self.xStar2[i] - sol.variables['xvars'][i].value]))
+            self.assertAlmostEqual(diff, 0.0, places=places)
 
-        diff = np.min(np.abs([xstar1[1] - x2, xstar2[1] - x2]))
-        self.assertAlmostEqual(diff, 0.0, places=places)
-
-    def check_hist_file(self, optimizer):
+    def check_hist_file(self, optimizer, places=12):
         """
         We check the history file here along with the API
         """
@@ -147,15 +145,15 @@ class TestHS15(unittest.TestCase):
         for key in ['xuser', 'fail', 'isMajor']:
             self.assertIn(key, iterKeys)
 
-        # getValues check
-        hist.getValues()
-        hist.getValues(stack=True, major=False, scale=True)
         # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
         if optimizer in ['SNOPT', 'SLSQP', 'PSQP']:
-            val = hist.getValues(callCounters=['0','last'])
+            val = hist.getValues(callCounters=['0','last'],stack=True)
             self.assertEqual(val['isMajor'].size,2)
             self.assertTrue(val['isMajor'][0]) # the first callCounter must be a major iteration
             self.assertTrue(val['isMajor'][-1]) # the last callCounter must be a major iteration
+            # check optimum stored in history file against xstar
+            self.assertAlmostEqual(val['xuser'][-1,0],self.xStar1[0], places=places)
+            self.assertAlmostEqual(val['xuser'][-1,1],self.xStar1[1], places=places)
 
     def optimize_with_hotstart(self,optName,places=12,optOptions={}):
         """
@@ -166,7 +164,7 @@ class TestHS15(unittest.TestCase):
         self.optimize(optName,storeHistory=True,optOptions=optOptions,places=places)
         self.assertGreater(self.nf,0)
         self.assertGreater(self.ng,0)
-        self.check_hist_file(optName)
+        self.check_hist_file(optName, places=places)
 
         # re-optimize with hotstart
         self.optimize(optName,storeHistory=False,hotStart=self.histFileName,optOptions=optOptions,places=places)
@@ -196,6 +194,10 @@ class TestHS15(unittest.TestCase):
         self.assertEqual(7,data['nMajor'])
         for var in store_vars:
             self.assertIn(var,data.keys())
+        self.assertEqual(data['Hessian'].shape,(1,2,2))
+        self.assertEqual(data['feasibility'].shape,(1,))
+        self.assertEqual(data['slack'].shape,(1,2))
+        self.assertEqual(data['lambda'].shape,(1,2))
 
     def test_slsqp(self):
         self.optimize_with_hotstart('SLSQP', places=8)
