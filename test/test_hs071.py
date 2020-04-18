@@ -2,9 +2,9 @@
 from __future__ import print_function
 
 import unittest
-
 import numpy
-from pyoptsparse import Optimization, OPT
+from numpy.testing import assert_almost_equal
+from pyoptsparse import Optimization, OPT, History
 
 class TestHS71(unittest.TestCase):
     def objfunc(self, xdict):
@@ -52,7 +52,7 @@ class TestHS71(unittest.TestCase):
         except:
             raise unittest.SkipTest('Optimizer not available:', optName)
 
-        sol = opt(optProb, sens=self.sens)
+        sol = opt(optProb, sens=self.sens, storeHistory=storeHistory)
 
         # Check Solution
         self.fStar = 17.0140172
@@ -70,8 +70,20 @@ class TestHS71(unittest.TestCase):
         self.optimize('snopt')
     
     def test_snopt_scaling(self):
-        self.optimize('snopt', objScale=4.2, xScale=[2,3,4,5], conScale=[0.6, 1.7])
-        
+        histFileName = 'snopt_scale_test.hst'
+        objScale = 4.2
+        xScale = [2,3,4,5]
+        conScale = [0.6, 1.7]
+        self.optimize('snopt', objScale=objScale, xScale=xScale, conScale=conScale, storeHistory=histFileName)
+
+        # now we retrieve the history file, and check the scale=True option is indeed
+        # scaling things correctly
+        hist = History(histFileName, flag='r')
+        last = hist.getValues(callCounters='last', scale=False)
+        last_scaled = hist.getValues(callCounters='last', scale=True)
+        x = last['xvars'][0]
+        x_scaled = last_scaled['xvars'][0]
+        assert_almost_equal(x_scaled/x,xScale, decimal=12)
 
     def test_slsqp(self):
         self.optimize('slsqp')
