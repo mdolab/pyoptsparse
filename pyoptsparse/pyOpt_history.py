@@ -498,7 +498,7 @@ class History(object):
         --------
         First we can request DV history over all major iterations:
 
-        >>> hist.getValues(names='xvars')
+        >>> hist.getValues(names='xvars', major=True)
         {'xvars': array([[-2.00000000e+00,  1.00000000e+00],
             [-1.00000000e+00,  9.00000000e-01],
             [-5.00305827e-17,  4.21052632e-01],
