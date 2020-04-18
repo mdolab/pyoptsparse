@@ -30,7 +30,7 @@ import unittest
 
 import numpy
 from numpy import sin, cos
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_allclose
 from pyoptsparse import Optimization, OPT
 
 USE_LINEAR = True
@@ -67,7 +67,7 @@ def objfunc(xdict):
 
 class TestTP109(unittest.TestCase):
 
-    def optimize(self, optName, optOptions={}, decimal=2):
+    def optimize(self, optName, tol, optOptions={}):
         # Optimization Object
         optProb = Optimization('TP109 Constraint Problem', objfunc)
 
@@ -110,13 +110,13 @@ class TestTP109(unittest.TestCase):
         sol = opt(optProb, sens='CS')
 
         # Check Solution
-        assert_almost_equal(sol.objectives['obj'].value, 0.536206927538e+04, decimal=decimal)
+        assert_allclose(sol.objectives['obj'].value, 0.536206927538e+04, atol=tol, rtol=tol)
 
     def test_snopt(self):
-        self.optimize('snopt')
+        self.optimize('snopt', 1E-7)
 
     def test_slsqp(self):
-        self.optimize('slsqp')
+        self.optimize('slsqp', 1E-7)
 
     def test_autorefine(self):
         # Optimization Object
@@ -168,7 +168,7 @@ class TestTP109(unittest.TestCase):
         sol2 = opt2(sol1)
 
         # Check Solution
-        assert_almost_equal(sol2.objectives['obj'].value, 0.536206927538e+04, decimal=2)
+        assert_allclose(sol2.objectives['obj'].value, 0.536206927538e+04, atol=1E-2, rtol=1E-2)
 
 if __name__ == "__main__":
     unittest.main()

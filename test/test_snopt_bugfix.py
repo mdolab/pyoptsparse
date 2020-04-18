@@ -7,7 +7,7 @@ from __future__ import print_function
 import unittest
 
 import numpy as np
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_allclose
 from pyoptsparse import Optimization, SNOPT
 
 
@@ -98,8 +98,9 @@ class TestSNOPTBug(unittest.TestCase):
         sol = opt(optProb, sens=sens)
 
         # Check Solution 7.166667, -7.833334
-        assert_almost_equal(sol.variables['x'][0].value, 7.166667, decimal=6)
-        assert_almost_equal(sol.variables['y'][0].value, -7.833333, decimal=6)
+        tol = 1E-6
+        assert_allclose(sol.variables['x'][0].value, 7.166667, atol=tol, rtol=tol)
+        assert_allclose(sol.variables['y'][0].value, -7.833333, atol=tol, rtol=tol)
 
     def test_opt_bug1(self):
         # Due to a new feature, there is a TypeError when you optimize a model without a constraint.

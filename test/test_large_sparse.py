@@ -9,7 +9,7 @@ from __future__ import print_function
 
 import unittest
 import numpy
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_allclose
 from numpy import arange
 from scipy import sparse
 
@@ -44,7 +44,7 @@ def sens(xdict, funcs):
 
 class TestLargeSparse(unittest.TestCase):
 
-    def optimize(self, optName, optOptions={}, storeHistory=False, decimal=5):
+    def optimize(self, optName, tol, optOptions={}, storeHistory=False):
         # Optimization Object
         optProb = Optimization('large and sparse', objfunc)
 
@@ -72,12 +72,12 @@ class TestLargeSparse(unittest.TestCase):
         sol = opt(optProb, sens=sens)
 
         # Check Solution
-        assert_almost_equal(sol.objectives['obj'].value, 10.0, decimal=decimal)
+        assert_allclose(sol.objectives['obj'].value, 10.0, atol = tol, rtol = tol)
 
-        assert_almost_equal(sol.variables['x'][0].value, 2.0, decimal=decimal)
+        assert_allclose(sol.variables['x'][0].value, 2.0, atol = tol, rtol = tol)
 
     def test_snopt(self):
-        self.optimize('snopt')
+        self.optimize('snopt', tol=1E-5)
 
 
 if __name__ == "__main__":
