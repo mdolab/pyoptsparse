@@ -30,7 +30,7 @@ except ImportError:
 # standard Python modules
 # =============================================================================
 import copy
-import time, datetime
+import time
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -362,8 +362,26 @@ class IPOPT(Optimizer):
             # 'warm_start_target_mu' : [float, 0.0]
         }
 
-        informs = { # Don't have any of these yet either..
-            }
+        informs = {
+            0: 'Solve Succeeded',
+            1: 'Solved To Acceptable Level',
+            2: 'Infeasible Problem Detected',
+            3: 'Search Direction Becomes Too Small',
+            4: 'Diverging Iterates',
+            5: 'User Requested Stop',
+            6: 'Feasible Point Found',
+            -1: 'Maximum Iterations Exceeded',
+            -2: 'Restoration Failed',
+            -3: 'Error In Step Computation',
+            -4: 'Maximum CpuTime Exceeded',
+            -10: 'Not Enough Degrees Of Freedom',
+            -11: 'Invalid Problem Definition',
+            -12: 'Invalid Option',
+            -13: 'Invalid Number Detected',
+            -100: 'Unrecoverable Exception',
+            -101: 'NonIpopt Exception Thrown',
+            -102: 'Insufficient Memory',
+            -199: 'Internal Error'}
 
         if pyipoptcore is None:
             raise Error('There was an error importing the compiled \
@@ -522,15 +540,12 @@ class IPOPT(Optimizer):
             optTime = time.time()-timeA
 
             if self.storeHistory:
-                self.metadata['endTime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                self.metadata['optTime'] = optTime
-                self.hist.writeData('metadata',self.metadata)
                 self.hist.close()
 
             # Store Results
             sol_inform = {}
-            # sol_inform['value'] = inform
-            # sol_inform['text'] = self.informs[inform[0]]
+            sol_inform['value'] = status
+            sol_inform['text'] = self.informs[status]
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, obj, x)
