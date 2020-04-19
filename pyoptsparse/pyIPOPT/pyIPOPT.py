@@ -30,7 +30,7 @@ except ImportError:
 # standard Python modules
 # =============================================================================
 import copy
-import time
+import time, datetime
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -540,6 +540,9 @@ class IPOPT(Optimizer):
             optTime = time.time()-timeA
 
             if self.storeHistory:
+                self.metadata['endTime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.metadata['optTime'] = optTime
+                self.hist.writeData('metadata',self.metadata)
                 self.hist.close()
 
             # Store Results
