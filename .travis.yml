@@ -14,13 +14,16 @@ env:
     - NLPQLP_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pyNLPQLP/source
     - IPOPT_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pyIPOPT/Ipopt
   jobs:
-    - DOCKER_TAG=py2
+    - DOCKER_TAG=py2-latest
+    - DOCKER_TAG=py3-stable
+    - DOCKER_TAG=py3-latest
+    - DOCKER_TAG=py3-impi
 
 before_install:
   - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
       export DOCKER_REPO=public;
     else
-      export DOCKER_REPO=opt;
+      export DOCKER_REPO=private;
       echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin;
     fi
   - docker pull mdolab/$DOCKER_REPO:$DOCKER_TAG
