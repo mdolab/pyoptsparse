@@ -5,17 +5,6 @@ pyOpt_solution
 This class is used to describe the solution of an optimization
 problem. This class is inherits from Optimization which enables a
 solution to be used as an input to a subsequent optimization problem.
-
-Copyright (c) 2013-2014 by Dr. Gaetan Kenway
-All rights reserved.
-
-Developers:
------------
-- Dr. Gaetan K.W. Kenway (GKK)
-
-History
--------
-    v. 1.0  - Initial Class Creation (GKK, 2013)
 """
 import copy
 from .pyOpt_optimization import Optimization

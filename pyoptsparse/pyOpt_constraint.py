@@ -3,17 +3,6 @@
 pyOpt_constraint
 
 Holds the representation of a pyOptSparse constraint group
-
-Copyright (c) 2008-2013 by pyOpt Developers
-All rights reserved.
-
-Developers:
------------
-- Dr. Gaetan K.W. Kenway (GKK)
-
-History
--------
-    v. 1.0  - Initial Class Creation (GKK, 2013)
 """
 # =============================================================================
 # External Python modules

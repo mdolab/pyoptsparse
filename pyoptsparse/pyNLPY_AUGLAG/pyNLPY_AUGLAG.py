@@ -6,20 +6,6 @@ blocks.
 
 Some assumptions to get this wrapper working:
 - the NLPy package has been downloaded from Github and installed locally
-
-Copyright (c) 2014 by Andrew Lambe
-All rights reserved.
-
-Tested on:
----------
-Linux with intel
-
-Developers:
------------
-- Andrew Lambe (ABL)
-History
--------
-    v. 0.1    - Initial Wrapper Creation
 """
 # =============================================================================
 # NLPy Library

@@ -1,21 +1,6 @@
 #/bin/env python
 """
 pyPSQP - the pyPSQP wrapper 
-
-Copyright (c) 2013-2014 by Dr. Gaetan Kenway
-All rights reserved.
-
-Tested on:
----------
-Linux with intel
-
-Developers:
------------
-- Dr. Gaetan Kenway (GKK)
-
-History
--------
-    v. 0.1    - Initial Wrapper Creation
 """
 # =============================================================================
 # PSQP Library

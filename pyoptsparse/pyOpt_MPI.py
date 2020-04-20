@@ -1,22 +1,12 @@
 #!/usr/bin/env python
-'''
+"""
 pyOptSparse_MPI
 
 A simple wrapper to MPI that enables pyOptSparse to work without
 mpi4py. Only the method from the COMM object that are actually used in
-pyOptSparse are included here. 
+pyOptSparse are included here.
+"""
 
-Copyright (c) 2008-2013 by Dr. Gaetan Kenway
-All rights reserved.
-
-Developers:
------------
-- Dr. Gaetan K.W. Kenway (GKK)
-
-History
--------
-    v. 1.0  - Initial Class Creation (GKK, 2013)
-'''
 import warnings
 class COMM(object):
     def __init__(self):
