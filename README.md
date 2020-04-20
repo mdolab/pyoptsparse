@@ -23,7 +23,7 @@ Furthermore, ParOpt and IPOPT are available as a open source package but must be
 Please see the documentation page of each optimizer for purchase and installation instructions.
 
 ## Documentation
-Please see the [documentation](https://pyoptsparse.readthedocs.io/) for installation details and API documentation.
+Please see the [documentation](https://mdolab-pyoptsparse.readthedocs-hosted.com/) for installation details and API documentation.
 
 To locally build the documentation, enter the `doc` folder and enter `make html` in terminal.
 You can then view the built documentation in the `_build` folder.
