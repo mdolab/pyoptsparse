@@ -24,17 +24,9 @@ History
 # =============================================================================
 import copy
 import os
-try:
-    from collections import OrderedDict
-except ImportError:
-    try:
-        from ordereddict import OrderedDict
-    except:
-        raise ImportError('Could not find any OrderedDict class. For 2.6 and earlier, \
-use:\n pip install ordereddict')
+from collections import OrderedDict
 
 try:
-    import six
     from six import iteritems, iterkeys, next
 except:
     raise ImportError('Could not import \'six\'. To install, use\n pip install six')
