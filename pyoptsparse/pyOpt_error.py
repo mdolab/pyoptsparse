@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-'''
+"""
 pyOptSparse_error
 
 Holds a simple error handling class for pyOptSparse
-'''
+"""
 
 class Error(Exception):
     """

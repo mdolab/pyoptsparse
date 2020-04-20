@@ -13,13 +13,13 @@ from ..pyOpt_utils import convertToCSC, ICOL, IDATA, IROW, IROWIND, ICOLP, \
     extractRows, mapToCSC, scaleRows
 
 class ParOpt(Optimizer):
-    '''
+    """
     ParOpt optimizer class
 
     ParOpt has the capability to handle distributed design vectors.
     This is not replicated here since pyOptSparse does not have the
     capability to handle this type of design problem.
-    '''
+    """
     def __init__(self, *args, **kwargs):
         name = 'ParOpt'
         category = 'Local Optimizer'
@@ -170,14 +170,14 @@ class ParOpt(Optimizer):
                     return
 
                 def getVarsAndBounds(self, x, lb, ub):
-                    '''Get the variable values and bounds'''
+                    """Get the variable values and bounds"""
                     lb[:] = self.blx
                     ub[:] = self.bux
                     x[:] = self.xs
                     return
 
                 def evalObjCon(self, x):
-                    '''Evaluate the objective and constraint values'''
+                    """Evaluate the objective and constraint values"""
                     fobj, fcon, fail = self.ptr._masterFunc(x[:], ['fobj', 'fcon'])
                     self.fobj = fobj
                     return fail, fobj, -fcon

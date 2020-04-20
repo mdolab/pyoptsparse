@@ -10,14 +10,14 @@ root = Tk.Tk()
 # Load figure from disk and display
 fig = dill.load(open('saved_figure.pickle','rb'))
 
-'''
+"""
 The above code loads in the figure that was saved in OptView.
 fig is a matplotlib object that can be altered and saved like any
 regular figure.
 The code at the bottom renders the image for immediate display.
 Add your specific plot formatting code as necessary below this comment
 string but before the bottom code.
-'''
+"""
 
 # Add customization code below
 ax = fig.axes[0]

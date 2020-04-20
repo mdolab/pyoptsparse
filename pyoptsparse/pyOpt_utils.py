@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''
+"""
 pyOptSparse_utils
 
 Holds a minimal set of sparse-matrix type routines for pyOptSparse. This
@@ -11,7 +11,7 @@ dictionary format to represent the three most common forms of sparse matrices:
 mat = {'coo':[row, col, data], 'shape':[nrow, ncols]} # A coo matrix
 mat = {'csr':[rowp, colind, data], 'shape':[nrow, ncols]} # A csr matrix
 mat = {'coo':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
-'''
+"""
 import numpy
 import warnings
 from .pyOpt_error import Error
