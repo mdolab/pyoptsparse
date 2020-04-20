@@ -17,7 +17,6 @@ History
 -------
     v. 1.0  - Initial Class Creation (GKK, 2013)
 """
-from __future__ import absolute_import
 import copy
 from .pyOpt_optimization import Optimization
 

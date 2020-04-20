@@ -25,7 +25,6 @@ Test uses Schittkowski's TP109 constraint problem.
     f*1 = 0.536206927538e+04
     x*1 = [0.674888100445e+03, 0.113417039470e+04, 0.133569060261e+00, -0.371152592466e+00, 0.252e+03, 0.252e+03, 0.201464535316e+03, 0.426660777226e+03, 0.368494083867e+03]
 """
-from __future__ import print_function
 import unittest
 
 import numpy

@@ -17,8 +17,6 @@ History
 -------
     v. 0.1    - Initial Wrapper Creation
 """
-from __future__ import absolute_import
-from __future__ import print_function
 # =============================================================================
 # PSQP Library
 # =============================================================================

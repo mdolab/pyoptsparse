@@ -3,7 +3,6 @@ Tests that pyoptsparse allows a objective or gradient function to return a "2" a
 This status is passed to pySNOPT, which returns a -2 fail status, indicating that termination has
 been requested by the user.
 """
-from __future__ import print_function
 import unittest
 
 import numpy as np

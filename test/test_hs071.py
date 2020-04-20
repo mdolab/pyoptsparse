@@ -1,5 +1,4 @@
 """Test solution of problem HS71 from the Hock & Schittkowski collection"""
-from __future__ import print_function
 
 import unittest
 

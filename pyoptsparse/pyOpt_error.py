@@ -15,7 +15,6 @@ History
 -------
     v. 1.0  - Initial Class Creation (GKK, 2013)
 '''
-from __future__ import print_function
 
 class Error(Exception):
     """
