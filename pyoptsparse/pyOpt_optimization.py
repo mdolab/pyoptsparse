@@ -1384,7 +1384,7 @@ class Optimization(object):
         # end (objective keys)
 
         # Do column scaling (dv scaling)
-        gobj = self.invXScale * gobj
+        gobj = self._mapObjGradtoOpt(gobj)
 
         # Finally squeeze back out so we get a 1D vector for a single objective
         return numpy.squeeze(gobj)
@@ -1527,10 +1527,43 @@ class Optimization(object):
                         numpy.array(data)[self._jac_map_coo_to_csr[IDATA]]),
                 'shape':[self.nCon, self.ndvs]}
 
+        self._mapConJactoOpt(gcon)
+
+        return gcon
+
+    def _mapObjGradtoOpt(self, gobj):
+        return gobj * self.invXScale
+
+    def _mapObjGradtoUser(self, gobj):
+        return gobj / self.invXScale
+
+    def _mapConJactoOpt(self, gcon):
+        """
+        The mapping is done in memory, without any return.
+        """
         scaleRows(gcon, self.conScale)
         scaleColumns(gcon, self.invXScale)
 
-        return gcon
+    def _mapConJactoUser(self, gcon):
+        """
+        The mapping is done in memory, without any return.
+        """
+        scaleRows(gcon, 1/self.conScale)
+        scaleColumns(gcon, 1/self.invXScale)
+
+    def _mapXtoOpt(self, x):
+        """
+        This performs the user-space to optimizer mapping for the DVs.
+        All inputs/outputs are numpy arrays.
+        """
+        return (x - self.xOffset)/self.invXScale
+
+    def _mapXtoUser(self, x):
+        """
+        This performs the optimizer to user-space mapping for the DVs.
+        All inputs/outputs are numpy arrays.
+        """
+        return x*self.invXScale + self.xOffset
 
     def __str__(self):
         """
