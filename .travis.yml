@@ -45,6 +45,7 @@ install:
   - docker exec -it app /bin/bash -c "rm -rf \$HOME/.local/lib/python3.7/site-packages/pyoptsparse*"
   - docker exec -it app /bin/bash -c "rm -rf \$HOME/.local/lib/python3.8/site-packages/pyoptsparse*"
   - docker exec -it app /bin/bash -c "rm -rf $DOCKER_WORKING_DIR/build"
+  - docker exec -it app /bin/bash -c ". \$HOME/.bashrc_mdolab && pip install testflo==1.3.5"
   # Copy back the proprietary codes
   - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
       docker exec -it app /bin/bash -c "cp -r \$HOME/SNOPT/* $SNOPT_DIR/";
