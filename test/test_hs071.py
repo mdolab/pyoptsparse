@@ -95,7 +95,6 @@ class TestHS71(unittest.TestCase):
     def test_ipopt(self):
         opts = {}
         opts['print_level'] = 5
-        opts['linear_solver'] = 'mumps'
         sol = self.optimize('ipopt', 1E-6, optOptions=opts)
         self.assertEqual(sol.optInform['value'], 0)
         self.assertEqual(sol.optInform['text'], 'Solve Succeeded')
