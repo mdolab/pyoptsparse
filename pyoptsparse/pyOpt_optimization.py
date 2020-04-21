@@ -1134,13 +1134,14 @@ class Optimization(object):
                                     % (self.bulk, objKey, f.shape))
                 # Store objective for printing later
                 self.objectives[objKey].value = f
-                if scaled:
-                    f *= self.objectives[objKey].scale
                 fobj.append(f)
             else:
                 raise Error("The key for the objective, '%s' was not found." %
                             objKey)
 
+        # scale the objective
+        if scaled:
+            fobj = self._mapObjtoOpt(fobj)
         # Finally squeeze back out so we get a scalar for a single objective
         return numpy.squeeze(fobj)
 
@@ -1203,7 +1204,7 @@ class Optimization(object):
 
         # Perform scaling on the original jacobian:
         if scaled:
-            fcon = self.conScale*fcon
+            fcon = self._mapContoOpt(fcon)
 
         if natural:
             return fcon
@@ -1270,7 +1271,7 @@ class Optimization(object):
 
         # Perform constraint scaling
         if scaled:
-            fcon_in = fcon_in*self.conScale
+            fcon_in = self._mapContoOpt(fcon_in)
 
         # We REQUIRE that fcon_in is an array:
         fcon = {}
@@ -1338,7 +1339,7 @@ class Optimization(object):
                             tmp = numpy.array(funcsSens[objKey][dvGroup]).squeeze()
                             if tmp.size == ss[1]-ss[0]:
                                 # Everything checks out so set:
-                                gobj[iObj, ss[0]:ss[1]] = tmp * self.objectives[objKey].scale
+                                gobj[iObj, ss[0]:ss[1]] = tmp
                             else:
                                 raise Error("The shape of the objective derivative "
                                             "for dvGroup '%s' is the incorrect "
@@ -1367,7 +1368,7 @@ class Optimization(object):
                     tmp = numpy.array(funcsSens[objKey, dvGroup]).squeeze()
                     if tmp.size == ss[1]-ss[0]:
                         # Everything checks out so set:
-                        gobj[iObj, ss[0]:ss[1]] = tmp * self.objectives[objKey].scale
+                        gobj[iObj, ss[0]:ss[1]] = tmp
                     else:
                         raise Error("The shape of the objective derivative "
                                     "for dvGroup '%s' is the incorrect "
@@ -1383,7 +1384,7 @@ class Optimization(object):
         # and any keys that are provided are simply zero.
         # end (objective keys)
 
-        # Do column scaling (dv scaling)
+        # Do scaling
         gobj = self._mapObjGradtoOpt(gobj)
 
         # Finally squeeze back out so we get a 1D vector for a single objective
@@ -1532,10 +1533,25 @@ class Optimization(object):
         return gcon
 
     def _mapObjGradtoOpt(self, gobj):
-        return gobj * self.invXScale
+        gobj_return = numpy.copy(gobj)
+        for objKey in self.objectives:
+            iObj = self.objectiveIdx[objKey]
+            gobj_return[iObj,:] *= self.objectives[objKey].scale
+        gobj_return *= self.invXScale
+        return gobj_return
 
     def _mapObjGradtoUser(self, gobj):
         return gobj / self.invXScale
+
+    def _mapContoOpt(self,fcon):
+        return fcon * self.conScale
+
+    def _mapObjtoOpt(self,fobj):
+        fobj_return = numpy.copy(fobj)
+        for objKey in self.objectives:
+            iObj = self.objectiveIdx[objKey]
+            fobj_return[iObj] *= self.objectives[objKey].scale
+        return fobj_return
 
     def _mapConJactoOpt(self, gcon):
         """
