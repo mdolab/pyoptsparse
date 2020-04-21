@@ -1536,11 +1536,21 @@ class Optimization(object):
     def _mapContoOpt(self,fcon):
         return fcon * self.conScale
 
+    def _mapContoUser(self,fcon):
+        return fcon / self.conScale
+
     def _mapObjtoOpt(self,fobj):
         fobj_return = numpy.copy(fobj)
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
             fobj_return[iObj] *= self.objectives[objKey].scale
+        return fobj_return
+
+    def _mapObjtoUser(self,fobj):
+        fobj_return = numpy.copy(fobj)
+        for objKey in self.objectives:
+            iObj = self.objectiveIdx[objKey]
+            fobj_return[iObj] /= self.objectives[objKey].scale
         return fobj_return
 
     def _mapConJactoOpt(self, gcon):

@@ -448,12 +448,13 @@ class History(object):
             The scaled value to return
         """
         if name in self.objNames:
-            factor = self.objInfo[name]['scale']
+            return self.optProb._mapObjtoOpt(value)
         elif name in self.conNames:
-            factor = self.conInfo[name]['scale']
+            return self.optProb._mapContoOpt(value)
         elif name in self.DVNames:
-            factor = self.DVInfo[name]['scale']
-        return value * factor
+            return self.optProb._mapXtoOpt(value)
+        else:
+            raise ValueError(("Requested name {} was not found.").format(name))
 
     def getCallCounters(self):
         """
