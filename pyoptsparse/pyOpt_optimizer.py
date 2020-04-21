@@ -346,10 +346,7 @@ class Optimizer(object):
                     fail = 0
 
                 self.userObjTime += time.time()-timeA
-                if self.optProb.bulk is None:
-                    self.userObjCalls += 1
-                else:
-                    self.userObjCalls += self.optProb.bulk
+                self.userObjCalls += 1
                 # User values stored is immediately
                 self.cache['funcs'] = copy.deepcopy(funcs)
 

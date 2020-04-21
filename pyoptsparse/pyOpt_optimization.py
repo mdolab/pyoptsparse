@@ -114,7 +114,6 @@ class Optimization(object):
         self.linearJacobian = None
         self.dummyConstraint = False
         self.objectiveIdx = {}
-        self.bulk = None
 
         # Store the jacobian conversion maps
         self._jac_map_coo_to_csr = None
@@ -1121,17 +1120,11 @@ class Optimization(object):
         fobj = []
         for objKey in self.objectives.keys():
             if objKey in funcs:
-                if self.bulk is None:
-                    try:
-                        f = numpy.squeeze(funcs[objKey]).item()
-                    except ValueError:
-                        raise Error("The objective return value, '%s' must be a "
-                                    "scalar!"% objKey)
-                else:
-                    f = numpy.squeeze(funcs[objKey])
-                    if f.shape != (self.bulk,):
-                        raise Error("Expected %d return values for '%s', but received %d!"
-                                    % (self.bulk, objKey, f.shape))
+                try:
+                    f = numpy.squeeze(funcs[objKey]).item()
+                except ValueError:
+                    raise Error("The objective return value, '%s' must be a "
+                                "scalar!"% objKey)
                 # Store objective for printing later
                 self.objectives[objKey].value = f
                 fobj.append(f)
@@ -1175,10 +1168,7 @@ class Optimization(object):
             return numpy.array([0])
 
         # We REQUIRE that fcon_in is a dict:
-        if self.bulk is not None:
-            fcon = numpy.zeros((self.bulk, self.nCon), dtype=dtype)
-        else:
-            fcon = numpy.zeros(self.nCon, dtype=dtype)
+        fcon = numpy.zeros(self.nCon, dtype=dtype)
         for iCon in self.constraints:
             con = self.constraints[iCon]
             if iCon in fcon_in:
