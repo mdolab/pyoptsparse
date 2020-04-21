@@ -557,6 +557,7 @@ class Optimizer(object):
                 self.hist.writeData('objInfo', objInfo)
                 self._setMetadata()
                 self.hist.writeData('metadata',self.metadata)
+                self.hist.writeData('optProb', self.optProb)
 
         # Write history if necessary
         if (self.optProb.comm.rank == 0 and  writeHist and self.storeHistory):

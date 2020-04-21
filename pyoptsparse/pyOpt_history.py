@@ -251,6 +251,7 @@ class History(object):
 
         # metadata
         self.metadata = self.read('metadata')
+        self.optProb = self.read('optProb')
 
     def getIterKeys(self):
         """
@@ -423,6 +424,12 @@ class History(object):
             return
         return copy.deepcopy(self.metadata)
     
+    def getOptProb(self):
+        # only do this if we open the file with 'r' flag
+        if self.flag != 'r':
+            return
+        return copy.deepcopy(self.optProb)
+
     def _scaleValues(self, name, value):
         """
         This function scales the value, where the factor is extracted from the
