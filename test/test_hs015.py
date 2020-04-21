@@ -1,8 +1,8 @@
 """Test solution of problem HS15 from the Hock & Schittkowski collection"""
 
 import unittest
-
 import numpy as np
+from numpy.testing import assert_allclose
 from pyoptsparse import Optimization, OPT, History
 from sqlitedict import SqliteDict
 class TestHS15(unittest.TestCase):
@@ -43,7 +43,7 @@ class TestHS15(unittest.TestCase):
         fail = False
         return funcsSens, fail
 
-    def optimize(self, optName, optOptions={}, storeHistory=False,places=5, hotStart=None):
+    def optimize(self, optName, tol, optOptions={}, storeHistory=False, hotStart=None):
         self.nf = 0 # number of function evaluations
         self.ng = 0 # number of gradient evaluations
         # Optimization Object
@@ -87,26 +87,24 @@ class TestHS15(unittest.TestCase):
         print(sol)
 
         # Check Solution
-        fobj = sol.objectives['obj'].value
-        diff = np.min(np.abs([fobj - 306.5, fobj - 360.379767]))
-        self.assertAlmostEqual(diff, 0.0, places=places)
+        self.fStar1 = 306.5
+        self.fStar2 = 360.379767
 
-        xstar1 = (0.5, 2.0)
-        xstar2 = (-0.79212322, -1.26242985)
-        x1 = sol.variables['xvars'][0].value
-        x2 = sol.variables['xvars'][1].value
+        self.xStar1 = (0.5, 2.0)
+        self.xStar2 = (-0.79212322, -1.26242985)
 
         dv = sol.getDVs()
-        self.assertAlmostEqual(x1, dv['xvars'][0], places=10)
-        self.assertAlmostEqual(x2, dv['xvars'][1], places=10)
+        sol_xvars = [sol.variables['xvars'][i].value for i in range(2)]
+        assert_allclose(sol_xvars, dv['xvars'], atol = tol, rtol = tol)
+        # we check either optimum via try/except
+        try:
+            assert_allclose(sol.objectives['obj'].value, self.fStar1, atol = tol, rtol = tol)
+            assert_allclose(dv['xvars'], self.xStar1, atol = tol, rtol = tol)
+        except:
+            assert_allclose(sol.objectives['obj'].value, self.fStar2, atol = tol, rtol = tol)
+            assert_allclose(dv['xvars'], self.xStar2, atol = tol, rtol = tol)
 
-        diff = np.min(np.abs([xstar1[0] - x1, xstar2[0] - x1]))
-        self.assertAlmostEqual(diff, 0.0, places=places)
-
-        diff = np.min(np.abs([xstar1[1] - x2, xstar2[1] - x2]))
-        self.assertAlmostEqual(diff, 0.0, places=places)
-
-    def check_hist_file(self, optimizer):
+    def check_hist_file(self, optimizer, tol):
         """
         We check the history file here along with the API
         """
@@ -146,23 +144,47 @@ class TestHS15(unittest.TestCase):
         for key in ['xuser', 'fail', 'isMajor']:
             self.assertIn(key, iterKeys)
 
-        # getValues check
-        hist.getValues()
-        hist.getValues(stack=True, major=False, scale=True)
         # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
         if optimizer in ['SNOPT', 'SLSQP', 'PSQP']:
-            val = hist.getValues(callCounters=['0','last'])
+            val = hist.getValues(callCounters=['0','last'],stack=True)
             self.assertEqual(val['isMajor'].size,2)
             self.assertTrue(val['isMajor'][0]) # the first callCounter must be a major iteration
             self.assertTrue(val['isMajor'][-1]) # the last callCounter must be a major iteration
+            # check optimum stored in history file against xstar
+            assert_allclose(val['xuser'][-1],self.xStar1, atol = tol, rtol = tol)
+
+    def optimize_with_hotstart(self,optName,tol,optOptions={}):
+        """
+        This code will perform 4 optimizations, one real opt and three restarts.
+        In this process, it will check various combinations of storeHistory and hotStart filenames.
+        It will also call `check_hist_file` after the first optimization.
+        """
+        self.optimize(optName,tol,storeHistory=True,optOptions=optOptions, )
+        self.assertGreater(self.nf,0)
+        self.assertGreater(self.ng,0)
+        self.check_hist_file(optName, tol)
+
+        # re-optimize with hotstart
+        self.optimize(optName,tol,storeHistory=False,hotStart=self.histFileName,optOptions=optOptions)
+        # we should have zero actual function/gradient evaluations
+        self.assertEqual(self.nf,0)
+        self.assertEqual(self.ng,0)
+        # another test with hotstart, this time with storeHistory = hotStart
+        self.optimize(optName,tol,storeHistory=True,hotStart=self.histFileName)
+        # we should have zero actual function/gradient evaluations
+        self.assertEqual(self.nf,0)
+        self.assertEqual(self.ng,0)
+        # final test with hotstart, this time with a different storeHistory
+        self.optimize(optName,tol,storeHistory='{}_new_hotstart.hst'.format(optName),hotStart=self.histFileName)
+        # we should have zero actual function/gradient evaluations
+        self.assertEqual(self.nf,0)
+        self.assertEqual(self.ng,0)
 
     def test_snopt(self):
         store_vars = ['step','merit','feasibility','optimality','penalty','Hessian','condZHZ','slack','lambda']
-        optOptions = {
-            'Save major iteration variables': store_vars
-        }
-        self.optimize('snopt',optOptions=optOptions,storeHistory=True)
-        self.check_hist_file('SNOPT')
+        optOptions = {'Save major iteration variables': store_vars}
+        self.optimize_with_hotstart('SNOPT', 1E-12, optOptions=optOptions)
+
         hist = History(self.histFileName, flag='r')
         data = hist.getValues(callCounters=['last'])
         keys = hist.getIterKeys()
@@ -170,95 +192,30 @@ class TestHS15(unittest.TestCase):
         self.assertEqual(7,data['nMajor'])
         for var in store_vars:
             self.assertIn(var,data.keys())
-
-        # re-optimize with hotstart
-        self.optimize('snopt',storeHistory=False,hotStart=self.histFileName)
-        # now we should do the same optimization without calling them
-        self.assertEqual(self.nf,0)
-        self.assertEqual(self.ng,0)
-        # another test with hotstart, this time with storeHistory = hotStart
-        self.optimize('snopt',storeHistory=True,hotStart=self.histFileName)
-        # now we should do the same optimization without calling them
-        self.assertEqual(self.nf,0)
-        self.assertEqual(self.ng,0)
-        # final test with hotstart, this time with a different storeHistory
-        self.optimize('snopt',storeHistory='snopt_new_hotstart.hst',hotStart=self.histFileName)
-        # now we should do the same optimization without calling them
-        self.assertEqual(self.nf,0)
-        self.assertEqual(self.ng,0)
+        self.assertEqual(data['Hessian'].shape,(1,2,2))
+        self.assertEqual(data['feasibility'].shape,(1,))
+        self.assertEqual(data['slack'].shape,(1,2))
+        self.assertEqual(data['lambda'].shape,(1,2))
 
     def test_slsqp(self):
-        self.optimize('slsqp', storeHistory=True)
-        self.assertGreater(self.nf,0)
-        self.assertGreater(self.ng,0)
-        self.check_hist_file('SLSQP')
-
-        # re-optimize with hotstart
-        self.optimize('slsqp',storeHistory=False,hotStart=self.histFileName)
-        # now we should do the same optimization without calling them
-        self.assertEqual(self.nf,0)
-        self.assertEqual(self.ng,0)
-
+        self.optimize_with_hotstart('SLSQP', 1E-8)
 
     def test_nlpqlp(self):
-        self.optimize('nlpqlp', storeHistory=True)
-        self.assertGreater(self.nf,0)
-        self.assertGreater(self.ng,0)
-        self.check_hist_file('NLPQLP')
-
-        # re-optimize with hotstart
-        self.optimize('nlpqlp',storeHistory=False,hotStart=self.histFileName)
-        # now we should do the same optimization without calling them
-        self.assertEqual(self.nf,0)
-        self.assertEqual(self.ng,0)
+        self.optimize_with_hotstart('NLPQLP', 1E-12)
 
     def test_ipopt(self):
-        self.optimize('ipopt', places=4, storeHistory=True)
-        self.assertGreater(self.nf,0)
-        self.assertGreater(self.ng,0)
-        self.check_hist_file('IPOPT')
-
-        # re-optimize with hotstart
-        self.optimize('ipopt',storeHistory=False,hotStart=self.histFileName, places=4)
-        # now we should do the same optimization without calling them
-        self.assertEqual(self.nf,0)
-        self.assertEqual(self.ng,0)
+        self.optimize_with_hotstart('IPOPT', 1E-4)
 
     def test_paropt(self):
-        self.optimize('paropt', storeHistory=True)
-        self.assertGreater(self.nf,0)
-        self.assertGreater(self.ng,0)
-        self.check_hist_file('ParOpt')
-
-        # re-optimize with hotstart
-        self.optimize('paropt',storeHistory=False,hotStart=self.histFileName)
-        # now we should do the same optimization without calling them
-        self.assertEqual(self.nf,0)
-        self.assertEqual(self.ng,0)
+        self.optimize_with_hotstart('ParOpt', 1E-6)
 
     def test_conmin(self):
-        opts = {'DELFUN' : 1e-9,
-                'DABFUN' : 1e-9}
-        self.optimize('conmin', optOptions=opts, storeHistory=True)
-        self.check_hist_file('CONMIN')
-
-        # re-optimize with hotstart
-        self.optimize('conmin',optOptions=opts,storeHistory=False,hotStart=self.histFileName)
-        # now we should do the same optimization without calling them
-        self.assertEqual(self.nf,0)
-        self.assertEqual(self.ng,0)
+        opts = {'DELFUN' : 1e-10,
+                'DABFUN' : 1e-10}
+        self.optimize_with_hotstart('CONMIN', 1E-10, optOptions=opts)
 
     def test_psqp(self):
-        self.optimize('psqp', storeHistory=True)
-        self.assertGreater(self.nf,0)
-        self.assertGreater(self.ng,0)
-        self.check_hist_file('PSQP')
-
-        # re-optimize with hotstart
-        self.optimize('psqp',storeHistory=False,hotStart=self.histFileName)
-        # now we should do the same optimization without calling them
-        self.assertEqual(self.nf,0)
-        self.assertEqual(self.ng,0)
+        self.optimize_with_hotstart('PSQP', 1E-12)
 
 if __name__ == "__main__":
     unittest.main()

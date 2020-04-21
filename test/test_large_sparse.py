@@ -1,14 +1,14 @@
 """
 This example is taken from the OpenOpt Examples website.
 
-http://trac.openopt.org/openopt/browser/PythonPackages/FuncDesigner/FuncDesigner/examples/nlpSparse.py
+https://github.com/PythonCharmers/OOSuite/blob/master/FuncDesigner/FuncDesigner/examples/nlpSparse.py
 
 Only testing with SNOPT, which supports sparse formats.
 """
 
 import unittest
-
 import numpy
+from numpy.testing import assert_allclose
 from numpy import arange
 from scipy import sparse
 
@@ -43,7 +43,7 @@ def sens(xdict, funcs):
 
 class TestLargeSparse(unittest.TestCase):
 
-    def optimize(self, optName, optOptions={}, storeHistory=False, places=5):
+    def optimize(self, optName, tol, optOptions={}, storeHistory=False):
         # Optimization Object
         optProb = Optimization('large and sparse', objfunc)
 
@@ -71,12 +71,12 @@ class TestLargeSparse(unittest.TestCase):
         sol = opt(optProb, sens=sens)
 
         # Check Solution
-        self.assertAlmostEqual(sol.objectives['obj'].value, 10.0, places=places)
+        assert_allclose(sol.objectives['obj'].value, 10.0, atol = tol, rtol = tol)
 
-        self.assertAlmostEqual(sol.variables['x'][0].value, 2.0, places=places)
+        assert_allclose(sol.variables['x'][0].value, 2.0, atol = tol, rtol = tol)
 
     def test_snopt(self):
-        self.optimize('snopt')
+        self.optimize('snopt', tol=1E-5)
 
 
 if __name__ == "__main__":
