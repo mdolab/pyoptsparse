@@ -1718,9 +1718,10 @@ class Optimization(object):
         return text
 
     def __getstate__(self):
-        d = self.__dict__.copy()
-        if 'comm' in d.keys():
-            del d['comm']
+        d = copy.copy(self.__dict__)
+        for key in ['comm', 'objFun']:
+            if key in d.keys():
+                del d[key]
         return d
 
 #==============================================================================
