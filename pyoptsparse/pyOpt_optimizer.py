@@ -161,7 +161,7 @@ class Optimizer(object):
 
         self.storeHistory = False
         if storeHistory:
-            self.hist = History(storeHistory, flag='n')
+            self.hist = History(storeHistory, flag='n', optProb=self.optProb)
             self.storeHistory = True
 
             if hotStart is not None:

@@ -27,15 +27,19 @@ class History(object):
     fileName : str
        File name for history file
 
+    optProb : pyOpt_Optimization
+        the optimization object
+
     temp : bool
        Flag to signify that the file should be deleted after it is
        closed
 
     flag : str
         String specifying the mode. Similar to what was used in
-        shelve. 'n' for a new database and 'r' to read an existing one. 
+        shelve. 'n' for a new database and 'r' to read an existing one.
+
     """
-    def __init__(self, fileName, temp=False, flag='r'):
+    def __init__(self, fileName, optProb=None, temp=False, flag='r'):
 
         if flag == 'n':
             # If writing, we expliclty remove the file to
@@ -43,6 +47,7 @@ class History(object):
             if os.path.exists(fileName):
                 os.remove(fileName)
             self.db = SqliteDict(fileName)
+            self.optProb = optProb
         elif flag == 'r':
             if os.path.exists(fileName):
                 # we cast the db to OrderedDict so we do not have to
@@ -179,37 +184,12 @@ class History(object):
         callCounter = None
         for i in range(last,0,-1):
             key = '%d'% i
-            xuser = self._deProcessX(self.db[key]['xuser'])
+            xuser = self.optProb.deProcessX(self.db[key]['xuser'])
             if numpy.isclose(xuser,x,atol=eps,rtol=eps).all() and 'funcs' in self.db[key].keys():
                 callCounter = i
                 break
         return callCounter
 
-    def _deProcessX(self,xuser, scale=False):
-        """
-        This is a much more simple version of `pyOpt_optimization.deProcessX` without error checking.
-        We traverse the OrderedDict and stack all the DVs as a single numpy array, preserving 
-        the order so that we get the correct x vector.
-
-        Parameters
-        ----------
-        scale : bool
-            flag to specify whether the stacked values should be scaled or not.
-
-        Returns
-        -------
-        ndarray
-            The stacked x vector constructed from `xuser`
-        """
-        x_list = []
-        for key in xuser.keys():
-            if scale:
-                x_list.append(self._scaleValues(key, xuser[key]))
-            else:
-                x_list.append(xuser[key])
-        x_array = numpy.hstack(x_list)
-        return x_array
-    
     def _processDB(self):
         """
         Pre-processes the DB file and store various values into class attributes.
@@ -581,7 +561,7 @@ class History(object):
                     if ((major and val['isMajor']) or not major) and not val['fail']:
                         for name in names:
                             if name == 'xuser':
-                                data[name].append(self._deProcessX(val['xuser'], scale=scale))
+                                data[name].append(self.optProb.deProcessX(val['xuser']))
                             elif name in self.DVNames:
                                 data[name].append(val['xuser'][name])
                             elif name in self.conNames.union(self.objNames):
