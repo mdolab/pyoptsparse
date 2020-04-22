@@ -35,7 +35,7 @@ class History(object):
         String specifying the mode. Similar to what was used in
         shelve. 'n' for a new database and 'r' to read an existing one. 
     """
-    def __init__(self, fileName, temp=False, flag='n'):
+    def __init__(self, fileName, temp=False, flag='r'):
 
         if flag == 'n':
             # If writing, we expliclty remove the file to
