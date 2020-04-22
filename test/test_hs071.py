@@ -46,7 +46,6 @@ class TestHS71(unittest.TestCase):
 
         # Objective
         optProb.addObj('obj', scale=objScale)
-        optProb.finalizeDesignVariables()
 
         # Optimizer
         try:

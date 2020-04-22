@@ -558,6 +558,8 @@ class Optimization(object):
             'x' that would be used to call the user objective
             function.
         """
+        self.finalizeDesignVariables()
+        self.finalizeConstraints()
         for dvGroup in self.variables:
             if dvGroup in inDVs:
                 nvar = len(self.variables[dvGroup])
