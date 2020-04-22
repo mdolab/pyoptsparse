@@ -1,21 +1,9 @@
 #!/usr/bin/env python
-'''
+"""
 pyOptSparse_error
 
 Holds a simple error handling class for pyOptSparse
-
-Copyright (c) 2008-2013 by Dr. Gaetan Kenway
-All rights reserved.
-
-Developers:
------------
-- Dr. Gaetan K.W. Kenway (GKK)
-
-History
--------
-    v. 1.0  - Initial Class Creation (GKK, 2013)
-'''
-from __future__ import print_function
+"""
 
 class Error(Exception):
     """

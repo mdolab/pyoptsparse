@@ -1,21 +1,6 @@
 #/bin/env python
 """
 pyIPOPT - A python wrapper to the core IPOPT compiled module.
-
-Copyright (c) 2013-2014 by Dr. Gaetan Kenway
-All rights reserved.
-
-Tested on:
----------
-Linux with intel
-
-Developers:
------------
-- Dr. Gaetan Kenway (GKK)
-- Dr. Graeme Kennedy (GJK)
-History
--------
-    v. 0.1    - Initial Wrapper Creation
 """
 # =============================================================================
 # IPOPT Library
@@ -362,8 +347,26 @@ class IPOPT(Optimizer):
             # 'warm_start_target_mu' : [float, 0.0]
         }
 
-        informs = { # Don't have any of these yet either..
-            }
+        informs = {
+            0: 'Solve Succeeded',
+            1: 'Solved To Acceptable Level',
+            2: 'Infeasible Problem Detected',
+            3: 'Search Direction Becomes Too Small',
+            4: 'Diverging Iterates',
+            5: 'User Requested Stop',
+            6: 'Feasible Point Found',
+            -1: 'Maximum Iterations Exceeded',
+            -2: 'Restoration Failed',
+            -3: 'Error In Step Computation',
+            -4: 'Maximum CpuTime Exceeded',
+            -10: 'Not Enough Degrees Of Freedom',
+            -11: 'Invalid Problem Definition',
+            -12: 'Invalid Option',
+            -13: 'Invalid Number Detected',
+            -100: 'Unrecoverable Exception',
+            -101: 'NonIpopt Exception Thrown',
+            -102: 'Insufficient Memory',
+            -199: 'Internal Error'}
 
         if pyipoptcore is None:
             raise Error('There was an error importing the compiled \
@@ -529,8 +532,8 @@ class IPOPT(Optimizer):
 
             # Store Results
             sol_inform = {}
-            # sol_inform['value'] = inform
-            # sol_inform['text'] = self.informs[inform[0]]
+            sol_inform['value'] = status
+            sol_inform['text'] = self.informs[status]
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, obj, x)

@@ -3,20 +3,7 @@
 pyOpt_history
 
 Holds the Python Design Optimization History Class.
-
-Copyright (c) 2008-2013 by pyOpt Developers
-All rights reserved.
-Revision: 1.0   $Date: 11/12/2009 21:00$
-
-Developers:
------------
-- Dr. Gaetan K. W. Kenway (GKK)
-
-History
--------
-    v. 1.0  - Initial Class Creation (GKK 2013)
 """
-from __future__ import print_function
 # =============================================================================
 # External Python modules
 # =============================================================================

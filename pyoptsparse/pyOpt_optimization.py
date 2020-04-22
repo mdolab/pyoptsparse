@@ -6,36 +6,16 @@ Holds the Python Design Optimization Class
 
 The main purpose, of this class is to describe the structure and
 potentially, sparsity pattern of an optimization problem.
-
-Copyright (c) 2013-2014 by Dr. Gaetan Kenway
-All rights reserved.
-
-Developers:
------------
-- Dr. Gaetan K.W. Kenway (GKK)
-
-History
--------
-    v. 1.0  - Initial Class Creation (GKK, 2013)
 """
-from __future__ import print_function
 
 # =============================================================================
 # Standard Python modules
 # =============================================================================
 import copy
 import os
-try:
-    from collections import OrderedDict
-except ImportError:
-    try:
-        from ordereddict import OrderedDict
-    except:
-        raise ImportError('Could not find any OrderedDict class. For 2.6 and earlier, \
-use:\n pip install ordereddict')
+from collections import OrderedDict
 
 try:
-    import six
     from six import iteritems, iterkeys, next
 except:
     raise ImportError('Could not import \'six\'. To install, use\n pip install six')

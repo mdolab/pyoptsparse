@@ -1,11 +1,11 @@
-'''
+"""
 This script parses the output of SNOPT Printout files. It extracts the optimality, feasibility and merit function for each major iteration, and writes a tecplot file that can be used for the generation of plots.
 
 Usage: run it as
 python SNOPT_parse.py path_to_file
 
 If no filename is given, the default 'SNOPT_print.out' will be assumed.
-'''
+"""
 
 import sys
 import numpy as np

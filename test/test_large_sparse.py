@@ -5,7 +5,6 @@ https://github.com/PythonCharmers/OOSuite/blob/master/FuncDesigner/FuncDesigner/
 
 Only testing with SNOPT, which supports sparse formats.
 """
-from __future__ import print_function
 
 import unittest
 import numpy
