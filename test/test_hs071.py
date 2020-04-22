@@ -57,6 +57,8 @@ class TestHS71(unittest.TestCase):
             optProb.setDVsFromHistory(setDV)
         elif isinstance(setDV, dict):
             optProb.setDVs(setDV)
+            outDV = optProb.getDVs()
+            assert_allclose(setDV['xvars'], outDV['xvars'])
 
         sol = opt(optProb, sens=self.sens, storeHistory=storeHistory)
 

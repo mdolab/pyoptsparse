@@ -530,21 +530,25 @@ class Optimization(object):
             The dictionary of variables. This is the same as 'x' that
             would be used to call the user objective function.
         """
-
+        self.finalizeDesignVariables()
+        self.finalizeConstraints()
         outDVs = {}
         for dvGroup in self.variables:
             nvar = len(self.variables[dvGroup])
             # If it is a single DV, return a scalar rather than a numpy array
             if nvar == 1:
                 var = self.variables[dvGroup][0]
-                outDVs[dvGroup] = var.value/var.scale + var.offset
+                outDVs[dvGroup] = var.value
             else:
                 outDVs[dvGroup] = numpy.zeros(nvar)
                 for i in range(nvar):
                     var = self.variables[dvGroup][i]
-                    outDVs[dvGroup][i] = var.value/var.scale + var.offset
-
-        return outDVs
+                    outDVs[dvGroup][i] = var.value
+        # we convert the dict to array to scale everything consistently
+        outX = self.deProcessX(outDVs)
+        scaled_outX = self._mapXtoUser(outX)
+        scaled_DV = self.processX(scaled_outX)
+        return scaled_DV
 
     def setDVs(self, inDVs):
         """
@@ -560,6 +564,11 @@ class Optimization(object):
         """
         self.finalizeDesignVariables()
         self.finalizeConstraints()
+        # we process dicts to arrays to perform scaling in a uniform way
+        # then process back to dict
+        inX = self.deProcessX(inDVs)
+        scaled_inX = self._mapXtoOpt(inX)
+        scaled_DV = self.processX(scaled_inX)
         for dvGroup in self.variables:
             if dvGroup in inDVs:
                 nvar = len(self.variables[dvGroup])
@@ -567,10 +576,10 @@ class Optimization(object):
                 for i in range(nvar):
                     var = self.variables[dvGroup][i]
                     if scalar:
-                        var.value = (float(inDVs[dvGroup])-var.offset)*var.scale
+                        var.value = scaled_DV[dvGroup]
                     else:
                         # Must be an array
-                        var.value = (inDVs[dvGroup][i]-var.offset)*var.scale
+                        var.value = scaled_DV[dvGroup][i]
 
     def setDVsFromHistory(self, histFile, key=None):
         """
