@@ -1,6 +1,5 @@
 # Example of auto-refinement -- runs ALPSO followed by SNOPT. 
 # See TP109.py for more information. 
-from __future__ import print_function
 
 import numpy
 import argparse

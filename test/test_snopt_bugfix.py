@@ -3,7 +3,6 @@
 # problem is a simple paraboloid. The minimum should be at (7.166667,
 # -7.833334), but with the bug, x and y stay at zero.
 
-from __future__ import print_function
 import unittest
 
 import numpy as np

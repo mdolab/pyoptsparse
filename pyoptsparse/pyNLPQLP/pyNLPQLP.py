@@ -1,25 +1,7 @@
 #/bin/env python
 """pyNLPQLP - A pyOptSparse wrapper for Schittkowski's NLPQLP
 optimizion algorithm.
-
-Copyright (c) 2013-2015 by Dr. Gaetan Kenway
-All rights reserved.
-
-Tested on:
----------
-Linux with intel
-
-Developers:
------------
-- Dr. Gaetan Kenway (GKK)
-
-History
--------
-    v. 0.1    - Initial Wrapper Creation
-
 """
-from __future__ import absolute_import
-from __future__ import print_function
 # =============================================================================
 # NLPQL Library
 # =============================================================================

@@ -14,13 +14,17 @@ env:
     - NLPQLP_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pyNLPQLP/source
     - IPOPT_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pyIPOPT/Ipopt
   jobs:
-    - DOCKER_TAG=py2
+    - DOCKER_TAG=py2-latest
+    - DOCKER_TAG=py3-stable
+    - DOCKER_TAG=py3-latest
+    - DOCKER_TAG=py3-impi
+    - DOCKER_TAG=py3-centos7-impi
 
 before_install:
   - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
       export DOCKER_REPO=public;
     else
-      export DOCKER_REPO=opt;
+      export DOCKER_REPO=private;
       echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin;
     fi
   - docker pull mdolab/$DOCKER_REPO:$DOCKER_TAG
@@ -40,14 +44,14 @@ install:
   # We thrown away the existing repo in Docker, and copy the new one in-place
   - docker exec -it app /bin/bash -c "rm -rf $DOCKER_WORKING_DIR && cp -r $DOCKER_MOUNT_DIR $DOCKER_WORKING_DIR"
   # We also remove the python installation
-  - docker exec -it app /bin/bash -c "rm -rf \$HOME/.local/lib/python2.7/site-packages/pyoptsparse*"
   - docker exec -it app /bin/bash -c "rm -rf $DOCKER_WORKING_DIR/build"
+  - docker exec -it app /bin/bash -c ". \$HOME/.bashrc_mdolab && pip install testflo==1.3.5"
   # Copy back the proprietary codes
   - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
       docker exec -it app /bin/bash -c "cp -r \$HOME/NLPQLP/* $NLPQLP_DIR/ && cp -r \$HOME/SNOPT/* $SNOPT_DIR/ && cp -r \$HOME/IPOPT/ $IPOPT_DIR";
     fi
   # Build and install
-  - docker exec -it app /bin/bash -c ". \$HOME/.bashrc_mdolab && cd $DOCKER_WORKING_DIR && python setup.py build_ext --inplace && python setup.py install --user"
+  - docker exec -it app /bin/bash -c ". \$HOME/.bashrc_mdolab && cd $DOCKER_WORKING_DIR && pip install -e ."
 script:
   # We need to source the mdolab bashrc before running anything
   - docker exec -it app /bin/bash -c ". \$HOME/.bashrc_mdolab && cd $DOCKER_WORKING_DIR && testflo --pre_announce -v . --coverage --coverpkg pyoptsparse --cover-omit \*tests/\* --cover-omit \*docs/\*"

@@ -2,17 +2,6 @@
 """
 pyOpt_gradient - A class that produce gradients using finite
 difference or complex step.
-
-Copyright (c) 2013-2014 by Dr. Gaetan Kenway
-All rights reserved.
-
-Developers
-----------
-- Dr. Gaetan Kenway (GKK)
-
-History
--------
-    v. 0.1  - Initial Class Creation (GKK)
 """
 # =============================================================================
 # External Python modules
