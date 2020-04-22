@@ -3,8 +3,6 @@
 # Description: This program finds the optimum solution for a given objective
 # function using the optimization package NOMAD.
 
-from __future__ import absolute_import
-from __future__ import print_function
 # =============================================================================
 # NOMAD Library
 # =============================================================================

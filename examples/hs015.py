@@ -10,7 +10,6 @@
  #  Sometimes the solver converges to another local minimum
  #  at (-0.79212, -1.26243), with final objective = 360.4.
  ##
-from __future__ import print_function
 
 import numpy
 import argparse

@@ -3,17 +3,6 @@
 pyOpt_variable
 
 Holds the representation of a single pyOptSparse variable
-
-Copyright (c) 2008-2013 by pyOpt Developers
-All rights reserved.
-
-Developers
-----------
-    Dr. Gaetan K.W. Kenway (GKK)
-
-History
--------
-    v. 1.0  - Initial Class Creation (GKK, 2013)
 """
 from .pyOpt_error import Error
 INFINITY=1e20

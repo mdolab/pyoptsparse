@@ -1,6 +1,5 @@
 # This example is taken from the OpenOpt Examples website. 
 # http://trac.openopt.org/openopt/browser/PythonPackages/FuncDesigner/FuncDesigner/examples/nlpSparse.py
-from __future__ import print_function
 
 import numpy
 from numpy import arange

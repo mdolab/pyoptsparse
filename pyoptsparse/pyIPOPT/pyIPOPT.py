@@ -1,21 +1,6 @@
 #/bin/env python
 """
 pyIPOPT - A python wrapper to the core IPOPT compiled module.
-
-Copyright (c) 2013-2014 by Dr. Gaetan Kenway
-All rights reserved.
-
-Tested on:
----------
-Linux with intel
-
-Developers:
------------
-- Dr. Gaetan Kenway (GKK)
-- Dr. Graeme Kennedy (GJK)
-History
--------
-    v. 0.1    - Initial Wrapper Creation
 """
 # =============================================================================
 # IPOPT Library
