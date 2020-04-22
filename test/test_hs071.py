@@ -32,8 +32,8 @@ class TestHS71(unittest.TestCase):
         fail = False
         return funcsSens, fail
 
-    def optimize(self, optName, tol, optOptions={}, storeHistory=False, setDV=None,
-        xScale=1.0, objScale=1.0, conScale=1.0, offset=0.0):
+    def optimize(self, optName, tol, optOptions={}, storeHistory=False, setDV=None, xScale=1.0, 
+                 objScale=1.0, conScale=1.0, offset=0.0, check_solution=True):
         # Optimization Object
         optProb = Optimization('HS071 Constraint Problem', self.objfunc)
 
@@ -63,14 +63,16 @@ class TestHS71(unittest.TestCase):
         sol = opt(optProb, sens=self.sens, storeHistory=storeHistory)
 
         # Check Solution
-        self.fStar = 17.0140172
-        self.xStar = (1.0, 4.743, 3.82115, 1.37941)
-        self.lambdaStar = (0.55229366, -0.16146857)
-        assert_allclose(sol.objectives['obj'].value, self.fStar, atol = tol, rtol = tol)
-        assert_allclose(sol.xStar['xvars'], self.xStar, atol = tol, rtol = tol)
+        if check_solution:
+            self.fStar = 17.0140172
+            self.xStar = (1.0, 4.743, 3.82115, 1.37941)
+            self.lambdaStar = (0.55229366, -0.16146857)
+            assert_allclose(sol.objectives['obj'].value, self.fStar, atol = tol, rtol = tol)
+            assert_allclose(sol.xStar['xvars'], self.xStar, atol = tol, rtol = tol)
 
-        if hasattr(sol, 'lambdaStar'):
-            assert_allclose(sol.lambdaStar['con'], self.lambdaStar, atol = tol, rtol = tol)
+            if hasattr(sol, 'lambdaStar'):
+                assert_allclose(sol.lambdaStar['con'], self.lambdaStar, atol = tol, rtol = tol)
+        return sol
 
     def test_snopt(self):
         self.optimize('snopt', 1E-6)
@@ -147,7 +149,22 @@ class TestHS71(unittest.TestCase):
         self.optimize('nlpqlp', 1E-6)
 
     def test_ipopt(self):
-        self.optimize('ipopt', 1E-6)
+        opts = {}
+        opts['print_level'] = 5
+        sol = self.optimize('ipopt', 1E-6, optOptions=opts)
+        self.assertEqual(sol.optInform['value'], 0)
+        self.assertEqual(sol.optInform['text'], 'Solve Succeeded')
+        # Test that the inform is -1 when iterations are too limited.
+        opts['max_iter'] = 1
+        sol = self.optimize('ipopt', 1E-6, optOptions=opts, check_solution=False)
+        self.assertEqual(sol.optInform['value'], -1)
+        self.assertEqual(sol.optInform['text'], 'Maximum Iterations Exceeded')
+        # Test that the inform is -4 when max_cpu_time are too limited.
+        opts['max_iter'] = 100
+        opts['max_cpu_time'] = 0.001
+        sol = self.optimize('ipopt', 1E-6, optOptions=opts, check_solution=False)
+        self.assertEqual(sol.optInform['value'], -4)
+        self.assertEqual(sol.optInform['text'], 'Maximum CpuTime Exceeded')
 
     def test_conmin(self):
         opts = {'DELFUN' : 1e-9,
