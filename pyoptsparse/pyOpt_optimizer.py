@@ -212,7 +212,7 @@ class Optimizer(object):
                 data = self.hotStart.read(self.callCounter)
 
                 # Get the x-value and (de)process
-                xuser_ref = self.optProb.deProcessX(data['xuser'])
+                xuser_ref = self.optProb.processXtoVec(data['xuser'])
 
                 # Validated x-point point to use:
                 xuser_vec = self.optProb._mapXtoUser(x)
@@ -245,8 +245,8 @@ class Optimizer(object):
                         # Process constraints/objectives
                         if funcs is not None:
                             self.optProb.evaluateLinearConstraints(xuser_vec, funcs)
-                            fcon = self.optProb.processConstraints(funcs)
-                            fobj = self.optProb.processObjective(funcs)
+                            fcon = self.optProb.processContoVec(funcs)
+                            fobj = self.optProb.processObjtoVec(funcs)
                             if 'fobj' in evaluate:
                                 returns.append(fobj)
                             if 'fcon' in evaluate:
@@ -311,7 +311,7 @@ class Optimizer(object):
         # read them and return.
 
         xuser_vec = self.optProb._mapXtoUser(x)
-        xuser = self.optProb.processX(xuser_vec)
+        xuser = self.optProb.processXtoDict(xuser_vec)
 
         masterFail = 0
 
@@ -343,8 +343,8 @@ class Optimizer(object):
 
                 # Process constraints/objectives
                 self.optProb.evaluateLinearConstraints(xuser_vec, funcs)
-                fcon = self.optProb.processConstraints(funcs)
-                fobj = self.optProb.processObjective(funcs)
+                fcon = self.optProb.processContoVec(funcs)
+                fobj = self.optProb.processObjtoVec(funcs)
                 # Now clear out gobj and gcon in the cache since these
                 # are out of date and set the current ones
                 self.cache['gobj'] = None
@@ -383,8 +383,8 @@ class Optimizer(object):
 
                 # Process constraints/objectives
                 self.optProb.evaluateLinearConstraints(xuser_vec, funcs)
-                fcon = self.optProb.processConstraints(funcs)
-                fobj = self.optProb.processObjective(funcs)
+                fcon = self.optProb.processContoVec(funcs)
+                fobj = self.optProb.processObjtoVec(funcs)
                 # Now clear out gobj and gcon in the cache since these
                 # are out of date and set the current ones
                 self.cache['gobj'] = None
@@ -736,7 +736,7 @@ class Optimizer(object):
         sol.optCodeTime = sol.optTime - self.interfaceTime
         sol.fStar = obj # FIXME: this doesn't work, at least for SNOPT
         xuser = self.optProb._mapXtoUser(xopt)
-        sol.xStar = self.optProb.processX(xuser)
+        sol.xStar = self.optProb.processXtoDict(xuser)
 
         # Now set the x-values:
         i = 0
@@ -746,7 +746,7 @@ class Optimizer(object):
                 i += 1
 
         if multipliers is not None:
-            multipliers = self.optProb.deProcessConstraints(multipliers,scaled=True, multipliers=True)
+            multipliers = self.optProb.processContoDict(multipliers,scaled=True, multipliers=True)
 
             # objective scaling
             if len(self.optProb.objectives.keys()) == 1: # we assume there is only one objective

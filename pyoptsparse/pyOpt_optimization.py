@@ -1016,7 +1016,7 @@ class Optimization(object):
             fact = None
         return numpy.array(indices), numpy.array(lower), numpy.array(upper), fact
 
-    def processX(self, x):
+    def processXtoDict(self, x):
         """
         **This function should not need to be called by the user**
 
@@ -1048,7 +1048,7 @@ class Optimization(object):
                         "is a mismatch in the number of variables.")
         return xg
 
-    def deProcessX(self, x):
+    def processXtoVec(self, x):
         """
         **This function should not need to be called by the user**
 
@@ -1087,7 +1087,7 @@ class Optimization(object):
 
         return x_array
 
-    def processObjective(self, funcs, scaled=True):
+    def processObjtoVec(self, funcs, scaled=True):
         """
         **This function should not need to be called by the user**
 
@@ -1125,7 +1125,7 @@ class Optimization(object):
         # Finally squeeze back out so we get a scalar for a single objective
         return numpy.squeeze(fobj)
 
-    def deProcessObjective(self, fobj_in, scaled=True):
+    def processObjtoDict(self, fobj_in, scaled=True):
         """
         """
         fobj = {}
@@ -1139,7 +1139,7 @@ class Optimization(object):
             fobj = self._mapObjtoOpt(fobj)
         return fobj
 
-    def processConstraints(self, fcon_in, scaled=True, dtype='d', natural=False):
+    def processContoVec(self, fcon_in, scaled=True, dtype='d', natural=False):
         """
         **This function should not need to be called by the user**
 
@@ -1207,7 +1207,7 @@ class Optimization(object):
             else:
                 return fcon
 
-    def deProcessConstraints(self, fcon_in, scaled=True, dtype='d',
+    def processContoDict(self, fcon_in, scaled=True, dtype='d',
                              natural=False, multipliers=False):
         """
         **This function should not need to be called by the user**
@@ -1584,34 +1584,34 @@ class Optimization(object):
 
     # these are the dictionary-based versions of the mapping functions
     def _mapXtoUser_Dict(self, xDict):
-        x = self.deProcessX(xDict)
+        x = self.processXtoVec(xDict)
         x_user = self._mapXtoUser(x)
-        return self.processX(x_user)
+        return self.processXtoDict(x_user)
 
     def _mapXtoOpt_Dict(self, xDict):
-        x = self.deProcessX(xDict)
+        x = self.processXtoVec(xDict)
         x_opt = self._mapXtoOpt(x)
-        return self.processX(x_opt)
+        return self.processXtoDict(x_opt)
 
     def _mapObjtoUser_Dict(self, objDict):
-        obj = self.processObjective(objDict, scaled=False)
+        obj = self.processObjtoVec(objDict, scaled=False)
         obj_user = self._mapObjtoUser(obj)
-        return self.deProcessObjective(obj_user, scaled=False)
+        return self.processObjtoDict(obj_user, scaled=False)
 
     def _mapObjtoOpt_Dict(self, objDict):
-        obj = self.processObjective(objDict, scaled=False)
+        obj = self.processObjtoVec(objDict, scaled=False)
         obj_opt = self._mapObjtoOpt(obj)
-        return self.deProcessObjective(obj_opt, scaled=False)
+        return self.processObjtoDict(obj_opt, scaled=False)
 
     def _mapContoUser_Dict(self, conDict):
-        con = self.processConstraints(conDict, scaled=False)
+        con = self.processContoVec(conDict, scaled=False)
         con_user = self._mapContoUser(con)
-        return self.deProcessConstraints(con_user, scaled=False)
+        return self.processContoDict(con_user, scaled=False)
 
     def _mapContoOpt_Dict(self, conDict):
-        con = self.processConstraints(conDict, scaled=False, natural=True)
+        con = self.processContoVec(conDict, scaled=False, natural=True)
         con_opt = self._mapContoOpt(con)
-        return self.deProcessConstraints(con_opt, scaled=False, natural=True)
+        return self.processContoDict(con_opt, scaled=False, natural=True)
 
     def __str__(self):
         """

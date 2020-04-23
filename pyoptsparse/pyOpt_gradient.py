@@ -61,19 +61,19 @@ class Gradient(object):
     def _eval_func(self, x):
         """internal method to call function and extract obj, con"""
 
-        xCall = self.optProb.processX(x)
+        xCall = self.optProb.processXtoDict(x)
         # Call objective
         [funcs, fail] = self.optProb.objFun(xCall)
 
         # Process constraint in case they are in dict form
         self.optProb.evaluateLinearConstraints(x, funcs)
-        fobj = self.optProb.processObjective(funcs, scaled=False)
+        fobj = self.optProb.processObjtoVec(funcs, scaled=False)
 
         if self.sensType == 'cs':
-            fcon = self.optProb.processConstraints(funcs, scaled=False,
+            fcon = self.optProb.processContoVec(funcs, scaled=False,
                                                    dtype='D', natural=True)
         else:
-            fcon = self.optProb.processConstraints(funcs, scaled=False,
+            fcon = self.optProb.processContoVec(funcs, scaled=False,
                                                    natural=True)
 
         return fobj, fcon, fail
@@ -127,11 +127,11 @@ class Gradient(object):
         # We DO NOT want the constraints scaled here....the constraint
         # scaling will be taken into account when the derivatives are
         # processed as per normal.
-        xBase = self.optProb.deProcessX(x)
+        xBase = self.optProb.processXtoVec(x)
         self.optProb.evaluateLinearConstraints(xBase, funcsBase)
-        fconBase = self.optProb.processConstraints(
+        fconBase = self.optProb.processContoVec(
             funcsBase, scaled=False, dtype='D', natural=True)
-        fobjBase = self.optProb.processObjective(funcsBase, scaled=False)
+        fobjBase = self.optProb.processObjtoVec(funcsBase, scaled=False)
 
         # Convert to complex if necessary:
         if self.sensType == 'cs':

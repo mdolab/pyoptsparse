@@ -184,7 +184,7 @@ class History(object):
         callCounter = None
         for i in range(last,0,-1):
             key = '%d'% i
-            xuser = self.optProb.deProcessX(self.db[key]['xuser'])
+            xuser = self.optProb.processXtoVec(self.db[key]['xuser'])
             if numpy.isclose(xuser,x,atol=eps,rtol=eps).all() and 'funcs' in self.db[key].keys():
                 callCounter = i
                 break
@@ -556,7 +556,7 @@ class History(object):
                         conDict, objDict, DVDict = self._processIterDict(val, scale=scale)
                         for name in names:
                             if name == 'xuser':
-                                data[name].append(self.optProb.deProcessX(DVDict))
+                                data[name].append(self.optProb.processXtoVec(DVDict))
                             elif name in self.DVNames:
                                 data[name].append(DVDict[name])
                             elif name in self.conNames:

@@ -558,7 +558,7 @@ of 'FD' or 'CS' or a user supplied function or group of functions.")
         timeAA = time.time()
 
         xscaled = self.optProb.invXScale*x
-        xuser = self.optProb.processX(xscaled)
+        xuser = self.optProb.processXtoDict(xscaled)
 
         masterFail = False
 
@@ -659,19 +659,19 @@ of 'FD' or 'CS' or a user supplied function or group of functions.")
             # Also, scale vectors appropriately before and after the products are formed
             if 'jac_prod' in evaluate:
                 invec = self.optProb.invXScale*invec
-                invec = self.optProb.processX(invec)
+                invec = self.optProb.processXtoDict(invec)
                 timeA = time.time()
                 outvec, fail = self.sens[1](xuser, invec, sparse_only=sparse_only, funcs=self.cache['funcs'])
                 self.userJProdTime += time.time() - timeA
                 self.userJProdCalls += 1
-                outvec = self.optProb.processConstraints(outvec)
+                outvec = self.optProb.processContoVec(outvec)
             else:
-                invec = self.optProb.deProcessConstraints(invec)
+                invec = self.optProb.processContoDict(invec)
                 timeA = time.time()
                 outvec, fail = self.sens[2](xuser, invec, sparse_only=sparse_only, funcs=self.cache['funcs'])
                 self.userJTProdTime += time.time() - timeA
                 self.userJTProdCalls += 1
-                outvec = self.optProb.deProcessX(outvec)
+                outvec = self.optProb.processXtoVec(outvec)
                 outvec = self.optProb.invXScale*outvec
                 
             # prodTime = time.time() - timeA
