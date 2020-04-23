@@ -220,6 +220,10 @@ class History(object):
         self.metadata = self.read('metadata')
         self.optProb = self.read('optProb')
 
+        from .__init__ import __version__
+        if self.metadata['version'] != __version__:
+            pyOptSparseWarning('The version of pyoptsparse used to generate the history file does not match the one being run right now. There may be compatibility issues.')
+
     def getIterKeys(self):
         """
         Returns the keys available at each optimization iteration.
