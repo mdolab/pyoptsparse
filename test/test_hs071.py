@@ -76,13 +76,13 @@ class TestHS71(unittest.TestCase):
     def test_snopt(self):
         self.optimize('snopt', 1E-6)
 
-    def test_NLPQLP_setDV(self):
+    def test_slsqp_setDV(self):
         """
         Test that setDV works as expected, even with scaling/offset
         """
-        histFileName = 'NLPQLP_test_DV.hst'
+        histFileName = 'SLSQP_test_DV.hst'
         newDV = {'xvars': numpy.array([1, 4, 4, 1])}
-        self.optimize('NLPQLP', 1E-5, xScale=1.5, conScale=1.2, objScale=32, offset=1.5, setDV=newDV, storeHistory=histFileName)
+        self.optimize('SLSQP', 1E-5, xScale=1.5, conScale=1.2, objScale=32, offset=1.5, setDV=newDV, storeHistory=histFileName)
         # Verify the history file
         hist = History(histFileName, flag='r')
         init = hist.getValues(names='xvars', callCounters='0', scale=False)
