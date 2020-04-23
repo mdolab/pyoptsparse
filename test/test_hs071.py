@@ -123,7 +123,7 @@ class TestHS71(unittest.TestCase):
         # now we retrieve the history file, and check the scale=True option is indeed
         # scaling things correctly
         hist = History(histFileName, flag='r')
-        init = hist.getValues(callCounters='0', scale=False)
+        orig_values = hist.getValues(callCounters='0', scale=False)
         optProb = hist.getOptProb()
 
         # check that the scales are stored properly
@@ -136,10 +136,23 @@ class TestHS71(unittest.TestCase):
             assert_allclose(objScale, optProb.objectives[obj].scale, atol=1E-12, rtol=1E-12)
 
         # verify the scale option in getValues
-        init_scaled = hist.getValues(callCounters='0', scale=True)
-        x = init['xvars'][0]
-        x_scaled = init_scaled['xvars'][0]
+        scaled_values = hist.getValues(callCounters='0', scale=True, stack=False)
+        x = orig_values['xvars'][0]
+        x_scaled = scaled_values['xvars'][0]
         assert_allclose(x_scaled, (x - offset)*xScale, atol=1E-12, rtol=1E-12)
+
+        # now do the same but with stack=True
+        stacked_values = hist.getValues(callCounters='0', scale=True, stack=True)
+        x_scaled = stacked_values['xuser'][0]
+        assert_allclose(x_scaled, (x - offset)*xScale, atol=1E-12, rtol=1E-12)
+
+        # now we test objective and constraint scaling in getValues
+        obj_orig = orig_values['obj'][0]
+        obj_scaled = scaled_values['obj'][0]
+        assert_allclose(obj_scaled, obj_orig * objScale, atol=1E-12, rtol=1E-12)
+        con_orig = orig_values['con'][0]
+        con_scaled = scaled_values['con'][0]
+        assert_allclose(con_scaled, con_orig * conScale, atol=1E-12, rtol=1E-12)
 
     def test_slsqp(self):
         self.optimize('slsqp', 1E-6)
