@@ -1125,6 +1125,20 @@ class Optimization(object):
         # Finally squeeze back out so we get a scalar for a single objective
         return numpy.squeeze(fobj)
 
+    def deProcessObjective(self, fobj_in, scaled=True):
+        """
+        """
+        fobj = {}
+        for objKey in self.objectives.keys():
+            iObj = self.objectiveIdx[objKey]
+            try:
+                fobj[objKey] = fobj_in[iObj]
+            except IndexError:
+                raise Error("The input array shape is incorrect!")
+        if scaled:
+            fobj = self._mapObjtoOpt(fobj)
+        return fobj
+
     def processConstraints(self, fcon_in, scaled=True, dtype='d', natural=False):
         """
         **This function should not need to be called by the user**
@@ -1527,7 +1541,7 @@ class Optimization(object):
         return fcon / self.conScale
 
     def _mapObjtoOpt(self,fobj):
-        fobj_return = numpy.copy(fobj)
+        fobj_return = numpy.atleast_1d(fobj)
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
             fobj_return[iObj] *= self.objectives[objKey].scale
