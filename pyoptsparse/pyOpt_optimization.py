@@ -525,9 +525,7 @@ class Optimization(object):
                     var = self.variables[dvGroup][i]
                     outDVs[dvGroup][i] = var.value
         # we convert the dict to array to scale everything consistently
-        outX = self.deProcessX(outDVs)
-        scaled_outX = self._mapXtoUser(outX)
-        scaled_DV = self.processX(scaled_outX)
+        scaled_DV = self._mapXtoUser_Dict(outDVs)
         return scaled_DV
 
     def setDVs(self, inDVs):
@@ -546,9 +544,7 @@ class Optimization(object):
         self.finalizeConstraints()
         # we process dicts to arrays to perform scaling in a uniform way
         # then process back to dict
-        inX = self.deProcessX(inDVs)
-        scaled_inX = self._mapXtoOpt(inX)
-        scaled_DV = self.processX(scaled_inX)
+        scaled_DV = self._mapXtoOpt_Dict(inDVs)
         for dvGroup in self.variables:
             if dvGroup in inDVs:
                 nvar = len(self.variables[dvGroup])
@@ -1571,6 +1567,37 @@ class Optimization(object):
         All inputs/outputs are numpy arrays.
         """
         return x*self.invXScale + self.xOffset
+
+    # these are the dictionary-based versions of the mapping functions
+    def _mapXtoUser_Dict(self, xDict):
+        x = self.deProcessX(xDict)
+        x_user = self._mapXtoUser(x)
+        return self.processX(x_user)
+
+    def _mapXtoOpt_Dict(self, xDict):
+        x = self.deProcessX(xDict)
+        x_opt = self._mapXtoOpt(x)
+        return self.processX(x_opt)
+
+    def _mapObjtoUser_Dict(self, objDict):
+        obj = self.processObjective(objDict, scaled=False)
+        obj_user = self._mapObjtoUser(obj)
+        return self.deProcessObjective(obj_user, scaled=False)
+
+    def _mapObjtoOpt_Dict(self, objDict):
+        obj = self.processObjective(objDict, scaled=False)
+        obj_opt = self._mapObjtoOpt(obj)
+        return self.deProcessObjective(obj_opt, scaled=False)
+
+    def _mapContoUser_Dict(self, conDict):
+        con = self.processConstraints(conDict, scaled=False)
+        con_user = self._mapContoUser(con)
+        return self.deProcessConstraints(con_user, scaled=False)
+
+    def _mapContoOpt_Dict(self, conDict):
+        con = self.processConstraints(conDict, scaled=False, natural=True)
+        con_opt = self._mapContoOpt(con)
+        return self.deProcessConstraints(con_opt, scaled=False, natural=True)
 
     def __str__(self):
         """
