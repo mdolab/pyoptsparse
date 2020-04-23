@@ -390,38 +390,28 @@ class History(object):
         if self.flag != 'r':
             return
         return copy.deepcopy(self.metadata)
-    
+
     def getOptProb(self):
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
         return copy.deepcopy(self.optProb)
 
-    def _scaleValues(self, name, value):
-        """
-        This function scales the value, where the factor is extracted from the
-        `Info` dictionaries, according to "name"
-
-        Parameters
-        ----------
-        name : str
-            The name of the value to be scaled.
-        value : float or ndarray
-            The value corresponding to the name.
-
-        Returns
-        -------
-        float or ndarray
-            The scaled value to return
-        """
-        if name in self.objNames:
-            return self.optProb._mapObjtoOpt(value)
-        elif name in self.conNames:
-            return self.optProb._mapContoOpt(value)
-        elif name in self.DVNames:
-            return self.optProb._mapXtoOpt(value)
-        else:
-            raise ValueError(("Requested name {} was not found.").format(name))
+    def _processIterDict(self, d, scale=False):
+        conDict = {}
+        for con in self.conNames:
+            conDict[con] = d['funcs'][con]
+        objDict = {}
+        for obj in self.objNames:
+            objDict[obj] = d['funcs'][obj]
+        DVDict = {}
+        for DV in self.DVNames:
+            DVDict[DV] = d['xuser'][DV]
+        if scale:
+            conDict = self.optProb._mapContoOpt_Dict(conDict)
+            objDict = self.optProb._mapObjtoOpt_Dict(objDict)
+            DVDict = self.optProb._mapXtoOpt_Dict(DVDict)
+        return conDict, objDict, DVDict
 
     def getCallCounters(self):
         """
@@ -526,7 +516,7 @@ class History(object):
             if not major:
                 pyOptSparseWarning("The major flag has been set to True, since some names specified only exist on major iterations.")
                 major = True
-        
+
         if stack:
             DVinNames = names.intersection(self.DVNames)
             for DV in DVinNames:
@@ -559,14 +549,17 @@ class History(object):
                 val = self.read(i)
                 if 'funcs' in val.keys(): # we have function evaluation
                     if ((major and val['isMajor']) or not major) and not val['fail']:
+                        conDict, objDict, DVDict = self._processIterDict(val, scale=scale)
                         for name in names:
                             if name == 'xuser':
-                                data[name].append(self.optProb.deProcessX(val['xuser']))
+                                data[name].append(self.optProb.deProcessX(DVDict))
                             elif name in self.DVNames:
-                                data[name].append(val['xuser'][name])
-                            elif name in self.conNames.union(self.objNames):
-                                data[name].append(val['funcs'][name])
-                            else: # must be opt
+                                data[name].append(DVDict[name])
+                            elif name in self.conNames:
+                                data[name].append(conDict[name])
+                            elif name in self.objNames:
+                                data[name].append(objDict[name])
+                            else:  # must be opt
                                 data[name].append(val[name])
                     elif val['fail'] and user_specified_callCounter:
                             pyOptSparseWarning(("callCounter {} contained a failed function evaluation and is skipped!").format(i))
@@ -578,11 +571,6 @@ class History(object):
         for name in names:
             # we just stack along axis 0
             data[name] = numpy.stack(data[name],axis=0)
-
-            # scale the values if needed
-            # note that xuser has already been scaled
-            if scale and name in self.DVNames.union(self.conNames).union(self.objNames):
-                data[name] = self._scaleValues(name,data[name])
 
         return data
 
