@@ -126,7 +126,7 @@ class TestOptProb(unittest.TestCase):
 
         # first test X
         x = self.optProb.getDVs()
-        # self.map_check('X', x)
+        self.map_check_value('X', x)
 
         # next we check the objective
         funcs, _ = self.objfunc(x)
@@ -134,7 +134,7 @@ class TestOptProb(unittest.TestCase):
         for key in funcs.keys():
             if 'obj' in key:
                 obj_funcs[key] = funcs[key]
-        self.map_check('Obj', obj_funcs)
+        self.map_check_value('Obj', obj_funcs)
 
         # lastly we check the constraints
         funcs, _ = self.objfunc(x)
@@ -142,9 +142,9 @@ class TestOptProb(unittest.TestCase):
         for key in funcs.keys():
             if 'con' in key:
                 con_funcs[key] = funcs[key]
-        self.map_check('Con', con_funcs)
+        self.map_check_value('Con', con_funcs)
 
-    def map_check(self, key, val):
+    def map_check_value(self, key, val):
         """
         This function checks all the mapping and process functions
         in both directions, for a given key = {'X', 'Con', 'Obj'}

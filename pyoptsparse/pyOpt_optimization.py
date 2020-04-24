@@ -1532,9 +1532,6 @@ class Optimization(object):
         gobj_return *= self.invXScale
         return gobj_return
 
-    def _mapObjGradtoUser(self, gobj):
-        return gobj / self.invXScale
-
     def _mapContoOpt(self,fcon):
         return fcon * self.conScale
 
