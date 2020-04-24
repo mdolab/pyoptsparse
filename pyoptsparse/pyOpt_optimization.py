@@ -1129,6 +1129,7 @@ class Optimization(object):
         """
         """
         fobj = {}
+        fobj_in = numpy.atleast_1d(fobj_in)
         for objKey in self.objectives.keys():
             iObj = self.objectiveIdx[objKey]
             try:
@@ -1541,14 +1542,15 @@ class Optimization(object):
         return fcon / self.conScale
 
     def _mapObjtoOpt(self,fobj):
-        fobj_return = numpy.atleast_1d(fobj)
+        fobj_return = numpy.copy(numpy.atleast_1d(fobj))
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
             fobj_return[iObj] *= self.objectives[objKey].scale
+        # print(fobj, fobj_return)
         return fobj_return
 
     def _mapObjtoUser(self,fobj):
-        fobj_return = numpy.copy(fobj)
+        fobj_return = numpy.copy(numpy.atleast_1d(fobj))
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
             fobj_return[iObj] /= self.objectives[objKey].scale
@@ -1604,9 +1606,9 @@ class Optimization(object):
         return self.processObjtoDict(obj_opt, scaled=False)
 
     def _mapContoUser_Dict(self, conDict):
-        con = self.processContoVec(conDict, scaled=False)
+        con = self.processContoVec(conDict, scaled=False, natural=True)
         con_user = self._mapContoUser(con)
-        return self.processContoDict(con_user, scaled=False)
+        return self.processContoDict(con_user, scaled=False, natural=True)
 
     def _mapContoOpt_Dict(self, conDict):
         con = self.processContoVec(conDict, scaled=False, natural=True)
