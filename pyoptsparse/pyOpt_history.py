@@ -402,6 +402,29 @@ class History(object):
         return copy.deepcopy(self.optProb)
 
     def _processIterDict(self, d, scale=False):
+        """
+        This function scales the value, where the factor is extracted from the
+        `Info` dictionaries, according to "name"
+
+        Parameters
+        ----------
+        d : dictionary
+            The iteration dictionary, i.e. hist['0']
+            This must be a function evaluation callCounter, and not a gradient callCounter.
+        scale : bool
+            Whether the returned values should be scaled.
+
+        Returns
+        -------
+        conDict : dict
+            A dictionary containing constraint values
+        objDict : dict
+            A dictionary containing objective values
+        DVDict : dict
+            A dictionary containing DV values
+
+        These are all "flat" dictionaries, with simple key:value pairs.
+        """
         conDict = {}
         for con in self.conNames:
             conDict[con] = d['funcs'][con]
