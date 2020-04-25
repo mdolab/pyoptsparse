@@ -27,15 +27,19 @@ class History(object):
     fileName : str
        File name for history file
 
+    optProb : pyOpt_Optimization
+        the optimization object
+
     temp : bool
        Flag to signify that the file should be deleted after it is
        closed
 
     flag : str
         String specifying the mode. Similar to what was used in
-        shelve. 'n' for a new database and 'r' to read an existing one. 
+        shelve. 'n' for a new database and 'r' to read an existing one.
+
     """
-    def __init__(self, fileName, temp=False, flag='n'):
+    def __init__(self, fileName, optProb=None, temp=False, flag='r'):
 
         if flag == 'n':
             # If writing, we expliclty remove the file to
@@ -43,6 +47,7 @@ class History(object):
             if os.path.exists(fileName):
                 os.remove(fileName)
             self.db = SqliteDict(fileName)
+            self.optProb = optProb
         elif flag == 'r':
             if os.path.exists(fileName):
                 # we cast the db to OrderedDict so we do not have to
@@ -179,37 +184,12 @@ class History(object):
         callCounter = None
         for i in range(last,0,-1):
             key = '%d'% i
-            xuser = self._deProcessX(self.db[key]['xuser'])
+            xuser = self.optProb.processXtoVec(self.db[key]['xuser'])
             if numpy.isclose(xuser,x,atol=eps,rtol=eps).all() and 'funcs' in self.db[key].keys():
                 callCounter = i
                 break
         return callCounter
 
-    def _deProcessX(self,xuser, scale=False):
-        """
-        This is a much more simple version of `pyOpt_optimization.deProcessX` without error checking.
-        We traverse the OrderedDict and stack all the DVs as a single numpy array, preserving 
-        the order so that we get the correct x vector.
-
-        Parameters
-        ----------
-        scale : bool
-            flag to specify whether the stacked values should be scaled or not.
-
-        Returns
-        -------
-        ndarray
-            The stacked x vector constructed from `xuser`
-        """
-        x_list = []
-        for key in xuser.keys():
-            if scale:
-                x_list.append(self._scaleValues(key, xuser[key]))
-            else:
-                x_list.append(xuser[key])
-        x_array = numpy.hstack(x_list)
-        return x_array
-    
     def _processDB(self):
         """
         Pre-processes the DB file and store various values into class attributes.
@@ -238,6 +218,11 @@ class History(object):
 
         # metadata
         self.metadata = self.read('metadata')
+        self.optProb = self.read('optProb')
+
+        from .__init__ import __version__
+        if self.metadata['version'] != __version__:
+            pyOptSparseWarning('The version of pyoptsparse used to generate the history file does not match the one being run right now. There may be compatibility issues.')
 
     def getIterKeys(self):
         """
@@ -409,31 +394,60 @@ class History(object):
         if self.flag != 'r':
             return
         return copy.deepcopy(self.metadata)
-    
-    def _scaleValues(self, name, value):
+
+    def getOptProb(self):
+        """
+        Returns a copy of the optProb associated with the optimization.
+
+        Returns
+        -------
+        optProb : pyOpt_optimization object
+            The optProb associated with the optimization. This is taken from the history file,
+            and therefore has the ``comm`` and ``objFun`` fields removed.
+        """
+        # only do this if we open the file with 'r' flag
+        if self.flag != 'r':
+            return
+        return copy.deepcopy(self.optProb)
+
+    def _processIterDict(self, d, scale=False):
         """
         This function scales the value, where the factor is extracted from the
         `Info` dictionaries, according to "name"
 
         Parameters
         ----------
-        name : str
-            The name of the value to be scaled.
-        value : float or ndarray
-            The value corresponding to the name.
+        d : dictionary
+            The iteration dictionary, i.e. hist['0']
+            This must be a function evaluation callCounter, and not a gradient callCounter.
+        scale : bool
+            Whether the returned values should be scaled.
 
         Returns
         -------
-        float or ndarray
-            The scaled value to return
+        conDict : dict
+            A dictionary containing constraint values
+        objDict : dict
+            A dictionary containing objective values
+        DVDict : dict
+            A dictionary containing DV values
+
+        These are all "flat" dictionaries, with simple key:value pairs.
         """
-        if name in self.objNames:
-            factor = self.objInfo[name]['scale']
-        elif name in self.conNames:
-            factor = self.conInfo[name]['scale']
-        elif name in self.DVNames:
-            factor = self.DVInfo[name]['scale']
-        return value * factor
+        conDict = {}
+        for con in self.conNames:
+            conDict[con] = d['funcs'][con]
+        objDict = {}
+        for obj in self.objNames:
+            objDict[obj] = d['funcs'][obj]
+        DVDict = {}
+        for DV in self.DVNames:
+            DVDict[DV] = d['xuser'][DV]
+        if scale:
+            conDict = self.optProb._mapContoOpt_Dict(conDict)
+            objDict = self.optProb._mapObjtoOpt_Dict(objDict)
+            DVDict = self.optProb._mapXtoOpt_Dict(DVDict)
+        return conDict, objDict, DVDict
 
     def getCallCounters(self):
         """
@@ -538,7 +552,7 @@ class History(object):
             if not major:
                 pyOptSparseWarning("The major flag has been set to True, since some names specified only exist on major iterations.")
                 major = True
-        
+
         if stack:
             DVinNames = names.intersection(self.DVNames)
             for DV in DVinNames:
@@ -571,14 +585,17 @@ class History(object):
                 val = self.read(i)
                 if 'funcs' in val.keys(): # we have function evaluation
                     if ((major and val['isMajor']) or not major) and not val['fail']:
+                        conDict, objDict, DVDict = self._processIterDict(val, scale=scale)
                         for name in names:
                             if name == 'xuser':
-                                data[name].append(self._deProcessX(val['xuser'], scale=scale))
+                                data[name].append(self.optProb.processXtoVec(DVDict))
                             elif name in self.DVNames:
-                                data[name].append(val['xuser'][name])
-                            elif name in self.conNames.union(self.objNames):
-                                data[name].append(val['funcs'][name])
-                            else: # must be opt
+                                data[name].append(DVDict[name])
+                            elif name in self.conNames:
+                                data[name].append(conDict[name])
+                            elif name in self.objNames:
+                                data[name].append(objDict[name])
+                            else:  # must be opt
                                 data[name].append(val[name])
                     elif val['fail'] and user_specified_callCounter:
                             pyOptSparseWarning(("callCounter {} contained a failed function evaluation and is skipped!").format(i))
@@ -590,11 +607,6 @@ class History(object):
         for name in names:
             # we just stack along axis 0
             data[name] = numpy.stack(data[name],axis=0)
-
-            # scale the values if needed
-            # note that xuser has already been scaled
-            if scale and name in self.DVNames.union(self.conNames).union(self.objNames):
-                data[name] = self._scaleValues(name,data[name])
 
         return data
 

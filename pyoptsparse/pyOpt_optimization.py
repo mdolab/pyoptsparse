@@ -94,7 +94,6 @@ class Optimization(object):
         self.linearJacobian = None
         self.dummyConstraint = False
         self.objectiveIdx = {}
-        self.bulk = None
 
         # Store the jacobian conversion maps
         self._jac_map_coo_to_csr = None
@@ -511,21 +510,23 @@ class Optimization(object):
             The dictionary of variables. This is the same as 'x' that
             would be used to call the user objective function.
         """
-
+        self.finalizeDesignVariables()
+        self.finalizeConstraints()
         outDVs = {}
         for dvGroup in self.variables:
             nvar = len(self.variables[dvGroup])
             # If it is a single DV, return a scalar rather than a numpy array
             if nvar == 1:
                 var = self.variables[dvGroup][0]
-                outDVs[dvGroup] = var.value/var.scale + var.offset
+                outDVs[dvGroup] = var.value
             else:
                 outDVs[dvGroup] = numpy.zeros(nvar)
                 for i in range(nvar):
                     var = self.variables[dvGroup][i]
-                    outDVs[dvGroup][i] = var.value/var.scale + var.offset
-
-        return outDVs
+                    outDVs[dvGroup][i] = var.value
+        # we convert the dict to array to scale everything consistently
+        scaled_DV = self._mapXtoUser_Dict(outDVs)
+        return scaled_DV
 
     def setDVs(self, inDVs):
         """
@@ -539,6 +540,11 @@ class Optimization(object):
             'x' that would be used to call the user objective
             function.
         """
+        self.finalizeDesignVariables()
+        self.finalizeConstraints()
+        # we process dicts to arrays to perform scaling in a uniform way
+        # then process back to dict
+        scaled_DV = self._mapXtoOpt_Dict(inDVs)
         for dvGroup in self.variables:
             if dvGroup in inDVs:
                 nvar = len(self.variables[dvGroup])
@@ -546,10 +552,10 @@ class Optimization(object):
                 for i in range(nvar):
                     var = self.variables[dvGroup][i]
                     if scalar:
-                        var.value = (float(inDVs[dvGroup])-var.offset)*var.scale
+                        var.value = scaled_DV[dvGroup]
                     else:
                         # Must be an array
-                        var.value = (inDVs[dvGroup][i]-var.offset)*var.scale
+                        var.value = scaled_DV[dvGroup][i]
 
     def setDVsFromHistory(self, histFile, key=None):
         """
@@ -1010,7 +1016,7 @@ class Optimization(object):
             fact = None
         return numpy.array(indices), numpy.array(lower), numpy.array(upper), fact
 
-    def processX(self, x):
+    def processXtoDict(self, x):
         """
         **This function should not need to be called by the user**
 
@@ -1042,7 +1048,7 @@ class Optimization(object):
                         "is a mismatch in the number of variables.")
         return xg
 
-    def deProcessX(self, x):
+    def processXtoVec(self, x):
         """
         **This function should not need to be called by the user**
 
@@ -1081,7 +1087,7 @@ class Optimization(object):
 
         return x_array
 
-    def processObjective(self, funcs, scaled=True):
+    def processObjtoVec(self, funcs, scaled=True):
         """
         **This function should not need to be called by the user**
 
@@ -1101,30 +1107,57 @@ class Optimization(object):
         fobj = []
         for objKey in self.objectives.keys():
             if objKey in funcs:
-                if self.bulk is None:
-                    try:
-                        f = numpy.squeeze(funcs[objKey]).item()
-                    except ValueError:
-                        raise Error("The objective return value, '%s' must be a "
-                                    "scalar!"% objKey)
-                else:
-                    f = numpy.squeeze(funcs[objKey])
-                    if f.shape != (self.bulk,):
-                        raise Error("Expected %d return values for '%s', but received %d!"
-                                    % (self.bulk, objKey, f.shape))
+                try:
+                    f = numpy.squeeze(funcs[objKey]).item()
+                except ValueError:
+                    raise Error("The objective return value, '%s' must be a "
+                                "scalar!"% objKey)
                 # Store objective for printing later
                 self.objectives[objKey].value = f
-                if scaled:
-                    f *= self.objectives[objKey].scale
                 fobj.append(f)
             else:
                 raise Error("The key for the objective, '%s' was not found." %
                             objKey)
 
+        # scale the objective
+        if scaled:
+            fobj = self._mapObjtoOpt(fobj)
         # Finally squeeze back out so we get a scalar for a single objective
         return numpy.squeeze(fobj)
 
-    def processConstraints(self, fcon_in, scaled=True, dtype='d', natural=False):
+    def processObjtoDict(self, fobj_in, scaled=True):
+        """
+        This function converts the objective in array form
+        to the corresponding dictionary form.
+
+        Parameters
+        ----------
+        fobj_in : float or ndarray
+            The objective in array format. In the case of a single objective,
+            a float can also be accepted.
+        scaled : bool
+            Flag specifying if the returned dictionary should be scaled by
+            the pyOpt scaling.
+
+        Returns
+        -------
+        fobj : dictionary
+            The dictionary form of fobj_in, which is just a key:value pair
+            for each objective.
+        """
+        fobj = {}
+        fobj_in = numpy.atleast_1d(fobj_in)
+        for objKey in self.objectives.keys():
+            iObj = self.objectiveIdx[objKey]
+            try:
+                fobj[objKey] = fobj_in[iObj]
+            except IndexError:
+                raise Error("The input array shape is incorrect!")
+        if scaled:
+            fobj = self._mapObjtoOpt(fobj)
+        return fobj
+
+    def processContoVec(self, fcon_in, scaled=True, dtype='d', natural=False):
         """
         **This function should not need to be called by the user**
 
@@ -1154,10 +1187,7 @@ class Optimization(object):
             return numpy.array([0])
 
         # We REQUIRE that fcon_in is a dict:
-        if self.bulk is not None:
-            fcon = numpy.zeros((self.bulk, self.nCon), dtype=dtype)
-        else:
-            fcon = numpy.zeros(self.nCon, dtype=dtype)
+        fcon = numpy.zeros(self.nCon, dtype=dtype)
         for iCon in self.constraints:
             con = self.constraints[iCon]
             if iCon in fcon_in:
@@ -1183,7 +1213,7 @@ class Optimization(object):
 
         # Perform scaling on the original jacobian:
         if scaled:
-            fcon = self.conScale*fcon
+            fcon = self._mapContoOpt(fcon)
 
         if natural:
             return fcon
@@ -1195,7 +1225,7 @@ class Optimization(object):
             else:
                 return fcon
 
-    def deProcessConstraints(self, fcon_in, scaled=True, dtype='d',
+    def processContoDict(self, fcon_in, scaled=True, dtype='d',
                              natural=False, multipliers=False):
         """
         **This function should not need to be called by the user**
@@ -1250,7 +1280,7 @@ class Optimization(object):
 
         # Perform constraint scaling
         if scaled:
-            fcon_in = fcon_in*self.conScale
+            fcon_in = self._mapContoOpt(fcon_in)
 
         # We REQUIRE that fcon_in is an array:
         fcon = {}
@@ -1318,7 +1348,7 @@ class Optimization(object):
                             tmp = numpy.array(funcsSens[objKey][dvGroup]).squeeze()
                             if tmp.size == ss[1]-ss[0]:
                                 # Everything checks out so set:
-                                gobj[iObj, ss[0]:ss[1]] = tmp * self.objectives[objKey].scale
+                                gobj[iObj, ss[0]:ss[1]] = tmp
                             else:
                                 raise Error("The shape of the objective derivative "
                                             "for dvGroup '%s' is the incorrect "
@@ -1347,7 +1377,7 @@ class Optimization(object):
                     tmp = numpy.array(funcsSens[objKey, dvGroup]).squeeze()
                     if tmp.size == ss[1]-ss[0]:
                         # Everything checks out so set:
-                        gobj[iObj, ss[0]:ss[1]] = tmp * self.objectives[objKey].scale
+                        gobj[iObj, ss[0]:ss[1]] = tmp
                     else:
                         raise Error("The shape of the objective derivative "
                                     "for dvGroup '%s' is the incorrect "
@@ -1363,8 +1393,8 @@ class Optimization(object):
         # and any keys that are provided are simply zero.
         # end (objective keys)
 
-        # Do column scaling (dv scaling)
-        gobj = self.invXScale * gobj
+        # Do scaling
+        gobj = self._mapObjGradtoOpt(gobj)
 
         # Finally squeeze back out so we get a 1D vector for a single objective
         return numpy.squeeze(gobj)
@@ -1507,10 +1537,97 @@ class Optimization(object):
                         numpy.array(data)[self._jac_map_coo_to_csr[IDATA]]),
                 'shape':[self.nCon, self.ndvs]}
 
+        self._mapConJactoOpt(gcon)
+
+        return gcon
+
+    def _mapObjGradtoOpt(self, gobj):
+        gobj_return = numpy.copy(gobj)
+        for objKey in self.objectives:
+            iObj = self.objectiveIdx[objKey]
+            gobj_return[iObj,:] *= self.objectives[objKey].scale
+        gobj_return *= self.invXScale
+        return gobj_return
+
+    def _mapContoOpt(self,fcon):
+        return fcon * self.conScale
+
+    def _mapContoUser(self,fcon):
+        return fcon / self.conScale
+
+    def _mapObjtoOpt(self,fobj):
+        fobj_return = numpy.copy(numpy.atleast_1d(fobj))
+        for objKey in self.objectives:
+            iObj = self.objectiveIdx[objKey]
+            fobj_return[iObj] *= self.objectives[objKey].scale
+        # print(fobj, fobj_return)
+        return fobj_return
+
+    def _mapObjtoUser(self,fobj):
+        fobj_return = numpy.copy(numpy.atleast_1d(fobj))
+        for objKey in self.objectives:
+            iObj = self.objectiveIdx[objKey]
+            fobj_return[iObj] /= self.objectives[objKey].scale
+        return fobj_return
+
+    def _mapConJactoOpt(self, gcon):
+        """
+        The mapping is done in memory, without any return.
+        """
         scaleRows(gcon, self.conScale)
         scaleColumns(gcon, self.invXScale)
 
-        return gcon
+    def _mapConJactoUser(self, gcon):
+        """
+        The mapping is done in memory, without any return.
+        """
+        scaleRows(gcon, 1/self.conScale)
+        scaleColumns(gcon, 1/self.invXScale)
+
+    def _mapXtoOpt(self, x):
+        """
+        This performs the user-space to optimizer mapping for the DVs.
+        All inputs/outputs are numpy arrays.
+        """
+        return (x - self.xOffset)/self.invXScale
+
+    def _mapXtoUser(self, x):
+        """
+        This performs the optimizer to user-space mapping for the DVs.
+        All inputs/outputs are numpy arrays.
+        """
+        return x*self.invXScale + self.xOffset
+
+    # these are the dictionary-based versions of the mapping functions
+    def _mapXtoUser_Dict(self, xDict):
+        x = self.processXtoVec(xDict)
+        x_user = self._mapXtoUser(x)
+        return self.processXtoDict(x_user)
+
+    def _mapXtoOpt_Dict(self, xDict):
+        x = self.processXtoVec(xDict)
+        x_opt = self._mapXtoOpt(x)
+        return self.processXtoDict(x_opt)
+
+    def _mapObjtoUser_Dict(self, objDict):
+        obj = self.processObjtoVec(objDict, scaled=False)
+        obj_user = self._mapObjtoUser(obj)
+        return self.processObjtoDict(obj_user, scaled=False)
+
+    def _mapObjtoOpt_Dict(self, objDict):
+        obj = self.processObjtoVec(objDict, scaled=False)
+        obj_opt = self._mapObjtoOpt(obj)
+        return self.processObjtoDict(obj_opt, scaled=False)
+
+    def _mapContoUser_Dict(self, conDict):
+        con = self.processContoVec(conDict, scaled=False, natural=True)
+        con_user = self._mapContoUser(con)
+        return self.processContoDict(con_user, scaled=False, natural=True)
+
+    def _mapContoOpt_Dict(self, conDict):
+        con = self.processContoVec(conDict, scaled=False, natural=True)
+        con_opt = self._mapContoOpt(con)
+        return self.processContoDict(con_opt, scaled=False, natural=True)
 
     def __str__(self):
         """
@@ -1636,6 +1753,17 @@ class Optimization(object):
                     idx += 1
 
         return text
+
+    def __getstate__(self):
+        """
+        This is used for serializing class instances.
+        The un-serializable fields are deleted first.
+        """
+        d = copy.copy(self.__dict__)
+        for key in ['comm', 'objFun']:
+            if key in d.keys():
+                del d[key]
+        return d
 
 #==============================================================================
 # Optimization Test

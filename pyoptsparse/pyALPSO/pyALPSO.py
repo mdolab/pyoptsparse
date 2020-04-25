@@ -158,12 +158,6 @@ class ALPSO(Optimizer):
             if opt('seed') == 0:
                 self.setOption('seed', time.time())
 
-            # As far as I can tell, there is no need for this bulk attribute.
-            # ALPSO calls the objconfunc iteratively for each particle in the
-            # swarm, so we can deal with them one at a time, just as the other
-            # optimizers.
-            # self.optProb.bulk = opt('SwarmSize')
-
             # Run ALPSO
             t0 = time.time()
             opt_x, opt_f, opt_g, opt_lambda, nfevals, rseed = self.alpso.alpso(

@@ -31,14 +31,14 @@ class TestHS71(unittest.TestCase):
         fail = False
         return funcsSens, fail
 
-    def optimize(self, optName, tol, optOptions={}, storeHistory=False, xScale=1.0, 
-                 objScale=1.0, conScale=1.0, check_solution=True):
+    def optimize(self, optName, tol, optOptions={}, storeHistory=False, setDV=None, xScale=1.0, 
+                 objScale=1.0, conScale=1.0, offset=0.0, check_solution=True):
         # Optimization Object
         optProb = Optimization('HS071 Constraint Problem', self.objfunc)
 
         # Design Variables
         x0 = [1.0, 5.0, 5.0, 1.0]
-        optProb.addVarGroup('xvars', 4, lower=1, upper=5, value=x0, scale=xScale)
+        optProb.addVarGroup('xvars', 4, lower=1, upper=5, value=x0, scale=xScale, offset=offset)
 
         # Constraints
         optProb.addConGroup('con', 2, lower=[25, 40], upper=[None, 40], scale=conScale)
@@ -51,6 +51,13 @@ class TestHS71(unittest.TestCase):
             opt = OPT(optName, options=optOptions)
         except:
             raise unittest.SkipTest('Optimizer not available:', optName)
+
+        if isinstance(setDV, str):
+            optProb.setDVsFromHistory(setDV)
+        elif isinstance(setDV, dict):
+            optProb.setDVs(setDV)
+            outDV = optProb.getDVs()
+            assert_allclose(setDV['xvars'], outDV['xvars'])
 
         sol = opt(optProb, sens=self.sens, storeHistory=storeHistory)
 
@@ -68,22 +75,84 @@ class TestHS71(unittest.TestCase):
 
     def test_snopt(self):
         self.optimize('snopt', 1E-6)
-    
-    def test_snopt_scaling(self):
-        histFileName = 'snopt_scale_test.hst'
+
+    def test_slsqp_setDV(self):
+        """
+        Test that setDV works as expected, even with scaling/offset
+        """
+        histFileName = 'SLSQP_test_DV.hst'
+        newDV = {'xvars': numpy.array([1, 4, 4, 1])}
+        self.optimize('SLSQP', 1E-5, xScale=1.5, conScale=1.2, objScale=32, offset=1.5, setDV=newDV, storeHistory=histFileName)
+        # Verify the history file
+        hist = History(histFileName, flag='r')
+        init = hist.getValues(names='xvars', callCounters='0', scale=False)
+        x_init = init['xvars'][0]
+        assert_allclose(x_init, newDV['xvars'], atol=1E-5, rtol=1E-5)
+
+    def test_snopt_setDVFromHist(self):
+        """
+        Test that setDVFromHistory works as expected, even with scaling/offset
+        """
+        histFileName = 'snopt_test_DV.hst'
+        self.optimize('snopt', 1E-6, xScale=1.5, conScale=1.2, objScale=32, offset=1.5, storeHistory=histFileName)
+        hist = History(histFileName, flag='r')
+        first = hist.getValues(names='xvars', callCounters='last', scale=False)
+        x_final = first['xvars'][0]
+        self.optimize('snopt', 1E-6, xScale=0.5, conScale=4.8, objScale=0.1, offset=1.5, setDV=histFileName, storeHistory=histFileName)
+        # Verify the history file
+        hist = History(histFileName, flag='r')
+        second = hist.getValues(names='xvars', scale=False)
+        x_init = second['xvars'][0]
+        assert_allclose(x_init, x_final, atol=1E-5, rtol=1E-5)
+        # assert that this only took one major iteration
+        # since we restarted from the optimum
+        self.assertEqual(second['xvars'].shape, (1,4))
+
+    def test_slsqp_scaling_offset_optProb(self):
+        """
+        Test that scaling and offset works as expected
+        Also test optProb stored in the history file is correct
+        """
+        histFileName = 'slsqp_scale_offset.hst'
         objScale = 4.2
         xScale = [2,3,4,5]
         conScale = [0.6, 1.7]
-        self.optimize('snopt', 1E-6, objScale=objScale, xScale=xScale, conScale=conScale, storeHistory=histFileName)
+        offset = [1,-2,40,2.5]
+        self.optimize('slsqp', 1E-6, objScale=objScale, xScale=xScale, conScale=conScale, storeHistory=histFileName, offset=offset)
 
         # now we retrieve the history file, and check the scale=True option is indeed
         # scaling things correctly
         hist = History(histFileName, flag='r')
-        last = hist.getValues(callCounters='last', scale=False)
-        last_scaled = hist.getValues(callCounters='last', scale=True)
-        x = last['xvars'][0]
-        x_scaled = last_scaled['xvars'][0]
-        assert_allclose(x_scaled/x,xScale, atol=1E-12, rtol=1E-12)
+        orig_values = hist.getValues(callCounters='0', scale=False)
+        optProb = hist.getOptProb()
+
+        # check that the scales are stored properly
+        for i, var in enumerate(optProb.variables['xvars']):
+            assert_allclose(xScale[i], var.scale, atol=1E-12, rtol=1E-12)
+            assert_allclose(offset[i], var.offset, atol=1E-12, rtol=1E-12)
+        for con in optProb.constraints:
+            assert_allclose(conScale, optProb.constraints[con].scale, atol=1E-12, rtol=1E-12)
+        for obj in optProb.objectives:
+            assert_allclose(objScale, optProb.objectives[obj].scale, atol=1E-12, rtol=1E-12)
+
+        # verify the scale option in getValues
+        scaled_values = hist.getValues(callCounters='0', scale=True, stack=False)
+        x = orig_values['xvars'][0]
+        x_scaled = scaled_values['xvars'][0]
+        assert_allclose(x_scaled, (x - offset)*xScale, atol=1E-12, rtol=1E-12)
+
+        # now do the same but with stack=True
+        stacked_values = hist.getValues(callCounters='0', scale=True, stack=True)
+        x_scaled = stacked_values['xuser'][0]
+        assert_allclose(x_scaled, (x - offset)*xScale, atol=1E-12, rtol=1E-12)
+
+        # now we test objective and constraint scaling in getValues
+        obj_orig = orig_values['obj'][0]
+        obj_scaled = scaled_values['obj'][0]
+        assert_allclose(obj_scaled, obj_orig * objScale, atol=1E-12, rtol=1E-12)
+        con_orig = orig_values['con'][0]
+        con_scaled = scaled_values['con'][0]
+        assert_allclose(con_scaled, con_orig * conScale, atol=1E-12, rtol=1E-12)
 
     def test_slsqp(self):
         self.optimize('slsqp', 1E-6)

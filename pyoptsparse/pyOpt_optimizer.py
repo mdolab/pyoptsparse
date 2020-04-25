@@ -161,7 +161,7 @@ class Optimizer(object):
 
         self.storeHistory = False
         if storeHistory:
-            self.hist = History(storeHistory)
+            self.hist = History(storeHistory, flag='n', optProb=self.optProb)
             self.storeHistory = True
 
             if hotStart is not None:
@@ -212,11 +212,11 @@ class Optimizer(object):
                 data = self.hotStart.read(self.callCounter)
 
                 # Get the x-value and (de)process
-                xuser = self.optProb.deProcessX(data['xuser'])
+                xuser_ref = self.optProb.processXtoVec(data['xuser'])
 
                 # Validated x-point point to use:
-                xScaled = x*self.optProb.invXScale + self.optProb.xOffset
-                if numpy.isclose(xScaled,xuser,rtol=eps,atol=eps).all():
+                xuser_vec = self.optProb._mapXtoUser(x)
+                if numpy.isclose(xuser_vec,xuser_ref,rtol=eps,atol=eps).all():
 
                     # However, we may need a sens that *isn't* in the
                     # the dictionary:
@@ -244,9 +244,9 @@ class Optimizer(object):
 
                         # Process constraints/objectives
                         if funcs is not None:
-                            self.optProb.evaluateLinearConstraints(xScaled, funcs)
-                            fcon = self.optProb.processConstraints(funcs)
-                            fobj = self.optProb.processObjective(funcs)
+                            self.optProb.evaluateLinearConstraints(xuser_vec, funcs)
+                            fcon = self.optProb.processContoVec(funcs)
+                            fobj = self.optProb.processObjtoVec(funcs)
                             if 'fobj' in evaluate:
                                 returns.append(fobj)
                             if 'fcon' in evaluate:
@@ -310,8 +310,8 @@ class Optimizer(object):
         # gobj, and gcon values such that on the next pass we can just
         # read them and return.
 
-        xScaled = self.optProb.invXScale * x + self.optProb.xOffset
-        xuser = self.optProb.processX(xScaled)
+        xuser_vec = self.optProb._mapXtoUser(x)
+        xuser = self.optProb.processXtoDict(xuser_vec)
 
         masterFail = 0
 
@@ -337,17 +337,14 @@ class Optimizer(object):
                     fail = 0
 
                 self.userObjTime += time.time()-timeA
-                if self.optProb.bulk is None:
-                    self.userObjCalls += 1
-                else:
-                    self.userObjCalls += self.optProb.bulk
+                self.userObjCalls += 1
                 # User values stored is immediately
                 self.cache['funcs'] = copy.deepcopy(funcs)
 
                 # Process constraints/objectives
-                self.optProb.evaluateLinearConstraints(xScaled, funcs)
-                fcon = self.optProb.processConstraints(funcs)
-                fobj = self.optProb.processObjective(funcs)
+                self.optProb.evaluateLinearConstraints(xuser_vec, funcs)
+                fcon = self.optProb.processContoVec(funcs)
+                fobj = self.optProb.processObjtoVec(funcs)
                 # Now clear out gobj and gcon in the cache since these
                 # are out of date and set the current ones
                 self.cache['gobj'] = None
@@ -385,9 +382,9 @@ class Optimizer(object):
                 self.cache['funcs'] = copy.deepcopy(funcs)
 
                 # Process constraints/objectives
-                self.optProb.evaluateLinearConstraints(xScaled, funcs)
-                fcon = self.optProb.processConstraints(funcs)
-                fobj = self.optProb.processObjective(funcs)
+                self.optProb.evaluateLinearConstraints(xuser_vec, funcs)
+                fcon = self.optProb.processContoVec(funcs)
+                fobj = self.optProb.processObjtoVec(funcs)
                 # Now clear out gobj and gcon in the cache since these
                 # are out of date and set the current ones
                 self.cache['gobj'] = None
@@ -548,6 +545,7 @@ class Optimizer(object):
                 self.hist.writeData('objInfo', objInfo)
                 self._setMetadata()
                 self.hist.writeData('metadata',self.metadata)
+                self.hist.writeData('optProb', self.optProb)
 
         # Write history if necessary
         if (self.optProb.comm.rank == 0 and  writeHist and self.storeHistory):
@@ -737,9 +735,8 @@ class Optimizer(object):
         sol.interfaceTime = self.interfaceTime - self.userSensTime - self.userObjTime
         sol.optCodeTime = sol.optTime - self.interfaceTime
         sol.fStar = obj # FIXME: this doesn't work, at least for SNOPT
-        n = len(self.optProb.invXScale)
-        xScaled = self.optProb.invXScale * xopt[0:n] + self.optProb.xOffset[0:n]
-        sol.xStar = self.optProb.processX(xScaled)
+        xuser = self.optProb._mapXtoUser(xopt)
+        sol.xStar = self.optProb.processXtoDict(xuser)
 
         # Now set the x-values:
         i = 0
@@ -749,7 +746,7 @@ class Optimizer(object):
                 i += 1
 
         if multipliers is not None:
-            multipliers = self.optProb.deProcessConstraints(multipliers,scaled=True, multipliers=True)
+            multipliers = self.optProb.processContoDict(multipliers,scaled=True, multipliers=True)
 
             # objective scaling
             if len(self.optProb.objectives.keys()) == 1: # we assume there is only one objective

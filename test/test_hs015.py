@@ -115,6 +115,7 @@ class TestHS15(unittest.TestCase):
         metadata_def_keys = ['optName', 'optOptions', 'nprocs', 'startTime', 'endTime', 'optTime', 'version']
         for key in metadata_def_keys:
             self.assertIn(key,metadata)
+        hist.getOptProb()
 
         # Info checks
         self.assertEqual(hist.getDVNames(), ['xvars'])
