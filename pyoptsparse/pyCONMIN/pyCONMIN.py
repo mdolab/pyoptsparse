@@ -2,24 +2,7 @@
 """
 pyCONMIN - A variation of the pyCONMIN wrapper specificially designed to
 work with sparse optimization problems.
-
-Copyright (c) 2013-2014 by Dr. Gaetan Kenway
-All rights reserved.
-
-Tested on:
----------
-Linux with intel
-
-Developers:
------------
-- Dr. Gaetan Kenway (GKK)
-
-History
--------
-    v. 0.1    - Initial Wrapper Creation
 """
-from __future__ import absolute_import
-from __future__ import print_function
 # =============================================================================
 # CONMIN Library
 # =============================================================================
@@ -32,6 +15,7 @@ except ImportError:
 # =============================================================================
 import os
 import time
+import datetime
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -237,6 +221,12 @@ class CONMIN(Optimizer):
                           iprint, iout, ifile, itmax, delfun, dabfun, itrm,
                           nfeasct, nfdg, nfun, ngrd, cnmnfun, cnmngrad)
             optTime = time.time() - t0
+
+            if self.storeHistory:
+                self.metadata['endTime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.metadata['optTime'] = optTime
+                self.hist.writeData('metadata',self.metadata)
+                self.hist.close()
 
             if iprint > 0:
                 conmin.closeunit(self.getOption('IOUT'))

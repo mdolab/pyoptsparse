@@ -25,12 +25,11 @@ Test uses Schittkowski's TP109 constraint problem.
     f*1 = 0.536206927538e+04
     x*1 = [0.674888100445e+03, 0.113417039470e+04, 0.133569060261e+00, -0.371152592466e+00, 0.252e+03, 0.252e+03, 0.201464535316e+03, 0.426660777226e+03, 0.368494083867e+03]
 """
-from __future__ import print_function
 import unittest
 
 import numpy
 from numpy import sin, cos
-
+from numpy.testing import assert_allclose
 from pyoptsparse import Optimization, OPT
 
 USE_LINEAR = True
@@ -67,7 +66,7 @@ def objfunc(xdict):
 
 class TestTP109(unittest.TestCase):
 
-    def optimize(self, optName, optOptions={}, places=2):
+    def optimize(self, optName, tol, optOptions={}):
         # Optimization Object
         optProb = Optimization('TP109 Constraint Problem', objfunc)
 
@@ -110,13 +109,13 @@ class TestTP109(unittest.TestCase):
         sol = opt(optProb, sens='CS')
 
         # Check Solution
-        self.assertAlmostEqual(sol.objectives['obj'].value, 0.536206927538e+04, places=places)
+        assert_allclose(sol.objectives['obj'].value, 0.536206927538e+04, atol=tol, rtol=tol)
 
     def test_snopt(self):
-        self.optimize('snopt')
+        self.optimize('snopt', 1E-7)
 
     def test_slsqp(self):
-        self.optimize('slsqp')
+        self.optimize('slsqp', 1E-7)
 
     def test_autorefine(self):
         # Optimization Object
@@ -168,7 +167,7 @@ class TestTP109(unittest.TestCase):
         sol2 = opt2(sol1)
 
         # Check Solution
-        self.assertAlmostEqual(sol2.objectives['obj'].value, 0.536206927538e+04, places=2)
+        assert_allclose(sol2.objectives['obj'].value, 0.536206927538e+04, atol=1E-2, rtol=1E-2)
 
 if __name__ == "__main__":
     unittest.main()

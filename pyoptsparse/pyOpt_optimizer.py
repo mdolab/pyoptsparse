@@ -3,16 +3,7 @@
 pyOpt_optimizer
 
 Holds the Python Design Optimization Classes (base and inherited).
-
-Copyright (c) 2008-2013 by pyOpt Developers
-All rights reserved.
-Revision: 1.1   $Date: 08/05/2008 21:00$
-
-Developers:
------------
-- Dr. Gaetan K.W. Kenway (GKK)
 """
-from __future__ import print_function
 # =============================================================================
 # Imports
 # =============================================================================
@@ -30,6 +21,7 @@ from .pyOpt_utils import convertToDense, convertToCOO, extractRows, \
 from collections import OrderedDict
 import datetime
 import subprocess
+from .pyOpt_MPI import MPI
 eps = numpy.finfo(numpy.float64).eps
 
 # =============================================================================
@@ -173,15 +165,18 @@ class Optimizer(object):
             self.storeHistory = True
 
             if hotStart is not None:
-                varInfo = self.hotStart.readData('varInfo')
-                conInfo = self.hotStart.readData('conInfo')
-                objInfo = self.hotStart.readData('objInfo')
+                varInfo = self.hotStart.read('varInfo')
+                conInfo = self.hotStart.read('conInfo')
+                objInfo = self.hotStart.read('objInfo')
                 if varInfo is not None:
                     self.hist.writeData('varInfo', varInfo)
                 if conInfo is not None:
                     self.hist.writeData('conInfo', conInfo)
                 if objInfo is not None:
                     self.hist.writeData('objInfo', objInfo)
+                self._setMetadata()
+                self.hist.writeData('metadata',self.metadata)
+
 
     def _masterFunc(self, x, evaluate):
         """
@@ -551,32 +546,7 @@ class Optimizer(object):
                 self.hist.writeData('varInfo', varInfo)
                 self.hist.writeData('conInfo', conInfo)
                 self.hist.writeData('objInfo', objInfo)
-                # we also add some metadata
-                from pyoptsparse import __version__ as pyoptsparse_version
-                from .pyOpt_MPI import MPI
-                options = copy.deepcopy(self.options)
-                options.pop('defaults') # remove the default list
-                # we retrieve only the second item which is the actual value
-                for key,val in options.items():
-                    options[key] = val[1]
-                # retrieve the git commit hash of the current version of pyoptsparse
-                try:
-                    sha = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'])
-                    sha = str(sha,'utf-8').replace('\n','') # converting byte to string, then trimming the newline character
-                except:
-                    # Not a git repo, perhaps the code was downloaded directly from GitHub instead of cloned
-                    sha = None
-                # we store the metadata now, and write it later in optimizer calls
-                # since we need the runtime at the end of optimization
-                self.metadata = {
-                    'version'   : pyoptsparse_version,
-                    'optimizer' : self.name,
-                    'optName'   : self.optProb.name,
-                    'nprocs'    : MPI.COMM_WORLD.size,
-                    'optOptions': options,
-                    'startTime' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    'gitHash'   : sha,
-                }
+                self._setMetadata()
                 self.hist.writeData('metadata',self.metadata)
 
         # Write history if necessary
@@ -766,7 +736,7 @@ class Optimizer(object):
         sol.userSensCalls = self.userSensCalls
         sol.interfaceTime = self.interfaceTime - self.userSensTime - self.userObjTime
         sol.optCodeTime = sol.optTime - self.interfaceTime
-        sol.fStar = obj
+        sol.fStar = obj # FIXME: this doesn't work, at least for SNOPT
         n = len(self.optProb.invXScale)
         xScaled = self.optProb.invXScale * xopt[0:n] + self.optProb.xOffset[0:n]
         sol.xStar = self.optProb.processX(xScaled)
@@ -779,15 +749,14 @@ class Optimizer(object):
                 i += 1
 
         if multipliers is not None:
-            # Scale the multipliers (since the constraints may be scaled)
-            if self.optProb.conScale is not None:
-                scaled_multipliers = multipliers/self.optProb.conScale
-            else:
-                scaled_multipliers = multipliers
+            multipliers = self.optProb.deProcessConstraints(multipliers,scaled=True, multipliers=True)
 
-            sol.lambdaStar = self.optProb.deProcessConstraints(scaled_multipliers,
-                                                               scaled=False, multipliers=True)
-
+            # objective scaling
+            if len(self.optProb.objectives.keys()) == 1: # we assume there is only one objective
+                obj = list(self.optProb.objectives.keys())[0]
+                for con in multipliers.keys():
+                    multipliers[con] /= self.optProb.objectives[obj].scale
+            sol.lambdaStar = multipliers
         return sol
 
     def _communicateSolution(self, sol):
@@ -804,6 +773,31 @@ class Optimizer(object):
         sol.comm = self.optProb.comm
 
         return sol
+    
+    def _setMetadata(self):
+        """
+        This function is used to set the self.metadata object.
+        Importantly, this sets the startTime, so should be called just before the start
+        of the optimization. endTime should be directly appended to the dictionary
+        after optimization finishes.
+        """
+        options = copy.deepcopy(self.options)
+        options.pop('defaults') # remove the default list
+        # we retrieve only the second item which is the actual value
+        for key,val in options.items():
+            options[key] = val[1]
+        
+        from .__init__ import __version__ # importing the pyoptsparse version
+        # we store the metadata now, and write it later in optimizer calls
+        # since we need the runtime at the end of optimization
+        self.metadata = {
+            'version'   : __version__,
+            'optimizer' : self.name,
+            'optName'   : self.optProb.name,
+            'nprocs'    : MPI.COMM_WORLD.size,
+            'optOptions': options,
+            'startTime' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
 
     def _on_setOption(self, name, value):
         """

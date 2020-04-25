@@ -5,41 +5,16 @@ alpso - Python Version of the Augmented Lagrangian Particle Swarm Optimizer
 alpso if a global optimizer which solves problems of the form:
 
             min F(x)
-                
+
     subject to: Gi(x)  = 0, i = 1(1)ME
                 Gj(x) <= 0, j = ME+1(1)M
                 xLB <= x <= xUB
 
-Copyright (c) 2006-2011 by Dr. Ruben E. Perez and Mr. Peter Jansen
-All rights reserved. Not to be used for commercial purposes.
-Revision: 1.7   $Date: 04/03/2010 21:00$
-
-
-Developers:
------------
-- Dr. Ruben E. Perez (RP)
-- Mr. Peter W. Jansen (PJ)
-
-History
--------
-    v. 1.2    - Initial Code Development in C (RP, 2006)
-    v. 1.3    - Initial Migration from C to Python (RP,PJ 2008)
-    v. 1.4  - Migration Bug Fixes (PJ, 2008)
-    v. 1.5    - Migration Running Version (PJ, 2008)
-    v. 1.6    - Migration Scaling Option (PJ, 2008)
-            - Removed lambda convergence citeria (PJ, 2009)
-            - Added Multiple x0s Input Functionality (PJ, 2010)
-    v. 1.7  - Added Neighbourhood option (PJ, 2010)
-"""
-
-__version__ = '$Revision: $'
-
-'''
 To Do:
     - Migrate Inner Loop Printing Option
     - Add Other Inertia and Velocity Updates to Inner Loop
     - Fix Neighbourhood best from Lagrangian value
-'''
+"""
 
 # =============================================================================
 # Standard Python modules
@@ -52,7 +27,7 @@ from math import floor
 # External Python modules
 # =============================================================================
 import numpy
-
+from ..pyOpt_error import pyOptSparseWarning
 # =============================================================================
 # Extension modules
 # =============================================================================
@@ -91,8 +66,8 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
         if isinstance(x0, list):
             x0 = numpy.array(x0)
         elif not isinstance(x0, numpy.ndarray):
-            print("""Warning: Initial x must be either list or numpy.array,
-                all initial positions randomly generated""")
+            pyOptSparseWarning(("Initial x must be either list or numpy.array, "
+                "all initial positions randomly generated"))
 
     #
     if hstfile is not None:
@@ -215,7 +190,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
 
         else:
             if x0.shape[0] > swarmsize:
-                print('Warning: %d initial positions specified for %d particles, last %d positions ignored'
+                pyOptSparseWarning('%d initial positions specified for %d particles, last %d positions ignored'
                       % (x0.shape[0], swarmsize, x0.shape[0] - swarmsize))
                 x0 = x0[0:swarmsize, :]
 

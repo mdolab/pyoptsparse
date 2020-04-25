@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.com/mdolab/pyoptsparse.svg?branch=master)](https://travis-ci.com/mdolab/pyoptsparse)
 [![Coverage Status](https://coveralls.io/repos/github/mdolab/pyoptsparse/badge.svg?branch=master)](https://coveralls.io/github/mdolab/pyoptsparse?branch=master)
+[![Documentation Status](https://readthedocs.com/projects/mdolab-pyoptsparse/badge/?version=latest)](https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/?badge=latest)
 
 pyOptsparse is an object-oriented framework for formulating and solving nonlinear constrained optimization problems in an efficient, reusable, and portable manner.
 It is a fork of pyOpt that uses sparse matrices throughout the code to more efficiently handle large-scale optimization problems.
@@ -22,7 +23,7 @@ Furthermore, ParOpt and IPOPT are available as a open source package but must be
 Please see the documentation page of each optimizer for purchase and installation instructions.
 
 ## Documentation
-Please see the [documentation](http://mdolab.engin.umich.edu/docs/packages/pyoptsparse/doc/index.html) for installation details and API documentation.
+Please see the [documentation](https://mdolab-pyoptsparse.readthedocs-hosted.com/) for installation details and API documentation.
 
 To locally build the documentation, enter the `doc` folder and enter `make html` in terminal.
 You can then view the built documentation in the `_build` folder.
@@ -55,4 +56,4 @@ doi:10.1007/s00158-011-0666-3.
 ```
 
 ## License
-Copyright 2019 MDO Lab. See the LICENSE file for details.
+Copyright 2020 MDO Lab. See the LICENSE file for details.

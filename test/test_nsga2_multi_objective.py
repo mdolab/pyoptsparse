@@ -1,8 +1,7 @@
 """ Test NSGA2."""
-from __future__ import print_function
 
 import unittest
-
+from numpy.testing import assert_allclose
 from pyoptsparse import Optimization, NSGA2
 
 
@@ -39,14 +38,15 @@ class TestNSGA2(unittest.TestCase):
         try:
             opt = NSGA2(options=options)
         except:
-            raise unittest.SkipTest('Optimizer not available:', optName)
+            raise unittest.SkipTest('Optimizer not available:', 'NSGA2')
 
         sol = opt(optProb)
 
         # Check Solution
-        self.assertAlmostEqual(sol.variables['x'][0].value, 1.0, places=2)
+        tol = 1E-2
+        assert_allclose(sol.variables['x'][0].value, 1.0, atol=tol, rtol=tol)
 
-        self.assertAlmostEqual(sol.variables['y'][0].value, 1.0, places=2)
+        assert_allclose(sol.variables['y'][0].value, 1.0, atol=tol, rtol=tol)
 
 
 if __name__ == "__main__":

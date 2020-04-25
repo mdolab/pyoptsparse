@@ -1,4 +1,3 @@
-from __future__ import print_function
 #!/usr/bin/env python
 import time, sys
 from pyoptsparse import Optimization, OPT

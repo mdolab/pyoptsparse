@@ -2,24 +2,7 @@
 """
 pySNOPT - A variation of the pySNOPT wrapper specificially designed to
 work with sparse optimization problems.
-
-Copyright (c) 2013-2014 by Dr. Gaetan Kenway
-All rights reserved.
-
-Tested on:
----------
-Linux with intel
-
-Developers:
------------
-- Dr. Gaetan Kenway (GKK)
-- Dr. Graeme Kennedy (GJK)
-History
--------
-    v. 0.1    - Initial Wrapper Creation
 """
-from __future__ import absolute_import
-from __future__ import print_function
 # =============================================================================
 # SNOPT Library
 # =============================================================================
@@ -660,7 +643,7 @@ class SNOPT(Optimizer):
                 callCounter = 0
             else:
                 xScaled = self.optProb.invXScale * currX + self.optProb.xOffset
-                callCounter = self.hist.getCallCounter(xScaled)
+                callCounter = self.hist._searchCallCounter(xScaled)
             if callCounter is not None:
                 self.hist.write(callCounter, iterDict)
         iabort = 0

@@ -10,7 +10,6 @@ John Jasa 2015-2019
 # ======================================================================
 # Standard Python modules
 # ======================================================================
-from __future__ import print_function
 import os
 import argparse
 import shelve
