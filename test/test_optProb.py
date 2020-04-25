@@ -112,6 +112,11 @@ class TestOptProb(unittest.TestCase):
         self.assert_dict_allclose(newDV, outDV)
 
     def test_mappings(self):
+        """
+        This test checks the various mapping and process helper functions
+        in pyOpt_optimization. In this function we just set up an optimization problem,
+        and the actual test is done in `map_check_value`.
+        """
         nDV = [4, 8, 1]
         nCon = [2, 3, 1, 1]
         self.setup_optProb(

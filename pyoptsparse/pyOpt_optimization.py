@@ -1127,6 +1127,23 @@ class Optimization(object):
 
     def processObjtoDict(self, fobj_in, scaled=True):
         """
+        This function converts the objective in array form
+        to the corresponding dictionary form.
+
+        Parameters
+        ----------
+        fobj_in : float or ndarray
+            The objective in array format. In the case of a single objective,
+            a float can also be accepted.
+        scaled : bool
+            Flag specifying if the returned dictionary should be scaled by
+            the pyOpt scaling.
+
+        Returns
+        -------
+        fobj : dictionary
+            The dictionary form of fobj_in, which is just a key:value pair
+            for each objective.
         """
         fobj = {}
         fobj_in = numpy.atleast_1d(fobj_in)
@@ -1738,6 +1755,10 @@ class Optimization(object):
         return text
 
     def __getstate__(self):
+        """
+        This is used for serializing class instances.
+        The un-serializable fields are deleted first.
+        """
         d = copy.copy(self.__dict__)
         for key in ['comm', 'objFun']:
             if key in d.keys():

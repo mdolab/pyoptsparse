@@ -396,6 +396,15 @@ class History(object):
         return copy.deepcopy(self.metadata)
 
     def getOptProb(self):
+        """
+        Returns a copy of the optProb associated with the optimization.
+
+        Returns
+        -------
+        optProb : pyOpt_optimization object
+            The optProb associated with the optimization. This is taken from the history file,
+            and therefore has the ``comm`` and ``objFun`` fields removed.
+        """
         # only do this if we open the file with 'r' flag
         if self.flag != 'r':
             return
