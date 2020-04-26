@@ -76,7 +76,12 @@ class TestLargeSparse(unittest.TestCase):
         assert_allclose(sol.variables['x'][0].value, 2.0, atol = tol, rtol = tol)
 
     def test_snopt(self):
-        self.optimize('snopt', tol=1E-5)
+        test_name = 'large_sparse_SNOPT'
+        optOptions = {
+            'Print file': '{}.out'.format(test_name),
+            'Summary file': '{}_summary.out'.format(test_name),
+        }
+        self.optimize('snopt', tol=1E-5, optOptions=optOptions)
 
 
 if __name__ == "__main__":

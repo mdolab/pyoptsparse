@@ -74,15 +74,22 @@ class TestHS71(unittest.TestCase):
         return sol
 
     def test_snopt(self):
-        self.optimize('snopt', 1E-6)
+        test_name = 'hs071_SNOPT'
+        optOptions = {
+            'Print file': '{}.out'.format(test_name),
+            'Summary file': '{}_summary.out'.format(test_name),
+            }
+        self.optimize('snopt', 1E-6, optOptions=optOptions)
 
     def test_slsqp_setDV(self):
         """
         Test that setDV works as expected, even with scaling/offset
         """
-        histFileName = 'SLSQP_test_DV.hst'
+        test_name = 'hs071_SLSQP_setDV'
+        histFileName = '{}.hst'.format(test_name)
         newDV = {'xvars': numpy.array([1, 4, 4, 1])}
-        self.optimize('SLSQP', 1E-5, xScale=1.5, conScale=1.2, objScale=32, offset=1.5, setDV=newDV, storeHistory=histFileName)
+        optOptions = {'IFILE': '{}.out'.format(test_name)}
+        self.optimize('SLSQP', 1E-5, xScale=1.5, conScale=1.2, objScale=32, offset=1.5, setDV=newDV, storeHistory=histFileName, optOptions=optOptions)
         # Verify the history file
         hist = History(histFileName, flag='r')
         init = hist.getValues(names='xvars', callCounters='0', scale=False)
@@ -93,12 +100,17 @@ class TestHS71(unittest.TestCase):
         """
         Test that setDVFromHistory works as expected, even with scaling/offset
         """
-        histFileName = 'snopt_test_DV.hst'
-        self.optimize('snopt', 1E-6, xScale=1.5, conScale=1.2, objScale=32, offset=1.5, storeHistory=histFileName)
+        test_name = 'hs071_SNOPT_setDVFromHist'
+        optOptions = {
+            'Print file': '{}.out'.format(test_name),
+            'Summary file': '{}_summary.out'.format(test_name),
+            }
+        histFileName = '{}.hst'.format(test_name)
+        self.optimize('snopt', 1E-6, xScale=1.5, conScale=1.2, objScale=32, offset=1.5, storeHistory=histFileName, optOptions=optOptions)
         hist = History(histFileName, flag='r')
         first = hist.getValues(names='xvars', callCounters='last', scale=False)
         x_final = first['xvars'][0]
-        self.optimize('snopt', 1E-6, xScale=0.5, conScale=4.8, objScale=0.1, offset=1.5, setDV=histFileName, storeHistory=histFileName)
+        self.optimize('snopt', 1E-6, xScale=0.5, conScale=4.8, objScale=0.1, offset=1.5, setDV=histFileName, storeHistory=histFileName, optOptions=optOptions)
         # Verify the history file
         hist = History(histFileName, flag='r')
         second = hist.getValues(names='xvars', scale=False)
@@ -113,12 +125,14 @@ class TestHS71(unittest.TestCase):
         Test that scaling and offset works as expected
         Also test optProb stored in the history file is correct
         """
-        histFileName = 'slsqp_scale_offset.hst'
+        test_name = 'hs071_SLSQP_scaling_offset'
+        histFileName = '{}.hst'.format(test_name)
+        optOptions = {'IFILE': '{}.out'.format(test_name)}
         objScale = 4.2
         xScale = [2,3,4,5]
         conScale = [0.6, 1.7]
         offset = [1,-2,40,2.5]
-        self.optimize('slsqp', 1E-6, objScale=objScale, xScale=xScale, conScale=conScale, storeHistory=histFileName, offset=offset)
+        self.optimize('slsqp', 1E-6, objScale=objScale, xScale=xScale, conScale=conScale, storeHistory=histFileName, offset=offset, optOptions=optOptions)
 
         # now we retrieve the history file, and check the scale=True option is indeed
         # scaling things correctly
@@ -155,39 +169,48 @@ class TestHS71(unittest.TestCase):
         assert_allclose(con_scaled, con_orig * conScale, atol=1E-12, rtol=1E-12)
 
     def test_slsqp(self):
-        self.optimize('slsqp', 1E-6)
+        optOptions = {'IFILE': 'hs071_SLSQP.out'}
+        self.optimize('slsqp', 1E-6, optOptions=optOptions)
 
     def test_nlpqlp(self):
-        self.optimize('nlpqlp', 1E-6)
+        optOptions = {'iFile': 'hs071_NLPQLP.out'}
+        self.optimize('nlpqlp', 1E-6, optOptions=optOptions)
 
     def test_ipopt(self):
-        opts = {}
-        opts['print_level'] = 5
-        sol = self.optimize('ipopt', 1E-6, optOptions=opts)
+        optOptions = {
+            'print_level': 5,
+            'output_file': 'hs071_IPOPT.out'
+            }
+        sol = self.optimize('ipopt', 1E-6, optOptions=optOptions)
         self.assertEqual(sol.optInform['value'], 0)
         self.assertEqual(sol.optInform['text'], 'Solve Succeeded')
         # Test that the inform is -1 when iterations are too limited.
-        opts['max_iter'] = 1
-        sol = self.optimize('ipopt', 1E-6, optOptions=opts, check_solution=False)
+        optOptions['max_iter'] = 1
+        sol = self.optimize('ipopt', 1E-6, optOptions=optOptions, check_solution=False)
         self.assertEqual(sol.optInform['value'], -1)
         self.assertEqual(sol.optInform['text'], 'Maximum Iterations Exceeded')
         # Test that the inform is -4 when max_cpu_time are too limited.
-        opts['max_iter'] = 100
-        opts['max_cpu_time'] = 0.001
-        sol = self.optimize('ipopt', 1E-6, optOptions=opts, check_solution=False)
+        optOptions['max_iter'] = 100
+        optOptions['max_cpu_time'] = 0.001
+        sol = self.optimize('ipopt', 1E-6, optOptions=optOptions, check_solution=False)
         self.assertEqual(sol.optInform['value'], -4)
         self.assertEqual(sol.optInform['text'], 'Maximum CpuTime Exceeded')
 
     def test_conmin(self):
-        opts = {'DELFUN' : 1e-9,
-                'DABFUN' : 1e-9}
-        self.optimize('conmin', 1E-2, optOptions=opts)
+        optOptions = {
+            'DELFUN': 1e-9,
+            'DABFUN': 1e-9,
+            'IFILE': 'hs071_CONMIN.out',
+        }
+        self.optimize('conmin', 1E-2, optOptions=optOptions)
 
     def test_psqp(self):
-        self.optimize('psqp', 1E-6)
+        optOptions = {'IFILE': 'hs071_PSQP.out'}
+        self.optimize('psqp', 1E-6, optOptions=optOptions)
 
     def test_paropt(self):
-        self.optimize('paropt', 1E-6)
+        optOptions = {'filename': 'hs071_ParOpt.out'}
+        self.optimize('paropt', 1E-6, optOptions=optOptions)
 
 if __name__ == "__main__":
     unittest.main()

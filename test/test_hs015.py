@@ -100,7 +100,7 @@ class TestHS15(unittest.TestCase):
         try:
             assert_allclose(sol.objectives['obj'].value, self.fStar1, atol = tol, rtol = tol)
             assert_allclose(dv['xvars'], self.xStar1, atol = tol, rtol = tol)
-        except:
+        except AssertionError:
             assert_allclose(sol.objectives['obj'].value, self.fStar2, atol = tol, rtol = tol)
             assert_allclose(dv['xvars'], self.xStar2, atol = tol, rtol = tol)
 
@@ -160,7 +160,7 @@ class TestHS15(unittest.TestCase):
         In this process, it will check various combinations of storeHistory and hotStart filenames.
         It will also call `check_hist_file` after the first optimization.
         """
-        self.optimize(optName,tol,storeHistory=True,optOptions=optOptions, )
+        self.optimize(optName,tol,storeHistory=True,optOptions=optOptions)
         self.assertGreater(self.nf,0)
         self.assertGreater(self.ng,0)
         self.check_hist_file(optName, tol)
@@ -171,19 +171,24 @@ class TestHS15(unittest.TestCase):
         self.assertEqual(self.nf,0)
         self.assertEqual(self.ng,0)
         # another test with hotstart, this time with storeHistory = hotStart
-        self.optimize(optName,tol,storeHistory=True,hotStart=self.histFileName)
+        self.optimize(optName,tol,storeHistory=True,hotStart=self.histFileName, optOptions=optOptions)
         # we should have zero actual function/gradient evaluations
         self.assertEqual(self.nf,0)
         self.assertEqual(self.ng,0)
         # final test with hotstart, this time with a different storeHistory
-        self.optimize(optName,tol,storeHistory='{}_new_hotstart.hst'.format(optName),hotStart=self.histFileName)
+        self.optimize(optName,tol,storeHistory='{}_new_hotstart.hst'.format(optName),hotStart=self.histFileName, optOptions=optOptions)
         # we should have zero actual function/gradient evaluations
         self.assertEqual(self.nf,0)
         self.assertEqual(self.ng,0)
 
     def test_snopt(self):
+        test_name = 'hs015_SNOPT'
         store_vars = ['step','merit','feasibility','optimality','penalty','Hessian','condZHZ','slack','lambda']
-        optOptions = {'Save major iteration variables': store_vars}
+        optOptions = {
+            'Save major iteration variables': store_vars,
+            'Print file': '{}.out'.format(test_name),
+            'Summary file': '{}_summary.out'.format(test_name),
+        }
         self.optimize_with_hotstart('SNOPT', 1E-12, optOptions=optOptions)
 
         hist = History(self.histFileName, flag='r')
@@ -199,24 +204,32 @@ class TestHS15(unittest.TestCase):
         self.assertEqual(data['lambda'].shape,(1,2))
 
     def test_slsqp(self):
-        self.optimize_with_hotstart('SLSQP', 1E-8)
+        optOptions = {'IFILE': 'hs015_SLSQP.out'}
+        self.optimize_with_hotstart('SLSQP', 1E-8, optOptions=optOptions)
 
     def test_nlpqlp(self):
-        self.optimize_with_hotstart('NLPQLP', 1E-12)
+        optOptions = {'iFile': 'hs015_NLPQLP.out'}
+        self.optimize_with_hotstart('NLPQLP', 1E-12, optOptions=optOptions)
 
     def test_ipopt(self):
-        self.optimize_with_hotstart('IPOPT', 1E-4)
+        optOptions = {'output_file': 'hs015_IPOPT.out'}
+        self.optimize_with_hotstart('IPOPT', 1E-4, optOptions=optOptions)
 
     def test_paropt(self):
-        self.optimize_with_hotstart('ParOpt', 1E-6)
+        optOptions = {'filename': 'hs015_ParOpt.out'}
+        self.optimize_with_hotstart('ParOpt', 1E-6, optOptions=optOptions)
 
     def test_conmin(self):
-        opts = {'DELFUN' : 1e-10,
-                'DABFUN' : 1e-10}
-        self.optimize_with_hotstart('CONMIN', 1E-10, optOptions=opts)
+        optOptions = {
+            'DELFUN' : 1e-10,
+            'DABFUN' : 1e-10,
+            'IFILE' : 'hs015_CONMIN.out',
+        }
+        self.optimize_with_hotstart('CONMIN', 1E-10, optOptions=optOptions)
 
     def test_psqp(self):
-        self.optimize_with_hotstart('PSQP', 1E-12)
+        optOptions = {'IFILE': 'hs015_PSQP.out'}
+        self.optimize_with_hotstart('PSQP', 1E-12, optOptions=optOptions)
 
 if __name__ == "__main__":
     unittest.main()

@@ -86,11 +86,16 @@ class TestSNOPTBug(unittest.TestCase):
 
         # Check optimization problem:
         print(optProb)
-
+        test_name = 'bugfix_SNOPT_test_opt'
+        optOptions = {
+            'Major feasibility tolerance' : 1e-1,
+            'Print file': '{}.out'.format(test_name),
+            'Summary file': '{}_summary.out'.format(test_name),
+        }
 
         # Optimizer
         try:
-            opt = SNOPT(optOptions = {'Major feasibility tolerance' : 1e-1})
+            opt = SNOPT(options=optOptions)
         except:
             raise unittest.SkipTest('Optimizer not available: SNOPT')
 
@@ -113,9 +118,16 @@ class TestSNOPTBug(unittest.TestCase):
         # Objective
         optProb.addObj('obj')
 
+        test_name = 'bugfix_SNOPT_bug1'
+        optOptions = {
+            'Major feasibility tolerance' : 1e-1,
+            'Print file': '{}.out'.format(test_name),
+            'Summary file': '{}_summary.out'.format(test_name),
+        }
+
         # Optimizer
         try:
-            opt = SNOPT(optOptions = {'Major feasibility tolerance' : 1e-1})
+            opt = SNOPT(options=optOptions)
         except:
             raise unittest.SkipTest('Optimizer not available: SNOPT')
 
@@ -148,9 +160,16 @@ class TestSNOPTBug(unittest.TestCase):
         # Check optimization problem:
         print(optProb)
 
+        test_name = 'bugfix_SNOPT_bug_print_2con'
+        optOptions = {
+            'Major feasibility tolerance' : 1e-1,
+            'Print file': '{}.out'.format(test_name),
+            'Summary file': '{}_summary.out'.format(test_name),
+        }
+
         # Optimizer
         try:
-            opt = SNOPT(optOptions = {'Major feasibility tolerance' : 1e-1})
+            opt = SNOPT(options=optOptions)
         except:
             raise unittest.SkipTest('Optimizer not available: SNOPT')
 
