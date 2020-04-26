@@ -86,7 +86,7 @@ class TestOptProb(unittest.TestCase):
         # run optimization
         # we don't care about outputs, but this performs optimizer-specific re-ordering
         # of constraints so we need this to test mappings
-        opt = OPT('slsqp')
+        opt = OPT('slsqp', options={'IFILE': 'optProb_SLSQP.out'})
         opt(self.optProb, 'FD')
 
     def test_setDV_getDV(self):

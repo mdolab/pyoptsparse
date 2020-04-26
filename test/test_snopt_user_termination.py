@@ -73,8 +73,13 @@ class TestUserTerminationStatus(unittest.TestCase):
 
         optProb.addConGroup('con', 1, lower=-15.0, upper=-15.0, wrt=['x', 'y'], linear=True, jac=con_jac)
 
+        test_name = 'SNOPT_user_termination_obj'
+        optOptions = {
+            'Print file': '{}.out'.format(test_name),
+            'Summary file': '{}_summary.out'.format(test_name),
+        }
         try:
-            opt = SNOPT()
+            opt = SNOPT(options=optOptions)
         except:
             raise unittest.SkipTest('Optimizer not available: SNOPT')
 
@@ -97,8 +102,13 @@ class TestUserTerminationStatus(unittest.TestCase):
 
         optProb.addConGroup('con', 1, lower=-15.0, upper=-15.0, wrt=['x', 'y'], linear=True, jac=con_jac)
 
+        test_name = 'SNOPT_user_termination_sens'
+        optOptions = {
+            'Print file': '{}.out'.format(test_name),
+            'Summary file': '{}_summary.out'.format(test_name),
+        }
         try:
-            opt = SNOPT()
+            opt = SNOPT(options=optOptions)
         except:
             raise unittest.SkipTest('Optimizer not available: SNOPT')
 
