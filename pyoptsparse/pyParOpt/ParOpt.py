@@ -305,8 +305,17 @@ class ParOpt(Optimizer):
             # are switch since ParOpt uses a formulation with c(x) >= 0, while pyOpt
             # uses g(x) = -c(x) <= 0. Therefore the multipliers are reversed.
             sol_inform = {}
-            sol = self._createSolution(optTime, sol_inform, fobj, x[:],
-                                       multipliers=-z)
+
+            # If number of constraints is zero, ParOpt returns z as None. 
+            # Thus if there is no constraints, should pass an empty list 
+            # to multipliers instead of z.
+            if z is not None:
+                sol = self._createSolution(optTime, sol_inform, fobj, x[:],
+                                            multipliers=-z)
+            else:
+                sol = self._createSolution(optTime, sol_inform, fobj, x[:],
+                                            multipliers=[])
+
 
             # Indicate solution finished
             self.optProb.comm.bcast(-1, root=0)
