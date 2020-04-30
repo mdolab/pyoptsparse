@@ -436,7 +436,9 @@ class History(object):
         """
         conDict = {}
         for con in self.conNames:
-            conDict[con] = d['funcs'][con]
+            # linear constraints are not stored in funcs
+            if not self.optProb.constraints[con].linear:
+                conDict[con] = d['funcs'][con]
         objDict = {}
         for obj in self.objNames:
             objDict[obj] = d['funcs'][obj]

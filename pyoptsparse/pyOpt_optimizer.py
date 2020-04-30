@@ -165,15 +165,10 @@ class Optimizer(object):
             self.storeHistory = True
 
             if hotStart is not None:
-                varInfo = self.hotStart.read('varInfo')
-                conInfo = self.hotStart.read('conInfo')
-                objInfo = self.hotStart.read('objInfo')
-                if varInfo is not None:
-                    self.hist.writeData('varInfo', varInfo)
-                if conInfo is not None:
-                    self.hist.writeData('conInfo', conInfo)
-                if objInfo is not None:
-                    self.hist.writeData('objInfo', objInfo)
+                for key in ['varInfo', 'conInfo', 'objInfo', 'optProb']:
+                    val = self.hotStart.read(key)
+                    if val is not None:
+                        self.hist.writeData(key, val)
                 self._setMetadata()
                 self.hist.writeData('metadata',self.metadata)
 
