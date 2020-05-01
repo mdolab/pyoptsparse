@@ -1,5 +1,6 @@
 
 import numpy as np
+import os
 import datetime
 try:
     from paropt import ParOpt as _ParOpt
@@ -46,6 +47,7 @@ class ParOpt(Optimizer):
             'armijo_parameter': [float, 1e-3],
             'penalty_descent_fraction': [float, 0.3],
             'min_penalty_parameter': [float, 0.0],
+            'output_level': [int, 0],
 
             # Trust region specifics
             'tr_init_size': [float, 0.01],
@@ -171,9 +173,24 @@ class ParOpt(Optimizer):
 
                 def getVarsAndBounds(self, x, lb, ub):
                     """Get the variable values and bounds"""
-                    lb[:] = self.blx
-                    ub[:] = self.bux
-                    x[:] = self.xs
+                    # Find the average distance between lower and upper bound
+                    bound_sum = 0.0
+                    for i in range(len(x)):
+                        if self.blx[i] <= -1e20 or self.bux[i] >= 1e20:
+                            bound_sum += 1.0
+                        else:
+                            bound_sum += self.bux[i] - self.blx[i]
+                    bound_sum = bound_sum/len(x)
+
+                    for i in range(len(x)):
+                        x[i] = self.xs[i]
+                        lb[i] = self.blx[i]
+                        ub[i] = self.bux[i]
+                        if self.xs[i] <= self.blx[i]:
+                            x[i] = self.blx[i] + 0.5*np.min((bound_sum, self.bux[i] - self.blx[i]))
+                        elif self.xs[i] >= self.bux[i]:
+                            x[i] = self.bux[i] - 0.5*np.min((bound_sum, self.bux[i] - self.blx[i]))
+
                     return
 
                 def evalObjCon(self, x):
@@ -226,34 +243,16 @@ class ParOpt(Optimizer):
 
                 # Create the quasi-Newton Hessian approximation
                 qn = _ParOpt.LBFGS(problem, subspace=qn_subspace_size)
+                subproblem = _ParOpt.QuadraticSubproblem(problem, qn)
 
                 # Create the trust region problem
-                tr = _ParOpt.TrustRegion(problem, qn, tr_init_size,
+                tr = _ParOpt.TrustRegion(subproblem, tr_init_size,
                                          tr_min_size, tr_max_size,
                                          tr_eta, tr_penalty_gamma)
 
                 # Create the ParOpt problem
-                opt = _ParOpt.InteriorPoint(tr, qn_subspace_size,
+                opt = _ParOpt.InteriorPoint(subproblem, qn_subspace_size,
                                             _ParOpt.NO_HESSIAN_APPROX)
-
-                # Set the ParOpt options
-                self._set_paropt_options(opt)
-                
-                # Set the output file name
-                opt.setOutputFile(filename)
-
-                # Set the penalty parameter internally in the
-                # code. These must be consistent between the trust
-                # region object and ParOpt.
-                opt.setPenaltyGamma(tr_penalty_gamma)
-
-                # Set parameters for ParOpt in the subproblem
-                opt.setMaxMajorIterations(tr_max_iterations)
-                opt.setAbsOptimalityTol(tr_opt_abs_tol)
-        
-                # Don't update the quasi-Newton method
-                opt.setQuasiNewton(qn)
-                opt.setUseQuasiNewtonUpdates(0)
 
                 # Check the norm type
                 if norm_type == 'l1':
@@ -263,28 +262,28 @@ class ParOpt(Optimizer):
                 else:
                     opt.setNormType(_ParOpt.L2_NORM)
 
-                # Initialize the problem
-                tr.initialize()
+                # Set the ParOpt options
+                self._set_paropt_options(opt)
 
-                # Iterate
-                max_iterations = self.getOption('max_iterations')
-                for i in range(max_iterations):
-                    opt.setInitBarrierParameter(100.0)
-                    opt.resetDesignAndBounds()
-                    opt.optimize()
+                # Set the output file name
+                opt.setOutputFile(filename)
+                tr.setOutputFile(os.path.splitext(filename)[0] + '.tr')
 
-                    # Get the optimized point
-                    x, z, zw, zl, zu = opt.getOptimizedPoint()
+                # Use the adaptive penalty update scheme by default
+                tr.setAdaptiveGammaUpdate(1)
+                tr.setPenaltyGammaMax(1e3)
 
-                    # Update the trust region method
-                    infeas, l1, linfty = tr.update(x, z, zw)
+                # Set parameters the trust-region algorithm
+                tr.setMaxTrustRegionIterations(tr_max_iterations)
 
-                    if norm_type == 'l1':
-                        opt_criteria = (l1 < opt_tol)
-                    else:
-                        opt_criteria = (linfty < opt_tol)
-                    if ((infeas < opt_tol) and opt_criteria):
-                        break
+                # Set the tolerance
+                tr.setTrustRegionTolerances(opt_tol, opt_tol, opt_tol)
+
+                # Optimize the problem
+                tr.optimize(opt)
+
+                # Get the optimized point
+                x, z, zw, zl, zu = opt.getOptimizedPoint()
 
             # Set the total opt time
             optTime = MPI.Wtime() - optTime
@@ -311,10 +310,10 @@ class ParOpt(Optimizer):
             # to multipliers instead of z.
             if z is not None:
                 sol = self._createSolution(optTime, sol_inform, fobj, x[:],
-                                            multipliers=-z)
+                                           multipliers=-z)
             else:
                 sol = self._createSolution(optTime, sol_inform, fobj, x[:],
-                                            multipliers=[])
+                                           multipliers=[])
 
 
             # Indicate solution finished
@@ -390,7 +389,9 @@ class ParOpt(Optimizer):
                 elif key == 'penalty_descent_fraction':
                     opt.setPenaltyDescentFraction(value)
                 elif key == 'min_penalty_parameter':
-                    opt.setPenaltyDescentFraction(value)                       
+                    opt.setPenaltyDescentFraction(value)
+                elif key == 'output_level':
+                    opt.setOutputLevel(value)
 
     def _on_setOption(self, name, value):
         pass

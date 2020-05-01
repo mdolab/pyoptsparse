@@ -1275,18 +1275,23 @@ class Optimization(object):
                 # values are either 1 or -1...
                 fcon_in[:m] = self.fact * fcon_in[:m]
 
-                # Undo the ordering
-                fcon_in[:m] = fcon_in[self.jacIndicesInv]
-
         # Perform constraint scaling
         if scaled:
-            fcon_in = self._mapContoOpt(fcon_in)
+            m = len(self.jacIndices)
+            fcon_in[:m] = fcon_in[:m]*self.conScale[self.jacIndices]
+
+        fcon_unique = fcon_in
+        if multipliers:
+            fcon_unique = numpy.zeros(self.nCon)
+            for i, j in enumerate(self.jacIndices):
+                if numpy.abs(fcon_unique[j]) < numpy.abs(fcon_in[i]):
+                    fcon_unique[j] = fcon_in[i]
 
         # We REQUIRE that fcon_in is an array:
         fcon = {}
         for iCon in self.constraints:
             con = self.constraints[iCon]
-            fcon[iCon] = fcon_in[..., con.rs:con.re]
+            fcon[iCon] = fcon_unique[..., con.rs:con.re]
 
         return fcon
 
