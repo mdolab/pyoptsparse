@@ -155,6 +155,7 @@ class SNOPT(Optimizer):
         #SNOPT Miscellaneous Options
         'Debug level':[int,1], # (0 - Normal, 1 - for developers)
         'Timing level':[int,3], # (3 - print cpu times)
+        'Sticky parameters':[str,'No'],
         #pySNOPT Options
         'Save major iteration variables':[list,['step','merit','feasibility','optimality','penalty']], # 'Hessian', 'slack', 'lambda' and 'condZHZ' are also supported
         }
@@ -618,8 +619,8 @@ class SNOPT(Optimizer):
         xPen = rw[lxPen:lxPen+nnCon]
         return xPen
 
-    def _snstop(self,ktcond,mjrprtlvl,minimize,n,nncon,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,
-        iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,
+    def _snstop(self,ktcond,mjrprtlvl,minimize,n,nncon,nnobj,ns,itn,nmajor,nminor,nswap,ninfe,sinfe,
+        condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,
         locj,indj,jcol,scales,bl,bu,fx,fcon,gcon,gobj,ycon,pi,rc,rg,x,cu,iu,ru,cw,iw,rw):
         """
         This routine is called every major iteration in SNOPT, after solving QP but before line search
