@@ -12,6 +12,7 @@ import numpy
 from .pyOpt_error import Error, pyOptSparseWarning
 from sqlitedict import SqliteDict
 from collections import OrderedDict
+
 eps = numpy.finfo(numpy.float64).eps
 # =============================================================================
 # History Class
@@ -39,26 +40,26 @@ class History(object):
         shelve. 'n' for a new database and 'r' to read an existing one.
 
     """
-    def __init__(self, fileName, optProb=None, temp=False, flag='r'):
 
-        if flag == 'n':
+    def __init__(self, fileName, optProb=None, temp=False, flag="r"):
+
+        if flag == "n":
             # If writing, we expliclty remove the file to
             # prevent old keys from "polluting" the new histrory
             if os.path.exists(fileName):
                 os.remove(fileName)
             self.db = SqliteDict(fileName)
             self.optProb = optProb
-        elif flag == 'r':
+        elif flag == "r":
             if os.path.exists(fileName):
                 # we cast the db to OrderedDict so we do not have to
                 # manually close the underlying db at the end
                 self.db = OrderedDict(SqliteDict(fileName))
             else:
-                raise Error("The requested history file %s to open in "
-                            "read-only mode does not exist."% fileName)
+                raise Error("The requested history file %s to open in " "read-only mode does not exist." % fileName)
             self._processDB()
         else:
-            raise Error('The flag argument to History must be \'r\' or \'n\'.')
+            raise Error("The flag argument to History must be 'r' or 'n'.")
         self.temp = temp
         self.fileName = fileName
         self.flag = flag
@@ -69,7 +70,7 @@ class History(object):
         This should only be used in write mode. In read mode, we close the db
         during initialization.
         """
-        if self.flag == 'n':
+        if self.flag == "n":
             self.db.close()
             if self.temp:
                 os.remove(self.fileName)
@@ -87,9 +88,9 @@ class History(object):
         data : dict
             the dictionary corresponding to the callCounter
         """
-        
+
         # String key to database on disk
-        key = '%d'% callCounter
+        key = "%d" % callCounter
         # if the point exists, we merely update with new data
         if self.pointExists(callCounter):
             oldData = self.read(callCounter)
@@ -97,10 +98,10 @@ class History(object):
             self.db[key] = oldData
         else:
             self.db[key] = data
-        self.db['last'] = key
+        self.db["last"] = key
         self.db.sync()
         self.keys = list(self.db.keys())
-        
+
     def writeData(self, key, data):
         """
         Write arbitrary `key:data` value to db.
@@ -135,7 +136,6 @@ class History(object):
             callCounter = str(callCounter)
         return callCounter in self.keys
 
-
     def read(self, key):
         """
         Read data for an arbitrary key. Returns None if key is not found.
@@ -158,8 +158,8 @@ class History(object):
             return self.db[key]
         except KeyError:
             return None
-    
-    def _searchCallCounter(self,x):
+
+    def _searchCallCounter(self, x):
         """
         Searches through existing callCounters, and finds the one corresponding
         to an evaluation at the design vector `x`.
@@ -180,12 +180,12 @@ class History(object):
         -----
         The tolerance used for this is the value `numpy.finfo(numpy.float64).eps`.
         """
-        last = int(self.db['last'])
+        last = int(self.db["last"])
         callCounter = None
-        for i in range(last,0,-1):
-            key = '%d'% i
-            xuser = self.optProb.processXtoVec(self.db[key]['xuser'])
-            if numpy.isclose(xuser,x,atol=eps,rtol=eps).all() and 'funcs' in self.db[key].keys():
+        for i in range(last, 0, -1):
+            key = "%d" % i
+            xuser = self.optProb.processXtoVec(self.db[key]["xuser"])
+            if numpy.isclose(xuser, x, atol=eps, rtol=eps).all() and "funcs" in self.db[key].keys():
                 callCounter = i
                 break
         return callCounter
@@ -198,9 +198,9 @@ class History(object):
         # Load any keys it happens to have:
         self.keys = list(self.db.keys())
         # load info
-        self.DVInfo = self.read('varInfo')
-        self.conInfo = self.read('conInfo')
-        self.objInfo = self.read('objInfo')
+        self.DVInfo = self.read("varInfo")
+        self.conInfo = self.read("conInfo")
+        self.objInfo = self.read("objInfo")
         # load names
         self.DVNames = set(self.DVInfo.keys())
         self.conNames = set(self.conInfo.keys())
@@ -208,7 +208,7 @@ class History(object):
 
         # extract list of callCounters from self.keys
         # this just checks if each key contains only digits, then cast into int
-        self.callCounters = sorted([x for x in self.keys if x.isdigit()],key=float)
+        self.callCounters = sorted([x for x in self.keys if x.isdigit()], key=float)
 
         # extract all information stored in the call counters
         self.iterKeys = set()
@@ -217,12 +217,15 @@ class History(object):
             self.iterKeys.update(val.keys())
 
         # metadata
-        self.metadata = self.read('metadata')
-        self.optProb = self.read('optProb')
+        self.metadata = self.read("metadata")
+        self.optProb = self.read("optProb")
 
         from .__init__ import __version__
-        if self.metadata['version'] != __version__:
-            pyOptSparseWarning('The version of pyoptsparse used to generate the history file does not match the one being run right now. There may be compatibility issues.')
+
+        if self.metadata["version"] != __version__:
+            pyOptSparseWarning(
+                "The version of pyoptsparse used to generate the history file does not match the one being run right now. There may be compatibility issues."
+            )
 
     def getIterKeys(self):
         """
@@ -236,7 +239,7 @@ class History(object):
             A list containing the names of keys stored at each optimization iteration.
         """
         return copy.deepcopy(list(self.iterKeys))
-    
+
     def getDVNames(self):
         """
         Returns the names of the DVs.
@@ -247,7 +250,7 @@ class History(object):
             A list containing the names of DVs.
         """
         # only do this if we open the file with 'r' flag
-        if self.flag != 'r':
+        if self.flag != "r":
             return
         return copy.deepcopy(list(self.DVInfo.keys()))
 
@@ -261,10 +264,10 @@ class History(object):
             A list containing the names of constraints.
         """
         # only do this if we open the file with 'r' flag
-        if self.flag != 'r':
+        if self.flag != "r":
             return
         return copy.deepcopy(list(self.conInfo.keys()))
-    
+
     def getObjNames(self):
         """
         Returns the names of the objectives.
@@ -281,10 +284,10 @@ class History(object):
         as `ConNames` and `DVNames`.
         """
         # only do this if we open the file with 'r' flag
-        if self.flag != 'r':
+        if self.flag != "r":
             return
         return copy.deepcopy(list(self.objInfo.keys()))
-    
+
     def getObjInfo(self, key=None):
         """
         Returns the `ObjInfo`, for all keys by default. A `key` parameter can also
@@ -310,20 +313,20 @@ class History(object):
         argument.
         """
         # only do this if we open the file with 'r' flag
-        if self.flag != 'r':
+        if self.flag != "r":
             return
         if key is not None:
-            if isinstance(key,str):
+            if isinstance(key, str):
                 return copy.deepcopy(self.objInfo[key])
-            elif isinstance(key,list):
+            elif isinstance(key, list):
                 d = OrderedDict()
                 for k in key:
                     d[k] = self.objInfo[k]
                 return d
         else:
             return copy.deepcopy(self.objInfo)
-    
-    def getConInfo(self,key=None):
+
+    def getConInfo(self, key=None):
         """
         Returns the `ConInfo`, for all keys by default. A `key` parameter can also
         be supplied, to retrieve `ConInfo` corresponding to specific constraints.
@@ -339,20 +342,20 @@ class History(object):
             A dictionary containing ConInfo. For a single key, the return is one level deeper.
         """
         # only do this if we open the file with 'r' flag
-        if self.flag != 'r':
+        if self.flag != "r":
             return
         if key is not None:
-            if isinstance(key,str):
+            if isinstance(key, str):
                 return copy.deepcopy(self.conInfo[key])
-            elif isinstance(key,list):
+            elif isinstance(key, list):
                 d = OrderedDict()
                 for k in key:
                     d[k] = self.conInfo[k]
                 return d
         else:
             return copy.deepcopy(self.conInfo)
-    
-    def getDVInfo(self,key=None):
+
+    def getDVInfo(self, key=None):
         """
         Returns the `DVInfo`, for all keys by default. A `key` parameter can also
         be supplied, to retrieve `DVInfo` corresponding to specific DVs.
@@ -368,19 +371,19 @@ class History(object):
             A dictionary containing DVInfo. For a single key, the return is one level deeper.
         """
         # only do this if we open the file with 'r' flag
-        if self.flag != 'r':
+        if self.flag != "r":
             return
         if key is not None:
-            if isinstance(key,str):
+            if isinstance(key, str):
                 return copy.deepcopy(self.DVInfo[key])
-            elif isinstance(key,list):
+            elif isinstance(key, list):
                 d = OrderedDict()
                 for k in key:
                     d[k] = self.DVInfo[k]
                 return d
         else:
             return copy.deepcopy(self.DVInfo)
-        
+
     def getMetadata(self):
         """
         Returns a copy of the metadata stored in the history file.
@@ -391,7 +394,7 @@ class History(object):
             A dictionary containing the metadata.
         """
         # only do this if we open the file with 'r' flag
-        if self.flag != 'r':
+        if self.flag != "r":
             return
         return copy.deepcopy(self.metadata)
 
@@ -406,7 +409,7 @@ class History(object):
             and therefore has the ``comm`` and ``objFun`` fields removed.
         """
         # only do this if we open the file with 'r' flag
-        if self.flag != 'r':
+        if self.flag != "r":
             return
         return copy.deepcopy(self.optProb)
 
@@ -438,13 +441,13 @@ class History(object):
         for con in self.conNames:
             # linear constraints are not stored in funcs
             if not self.optProb.constraints[con].linear:
-                conDict[con] = d['funcs'][con]
+                conDict[con] = d["funcs"][con]
         objDict = {}
         for obj in self.objNames:
-            objDict[obj] = d['funcs'][obj]
+            objDict[obj] = d["funcs"][obj]
         DVDict = {}
         for DV in self.DVNames:
-            DVDict[DV] = d['xuser'][DV]
+            DVDict[DV] = d["xuser"][DV]
         if scale:
             conDict = self.optProb._mapContoOpt_Dict(conDict)
             objDict = self.optProb._mapObjtoOpt_Dict(objDict)
@@ -461,10 +464,9 @@ class History(object):
             a list of strings, each entry being a call counter.
         """
         # only do this if we open the file with 'r' flag
-        if self.flag != 'r':
+        if self.flag != "r":
             return
         return copy.deepcopy(self.callCounters)
-
 
     def getValues(self, names=None, callCounters=None, major=True, scale=False, stack=False):
         """
@@ -527,40 +529,57 @@ class History(object):
                         [ 0.5, 2. ]])}
         """
         # only do this if we open the file with 'r' flag
-        if self.flag != 'r':
+        if self.flag != "r":
             return
 
-        allNames = self.DVNames.union(self.conNames).union(self.objNames).union(self.iterKeys).difference(set(['funcs','funcsSens','xuser']))
+        allNames = (
+            self.DVNames.union(self.conNames)
+            .union(self.objNames)
+            .union(self.iterKeys)
+            .difference(set(["funcs", "funcsSens", "xuser"]))
+        )
         # cast string input into a single list
-        if isinstance(names,str):
+        if isinstance(names, str):
             names = set([names])
         elif names is None:
             names = allNames
         else:
             names = set(names)
         if stack:
-            allNames.add('xuser')
+            allNames.add("xuser")
         # error if names isn't either a DV, con or obj
         if not names.issubset(allNames):
-            raise Error("The names provided are not one of DVNames, conNames or objNames.\n\
-                The names must be a subset of {}".format(allNames))
+            raise Error(
+                "The names provided are not one of DVNames, conNames or objNames.\n\
+                The names must be a subset of {}".format(
+                    allNames
+                )
+            )
         DVsAsFuncs = self.DVNames.intersection(self.conNames)
         if len(DVsAsFuncs) > 0:
             ambiguousNames = names.intersection(DVsAsFuncs)
             if len(ambiguousNames) > 0:
-                pyOptSparseWarning("The names provided {} is ambiguous, since it is both a DV as well as an objective/constraint. It is being assumed to be a DV. If it was set up via addDVsAsFunctions, then there's nothing to worry. Otherwise, consider renaming the variable or manually editing the history file.".format(ambiguousNames))
+                pyOptSparseWarning(
+                    "The names provided {} is ambiguous, since it is both a DV as well as an objective/constraint. It is being assumed to be a DV. If it was set up via addDVsAsFunctions, then there's nothing to worry. Otherwise, consider renaming the variable or manually editing the history file.".format(
+                        ambiguousNames
+                    )
+                )
 
         if len(names.intersection(self.iterKeys)) > 0:
             if not major:
-                pyOptSparseWarning("The major flag has been set to True, since some names specified only exist on major iterations.")
+                pyOptSparseWarning(
+                    "The major flag has been set to True, since some names specified only exist on major iterations."
+                )
                 major = True
 
         if stack:
             DVinNames = names.intersection(self.DVNames)
             for DV in DVinNames:
                 names.remove(DV)
-            names.add('xuser')
-            pyOptSparseWarning("The stack flag was set to True. Therefore all DV names have been removed, and replaced with a single key 'xuser'.")
+            names.add("xuser")
+            pyOptSparseWarning(
+                "The stack flag was set to True. Therefore all DV names have been removed, and replaced with a single key 'xuser'."
+            )
 
         # set up dictionary to return
         data = {}
@@ -578,18 +597,18 @@ class History(object):
             callCounters = self.callCounters
 
         # parse the 'last' callCounter
-        if 'last' in callCounters:
-            callCounters.append(self.read('last'))
-            callCounters.remove('last')
+        if "last" in callCounters:
+            callCounters.append(self.read("last"))
+            callCounters.remove("last")
 
         for i in callCounters:
             if self.pointExists(i):
                 val = self.read(i)
-                if 'funcs' in val.keys(): # we have function evaluation
-                    if ((major and val['isMajor']) or not major) and not val['fail']:
+                if "funcs" in val.keys():  # we have function evaluation
+                    if ((major and val["isMajor"]) or not major) and not val["fail"]:
                         conDict, objDict, DVDict = self._processIterDict(val, scale=scale)
                         for name in names:
-                            if name == 'xuser':
+                            if name == "xuser":
                                 data[name].append(self.optProb.processXtoVec(DVDict))
                             elif name in self.DVNames:
                                 data[name].append(DVDict[name])
@@ -599,16 +618,22 @@ class History(object):
                                 data[name].append(objDict[name])
                             else:  # must be opt
                                 data[name].append(val[name])
-                    elif val['fail'] and user_specified_callCounter:
-                            pyOptSparseWarning(("callCounter {} contained a failed function evaluation and is skipped!").format(i))
+                    elif val["fail"] and user_specified_callCounter:
+                        pyOptSparseWarning(
+                            ("callCounter {} contained a failed function evaluation and is skipped!").format(i)
+                        )
                 elif user_specified_callCounter:
-                    pyOptSparseWarning(("callCounter {} did not contain a function evaluation and is skipped! Was it a gradient evaluation step?").format(i))
+                    pyOptSparseWarning(
+                        (
+                            "callCounter {} did not contain a function evaluation and is skipped! Was it a gradient evaluation step?"
+                        ).format(i)
+                    )
             elif user_specified_callCounter:
                 pyOptSparseWarning(("callCounter {} was not found and is skipped!").format(i))
         # reshape lists into numpy arrays
         for name in names:
             # we just stack along axis 0
-            data[name] = numpy.stack(data[name],axis=0)
+            data[name] = numpy.stack(data[name], axis=0)
 
         return data
 
@@ -620,11 +645,11 @@ class History(object):
         except:
             pass
 
-#==============================================================================
+
+# ==============================================================================
 # Optimizer History Test
-#==============================================================================
-if __name__ == '__main__':
-    
+# ==============================================================================
+if __name__ == "__main__":
+
     # Test Optimizer History
-    print('Testing Optimizer History...')
-    
+    print("Testing Optimizer History...")

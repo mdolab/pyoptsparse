@@ -1,5 +1,6 @@
 import matplotlib
-matplotlib.use('TkAgg')
+
+matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 import Tkinter as Tk
 import matplotlib.pyplot as plt
@@ -8,7 +9,7 @@ import dill
 root = Tk.Tk()
 
 # Load figure from disk and display
-fig = dill.load(open('saved_figure.pickle','rb'))
+fig = dill.load(open("saved_figure.pickle", "rb"))
 
 """
 The above code loads in the figure that was saved in OptView.
@@ -21,8 +22,8 @@ string but before the bottom code.
 
 # Add customization code below
 ax = fig.axes[0]
-ax.set_title('Example title')
-ax.set_ylabel('Example y-axis')
+ax.set_title("Example title")
+ax.set_ylabel("Example y-axis")
 
 
 # Display the altered figure

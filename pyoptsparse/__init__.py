@@ -20,6 +20,7 @@ from .pyNSGA2.pyNSGA2 import NSGA2
 from .pyNLPY_AUGLAG.pyNLPY_AUGLAG import NLPY_AUGLAG
 from .pyALPSO.pyALPSO import ALPSO
 from .pyParOpt.ParOpt import ParOpt
+
 # from .pyNOMAD.pyNOMAD import NOMAD
 
-__version__ = '2.0.3'
+__version__ = "2.0.3"

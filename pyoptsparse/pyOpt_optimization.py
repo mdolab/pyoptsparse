@@ -18,7 +18,7 @@ from collections import OrderedDict
 try:
     from six import iteritems, iterkeys, next
 except:
-    raise ImportError('Could not import \'six\'. To install, use\n pip install six')
+    raise ImportError("Could not import 'six'. To install, use\n pip install six")
 
 from sqlitedict import SqliteDict
 
@@ -128,10 +128,10 @@ class Optimization(object):
             return varName
         else:
             i = 0
-            validName = varName + '_%d'% i
+            validName = varName + "_%d" % i
             while validName in self.variables:
                 i += 1
-                validName = varName + '_%d'% i
+                validName = varName + "_%d" % i
             return validName
 
     def checkConName(self, conName):
@@ -156,15 +156,15 @@ class Optimization(object):
             return conName
         else:
             i = 0
-            validName = conName + '_%d'% i
+            validName = conName + "_%d" % i
             while validName in self.constraints:
                 i += 1
-                validName = conName + '_%d'% i
+                validName = conName + "_%d" % i
             return validName
 
-    def addVarGroup(self, name, nVars, type='c', value=0.0,
-                    lower=None, upper=None, scale=1.0, offset=0.0,
-                    choices=None, **kwargs):
+    def addVarGroup(
+        self, name, nVars, type="c", value=0.0, lower=None, upper=None, scale=1.0, offset=0.0, choices=None, **kwargs
+    ):
         """
         Add a group of variables into a variable set. This is the main
         function used for adding variables to pyOptSparse.
@@ -235,46 +235,52 @@ class Optimization(object):
 
         # Check that the nVars is > 0.
         if nVars < 1:
-            raise Error("The 'nVars' argument to addVarGroup must be greater "
-                        "than or equal to 1. The bad DV is %s."%name)
+            raise Error(
+                "The 'nVars' argument to addVarGroup must be greater " "than or equal to 1. The bad DV is %s." % name
+            )
 
         # Check that the type is ok:
-        if type not in ['c', 'i', 'd']:
-            raise Error("Type must be one of 'c' for continuous, "
-                        "'i' for integer or 'd' for discrete.")
+        if type not in ["c", "i", "d"]:
+            raise Error("Type must be one of 'c' for continuous, " "'i' for integer or 'd' for discrete.")
 
         # ------ Process the value argument
         value = numpy.atleast_1d(value).real
         if len(value) == 1:
-            value = value[0]*numpy.ones(nVars)
+            value = value[0] * numpy.ones(nVars)
         elif len(value) == nVars:
             pass
         else:
-            raise Error("The length of the 'value' argument to "
-                        "addVarGroup is %d, but the number of "
-                        "variables in nVars is %d."% (len(value), nVars))
+            raise Error(
+                "The length of the 'value' argument to "
+                "addVarGroup is %d, but the number of "
+                "variables in nVars is %d." % (len(value), nVars)
+            )
 
         if lower is None:
             lower = [None for i in range(nVars)]
         elif numpy.isscalar(lower):
-            lower = lower*numpy.ones(nVars)
+            lower = lower * numpy.ones(nVars)
         elif len(lower) == nVars:
             lower = numpy.atleast_1d(lower).real
         else:
-            raise Error("The 'lower' argument to addVarGroup is "
-                        "invalid. It must be None, a scalar, or a "
-                        "list/array or length nVars=%d." %(nVars))
+            raise Error(
+                "The 'lower' argument to addVarGroup is "
+                "invalid. It must be None, a scalar, or a "
+                "list/array or length nVars=%d." % (nVars)
+            )
 
         if upper is None:
             upper = [None for i in range(nVars)]
         elif numpy.isscalar(upper):
-            upper = upper*numpy.ones(nVars)
+            upper = upper * numpy.ones(nVars)
         elif len(upper) == nVars:
             upper = numpy.atleast_1d(upper).real
         else:
-            raise Error("The 'upper' argument to addVarGroup is "
-                        "invalid. It must be None, a scalar, or a "
-                        "list/array or length nVars=%d." %(nVars))
+            raise Error(
+                "The 'upper' argument to addVarGroup is "
+                "invalid. It must be None, a scalar, or a "
+                "list/array or length nVars=%d." % (nVars)
+            )
 
         # ------ Process the scale argument
         if scale is None:
@@ -282,14 +288,15 @@ class Optimization(object):
         else:
             scale = numpy.atleast_1d(scale)
             if len(scale) == 1:
-                scale = scale[0]*numpy.ones(nVars)
+                scale = scale[0] * numpy.ones(nVars)
             elif len(scale) == nVars:
                 pass
             else:
-                raise Error("The length of the 'scale' argument to "
-                            "addVarGroup is %d, but the number of "
-                            "variables in nVars is %d."% (
-                                len(scale), nVars))
+                raise Error(
+                    "The length of the 'scale' argument to "
+                    "addVarGroup is %d, but the number of "
+                    "variables in nVars is %d." % (len(scale), nVars)
+                )
 
         # ------ Process the offset argument
         if offset is None:
@@ -297,37 +304,45 @@ class Optimization(object):
         else:
             offset = numpy.atleast_1d(offset)
             if len(offset) == 1:
-                offset = offset[0]*numpy.ones(nVars)
+                offset = offset[0] * numpy.ones(nVars)
             elif len(offset) == nVars:
                 pass
             else:
-                raise Error("The length of the 'offset' argument to "
-                            "addVarGroup is %d, but the number of "
-                            "variables in nVars is %d."% (
-                                len(offset), nVars))
+                raise Error(
+                    "The length of the 'offset' argument to "
+                    "addVarGroup is %d, but the number of "
+                    "variables in nVars is %d." % (len(offset), nVars)
+                )
 
         # Determine if scalar i.e. it was called from addVar():
-        scalar = kwargs.pop('scalar', False)
+        scalar = kwargs.pop("scalar", False)
 
         # Now create all the variable objects
         varList = []
         for iVar in range(nVars):
-            varName = name + '_%d'% iVar
-            varList.append(Variable(varName, type=type, value=value[iVar],
-                                    lower=lower[iVar], upper=upper[iVar],
-                                    scale=scale[iVar], offset=offset[iVar],
-                                    scalar=scalar, choices=choices))
+            varName = name + "_%d" % iVar
+            varList.append(
+                Variable(
+                    varName,
+                    type=type,
+                    value=value[iVar],
+                    lower=lower[iVar],
+                    upper=upper[iVar],
+                    scale=scale[iVar],
+                    offset=offset[iVar],
+                    scalar=scalar,
+                    choices=choices,
+                )
+            )
 
         if name in self.variables:
             # Check that the variables happen to be the same
             err = False
             if not len(self.variables[name]) == len(varList):
-                raise Error("The supplied name '%s' for a variable group "
-                            "has already been used!"% name)
+                raise Error("The supplied name '%s' for a variable group " "has already been used!" % name)
             for i in range(len(varList)):
                 if not varList[i] == self.variables[name][i]:
-                    raise Error("The supplied name '%s' for a variable group "
-                                "has already been used!"% name)
+                    raise Error("The supplied name '%s' for a variable group " "has already been used!" % name)
             # We we got here, we know that the variables we wanted to
             # add are **EXACTLY** the same so that's cool. We'll just
             # overwrite with the varList below.
@@ -347,7 +362,7 @@ class Optimization(object):
         try:
             self.variables.pop(name)
         except KeyError:
-            print('%s was not a valid design variable name.'% name)
+            print("%s was not a valid design variable name." % name)
 
     def _reduceDict(self, variables):
         """
@@ -412,8 +427,7 @@ class Optimization(object):
 
         self.addConGroup(name, 1, *args, **kwargs)
 
-    def addConGroup(self, name, nCon, lower=None, upper=None, scale=1.0,
-                    linear=False, wrt=None, jac=None):
+    def addConGroup(self, name, nCon, lower=None, upper=None, scale=1.0, linear=False, wrt=None, jac=None):
         """Add a group of variables into a variable set. This is the main
         function used for adding variables to pyOptSparse.
 
@@ -492,12 +506,10 @@ class Optimization(object):
         """
 
         if name in self.constraints:
-            raise Error("The supplied name '%s' for a constraint group "
-                        "has already been used."% name)
+            raise Error("The supplied name '%s' for a constraint group " "has already been used." % name)
 
         # Simply add constraint object
-        self.constraints[name] = Constraint(
-            name, nCon, linear, wrt, jac, lower, upper, scale)
+        self.constraints[name] = Constraint(name, nCon, linear, wrt, jac, lower, upper, scale)
 
     def getDVs(self):
         """
@@ -577,12 +589,12 @@ class Optimization(object):
         if os.path.exists(histFile):
             hist = SqliteDict(histFile)
             if key is None:
-                key = hist['last']
+                key = hist["last"]
 
-            self.setDVs(hist[key]['xuser'])
+            self.setDVs(hist[key]["xuser"])
             hist.close()
         else:
-            raise Error("History file '%s' not found!."% histFile)
+            raise Error("History file '%s' not found!." % histFile)
 
     def printSparsity(self, verticalPrint=False):
         """
@@ -614,28 +626,27 @@ class Optimization(object):
             return
 
         # Header describing what we are printing:
-        print('+'+'-'*78+'-'+'+')
-        print('|' + ' '*19 +'Sparsity structure of constraint Jacobian' + ' '*19 + '|')
-        print('+'+'-'*78+'-'+'+')
+        print("+" + "-" * 78 + "-" + "+")
+        print("|" + " " * 19 + "Sparsity structure of constraint Jacobian" + " " * 19 + "|")
+        print("+" + "-" * 78 + "-" + "+")
 
         # We will do this with a 2d numpy array of characters since it
         # will make slicing easier
 
         # First determine the requried number of rows
-        nRow = 1 # Header
-        nRow += 1 # Line
+        nRow = 1  # Header
+        nRow += 1  # Line
         maxConNameLen = 0
         hasLinear = False
         for iCon in self.constraints:
-            nRow += 1 # Name
+            nRow += 1  # Name
             con = self.constraints[iCon]
-            maxConNameLen = max(maxConNameLen,
-                                len(con.name)+6+int(numpy.log10(con.ncon))+1)
-            nRow += 1 # Line
+            maxConNameLen = max(maxConNameLen, len(con.name) + 6 + int(numpy.log10(con.ncon)) + 1)
+            nRow += 1  # Line
 
         # And now the columns:
         nCol = maxConNameLen
-        nCol += 2 # Space plus line
+        nCol += 2  # Space plus line
         varCenters = []
         longestNameLength = 0
         for dvGroup in self.variables:
@@ -643,37 +654,37 @@ class Optimization(object):
 
             # If printing vertically, put in a blank string of length 3
             if verticalPrint:
-                var_str = '   '
+                var_str = "   "
 
             # Otherwise, put in the variable and its size
             else:
-                var_str = dvGroup + ' (%d)'% nvar
+                var_str = dvGroup + " (%d)" % nvar
 
             # Find the length of the longest name for design variables
             longestNameLength = max(len(dvGroup), longestNameLength)
 
-            varCenters.append(nCol + len(var_str)/2 + 1)
+            varCenters.append(nCol + len(var_str) / 2 + 1)
             nCol += len(var_str)
-            nCol += 2 # Spaces on either side
-            nCol += 1 # Line
+            nCol += 2  # Spaces on either side
+            nCol += 1  # Line
 
         txt = numpy.zeros((nRow, nCol), dtype=str)
-        txt[:, :] = ' '
+        txt[:, :] = " "
         # Outline of the matrix on left and top
-        txt[1, maxConNameLen+1:-1] = '-'
-        txt[2:-1, maxConNameLen+1] = '|'
+        txt[1, maxConNameLen + 1 : -1] = "-"
+        txt[2:-1, maxConNameLen + 1] = "|"
 
         # Print the variable names:
         iCol = maxConNameLen + 2
         for dvGroup in self.variables:
             nvar = self.dvOffset[dvGroup][1] - self.dvOffset[dvGroup][0]
             if verticalPrint:
-                var_str = '   '
+                var_str = "   "
             else:
-                var_str = dvGroup + ' (%d)'% nvar
+                var_str = dvGroup + " (%d)" % nvar
             l = len(var_str)
-            txt[0, iCol+1 :iCol + l+1] = list(var_str)
-            txt[2:-1, iCol + l + 2] = '|'
+            txt[0, iCol + 1 : iCol + l + 1] = list(var_str)
+            txt[2:-1, iCol + l + 2] = "|"
             iCol += l + 3
 
         # Print the constraint names;
@@ -683,28 +694,28 @@ class Optimization(object):
             con = self.constraints[iCon]
             name = con.name
             if con.linear:
-                name = name + '(L)'
+                name = name + "(L)"
 
-            name = name + ' (%d)'% con.ncon
+            name = name + " (%d)" % con.ncon
             l = len(name)
             # The name
-            txt[iRow, maxConNameLen-l:maxConNameLen] = list(name)
+            txt[iRow, maxConNameLen - l : maxConNameLen] = list(name)
 
             # Now we write a 'X' if there is something there:
             varKeys = list(self.variables.keys())
             for dvGroup in range(len(varKeys)):
                 if varKeys[dvGroup] in con.wrt:
-                    txt[int(iRow), int(varCenters[dvGroup])] = 'X'
+                    txt[int(iRow), int(varCenters[dvGroup])] = "X"
 
             # The separator
-            txt[iRow+1, maxConNameLen+1:] = '-'
+            txt[iRow + 1, maxConNameLen + 1 :] = "-"
             iRow += 2
 
         # Corners - just to make it nice :-)
-        txt[1, maxConNameLen+1] = '+'
-        txt[-1, maxConNameLen+1] = '+'
-        txt[1, -1] = '+'
-        txt[-1, -1] = '+'
+        txt[1, maxConNameLen + 1] = "+"
+        txt[-1, maxConNameLen + 1] = "+"
+        txt[1, -1] = "+"
+        txt[-1, -1] = "+"
 
         # If we're printing vertically, add an additional text array on top
         # of the already created txt array
@@ -712,17 +723,17 @@ class Optimization(object):
 
             # It has the same width and a height corresponding to the length
             # of the longest design variable name
-            newTxt = numpy.zeros((longestNameLength+1, nCol), dtype=str)
-            newTxt[:, :] = ' '
+            newTxt = numpy.zeros((longestNameLength + 1, nCol), dtype=str)
+            newTxt[:, :] = " "
             txt = numpy.vstack((newTxt, txt))
 
             # Loop through the letters in the longest design variable name
             # and add the letters for each design variable
-            for i in range(longestNameLength+2):
+            for i in range(longestNameLength + 2):
 
                 # Make a space between the name and the size
                 if i >= longestNameLength:
-                    txt[i, :] = ' '
+                    txt[i, :] = " "
 
                 # Loop through each design variable
                 for j, dvGroup in enumerate(self.variables):
@@ -733,13 +744,13 @@ class Optimization(object):
 
                     # Format and print the size of the design variable
                     elif i > longestNameLength:
-                        var_str = '(' + str(self.dvOffset[dvGroup][1] - self.dvOffset[dvGroup][0]) + ')'
+                        var_str = "(" + str(self.dvOffset[dvGroup][1] - self.dvOffset[dvGroup][0]) + ")"
                         half_length = len(var_str) / 2
                         k = int(varCenters[j])
-                        txt[i, int(k-half_length+1):int(k-half_length+1+len(var_str))] = list(var_str)
+                        txt[i, int(k - half_length + 1) : int(k - half_length + 1 + len(var_str))] = list(var_str)
 
         for i in range(len(txt)):
-            print(''.join(txt[i]))
+            print("".join(txt[i]))
 
     def getDVConIndex(self, startIndex=1, printIndex=True):
         """
@@ -760,7 +771,7 @@ class Optimization(object):
             if ind1 - ind0 == 1:
                 dvIndex[dvGroup] = [ind0]
             else:
-                dvIndex[dvGroup] = [ind0, ind1-1]
+                dvIndex[dvGroup] = [ind0, ind1 - 1]
 
         # Get the begin and end index (inclusive) of constraints
         conIndex = OrderedDict()
@@ -770,25 +781,25 @@ class Optimization(object):
             if n == 1:
                 conIndex[iCon] = [conCounter]
             else:
-                conIndex[iCon] = [conCounter, conCounter+n-1]
+                conIndex[iCon] = [conCounter, conCounter + n - 1]
             conCounter += n
 
         # Print them all to terminal
         if printIndex and self.comm.rank == 0:
-            print('### DESIGN VARIABLES ###')
+            print("### DESIGN VARIABLES ###")
             for dvGroup in dvIndex:
                 print(dvGroup, dvIndex[dvGroup])
-            print('### CONSTRAINTS ###')
+            print("### CONSTRAINTS ###")
             for conKey in conIndex:
                 print(conKey, conIndex[conKey])
 
         return dvIndex, conIndex
 
-#=======================================================================
-#       All the functions from here down should not need to be called
-#       by the user. Most functions are public since the individual
-#       optimizers need to be able to call them
-#=======================================================================
+    # =======================================================================
+    #       All the functions from here down should not need to be called
+    #       by the user. Most functions are public since the individual
+    #       optimizers need to be able to call them
+    # =======================================================================
 
     def finalizeDesignVariables(self):
         """
@@ -806,9 +817,7 @@ class Optimization(object):
 
         for dvGroup in self.variables:
             n = len(self.variables[dvGroup])
-            self.dvOffset[dvGroup] = [
-                dvCounter, dvCounter + n,
-                self.variables[dvGroup][0].scalar]
+            self.dvOffset[dvGroup] = [dvCounter, dvCounter + n, self.variables[dvGroup][0].scalar]
             dvCounter += n
         self.ndvs = dvCounter
 
@@ -849,7 +858,7 @@ class Optimization(object):
             con = self.constraints[iCon]
             con.finalize(self.variables, self.dvOffset, rowCounter)
             rowCounter += con.ncon
-            conScale[con.rs:con.re] = con.scale
+            conScale[con.rs : con.re] = con.scale
 
         if self.nCon > 0:
             self.conScale = conScale
@@ -863,7 +872,7 @@ class Optimization(object):
         for dvGroup in self.variables:
             for var in self.variables[dvGroup]:
                 xscale.append(var.scale)
-        self.invXScale = 1.0/numpy.array(xscale)
+        self.invXScale = 1.0 / numpy.array(xscale)
 
         # -----------------------------------------
         # Step 2a. Assemble design variable offset
@@ -894,13 +903,12 @@ class Optimization(object):
                     # ss means 'start - stop'
                     ss = self.dvOffset[dvGroup]
 
-                    row.extend(con.jac[dvGroup]['coo'][IROW])
-                    col.extend(con.jac[dvGroup]['coo'][ICOL] +ss[0])
-                    data.extend(con.jac[dvGroup]['coo'][IDATA])
+                    row.extend(con.jac[dvGroup]["coo"][IROW])
+                    col.extend(con.jac[dvGroup]["coo"][ICOL] + ss[0])
+                    data.extend(con.jac[dvGroup]["coo"][IDATA])
 
                 # Now create a coo, convert to CSR and store
-                con.linearJacobian = coo_matrix((data, (row, col)),
-                                                shape=[con.ncon, self.ndvs]).tocsr()
+                con.linearJacobian = coo_matrix((data, (row, col)), shape=[con.ncon, self.ndvs]).tocsr()
 
     def getOrdering(self, conOrder, oneSided, noEquality=False):
         """
@@ -946,7 +954,7 @@ class Optimization(object):
             if self.dummyConstraint:
                 return [], [-INFINITY], [INFINITY], None
             else:
-                return numpy.array([], 'd')
+                return numpy.array([], "d")
 
         indices = []
         fact = []
@@ -963,54 +971,54 @@ class Optimization(object):
                 else:
                     icon = con.twoSidedConstraints
 
-                if conType == 'ne' and not con.linear:
+                if conType == "ne" and not con.linear:
                     if noEquality:
                         # Expand Equality constraint to two:
-                        indices.extend(con.rs + econ['ind'])
-                        fact.extend(econ['fact'])
-                        lower.extend(econ['value'])
-                        upper.extend(econ['value'])
-                        #....And the other side
-                        indices.extend(con.rs + econ['ind'])
-                        fact.extend(-1.0*econ['fact'])
-                        lower.extend(econ['value'])
-                        upper.extend(econ['value'])
+                        indices.extend(con.rs + econ["ind"])
+                        fact.extend(econ["fact"])
+                        lower.extend(econ["value"])
+                        upper.extend(econ["value"])
+                        # ....And the other side
+                        indices.extend(con.rs + econ["ind"])
+                        fact.extend(-1.0 * econ["fact"])
+                        lower.extend(econ["value"])
+                        upper.extend(econ["value"])
 
                     else:
-                        indices.extend(con.rs + econ['ind'])
-                        fact.extend(econ['fact'])
-                        lower.extend(econ['value'])
-                        upper.extend(econ['value'])
+                        indices.extend(con.rs + econ["ind"])
+                        fact.extend(econ["fact"])
+                        lower.extend(econ["value"])
+                        upper.extend(econ["value"])
 
-                if conType == 'ni' and not con.linear:
-                    indices.extend(con.rs + icon['ind'])
-                    fact.extend(icon['fact'])
-                    lower.extend(icon['lower'])
-                    upper.extend(icon['upper'])
+                if conType == "ni" and not con.linear:
+                    indices.extend(con.rs + icon["ind"])
+                    fact.extend(icon["fact"])
+                    lower.extend(icon["lower"])
+                    upper.extend(icon["upper"])
 
-                if conType == 'le' and con.linear:
+                if conType == "le" and con.linear:
                     if noEquality:
                         # Expand Equality constraint to two:
-                        indices.extend(con.rs + econ['ind'])
-                        fact.extend(econ['fact'])
-                        lower.extend([-INFINITY]*len(econ['fact']))
-                        upper.extend(econ['value'])
-                        #....And the other side
-                        indices.extend(con.rs + econ['ind'])
-                        fact.extend(-1.0*econ['fact'])
-                        lower.extend([-INFINITY]*len(econ['fact']))
-                        upper.extend(-econ['value'])
+                        indices.extend(con.rs + econ["ind"])
+                        fact.extend(econ["fact"])
+                        lower.extend([-INFINITY] * len(econ["fact"]))
+                        upper.extend(econ["value"])
+                        # ....And the other side
+                        indices.extend(con.rs + econ["ind"])
+                        fact.extend(-1.0 * econ["fact"])
+                        lower.extend([-INFINITY] * len(econ["fact"]))
+                        upper.extend(-econ["value"])
                     else:
-                        indices.extend(con.rs + econ['ind'])
-                        fact.extend(econ['fact'])
-                        lower.extend(econ['value'])
-                        upper.extend(econ['value'])
+                        indices.extend(con.rs + econ["ind"])
+                        fact.extend(econ["fact"])
+                        lower.extend(econ["value"])
+                        upper.extend(econ["value"])
 
-                if conType == 'li' and con.linear:
-                    indices.extend(con.rs + icon['ind'])
-                    fact.extend(icon['fact'])
-                    lower.extend(icon['lower'])
-                    upper.extend(icon['upper'])
+                if conType == "li" and con.linear:
+                    indices.extend(con.rs + icon["ind"])
+                    fact.extend(icon["fact"])
+                    lower.extend(icon["lower"])
+                    upper.extend(icon["upper"])
 
         if len(fact) == 0:
             fact = None
@@ -1041,11 +1049,9 @@ class Optimization(object):
                 else:
                     xg[dvGroup] = x[..., istart:iend].copy()
             except IndexError:
-                raise Error("Error processing x. There "
-                            "is a mismatch in the number of variables.")
+                raise Error("Error processing x. There " "is a mismatch in the number of variables.")
         if imax != self.ndvs:
-            raise Error("Error processing x. There "
-                        "is a mismatch in the number of variables.")
+            raise Error("Error processing x. There " "is a mismatch in the number of variables.")
         return xg
 
     def processXtoVec(self, x):
@@ -1079,11 +1085,9 @@ class Optimization(object):
                 else:
                     x_array[..., istart:iend] = x[dvGroup]
             except IndexError:
-                raise Error("Error deprocessing x. There "
-                            "is a mismatch in the number of variables.")
+                raise Error("Error deprocessing x. There " "is a mismatch in the number of variables.")
         if imax != self.ndvs:
-            raise Error("Error deprocessing x. There is a mismatch in the"
-                        " number of variables.")
+            raise Error("Error deprocessing x. There is a mismatch in the" " number of variables.")
 
         return x_array
 
@@ -1110,14 +1114,12 @@ class Optimization(object):
                 try:
                     f = numpy.squeeze(funcs[objKey]).item()
                 except ValueError:
-                    raise Error("The objective return value, '%s' must be a "
-                                "scalar!"% objKey)
+                    raise Error("The objective return value, '%s' must be a " "scalar!" % objKey)
                 # Store objective for printing later
                 self.objectives[objKey].value = f
                 fobj.append(f)
             else:
-                raise Error("The key for the objective, '%s' was not found." %
-                            objKey)
+                raise Error("The key for the objective, '%s' was not found." % objKey)
 
         # scale the objective
         if scaled:
@@ -1157,7 +1159,7 @@ class Optimization(object):
             fobj = self._mapObjtoOpt(fobj)
         return fobj
 
-    def processContoVec(self, fcon_in, scaled=True, dtype='d', natural=False):
+    def processContoVec(self, fcon_in, scaled=True, dtype="d", natural=False):
         """
         **This function should not need to be called by the user**
 
@@ -1194,22 +1196,21 @@ class Optimization(object):
 
                 # Make sure it is at least 1-dimensional:
                 c = numpy.atleast_1d(fcon_in[iCon])
-                if dtype == 'd':
+                if dtype == "d":
                     c = numpy.real(c)
                 # Make sure it is the correct size:
                 if c.shape[-1] == self.constraints[iCon].ncon:
-                    fcon[..., con.rs:con.re] = c
+                    fcon[..., con.rs : con.re] = c
                 else:
-                    raise Error("%d constraint values were returned in "
-                                "%s, but expected %d." % (
-                                    len(fcon_in[iCon]), iCon,
-                                    self.constraints[iCon].ncon))
+                    raise Error(
+                        "%d constraint values were returned in "
+                        "%s, but expected %d." % (len(fcon_in[iCon]), iCon, self.constraints[iCon].ncon)
+                    )
 
                 # Store constraint values for printing later
                 con.value = copy.copy(c)
             else:
-                raise Error("No constraint values were found for the "
-                            "constraint '%s'."% iCon)
+                raise Error("No constraint values were found for the " "constraint '%s'." % iCon)
 
         # Perform scaling on the original jacobian:
         if scaled:
@@ -1220,13 +1221,12 @@ class Optimization(object):
         else:
             if self.nCon > 0:
                 fcon = fcon[..., self.jacIndices]
-                fcon = self.fact*fcon - self.offset
+                fcon = self.fact * fcon - self.offset
                 return fcon
             else:
                 return fcon
 
-    def processContoDict(self, fcon_in, scaled=True, dtype='d',
-                             natural=False, multipliers=False):
+    def processContoDict(self, fcon_in, scaled=True, dtype="d", natural=False, multipliers=False):
         """
         **This function should not need to be called by the user**
 
@@ -1258,9 +1258,9 @@ class Optimization(object):
             """
 
         if self.dummyConstraint:
-            return {'dummy':0}
+            return {"dummy": 0}
 
-        if not hasattr(self, 'jacIndicesInv'):
+        if not hasattr(self, "jacIndicesInv"):
             self.jacIndicesInv = numpy.argsort(self.jacIndices)
 
         # Unscale the nonlinear constraints
@@ -1286,7 +1286,7 @@ class Optimization(object):
         fcon = {}
         for iCon in self.constraints:
             con = self.constraints[iCon]
-            fcon[iCon] = fcon_in[..., con.rs:con.re]
+            fcon[iCon] = fcon_in[..., con.rs : con.re]
 
         return fcon
 
@@ -1346,45 +1346,44 @@ class Optimization(object):
                             # Now check that the array is the correct length:
                             ss = self.dvOffset[dvGroup]
                             tmp = numpy.array(funcsSens[objKey][dvGroup]).squeeze()
-                            if tmp.size == ss[1]-ss[0]:
+                            if tmp.size == ss[1] - ss[0]:
                                 # Everything checks out so set:
-                                gobj[iObj, ss[0]:ss[1]] = tmp
+                                gobj[iObj, ss[0] : ss[1]] = tmp
                             else:
-                                raise Error("The shape of the objective derivative "
-                                            "for dvGroup '%s' is the incorrect "
-                                            "length. Expecting a shape of %s but "
-                                            "received a shape of %s."% (
-                                                dvGroup, (ss[1]-ss[0],),
-                                                funcsSens[objKey][dvGroup].shape))
+                                raise Error(
+                                    "The shape of the objective derivative "
+                                    "for dvGroup '%s' is the incorrect "
+                                    "length. Expecting a shape of %s but "
+                                    "received a shape of %s."
+                                    % (dvGroup, (ss[1] - ss[0],), funcsSens[objKey][dvGroup].shape)
+                                )
                         else:
-                            raise Error("The dvGroup key '%s' is not valid"% dvGroup)
+                            raise Error("The dvGroup key '%s' is not valid" % dvGroup)
                 else:
-                    raise Error("The key for the objective gradient, '%s', was not found." %
-                                objKey)
+                    raise Error("The key for the objective gradient, '%s', was not found." % objKey)
                 iObj += 1
-        else: # Then it must be a tuple; assume flat dict
+        else:  # Then it must be a tuple; assume flat dict
             for (objKey, dvGroup), _ in iteritems(funcsSens):
                 if objKey in self.objectives.keys():
                     try:
                         iObj = self.objectiveIdx[objKey]
                     except KeyError:
-                        raise Error("The key for the objective gradient, '%s', was not found." %
-                                    objKey)
+                        raise Error("The key for the objective gradient, '%s', was not found." % objKey)
                     try:
                         ss = self.dvOffset[dvGroup]
                     except KeyError:
-                        raise Error("The dvGroup key '%s' is not valid"% dvGroup)
+                        raise Error("The dvGroup key '%s' is not valid" % dvGroup)
                     tmp = numpy.array(funcsSens[objKey, dvGroup]).squeeze()
-                    if tmp.size == ss[1]-ss[0]:
+                    if tmp.size == ss[1] - ss[0]:
                         # Everything checks out so set:
-                        gobj[iObj, ss[0]:ss[1]] = tmp
+                        gobj[iObj, ss[0] : ss[1]] = tmp
                     else:
-                        raise Error("The shape of the objective derivative "
-                                    "for dvGroup '%s' is the incorrect "
-                                    "length. Expecting a shape of %s but "
-                                    "received a shape of %s."% (
-                                        dvGroup, (ss[1]-ss[0],),
-                                        funcsSens[objKey, dvGroup].shape))
+                        raise Error(
+                            "The shape of the objective derivative "
+                            "for dvGroup '%s' is the incorrect "
+                            "length. Expecting a shape of %s but "
+                            "received a shape of %s." % (dvGroup, (ss[1] - ss[0],), funcsSens[objKey, dvGroup].shape)
+                        )
 
         # Note that we looped over the keys in funcsSens[objKey]
         # and not the variable keys since a variable key not in
@@ -1437,7 +1436,7 @@ class Optimization(object):
             if self.dummyConstraint:
                 return convertToCSR(numpy.zeros((1, self.ndvs)))
             else:
-                return numpy.zeros((0, self.ndvs), 'd')
+                return numpy.zeros((0, self.ndvs), "d")
 
         # For simplicity we just add the linear constraints into gcon
         # so they can be processed along with the rest:
@@ -1461,21 +1460,23 @@ class Optimization(object):
             for dvGroup in con.wrt:
                 # ss means 'start - stop'
                 ss = self.dvOffset[dvGroup]
-                ndvs = ss[1]-ss[0]
+                ndvs = ss[1] - ss[0]
 
                 gotDerivative = False
-                try: # Try using a nested dictionary return
+                try:  # Try using a nested dictionary return
                     if dvGroup in gcon[iCon]:
                         tmp = convertToCOO(gcon[iCon][dvGroup])
                         gotDerivative = True
                 except KeyError:
-                    try: # Using tuple dictornary return
+                    try:  # Using tuple dictornary return
                         tmp = convertToCOO(gcon[iCon, dvGroup])
                         gotDerivative = True
                     except KeyError:
-                        raise Error('The constraint jacobian entry for "{}" with respect to "{}"'
-                                    ', as was defined in addConGroup(), was not found in'
-                                    ' constraint jacobian dictionary provided.'.format(con.name, dvGroup))
+                        raise Error(
+                            'The constraint jacobian entry for "{}" with respect to "{}"'
+                            ", as was defined in addConGroup(), was not found in"
+                            " constraint jacobian dictionary provided.".format(con.name, dvGroup)
+                        )
                 if not gotDerivative:
                     # All keys for this constraint must be returned
                     # since the user has explictly specified the wrt.
@@ -1484,38 +1485,40 @@ class Optimization(object):
                             "Constraint '%s' was expecting a jacobain with "
                             "respect to dvGroup '%s' as was supplied in "
                             "addConGroup(). This was not found in the "
-                            "constraint jacobian dictionary"% (
-                                        con.name, dvGroup))
+                            "constraint jacobian dictionary" % (con.name, dvGroup)
+                        )
                     else:
                         # This key is not returned. Just use the
                         # stored jacobian that contains zeros
                         tmp = con.jac[dvGroup]
 
                 # Now check that the jacobian is the correct shape
-                if not(tmp['shape'][0] == con.ncon and tmp['shape'][1] == ndvs):
-                    raise Error("The shape of the supplied constraint "
-                                "jacobian for constraint %s with respect to %s "
-                                "is incorrect. "
-                                "Expected an array of shape (%d, %d), but "
-                                "received an array of shape (%d, %d)."% (
-                                    con.name, dvGroup, con.ncon, ndvs,
-                                    tmp['shape'][0], tmp['shape'][1]))
+                if not (tmp["shape"][0] == con.ncon and tmp["shape"][1] == ndvs):
+                    raise Error(
+                        "The shape of the supplied constraint "
+                        "jacobian for constraint %s with respect to %s "
+                        "is incorrect. "
+                        "Expected an array of shape (%d, %d), but "
+                        "received an array of shape (%d, %d)."
+                        % (con.name, dvGroup, con.ncon, ndvs, tmp["shape"][0], tmp["shape"][1])
+                    )
 
                 # Now check that supplied coo matrix has same length
                 # of data array
-                if len(tmp['coo'][2]) != len(con.jac[dvGroup]['coo'][2]):
-                    raise Error("The number of nonzero elements for "
-                                "constraint group '%s' with respect to %s "
-                                "was not the correct size. The supplied "
-                                "jacobian has %d nonzero "
-                                "entries, but must contain %d nonzero "
-                                "entries." % (con.name, dvGroup, len(tmp['coo'][2]),
-                                              len(con.jac[dvGroup]['coo'][2])))
+                if len(tmp["coo"][2]) != len(con.jac[dvGroup]["coo"][2]):
+                    raise Error(
+                        "The number of nonzero elements for "
+                        "constraint group '%s' with respect to %s "
+                        "was not the correct size. The supplied "
+                        "jacobian has %d nonzero "
+                        "entries, but must contain %d nonzero "
+                        "entries." % (con.name, dvGroup, len(tmp["coo"][2]), len(con.jac[dvGroup]["coo"][2]))
+                    )
 
                 # Include data from this jacobian chunk
-                data.append(tmp['coo'][IDATA])
-                row.append(tmp['coo'][IROW] + ii)
-                col.append(tmp['coo'][ICOL] + ss[0])
+                data.append(tmp["coo"][IDATA])
+                row.append(tmp["coo"][IROW] + ii)
+                col.append(tmp["coo"][ICOL] + ss[0])
             # end for (dvGroup in constraint)
             ii += con.ncon
         # end for (constraint loop)
@@ -1528,14 +1531,17 @@ class Optimization(object):
         # Finally, construct CSR matrix from COO data and perform
         # row and column scaling.
         if self._jac_map_coo_to_csr is None:
-            gcon = {'coo':[row, col, numpy.array(data)],
-                    'shape':[self.nCon, self.ndvs]}
+            gcon = {"coo": [row, col, numpy.array(data)], "shape": [self.nCon, self.ndvs]}
             self._jac_map_coo_to_csr = mapToCSR(gcon)
 
-        gcon = {'csr': (self._jac_map_coo_to_csr[IROW],
-                        self._jac_map_coo_to_csr[ICOL],
-                        numpy.array(data)[self._jac_map_coo_to_csr[IDATA]]),
-                'shape':[self.nCon, self.ndvs]}
+        gcon = {
+            "csr": (
+                self._jac_map_coo_to_csr[IROW],
+                self._jac_map_coo_to_csr[ICOL],
+                numpy.array(data)[self._jac_map_coo_to_csr[IDATA]],
+            ),
+            "shape": [self.nCon, self.ndvs],
+        }
 
         self._mapConJactoOpt(gcon)
 
@@ -1545,17 +1551,17 @@ class Optimization(object):
         gobj_return = numpy.copy(gobj)
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
-            gobj_return[iObj,:] *= self.objectives[objKey].scale
+            gobj_return[iObj, :] *= self.objectives[objKey].scale
         gobj_return *= self.invXScale
         return gobj_return
 
-    def _mapContoOpt(self,fcon):
+    def _mapContoOpt(self, fcon):
         return fcon * self.conScale
 
-    def _mapContoUser(self,fcon):
+    def _mapContoUser(self, fcon):
         return fcon / self.conScale
 
-    def _mapObjtoOpt(self,fobj):
+    def _mapObjtoOpt(self, fobj):
         fobj_return = numpy.copy(numpy.atleast_1d(fobj))
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
@@ -1563,7 +1569,7 @@ class Optimization(object):
         # print(fobj, fobj_return)
         return fobj_return
 
-    def _mapObjtoUser(self,fobj):
+    def _mapObjtoUser(self, fobj):
         fobj_return = numpy.copy(numpy.atleast_1d(fobj))
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
@@ -1581,22 +1587,22 @@ class Optimization(object):
         """
         The mapping is done in memory, without any return.
         """
-        scaleRows(gcon, 1/self.conScale)
-        scaleColumns(gcon, 1/self.invXScale)
+        scaleRows(gcon, 1 / self.conScale)
+        scaleColumns(gcon, 1 / self.invXScale)
 
     def _mapXtoOpt(self, x):
         """
         This performs the user-space to optimizer mapping for the DVs.
         All inputs/outputs are numpy arrays.
         """
-        return (x - self.xOffset)/self.invXScale
+        return (x - self.xOffset) / self.invXScale
 
     def _mapXtoUser(self, x):
         """
         This performs the optimizer to user-space mapping for the DVs.
         All inputs/outputs are numpy arrays.
         """
-        return x*self.invXScale + self.xOffset
+        return x * self.invXScale + self.xOffset
 
     # these are the dictionary-based versions of the mapping functions
     def _mapXtoUser_Dict(self, xDict):
@@ -1633,15 +1639,17 @@ class Optimization(object):
         """
         Print Structured Optimization Problem
         """
-        TOL = 1.0E-6
+        TOL = 1.0e-6
 
-        text = '\n\nOptimization Problem -- {0}\n{1}\n    Objective Function: {2}\n\n'.format(self.name, '='*80, self.objFun.__name__)
-        text += '\n   Objectives\n'
+        text = "\n\nOptimization Problem -- {0}\n{1}\n    Objective Function: {2}\n\n".format(
+            self.name, "=" * 80, self.objFun.__name__
+        )
+        text += "\n   Objectives\n"
 
         num_c = max([len(obj) for obj in self.objectives])
-        fmt = '    {0:>7s}  {1:{width}s}   {2:>14s}   {3:>14s}\n'
-        text += fmt.format('Index', 'Name', 'Value', 'Optimum', width=num_c)
-        fmt = '    {0:>7d}  {1:{width}s}   {2:>14.6E}   {3:>14.6E}\n'
+        fmt = "    {0:>7s}  {1:{width}s}   {2:>14s}   {3:>14s}\n"
+        text += fmt.format("Index", "Name", "Value", "Optimum", width=num_c)
+        fmt = "    {0:>7d}  {1:{width}s}   {2:>14.6E}   {3:>14.6E}\n"
         for idx, name in enumerate(self.objectives):
             obj = self.objectives[name]
             text += fmt.format(idx, obj.name, obj.value, obj.optimum, width=num_c)
@@ -1652,104 +1660,105 @@ class Optimization(object):
             for var in self.variables[varname]:
                 num_c = max(len(var.name), num_c)
 
-        fmt = '    {0:>7s}  {1:{width}s}   {2:>4s}   {3:>14}   {4:>14}   {5:>14}   {6:>8s}\n'
-        text += '\n   Variables (c - continuous, i - integer, d - discrete)\n'
-        text += fmt.format('Index', 'Name', 'Type', 'Lower Bound', 'Value',
-                           'Upper Bound', 'Status', width=num_c)
-        fmt = '    {0:7d}  {1:{width}s}   {2:>4s}   {3:14.6E}   {4:14.6E}   {5:14.6E}   {6:>8s}\n'
+        fmt = "    {0:>7s}  {1:{width}s}   {2:>4s}   {3:>14}   {4:>14}   {5:>14}   {6:>8s}\n"
+        text += "\n   Variables (c - continuous, i - integer, d - discrete)\n"
+        text += fmt.format("Index", "Name", "Type", "Lower Bound", "Value", "Upper Bound", "Status", width=num_c)
+        fmt = "    {0:7d}  {1:{width}s}   {2:>4s}   {3:14.6E}   {4:14.6E}   {5:14.6E}   {6:>8s}\n"
 
         idx = 0
         for varname in self.variables:
             for var in self.variables[varname]:
-                if var.type in ['c','i']:
+                if var.type in ["c", "i"]:
                     value = var.value
-                    lower = var.lower if var.lower is not None else -1.0E20
-                    upper = var.upper if var.upper is not None else 1.0E20
-                    status = ''
+                    lower = var.lower if var.lower is not None else -1.0e20
+                    upper = var.upper if var.upper is not None else 1.0e20
+                    status = ""
                     dL = value - lower
                     if dL > TOL:
                         pass
                     elif dL < -TOL:
                         # In violation of lower bound
-                        status += 'L'
+                        status += "L"
                     else:
                         # Active lower bound
-                        status += 'l'
+                        status += "l"
                     dU = upper - value
                     if dU > TOL:
                         pass
                     elif dU < -TOL:
                         # In violation of upper bound
-                        status += 'U'
+                        status += "U"
                     else:
                         # Active upper bound
-                        status += 'u'
-                elif var.type == 'd':
+                        status += "u"
+                elif var.type == "d":
                     choices = var.choices
                     value = choices[int(var.value)]
                     lower = min(choices)
                     upper = max(choices)
-                    status = ''
+                    status = ""
                 else:
-                    raise ValueError('Unrecognized type for variable {0}: {1}'.format(var.name, var.type))
+                    raise ValueError("Unrecognized type for variable {0}: {1}".format(var.name, var.type))
 
-                text += fmt.format(idx, var.name, var.type, lower, value, upper, status,
-                                   width=num_c)
+                text += fmt.format(idx, var.name, var.type, lower, value, upper, status, width=num_c)
                 idx += 1
 
         if len(self.constraints) > 0:
 
             try:
                 lambdaStar = self.lambdaStar
-                lambdaStar_label = 'Lagrange Multiplier'
+                lambdaStar_label = "Lagrange Multiplier"
             except AttributeError:
                 # the optimizer did not set the lagrange multipliers so set them to something obviously wrong
                 lambdaStar = {}
                 for c in self.constraints:
-                    lambdaStar[c] = [9e100]*self.constraints[c].ncon
-                lambdaStar_label = 'Lagrange Multiplier (N/A)'
+                    lambdaStar[c] = [9e100] * self.constraints[c].ncon
+                lambdaStar_label = "Lagrange Multiplier (N/A)"
 
-            text += '\n   Constraints (i - inequality, e - equality)\n'
+            text += "\n   Constraints (i - inequality, e - equality)\n"
             # Find the longest name in the constraints
             num_c = max([len(self.constraints[i].name) for i in self.constraints])
-            fmt = '    {0:>7s}  {1:{width}s} {2:>4s} {3:>14}  {4:>14}  {5:>14}  {6:>8s}  {7:>14s}\n'
-            text += fmt.format('Index', 'Name', 'Type', 'Lower', 'Value', 'Upper', 'Status', lambdaStar_label, width=num_c)
-            fmt = '    {0:7d}  {1:{width}s} {2:>4s} {3:>14.6E}  {4:>14.6E}  {5:>14.6E}  {6:>8s}  {7:>14.5E}\n'
+            fmt = "    {0:>7s}  {1:{width}s} {2:>4s} {3:>14}  {4:>14}  {5:>14}  {6:>8s}  {7:>14s}\n"
+            text += fmt.format(
+                "Index", "Name", "Type", "Lower", "Value", "Upper", "Status", lambdaStar_label, width=num_c
+            )
+            fmt = "    {0:7d}  {1:{width}s} {2:>4s} {3:>14.6E}  {4:>14.6E}  {5:>14.6E}  {6:>8s}  {7:>14.5E}\n"
             idx = 0
             for con_name in self.constraints:
                 c = self.constraints[con_name]
                 for j in range(c.ncon):
-                    lower = c.lower[j] if c.lower[j] is not None else -1.0E20
-                    upper = c.upper[j] if c.upper[j] is not None else 1.0E20
+                    lower = c.lower[j] if c.lower[j] is not None else -1.0e20
+                    upper = c.upper[j] if c.upper[j] is not None else 1.0e20
                     value = c.value[j]
-                    status = ''
-                    typ = 'e' if j in c.equalityConstraints['ind'] else 'i'
-                    if typ == 'e':
+                    status = ""
+                    typ = "e" if j in c.equalityConstraints["ind"] else "i"
+                    if typ == "e":
                         if abs(value - upper) > TOL:
-                            status = 'E'
+                            status = "E"
                     else:
                         dL = value - lower
                         if dL > TOL:
                             pass
                         elif dL < -TOL:
                             # In violation of lower bound
-                            status += 'L'
+                            status += "L"
                         else:
                             # Active lower bound
-                            status += 'l'
+                            status += "l"
 
                         dU = upper - value
                         if dU > TOL:
                             pass
                         elif dU < -TOL:
                             # In violation of upper bound
-                            status += 'U'
+                            status += "U"
                         else:
                             # Active upper bound
-                            status += 'u'
+                            status += "u"
 
-                    text += fmt.format(idx, c.name, typ, lower, value, upper,
-                        status, lambdaStar[con_name][j], width=num_c)
+                    text += fmt.format(
+                        idx, c.name, typ, lower, value, upper, status, lambdaStar[con_name][j], width=num_c
+                    )
                     idx += 1
 
         return text
@@ -1760,15 +1769,16 @@ class Optimization(object):
         The un-serializable fields are deleted first.
         """
         d = copy.copy(self.__dict__)
-        for key in ['comm', 'objFun']:
+        for key in ["comm", "objFun"]:
             if key in d.keys():
                 del d[key]
         return d
 
-#==============================================================================
-# Optimization Test
-#==============================================================================
-if __name__ == '__main__':
 
-    print('Testing Optimization...')
-    optprob = Optimization('Optimization Problem', {})
+# ==============================================================================
+# Optimization Test
+# ==============================================================================
+if __name__ == "__main__":
+
+    print("Testing Optimization...")
+    optprob = Optimization("Optimization Problem", {})

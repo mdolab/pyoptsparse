@@ -1,4 +1,4 @@
-#/bin/env python
+# /bin/env python
 """
 pyPSQP - the pyPSQP wrapper 
 """
@@ -14,15 +14,18 @@ except ImportError:
 # =============================================================================
 import os
 import time, datetime
+
 # =============================================================================
 # External Python modules
 # =============================================================================
 import numpy
+
 # ===========================================================================
 # Extension modules
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
+
 # =============================================================================
 # PSQP Optimizer Class
 # =============================================================================
@@ -30,47 +33,50 @@ class PSQP(Optimizer):
     """
     PSQP Optimizer Class - Inherited from Optimizer Abstract Class
     """
-    def __init__(self, *args, **kwargs):
-        name = 'PSQP'
-        category = 'Local Optimizer'
-        defOpts = {
-	    'XMAX': [float, 1e16],   # Maximum Stepsize
-	    'TOLX': [float, 1e-16],  # Variable Change Tolerance
-	    'TOLC': [float, 1e-6],   # Constraint Violation Tolerance
-	    'TOLG': [float, 1e-6],   # Lagrangian Gradient Tolerance
-	    'RPF': [float, 1e-4],    # Penalty Coefficient
-	    'MIT': [int, 1000],      # Maximum Number of Iterations
-	    'MFV': [int, 2000],      # Maximum Number of Function Evaluations
-	    'MET': [int, 2],         # Variable Metric Update (1 - BFGS, 2 - Hoshino)
-	    'MEC': [int, 2],         # Negative Curvature Correction (1 - None, 2 - Powell's Correction)    
-	    'IPRINT': [int, 2],      # Output Level (0 - None, 1 - Final, 2 - Iter)
-	    'IOUT': [int, 6],        # Output Unit Number
-	    'IFILE': [str, 'PSQP.out'], # Output File Name
-	    }
-        informs = {
-		1 : 'Change in design variable was less than or equal to tolerance',
-		2 : 'Change in objective function was less than or equal to tolerance',
-		3 : 'Objective function less than or equal to tolerance',
-		4 : 'Maximum constraint value is less than or equal to tolerance',
-		11 : 'Maximum number of iterations exceeded',
-		12 : 'Maximum number of function evaluations exceeded',
-		13 : 'Maximum number of gradient evaluations exceeded',
-		-6 : 'Termination criterion not satisfied, but obtained point is acceptable',
 
+    def __init__(self, *args, **kwargs):
+        name = "PSQP"
+        category = "Local Optimizer"
+        defOpts = {
+            "XMAX": [float, 1e16],  # Maximum Stepsize
+            "TOLX": [float, 1e-16],  # Variable Change Tolerance
+            "TOLC": [float, 1e-6],  # Constraint Violation Tolerance
+            "TOLG": [float, 1e-6],  # Lagrangian Gradient Tolerance
+            "RPF": [float, 1e-4],  # Penalty Coefficient
+            "MIT": [int, 1000],  # Maximum Number of Iterations
+            "MFV": [int, 2000],  # Maximum Number of Function Evaluations
+            "MET": [int, 2],  # Variable Metric Update (1 - BFGS, 2 - Hoshino)
+            "MEC": [int, 2],  # Negative Curvature Correction (1 - None, 2 - Powell's Correction)
+            "IPRINT": [int, 2],  # Output Level (0 - None, 1 - Final, 2 - Iter)
+            "IOUT": [int, 6],  # Output Unit Number
+            "IFILE": [str, "PSQP.out"],  # Output File Name
+        }
+        informs = {
+            1: "Change in design variable was less than or equal to tolerance",
+            2: "Change in objective function was less than or equal to tolerance",
+            3: "Objective function less than or equal to tolerance",
+            4: "Maximum constraint value is less than or equal to tolerance",
+            11: "Maximum number of iterations exceeded",
+            12: "Maximum number of function evaluations exceeded",
+            13: "Maximum number of gradient evaluations exceeded",
+            -6: "Termination criterion not satisfied, but obtained point is acceptable",
         }
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
 
         if psqp is None:
-            raise Error('There was an error importing the compiled \
-                        psqp module')
+            raise Error(
+                "There was an error importing the compiled \
+                        psqp module"
+            )
 
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
 
         # PSQP needs jacobians in dense format
-        self.jacType = 'dense2d'
+        self.jacType = "dense2d"
 
-    def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
-                 storeHistory=None, hotStart=None, storeSens=True):
+    def __call__(
+        self, optProb, sens=None, sensStep=None, sensMode=None, storeHistory=None, hotStart=None, storeSens=True
+    ):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -134,7 +140,7 @@ class PSQP(Optimizer):
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
-        xi = 3*numpy.ones(len(xs), 'int')
+        xi = 3 * numpy.ones(len(xs), "int")
         xs = numpy.maximum(xs, blx)
         xs = numpy.minimum(xs, bux)
         nvar = len(xs)
@@ -144,7 +150,7 @@ class PSQP(Optimizer):
         # which ones are which. That is a little tricky to determine,
         # so we will split them into one-sided <= zero constraints and
         # equality=0 constraints such that it is simple to determine
-        # the type of constraints. Put the equality constraints frist. 
+        # the type of constraints. Put the equality constraints frist.
 
         oneSided = True
         # Set the number of nonlinear constraints snopt *thinks* we have:
@@ -155,69 +161,67 @@ class PSQP(Optimizer):
             cu = []
             ic = []
         else:
-            indices, blc, buc, fact = self.optProb.getOrdering(
-                ['ne','le','ni','li'], oneSided=oneSided)
+            indices, blc, buc, fact = self.optProb.getOrdering(["ne", "le", "ni", "li"], oneSided=oneSided)
             ncon = len(indices)
-            cl = numpy.zeros(ncon)#-self.getOption('XMAX')*numpy.ones(ncon)
+            cl = numpy.zeros(ncon)  # -self.getOption('XMAX')*numpy.ones(ncon)
             cu = numpy.zeros(ncon)
-            cf = numpy.zeros(ncon+1)
-            ic = 2*numpy.ones(ncon, 'intc')
+            cf = numpy.zeros(ncon + 1)
+            ic = 2 * numpy.ones(ncon, "intc")
             self.optProb.jacIndices = indices
             self.optProb.fact = fact
             self.optProb.offset = buc
 
             # Also figure out the number of equality and set the type
             # of constraint to 5
-            tmp0, __, __, __ = self.optProb.getOrdering(
-                ['ne', 'le'], oneSided=oneSided)
-            ic[0:len(tmp0)] = 5
+            tmp0, __, __, __ = self.optProb.getOrdering(["ne", "le"], oneSided=oneSided)
+            ic[0 : len(tmp0)] = 5
 
         if self.optProb.comm.rank == 0:
             # Set history/hotstart
             self._setHistory(storeHistory, hotStart)
 
-            #======================================================================
+            # ======================================================================
             # PSQP - Objective Values Function
-            #======================================================================
+            # ======================================================================
             def pobj(n, x, f):
                 if self._checkEval(x):
                     self._internalEval(x)
 
-                f = self.storedData['fobj']
-                psqp.pyflush(self.getOption('IOUT'))
+                f = self.storedData["fobj"]
+                psqp.pyflush(self.getOption("IOUT"))
                 return f
 
-            #======================================================================
+            # ======================================================================
             # PSQP - Constraint Values Function
-            #======================================================================
+            # ======================================================================
             def pcon(n, k, x, g):
                 if self._checkEval(x):
                     self._internalEval(x)
 
-                g = self.storedData['fcon'][k-1]
-                psqp.pyflush(self.getOption('IOUT'))
+                g = self.storedData["fcon"][k - 1]
+                psqp.pyflush(self.getOption("IOUT"))
                 return g
 
-            #======================================================================
+            # ======================================================================
             # PSQP - Objective Gradients Function
-            #======================================================================
+            # ======================================================================
             def pdobj(n, x, df):
                 if self._checkEval(x):
                     self._internalEval(x)
 
-                df = self.storedData['gobj']
-                psqp.pyflush(self.getOption('IOUT'))
+                df = self.storedData["gobj"]
+                psqp.pyflush(self.getOption("IOUT"))
                 return df
 
-            #======================================================================
+            # ======================================================================
             # PSQP - Constraint Gradients Function
-            #======================================================================
+            # ======================================================================
             def pdcon(n, k, x, dg):
                 if self._checkEval(x):
                     self._internalEval(x)
-                
-                dg = self.storedData['gcon'][k-1]
-                psqp.pyflush(self.getOption('IOUT'))
+
+                dg = self.storedData["gcon"][k - 1]
+                psqp.pyflush(self.getOption("IOUT"))
                 return dg
 
             # Setup argument list values
@@ -226,28 +230,31 @@ class PSQP(Optimizer):
             cmax = 0.0
             opt = self.getOption
 
-            if not opt('IPRINT') <= 2:
-                raise Error('Incorrect output level setting (IPRINT) option. \
-Must be <= 2')
+            if not opt("IPRINT") <= 2:
+                raise Error(
+                    "Incorrect output level setting (IPRINT) option. \
+Must be <= 2"
+                )
 
-            if opt('IPRINT') != 0:
-                if os.path.isfile(opt('IFILE')):
-                    os.remove(opt('IFILE'))
+            if opt("IPRINT") != 0:
+                if os.path.isfile(opt("IFILE")):
+                    os.remove(opt("IFILE"))
 
             # Run PSQP
             t0 = time.time()
+            # fmt: off
             psqp.psqp_wrap(nvar, ncon, xs, xi, blx, bux, cf, ic, cl, cu, 
                            opt('MIT'), opt('MFV'), opt('MET'), opt('MEC'), 
                            opt('XMAX'), opt('TOLX'), opt('TOLC'), opt('TOLG'), 
                            opt('RPF'), ff, gmax, cmax, opt('IPRINT'), 
                            opt('IOUT'), opt('IFILE'), iterm, pobj, pdobj, 
                            pcon, pdcon)
-
+            # fmt: on
             optTime = time.time() - t0
 
-            if opt('IPRINT') > 0:
-                psqp.closeunit(opt('IPRINT'))
-                
+            if opt("IPRINT") > 0:
+                psqp.closeunit(opt("IPRINT"))
+
             # Broadcast a -1 to indcate SLSQP has finished
             self.optProb.comm.bcast(-1, root=0)
 
@@ -256,9 +263,9 @@ Must be <= 2')
             # sol_inform['value'] = inform
             # sol_inform['text'] = self.informs[inform[0]]
             if self.storeHistory:
-                self.metadata['endTime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                self.metadata['optTime'] = optTime
-                self.hist.writeData('metadata',self.metadata)
+                self.metadata["endTime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.metadata["optTime"] = optTime
+                self.hist.writeData("metadata", self.metadata)
                 self.hist.close()
 
             # Create the optimization solution
@@ -275,10 +282,6 @@ Must be <= 2')
 
     def _on_setOption(self, name, value):
         pass
-        
+
     def _on_getOption(self, name):
         pass
-
-
-        
-        
