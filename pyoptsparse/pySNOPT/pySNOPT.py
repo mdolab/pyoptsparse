@@ -158,6 +158,7 @@ class SNOPT(Optimizer):
         'Sticky parameters':[str,'No'],
         #pySNOPT Options
         'Save major iteration variables':[list,['step','merit','feasibility','optimality','penalty']], # 'Hessian', 'slack', 'lambda' and 'condZHZ' are also supported
+        'Return work arrays':[bool,False], # whether or not the work arrays are returned in addition to the solution
         }
         informs = {
         0 : 'finished successfully',
@@ -253,7 +254,7 @@ class SNOPT(Optimizer):
 
     def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
                  storeHistory=None, hotStart=None, storeSens=True,
-                 timeLimit=None):
+                 timeLimit=None, restartDict=None):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -495,7 +496,14 @@ class SNOPT(Optimizer):
 
             # Set history/hotstart
             self._setHistory(storeHistory, hotStart)
-
+            if restartDict is not None:
+                rw = restartDict['rw']
+                iw = restartDict['iw']
+                cw = restartDict['cw']
+                hs = restartDict['hs']
+                xs = restartDict['xs']
+                pi = restartDict['pi']
+                Acol = restartDict['Acol']
             # The snopt c interface
             timeA = time.time()
             snopt.snkerc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
@@ -503,6 +511,14 @@ class SNOPT(Optimizer):
                          Acol, indA, locA, bl, bu, Names, hs, xs, pi, rc, inform,
                          mincw, miniw, minrw, nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
             optTime = time.time()-timeA
+
+            # self.setOption('Start', 'Hot')
+            # self.setOption('Major iterations limit', 100)
+            # self._set_snopt_options(iPrint, iSumm, cw, iw, rw)
+            # snopt.snkerc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
+            #              self._userfg_wrap, snopt.snlog, snopt.snlog2, snopt.sqlog, self._snstop,
+            #              Acol, indA, locA, bl, bu, Names, hs, xs, pi, rc, inform,
+            #              mincw, miniw, minrw, nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
 
             # Indicate solution finished
             self.optProb.comm.bcast(-1, root=0)
@@ -538,8 +554,18 @@ class SNOPT(Optimizer):
 
         # Communication solution and return
         sol = self._communicateSolution(sol)
-
-        return sol
+        if self.options['Return work arrays']:
+            hotstartDict = {
+                'cw':cw,
+                'iw':iw,
+                'rw':rw,
+                'xs':xs,
+                'hs':hs,
+                'pi':pi,
+            }
+            return sol, restartDict
+        else:
+            return sol
 
     def _userfg_wrap(self, mode, nnJac, x, fobj, gobj, fcon, gcon,
                      nState, cu, iu, ru):
@@ -691,6 +717,9 @@ class SNOPT(Optimizer):
                                     cw, iw, rw)
                     elif (value == 'Warm'):
                         snopt.snset('Warm start', iPrint, iSumm, inform,
+                                    cw, iw, rw)
+                    elif (value == 'Hot'):
+                        snopt.snset('Hot start', iPrint, iSumm, inform,
                                     cw, iw, rw)
                 elif (name == 'Problem Type'):
                     if (value == 'Minimize'):
