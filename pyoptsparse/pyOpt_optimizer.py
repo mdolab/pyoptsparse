@@ -10,7 +10,7 @@ Holds the Python Design Optimization Classes (base and inherited).
 import os
 import time
 import copy
-import numpy
+import numpy as np
 from .pyOpt_gradient import Gradient
 from .pyOpt_error import Error, pyOptSparseWarning
 from .pyOpt_history import History
@@ -21,7 +21,7 @@ from collections import OrderedDict
 import datetime
 from .pyOpt_MPI import MPI
 
-eps = numpy.finfo(numpy.float64).eps
+eps = np.finfo(np.float64).eps
 
 # =============================================================================
 # Optimizer Class
@@ -214,7 +214,7 @@ class Optimizer(object):
 
                 # Validated x-point point to use:
                 xuser_vec = self.optProb._mapXtoUser(x)
-                if numpy.isclose(xuser_vec, xuser_ref, rtol=eps, atol=eps).all():
+                if np.isclose(xuser_vec, xuser_ref, rtol=eps, atol=eps).all():
 
                     # However, we may need a sens that *isn't* in the
                     # the dictionary:
@@ -318,7 +318,7 @@ class Optimizer(object):
         returns = []
         # Start with fobj:
         if "fobj" in evaluate:
-            if not numpy.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
+            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
                 timeA = time.time()
                 args = self.optProb.objFun(xuser)
                 if isinstance(args, tuple):
@@ -359,7 +359,7 @@ class Optimizer(object):
             hist["funcs"] = self.cache["funcs"]
 
         if "fcon" in evaluate:
-            if not numpy.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
+            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
                 timeA = time.time()
 
                 args = self.optProb.objFun(xuser)
@@ -401,7 +401,7 @@ class Optimizer(object):
             hist["funcs"] = self.cache["funcs"]
 
         if "gobj" in evaluate:
-            if not numpy.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
+            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recursively call
                 # the routine with ['fobj', and 'fcon']
@@ -455,7 +455,7 @@ class Optimizer(object):
                 hist["funcsSens"] = self.cache["funcsSens"]
 
         if "gcon" in evaluate:
-            if not numpy.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
+            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recursively call
                 # the routine with ['fobj', and 'fcon']
@@ -647,7 +647,7 @@ class Optimizer(object):
         cache with a magic number. If the starting points for your
         optimization is -9999999999 then you out of luck!
         """
-        self.cache["x"] = -999999999 * numpy.ones(self.optProb.ndvs)
+        self.cache["x"] = -999999999 * np.ones(self.optProb.ndvs)
 
     def _assembleContinuousVariables(self):
         """
@@ -668,9 +668,9 @@ class Optimizer(object):
                 else:
                     raise Error("%s cannot handle integer or discrete " "design variables" % self.name)
 
-        blx = numpy.array(blx)
-        bux = numpy.array(bux)
-        xs = numpy.array(xs)
+        blx = np.array(blx)
+        bux = np.array(bux)
+        xs = np.array(xs)
 
         return blx, bux, xs
 
@@ -701,8 +701,8 @@ class Optimizer(object):
             buc.append(INFINITY)
 
         ncon = len(blc)
-        blc = numpy.array(blc)
-        buc = numpy.array(buc)
+        blc = np.array(blc)
+        buc = np.array(buc)
 
         return ncon, blc, buc
 
@@ -720,7 +720,7 @@ class Optimizer(object):
         for objKey in self.optProb.objectives:
             ff.append(self.optProb.objectives[objKey].value)
 
-        return numpy.real(numpy.squeeze(ff))
+        return np.real(np.squeeze(ff))
 
     def _createSolution(self, optTime, sol_inform, obj, xopt, multipliers=None):
         """

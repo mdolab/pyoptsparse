@@ -1,7 +1,7 @@
 """Test solution of problem HS71 from the Hock & Schittkowski collection"""
 
 import unittest
-import numpy
+import numpy as np
 from numpy.testing import assert_allclose
 from pyoptsparse import Optimization, OPT, History
 from pyoptsparse.pyOpt_error import Error
@@ -20,7 +20,7 @@ class TestHS71(unittest.TestCase):
         x = xdict["xvars"]
         funcsSens = {}
         funcsSens["obj"] = {
-            "xvars": numpy.array(
+            "xvars": np.array(
                 [x[0] * x[3] + x[3] * (x[0] + x[1] + x[2]), x[0] * x[3], x[0] * x[3] + 1.0, x[0] * (x[0] + x[1] + x[2])]
             )
         }
@@ -99,7 +99,7 @@ class TestHS71(unittest.TestCase):
         """
         test_name = "hs071_SLSQP_setDV"
         histFileName = "{}.hst".format(test_name)
-        newDV = {"xvars": numpy.array([1, 4, 4, 1])}
+        newDV = {"xvars": np.array([1, 4, 4, 1])}
         optOptions = {"IFILE": "{}.out".format(test_name)}
         self.optimize(
             "SLSQP",

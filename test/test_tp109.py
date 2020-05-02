@@ -27,7 +27,7 @@ Test uses Schittkowski's TP109 constraint problem.
 """
 import unittest
 
-import numpy
+import numpy as np
 from numpy import sin, cos
 from numpy.testing import assert_allclose
 from pyoptsparse import Optimization, OPT
@@ -44,7 +44,7 @@ def objfunc(xdict):
     c = cos(0.250)
     funcs = {}
     funcs["obj"] = 3.0 * x[0] + (1e-6) * x[0] ** 3 + 0.522074e-6 * x[1] ** 3 + 2 * x[1]
-    fcon = numpy.zeros(10, "D")
+    fcon = np.zeros(10, "D")
     fcon[0] = 2250000 - x[0] ** 2 - x[7] ** 2
     fcon[1] = 2250000 - x[1] ** 2 - x[8] ** 2
     fcon[2] = x[4] * x[5] * sin(-x[2] - 0.25) + x[4] * x[6] * sin(-x[3] - 0.25) + 2 * b * x[4] ** 2 - a * x[0] + 400 * a
@@ -109,7 +109,7 @@ class TestTP109(unittest.TestCase):
 
         # And the 2 linear constriants
         if USE_LINEAR:
-            jac = numpy.zeros((1, 9))
+            jac = np.zeros((1, 9))
             jac[0, 3] = 1.0
             jac[0, 2] = -1.0
             optProb.addConGroup("lin_con", 1, lower=-0.55, upper=0.55, wrt=["xvars"], jac={"xvars": jac}, linear=True)
@@ -159,7 +159,7 @@ class TestTP109(unittest.TestCase):
 
         # And the 2 linear constriants
         if USE_LINEAR:
-            jac = numpy.zeros((1, 9))
+            jac = np.zeros((1, 9))
             jac[0, 3] = 1.0
             jac[0, 2] = -1.0
             optProb.addConGroup("lin_con", 1, lower=-0.55, upper=0.55, wrt=["xvars"], jac={"xvars": jac}, linear=True)

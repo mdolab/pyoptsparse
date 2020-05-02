@@ -8,12 +8,12 @@ Holds the representation of a pyOptSparse constraint group
 # External Python modules
 # =============================================================================
 import copy
-import numpy
+import numpy as np
 from .pyOpt_error import Error, pyOptSparseWarning
 from .pyOpt_utils import convertToCOO
 
 INFINITY = 1e20
-eps = numpy.finfo(numpy.float64).eps
+eps = np.finfo(np.float64).eps
 # =============================================================================
 # Constraint Class
 # =============================================================================
@@ -38,8 +38,8 @@ class Constraint(object):
 
         if lower is None:
             lower = [None for i in range(self.ncon)]
-        elif numpy.isscalar(lower):
-            lower = lower * numpy.ones(self.ncon)
+        elif np.isscalar(lower):
+            lower = lower * np.ones(self.ncon)
         elif len(lower) == self.ncon:
             pass  # Some iterable object
         else:
@@ -51,8 +51,8 @@ class Constraint(object):
 
         if upper is None:
             upper = [None for i in range(self.ncon)]
-        elif numpy.isscalar(upper):
-            upper = upper * numpy.ones(self.ncon)
+        elif np.isscalar(upper):
+            upper = upper * np.ones(self.ncon)
         elif len(upper) == self.ncon:
             pass  # Some iterable object
         else:
@@ -63,9 +63,9 @@ class Constraint(object):
             )
 
         # ------ Process the scale argument
-        scale = numpy.atleast_1d(scale)
+        scale = np.atleast_1d(scale)
         if len(scale) == 1:
-            scale = scale[0] * numpy.ones(nCon)
+            scale = scale[0] * np.ones(nCon)
         elif len(scale) == nCon:
             pass
         else:
@@ -79,7 +79,7 @@ class Constraint(object):
         self.lower = lower
         self.upper = upper
         # The current value of the constraint (for printing purposes)
-        self.value = numpy.zeros(self.ncon)
+        self.value = np.zeros(self.ncon)
 
         # Now we determine what kind of constraint this is:
         # 1. An equality constraint
@@ -180,15 +180,15 @@ class Constraint(object):
         # end for (con loop)
 
         # Convert the stuff to arrays:
-        oneSidedConstraints["ind"] = numpy.array(oneSidedConstraints["ind"], "intc")
-        twoSidedConstraints["ind"] = numpy.array(twoSidedConstraints["ind"], "intc")
-        equalityConstraints["ind"] = numpy.array(equalityConstraints["ind"], "intc")
+        oneSidedConstraints["ind"] = np.array(oneSidedConstraints["ind"], "intc")
+        twoSidedConstraints["ind"] = np.array(twoSidedConstraints["ind"], "intc")
+        equalityConstraints["ind"] = np.array(equalityConstraints["ind"], "intc")
 
-        oneSidedConstraints["fact"] = numpy.array(oneSidedConstraints["fact"])
-        twoSidedConstraints["fact"] = numpy.array(twoSidedConstraints["fact"])
-        equalityConstraints["fact"] = numpy.array(equalityConstraints["fact"])
+        oneSidedConstraints["fact"] = np.array(oneSidedConstraints["fact"])
+        twoSidedConstraints["fact"] = np.array(twoSidedConstraints["fact"])
+        equalityConstraints["fact"] = np.array(equalityConstraints["fact"])
 
-        equalityConstraints["value"] = numpy.array(equalityConstraints["value"])
+        equalityConstraints["value"] = np.array(equalityConstraints["value"])
 
         # Now save this information:
         self.equalityConstraints = equalityConstraints
@@ -295,7 +295,7 @@ class Constraint(object):
             for dvGroup in self.wrt:
                 ss = dvOffset[dvGroup]
                 ndvs = ss[1] - ss[0]
-                self.jac[dvGroup] = convertToCOO(numpy.zeros((self.ncon, ndvs)))
+                self.jac[dvGroup] = convertToCOO(np.zeros((self.ncon, ndvs)))
 
             # Set a flag for the constraint object, that not returning
             # them all is ok.
@@ -325,7 +325,7 @@ class Constraint(object):
                 except KeyError:
                     # No big deal, just make a dense component...and
                     # set to zero
-                    self.jac[dvGroup] = convertToCOO(numpy.zeros((self.ncon, ndvs)))
+                    self.jac[dvGroup] = convertToCOO(np.zeros((self.ncon, ndvs)))
 
                 # Convert Now check that the supplied jacobian to COO:
                 self.jac[dvGroup] = convertToCOO(self.jac[dvGroup])
@@ -384,7 +384,7 @@ class Constraint(object):
             res += (
                 "	 "
                 + str(self.name).center(9)
-                + "	  i %15.2e <= %8f <= %8.2e\n" % (numpy.real(lower), numpy.real(value), numpy.real(upper))
+                + "	  i %15.2e <= %8f <= %8.2e\n" % (np.real(lower), np.real(value), np.real(upper))
             )
 
         return res

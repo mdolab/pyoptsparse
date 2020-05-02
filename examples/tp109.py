@@ -27,7 +27,7 @@ Solves Schittkowski's TP109 constraint problem.
     x*1 = [0.674888100445e+03, 0.113417039470e+04, 0.133569060261e+00, -0.371152592466e+00, 0.252e+03, 0.252e+03, 0.201464535316e+03, 0.426660777226e+03, 0.368494083867e+03]
 """
 
-import numpy
+import numpy as np
 import argparse
 from numpy import sin, cos
 from pyoptsparse import Optimization, OPT
@@ -47,7 +47,7 @@ def objfunc(xdict):
     c = cos(0.250)
     funcs = {}
     funcs["obj"] = 3.0 * x[0] + (1e-6) * x[0] ** 3 + 0.522074e-6 * x[1] ** 3 + 2 * x[1]
-    fcon = numpy.zeros(10, "D")
+    fcon = np.zeros(10, "D")
     fcon[0] = 2250000 - x[0] ** 2 - x[7] ** 2
     fcon[1] = 2250000 - x[1] ** 2 - x[8] ** 2
     fcon[2] = x[4] * x[5] * sin(-x[2] - 0.25) + x[4] * x[6] * sin(-x[3] - 0.25) + 2 * b * x[4] ** 2 - a * x[0] + 400 * a
@@ -110,7 +110,7 @@ optProb.addConGroup("con", len(lower), lower=lower, upper=upper)
 
 # And the 2 linear constriants
 if USE_LINEAR:
-    jac = numpy.zeros((1, 9))
+    jac = np.zeros((1, 9))
     jac[0, 3] = 1.0
     jac[0, 2] = -1.0
     optProb.addConGroup("lin_con", 1, lower=-0.55, upper=0.55, wrt=["xvars"], jac={"xvars": jac}, linear=True)

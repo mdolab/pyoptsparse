@@ -18,7 +18,7 @@ import time
 # =============================================================================
 # External Python modules
 # =============================================================================
-import numpy
+import numpy as np
 
 # ===========================================================================
 # Extension modules
@@ -95,9 +95,9 @@ class NSGA2(Optimizer):
         # NSGA-II - Objective/Constraint Values Function
         # ======================================================================
         def objconfunc(nreal, nobj, ncon, x, f, g):
-            xx = numpy.array(x)
+            xx = np.array(x)
             fobj, fcon, fail = self._masterFunc(xx, ["fobj", "fcon"])
-            fobj = numpy.atleast_1d(fobj)
+            fobj = np.atleast_1d(fobj)
             f[0:nobj] = fobj
             g[0:ncon] = -fcon[0:ncon]
 
@@ -121,8 +121,8 @@ class NSGA2(Optimizer):
         self._setInitialCacheValues()
 
         blx, bux, xs = self._assembleContinuousVariables()
-        xs = numpy.maximum(xs, blx)
-        xs = numpy.minimum(xs, bux)
+        xs = np.maximum(xs, blx)
+        xs = np.minimum(xs, bux)
         n = len(xs)
         ff = self._assembleObjective()
         oneSided = True
@@ -141,7 +141,7 @@ class NSGA2(Optimizer):
             self.optProb.offset = buc
 
         g = nsga2.new_doubleArray(m)
-        len_ff = len(numpy.atleast_1d(ff))
+        len_ff = len(np.atleast_1d(ff))
         f = nsga2.new_doubleArray(len_ff)
 
         if self.optProb.comm.rank == 0:

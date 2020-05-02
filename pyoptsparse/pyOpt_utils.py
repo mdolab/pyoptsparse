@@ -12,7 +12,7 @@ mat = {'coo':[row, col, data], 'shape':[nrow, ncols]} # A coo matrix
 mat = {'csr':[rowp, colind, data], 'shape':[nrow, ncols]} # A csr matrix
 mat = {'coo':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
 """
-import numpy
+import numpy as np
 import warnings
 from .pyOpt_error import Error
 
@@ -74,7 +74,7 @@ def mapToCSR(mat):
         # First handle the trivial case CSR->CSR
         row_p = mat["csr"][IROW]
         col_idx = mat["csr"][ICOL]
-        idx_data = numpy.s_[:]
+        idx_data = np.s_[:]
         return row_p, col_idx, idx_data
 
     num_rows = mat["shape"][0]
@@ -88,7 +88,7 @@ def mapToCSR(mat):
         nnz = csc_colp[-1]
 
         # Allocate the COO maps
-        cols = numpy.zeros(nnz, dtype="intc")
+        cols = np.zeros(nnz, dtype="intc")
 
         # We already have a full representation of the columns.
         # We need to decompress the representation of the rows.
@@ -101,18 +101,18 @@ def mapToCSR(mat):
         nnz = len(rows)
 
     # Allocate the row pointer array
-    row_p = numpy.zeros(num_rows + 1, dtype="intc")
+    row_p = np.zeros(num_rows + 1, dtype="intc")
 
     # Get the sort order that puts data in row-major form
-    idx_data = numpy.lexsort((cols, rows))
+    idx_data = np.lexsort((cols, rows))
 
     # Apply the row-major indexing to the COO column and row indices
-    col_idx = numpy.asarray(cols, dtype="intc")[idx_data]
-    rows_rowmaj = numpy.asarray(rows, dtype="intc")[idx_data]
+    col_idx = np.asarray(cols, dtype="intc")[idx_data]
+    rows_rowmaj = np.asarray(rows, dtype="intc")[idx_data]
 
     # Now for i = 0 to num_rows-1, row_p[i] is the first occurrence
     # of i in rows_rowmaj
-    row_p[:-1] = numpy.digitize(numpy.arange(num_rows), rows_rowmaj, right=True)
+    row_p[:-1] = np.digitize(np.arange(num_rows), rows_rowmaj, right=True)
 
     # By convention store nnz in the last element of row_p
     row_p[-1] = nnz
@@ -148,7 +148,7 @@ def mapToCSC(mat):
         # First handle the trivial case CSR->CSR
         row_idx = mat["csc"][IROW]
         col_p = mat["csc"][ICOL]
-        idx_data = numpy.s_[:]
+        idx_data = np.s_[:]
         return row_idx, col_p, idx_data
 
     num_rows = mat["shape"][0]
@@ -162,7 +162,7 @@ def mapToCSC(mat):
         nnz = csr_rowp[-1]
 
         # Allocate the COO maps
-        rows = numpy.zeros(nnz, dtype="intc")
+        rows = np.zeros(nnz, dtype="intc")
 
         # We already have a full representation of the columns.
         # We need to decompress the representation of the rows.
@@ -180,18 +180,18 @@ def mapToCSC(mat):
         raise ValueError("Invalid matrix type")
 
     # Allocate the new column pointer
-    col_p = numpy.zeros(num_cols + 1, dtype="intc")
+    col_p = np.zeros(num_cols + 1, dtype="intc")
 
     # Get the sort order that puts data in column-major form
-    idx_data = numpy.lexsort((rows, cols))
+    idx_data = np.lexsort((rows, cols))
 
     # Apply the column-major indexing to the COO column and row indices
-    row_idx = numpy.asarray(rows, dtype="intc")[idx_data]
-    cols_colmaj = numpy.asarray(cols, dtype="intc")[idx_data]
+    row_idx = np.asarray(rows, dtype="intc")[idx_data]
+    cols_colmaj = np.asarray(cols, dtype="intc")[idx_data]
 
     # Now for i = 0 to num_cols-1, col_p[i] is the first occurrence
     # of i in cols_colmaj
-    col_p[:-1] = numpy.digitize(numpy.arange(num_cols), cols_colmaj, right=True)
+    col_p[:-1] = np.digitize(np.arange(num_cols), cols_colmaj, right=True)
 
     # By convention store nnz in the last element of col_p
     col_p[-1] = nnz
@@ -248,7 +248,7 @@ def convertToCOO(mat):
 
         # Now try to do it with a numpy matrix:
         try:
-            return _denseToCOO(numpy.atleast_2d(numpy.array(mat)))
+            return _denseToCOO(np.atleast_2d(np.array(mat)))
         except:  # noqa: E722
             raise Error(
                 "Unknown matrix format. Must be a dense numpy "
@@ -283,7 +283,7 @@ def convertToCSR(mat):
     cols = mat["coo"][ICOL]
     data = mat["coo"][IDATA]
 
-    rowp = numpy.zeros(n + 1, dtype="intc")
+    rowp = np.zeros(n + 1, dtype="intc")
 
     # Count up the number of times things are index
     for row in rows:
@@ -293,8 +293,8 @@ def convertToCSR(mat):
     for i in range(1, n + 1):
         rowp[i] += rowp[i - 1]
 
-    ncols = numpy.zeros(rowp[-1], dtype="intc")
-    ndata = numpy.zeros(rowp[-1], dtype=type(data[0]))
+    ncols = np.zeros(rowp[-1], dtype="intc")
+    ndata = np.zeros(rowp[-1], dtype=type(data[0]))
 
     # Now, add all the values and the data
     for i in range(len(rows)):
@@ -337,8 +337,8 @@ def convertToCSC(mat):
     data = mat["csr"][IDATA]
 
     # Allocate the new arrays
-    colp = numpy.zeros(m + 1, "intc")
-    rows = numpy.zeros(len(cols), "intc")
+    colp = np.zeros(m + 1, "intc")
+    rows = np.zeros(len(cols), "intc")
 
     # Count up the number of references to each column
     for col in cols:
@@ -349,7 +349,7 @@ def convertToCSC(mat):
         colp[i] += colp[i - 1]
 
     # Allocate data for the csc object
-    csc_data = numpy.zeros(len(data), dtype=type(data[0]))
+    csc_data = np.zeros(len(data), dtype=type(data[0]))
 
     # Scan through the CSR data structure
     for i in range(n):
@@ -387,7 +387,7 @@ def convertToDense(mat):
     """
 
     mat = convertToCSR(mat)
-    newMat = numpy.zeros((mat["shape"]))
+    newMat = np.zeros((mat["shape"]))
     data = mat["csr"][IDATA]
     colInd = mat["csr"][ICOLIND]
     rowp = mat["csr"][IROWP]
@@ -451,7 +451,7 @@ def extractRows(mat, indices):
     data = mat["csr"][IDATA]
     m = mat["shape"][1]
     nn = len(indices)
-    nrowp = numpy.zeros(nn + 1, "intc")
+    nrowp = np.zeros(nn + 1, "intc")
 
     # Count up the size of everything
     size = 0
@@ -460,8 +460,8 @@ def extractRows(mat, indices):
         nrowp[i + 1] = size
 
     # Create the new columns and data arrays
-    ncols = numpy.zeros(size, "intc")
-    ndata = numpy.zeros(size, dtype=type(data[0]))
+    ncols = np.zeros(size, "intc")
+    ndata = np.zeros(size, dtype=type(data[0]))
 
     # Re-indices the new columns
     for i in range(nn):
@@ -488,8 +488,8 @@ def _denseToCOO(arr):
     nRows = arr.shape[0]
     nCols = arr.shape[1]
     data = arr.flatten()
-    cols = numpy.mod(numpy.arange(nRows * nCols), nCols)
-    rows = numpy.arange(nRows * nCols) // nCols
+    cols = np.mod(np.arange(nRows * nCols), nCols)
+    rows = np.arange(nRows * nCols) // nCols
     return {"coo": [rows, cols, data], "shape": [nRows, nCols]}
 
 
@@ -507,13 +507,13 @@ def _csr_to_coo(mat):
     rowp = mat["csr"][IROWP]
     cols = mat["csr"][ICOLIND]
     data = mat["csr"][IDATA]
-    coo_rows = numpy.zeros(len(cols), "intc")
-    coo_cols = numpy.array(cols, "intc")
+    coo_rows = np.zeros(len(cols), "intc")
+    coo_cols = np.array(cols, "intc")
 
     for i in range(mat["shape"][0]):
         coo_rows[rowp[i] : rowp[i + 1]] = i
 
-    coo_data = numpy.array(data)
+    coo_data = np.array(data)
 
     return {"coo": [coo_rows, coo_cols, coo_data], "shape": mat["shape"]}
 
@@ -534,12 +534,12 @@ def _csc_to_coo(mat):
     data = mat["csc"][IDATA]
 
     # This is straight forward - just expand out the columns
-    coo_rows = numpy.array(rows, "intc")
-    coo_cols = numpy.zeros(len(rows), "intc")
+    coo_rows = np.array(rows, "intc")
+    coo_cols = np.zeros(len(rows), "intc")
 
     for j in range(mat["shape"][1]):
         coo_cols[colp[j] : colp[j + 1]] = j
 
-    coo_data = numpy.array(data)
+    coo_data = np.array(data)
 
     return {"coo": [coo_rows, coo_cols, coo_data], "shape": mat["shape"]}

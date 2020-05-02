@@ -20,7 +20,7 @@ import datetime
 # =============================================================================
 # External Python modules
 # =============================================================================
-import numpy
+import numpy as np
 
 # # ===========================================================================
 # # Extension modules
@@ -236,7 +236,7 @@ class SNOPT(Optimizer):
         self._snopt_jac_map_csr_to_csc = None
 
         # Check if we have numpy version 1.13.1. This version broke the callback in snopt.
-        if numpy.__version__ == "1.13.1":
+        if np.__version__ == "1.13.1":
             raise Error("SNOPT is not compatible with numpy 1.13.1. Please use a different" "numpy version")
 
     def __call__(
@@ -340,15 +340,15 @@ class SNOPT(Optimizer):
             nnCon = len(indices)
             self.optProb.jacIndices = indices
             self.optProb.fact = fact
-            self.optProb.offset = numpy.zeros_like(fact)
+            self.optProb.offset = np.zeros_like(fact)
 
             # Again, make SNOPT think we have a nonlinear constraint when all
             # our constraints are linear
             if nnCon == 0:
                 nnCon = 1
                 self.optProb.jacIndices = [0]
-                self.optProb.fact = numpy.array([1.0])
-                self.optProb.offset = numpy.zeros_like(self.optProb.fact)
+                self.optProb.fact = np.array([1.0])
+                self.optProb.offset = np.zeros_like(self.optProb.fact)
 
         # We make a split here: If the rank is zero we setup the
         # problem and run SNOPT, otherwise we go to the waiting loop:
@@ -414,15 +414,15 @@ class SNOPT(Optimizer):
             self.options["Total integer workspace"][1] = leniw
             self.options["Total real workspace"][1] = lenrw
 
-            cw = numpy.empty((lencw, 8), "c")
-            iw = numpy.zeros(leniw, numpy.intc)
-            rw = numpy.zeros(lenrw, numpy.float)
+            cw = np.empty((lencw, 8), "c")
+            iw = np.zeros(leniw, np.intc)
+            rw = np.zeros(lenrw, np.float)
             snopt.sninit(iPrint, iSumm, cw, iw, rw)
 
             # Memory allocation
             nnObj = nvar
             nnJac = nvar
-            iObj = numpy.array(0, numpy.intc)
+            iObj = np.array(0, np.intc)
             neA = len(indA)
             neGcon = neA  # The nonlinear Jacobian and A are the same
             iExit = 0
@@ -435,14 +435,14 @@ class SNOPT(Optimizer):
             if (minrw > lenrw) or (miniw > leniw) or (mincw > lencw):
                 if mincw > lencw:
                     lencw = mincw
-                    cw = numpy.array((lencw, 8), "c")
+                    cw = np.array((lencw, 8), "c")
                     cw[:] = " "
                 if miniw > leniw:
                     leniw = miniw
-                    iw = numpy.zeros(leniw, numpy.intc)
+                    iw = np.zeros(leniw, np.intc)
                 if minrw > lenrw:
                     lenrw = minrw
-                    rw = numpy.zeros(lenrw, numpy.float)
+                    rw = np.zeros(lenrw, np.float)
 
                 snopt.sninit(iPrint, iSumm, cw, iw, rw)
 
@@ -451,34 +451,34 @@ class SNOPT(Optimizer):
                 self._set_snopt_options(iPrint, iSumm, cw, iw, rw)
 
             # Setup argument list values
-            start = numpy.array(self.options["Start"][1])
-            ObjAdd = numpy.array([0.0], numpy.float)
-            ProbNm = numpy.array(self.optProb.name, "c")
+            start = np.array(self.options["Start"][1])
+            ObjAdd = np.array([0.0], np.float)
+            ProbNm = np.array(self.optProb.name, "c")
             cdummy = -1111111  # this is a magic variable defined in SNOPT for undefined strings
             cw[51, :] = cdummy  # we set these to cdummy so that a placeholder is used in printout
             cw[52, :] = cdummy
             cw[53, :] = cdummy
             cw[54, :] = cdummy
-            xs = numpy.concatenate((xs, numpy.zeros(ncon, numpy.float)))
-            bl = numpy.concatenate((blx, blc))
-            bu = numpy.concatenate((bux, buc))
+            xs = np.concatenate((xs, np.zeros(ncon, np.float)))
+            bl = np.concatenate((blx, blc))
+            bu = np.concatenate((bux, buc))
             leniu = 2
             lenru = 3
-            cu = numpy.array(["        "], "c")
-            iu = numpy.zeros(leniu, numpy.intc)
-            ru = numpy.zeros(lenru, numpy.float)
-            hs = numpy.zeros(nvar + ncon, numpy.intc)
+            cu = np.array(["        "], "c")
+            iu = np.zeros(leniu, np.intc)
+            ru = np.zeros(lenru, np.float)
+            hs = np.zeros(nvar + ncon, np.intc)
 
-            Names = numpy.array(["        "], "c")
-            pi = numpy.zeros(ncon, numpy.float)
-            rc = numpy.zeros(nvar + ncon, numpy.float)
-            inform = numpy.array([-1], numpy.intc)
-            mincw = numpy.array([0], numpy.intc)
-            miniw = numpy.array([0], numpy.intc)
-            minrw = numpy.array([0], numpy.intc)
-            nS = numpy.array([0], numpy.intc)
-            ninf = numpy.array([0], numpy.intc)
-            sinf = numpy.array([0.0], numpy.float)
+            Names = np.array(["        "], "c")
+            pi = np.zeros(ncon, np.float)
+            rc = np.zeros(nvar + ncon, np.float)
+            inform = np.array([-1], np.intc)
+            mincw = np.array([0], np.intc)
+            miniw = np.array([0], np.intc)
+            minrw = np.array([0], np.intc)
+            nS = np.array([0], np.intc)
+            ninf = np.array([0], np.intc)
+            sinf = np.array([0.0], np.float)
 
             # Set history/hotstart
             self._setHistory(storeHistory, hotStart)
@@ -591,9 +591,9 @@ class SNOPT(Optimizer):
         lenU = iw[392 - 1]
         Uvec = rw[lU : lU + lenU]
         nnH = iw[24 - 1]
-        Umat = numpy.zeros((nnH, nnH))
-        Umat[numpy.triu_indices(nnH)] = Uvec
-        H = numpy.matmul(Umat.T, Umat)
+        Umat = np.zeros((nnH, nnH))
+        Umat[np.triu_indices(nnH)] = Uvec
+        H = np.matmul(Umat.T, Umat)
         return H
 
     def _getPenaltyParam(self, iw, rw):
@@ -663,7 +663,7 @@ class SNOPT(Optimizer):
 
         # Set Options from the local options dictionary
         # ---------------------------------------------
-        inform = numpy.array([-1], numpy.intc)
+        inform = np.array([-1], np.intc)
         for item in self.set_options:
             name = item[0]
             value = item[1]

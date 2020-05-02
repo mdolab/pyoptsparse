@@ -4,7 +4,7 @@ pyOpt_objective
 
 Holds the representation of a pyOptSparse objective
 """
-import numpy
+import numpy as np
 
 # =============================================================================
 # Objective Class
@@ -37,6 +37,6 @@ class Objective(object):
         """
         res = "        Name        Value        Optimum\n"
         res += "	 " + str(self.name).center(9)
-        res += "%12g  %12g\n" % (numpy.real(self.value), numpy.real(self.optimum))
+        res += "%12g  %12g\n" % (np.real(self.value), np.real(self.optimum))
 
         return res

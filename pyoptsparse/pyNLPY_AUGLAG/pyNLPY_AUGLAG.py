@@ -38,7 +38,7 @@ from contextlib import contextmanager
 # =============================================================================
 # External Python modules
 # =============================================================================
-import numpy
+import numpy as np
 import logging
 
 # ===========================================================================
@@ -48,7 +48,7 @@ from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_gradient import Gradient
 from ..pyOpt_error import Error
 
-eps = numpy.finfo(numpy.float64).eps
+eps = np.finfo(np.float64).eps
 # =============================================================================
 # Timeout Class
 # =============================================================================
@@ -227,17 +227,17 @@ be installed to use NLPY_AUGLAG."
             indices, blc, buc, fact = self.optProb.getOrdering(["ne", "ni", "le", "li"], oneSided=False)
             self.optProb.jacIndices = indices
             # Construct the inverse operator to self.optProb.jacIndices
-            self.optProb.jacIndicesInv = numpy.argsort(self.optProb.jacIndices)
+            self.optProb.jacIndicesInv = np.argsort(self.optProb.jacIndices)
             self.optProb.fact = fact
-            self.optProb.offset = numpy.zeros_like(indices)
+            self.optProb.offset = np.zeros_like(indices)
 
             # Count the number of nonlinear constraints for the quasi-Newton block
             # (A somewhat costly way to do this)
             tmp0, tmp1, tmp2, tmp3 = self.optProb.getOrdering(["ne", "ni"], oneSided=False)
             sparse_index = len(tmp0)
         else:
-            blc = numpy.array([])
-            buc = numpy.array([])
+            blc = np.array([])
+            buc = np.array([])
             sparse_index = 0
 
         # Since this algorithm exploits parallel computing, define the
@@ -600,7 +600,7 @@ of 'FD' or 'CS' or a user supplied function or group of functions."
             # if self.optProb.comm.rank == 0:
             # print("userObjCalls = %d"%self.userObjCalls)
             # print("userSensCalls = %d"%self.userSensCalls)
-            if numpy.linalg.norm(x - self.cache["x"]) > eps:
+            if np.linalg.norm(x - self.cache["x"]) > eps:
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recusively call
                 # the routine with ['fobj', and 'fcon']
@@ -630,7 +630,7 @@ of 'FD' or 'CS' or a user supplied function or group of functions."
 
         # Evaluate the matrix-vector products
         if "gcon_prod" in evaluate or "gcon_T_prod" in evaluate:
-            if numpy.linalg.norm(x - self.cache["x"]) > eps:
+            if np.linalg.norm(x - self.cache["x"]) > eps:
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recusively call
                 # the routine with ['fobj', and 'fcon']

@@ -9,12 +9,12 @@ Holds the Python Design Optimization History Class.
 # =============================================================================
 import os
 import copy
-import numpy
+import numpy as np
 from .pyOpt_error import Error, pyOptSparseWarning
 from sqlitedict import SqliteDict
 from collections import OrderedDict
 
-eps = numpy.finfo(numpy.float64).eps
+eps = np.finfo(np.float64).eps
 # =============================================================================
 # History Class
 # =============================================================================
@@ -186,7 +186,7 @@ class History(object):
         for i in range(last, 0, -1):
             key = "%d" % i
             xuser = self.optProb.processXtoVec(self.db[key]["xuser"])
-            if numpy.isclose(xuser, x, atol=eps, rtol=eps).all() and "funcs" in self.db[key].keys():
+            if np.isclose(xuser, x, atol=eps, rtol=eps).all() and "funcs" in self.db[key].keys():
                 callCounter = i
                 break
         return callCounter
@@ -634,7 +634,7 @@ class History(object):
         # reshape lists into numpy arrays
         for name in names:
             # we just stack along axis 0
-            data[name] = numpy.stack(data[name], axis=0)
+            data[name] = np.stack(data[name], axis=0)
 
         return data
 

@@ -20,7 +20,7 @@ import datetime
 # =============================================================================
 # External Python modules
 # =============================================================================
-import numpy
+import numpy as np
 
 # ===========================================================================
 # Extension modules
@@ -133,8 +133,8 @@ class CONMIN(Optimizer):
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
-        xs = numpy.maximum(xs, blx)
-        xs = numpy.minimum(xs, bux)
+        xs = np.maximum(xs, blx)
+        xs = np.minimum(xs, bux)
         ff = self._assembleObjective()
 
         oneSided = True
@@ -191,7 +191,7 @@ class CONMIN(Optimizer):
             nn3 = max(nn2, ndv)
             nn4 = max(nn2, ndv)
             nn5 = 2 * nn4
-            gg = numpy.zeros(ncn, numpy.float)
+            gg = np.zeros(ncn, np.float)
             if self.getOption("IPRINT") >= 0 and self.getOption("IPRINT") <= 4:
                 iprint = self.getOption("IPRINT")
             else:

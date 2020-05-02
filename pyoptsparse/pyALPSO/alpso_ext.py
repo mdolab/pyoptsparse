@@ -27,7 +27,7 @@ from math import floor
 # =============================================================================
 # External Python modules
 # =============================================================================
-import numpy
+import numpy as np
 from ..pyOpt_error import pyOptSparseWarning
 
 # =============================================================================
@@ -68,8 +68,8 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
     #
     if x0 != []:
         if isinstance(x0, list):
-            x0 = numpy.array(x0)
-        elif not isinstance(x0, numpy.ndarray):
+            x0 = np.array(x0)
+        elif not isinstance(x0, np.ndarray):
             pyOptSparseWarning(
                 ("Initial x must be either list or numpy.array, " "all initial positions randomly generated")
             )
@@ -160,23 +160,23 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
     #
     dt = 1.0
     vlimit = vmax
-    vmax = numpy.ones(dimensions, float) * vmax
+    vmax = np.ones(dimensions, float) * vmax
     if scale == 1:
-        space_centre = numpy.zeros(dimensions, float)
-        space_halflen = numpy.zeros(dimensions, float)
+        space_centre = np.zeros(dimensions, float)
+        space_halflen = np.zeros(dimensions, float)
         for j in range(dimensions):
             space_centre[j] = (xmin[j] + xmax[j]) / 2.0
             space_halflen[j] = (xmax[j] - xmin[j]) / 2.0
 
-        xmin = -numpy.ones(dimensions, float)
-        xmax = numpy.ones(dimensions, float)
+        xmin = -np.ones(dimensions, float)
+        xmax = np.ones(dimensions, float)
     else:
         for j in range(dimensions):
             vmax[j] = ((xmax[j] - xmin[j]) / 2.0) * vlimit
 
     # Initialize the positions and velocities for entire population
-    x_k = numpy.zeros((swarmsize, dimensions), float)
-    v_k = numpy.zeros((swarmsize, dimensions), float)
+    x_k = np.zeros((swarmsize, dimensions), float)
+    v_k = np.zeros((swarmsize, dimensions), float)
     discrete_i = []
     for i in range(swarmsize):
         for j in range(dimensions):
@@ -208,16 +208,16 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
                     x_k[i, :] = x0[i, :]
 
     # Initialize Augmented Lagrange
-    f = numpy.zeros(swarmsize, float)
-    L = numpy.zeros(swarmsize, float)
-    g = numpy.zeros([swarmsize, constraints], float)
-    g_old = numpy.zeros([swarmsize, constraints], float)
-    rp = numpy.ones(constraints, float) * r0
-    lambda_val = numpy.zeros(constraints, float)
-    lambda_old = numpy.zeros(constraints, float)
-    tau = numpy.zeros([swarmsize, constraints], float)
-    tau_new = numpy.zeros(constraints, float)
-    tau_old = numpy.zeros(constraints, float)
+    f = np.zeros(swarmsize, float)
+    L = np.zeros(swarmsize, float)
+    g = np.zeros([swarmsize, constraints], float)
+    g_old = np.zeros([swarmsize, constraints], float)
+    rp = np.ones(constraints, float) * r0
+    lambda_val = np.zeros(constraints, float)
+    lambda_old = np.zeros(constraints, float)
+    tau = np.zeros([swarmsize, constraints], float)
+    tau_new = np.zeros(constraints, float)
+    tau_old = np.zeros(constraints, float)
     nfevals = 0
 
     if h_start:
@@ -263,10 +263,10 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
                 L[i] += lambda_val[l] * tau[i, l] + rp[l] * tau[i, l] ** 2
 
     # Initialize Particles Best
-    best_x = numpy.zeros((swarmsize, dimensions))
-    best_L = numpy.zeros(swarmsize, float)
-    best_f = numpy.zeros(swarmsize, float)
-    best_g = numpy.zeros([swarmsize, constraints], float)
+    best_x = np.zeros((swarmsize, dimensions))
+    best_L = np.zeros(swarmsize, float)
+    best_f = np.zeros(swarmsize, float)
+    best_g = np.zeros([swarmsize, constraints], float)
     for i in range(swarmsize):
         for j in range(dimensions):
             best_x[i, j] = x_k[i, j]
@@ -279,7 +279,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
     # Initialize Swarm Best
     swarm_i = L.argmin()
     swarm_i_old = 0
-    swarm_x = numpy.zeros(dimensions, float)
+    swarm_x = np.zeros(dimensions, float)
     for j in range(dimensions):
         swarm_x[j] = x_k[swarm_i, j]
 
@@ -287,8 +287,8 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
     swarm_L_old = L[0]
     swarm_f = f[swarm_i]
     swarm_f_old = f[0]
-    swarm_g = numpy.zeros(constraints, float)
-    swarm_g_old = numpy.zeros(constraints, float)
+    swarm_g = np.zeros(constraints, float)
+    swarm_g_old = np.zeros(constraints, float)
     for l in range(constraints):
         swarm_g[l] = g[swarm_i, l]
         swarm_g_old[l] = g[0, l]
@@ -297,10 +297,10 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
     if (nhm == "dlring") or (nhm == "slring") or (nhm == "wheel") or (nhm == "spatial") or (nhm == "sfrac"):
 
         nhps = []
-        nhbest_L = numpy.ones(swarmsize) * inf
-        nhbest_f = numpy.zeros(swarmsize)
-        nhbest_x = numpy.zeros((swarmsize, dimensions))
-        nhbest_i = numpy.zeros(swarmsize)
+        nhbest_L = np.ones(swarmsize) * inf
+        nhbest_f = np.zeros(swarmsize)
+        nhbest_x = np.zeros((swarmsize, dimensions))
+        nhbest_i = np.zeros(swarmsize)
 
         if nhm == "dlring":
             for i in range(swarmsize):
@@ -346,10 +346,10 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
                 nhps[0].append(i)
 
         elif nhm == "spatial":
-            pdist = numpy.ones((swarmsize, swarmsize)) * inf
+            pdist = np.ones((swarmsize, swarmsize)) * inf
             for i in range(swarmsize):
                 for i2 in range(i + 1, swarmsize):
-                    pdist[i, i2] = numpy.linalg.norm(x_k[i2, :] - x_k[i, :])
+                    pdist[i, i2] = np.linalg.norm(x_k[i2, :] - x_k[i, :])
 
                 for i2 in range(i):
                     pdist[i, i2] = pdist[i2, i]
@@ -364,12 +364,12 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
                     nhps[i].append(i)
 
         elif nhm == "sfrac":
-            pdist = numpy.zeros((swarmsize, swarmsize))
-            d_max = numpy.zeros(swarmsize)
+            pdist = np.zeros((swarmsize, swarmsize))
+            d_max = np.zeros(swarmsize)
             frac = 0.6
             for i in range(swarmsize):
                 for i2 in range(i + 1, swarmsize):
-                    pdist[i, i2] = numpy.linalg.norm(x_k[i2, :] - x_k[i, :])
+                    pdist[i, i2] = np.linalg.norm(x_k[i2, :] - x_k[i, :])
 
                 for i2 in range(i):
                     pdist[i, i2] = pdist[i2, i]
@@ -408,8 +408,8 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
 
     global_distance_reference = global_dist / swarmsize  # relative extent of the swarm
 
-    global_distance = numpy.zeros(stopIters, float)
-    global_L = numpy.zeros(stopIters, float)
+    global_distance = np.zeros(stopIters, float)
+    global_L = np.zeros(stopIters, float)
     for k in range(stopIters):
         global_distance[k] = global_distance_reference
         global_L[k] = swarm_L
@@ -418,7 +418,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
     if sto_hst:
         logfile.write(rseed, "seed")
         if scale == 1:
-            x_uns = numpy.zeros(x_k.shape)
+            x_uns = np.zeros(x_k.shape)
             for i in range(swarmsize):
                 x_uns[i, :] = (x_k[i, :] * space_halflen) + space_centre
 
@@ -583,7 +583,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
             # Store History
             if sto_hst:
                 if scale == 1:
-                    x_uns = numpy.zeros(x_k.shape)
+                    x_uns = np.zeros(x_k.shape)
                     for i in range(swarmsize):
                         x_uns[i, :] = (x_k[i, :] * space_halflen) + space_centre
 
@@ -659,7 +659,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
             if (nhm == "spatial") or (nhm == "sfrac"):
                 for i in range(swarmsize):
                     for i2 in range(i + 1, swarmsize):
-                        pdist[i, i2] = numpy.linalg.norm(x_k[i2, :] - x_k[i, :])
+                        pdist[i, i2] = np.linalg.norm(x_k[i2, :] - x_k[i, :])
 
                     for i2 in range(i):
                         pdist[i, i2] = pdist[i2, i]
@@ -704,7 +704,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
                             nhbest_i[i] = nbp
 
             # Print Inner
-            if prtInnIter != 0 and numpy.mod(k_inn, prtInnIter) == 0:
+            if prtInnIter != 0 and np.mod(k_inn, prtInnIter) == 0:
                 # output to screen
                 print("Outer Iteration: %d     [%d. Inner Iteration]" % (k_out, k_inn))
 
@@ -724,7 +724,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
                 logfile.write(swarm_g, "gbest_g")
 
         # Print Outer
-        if prtOutIter != 0 and numpy.mod(k_out, prtOutIter) == 0:
+        if prtOutIter != 0 and np.mod(k_out, prtOutIter) == 0:
             # Output to screen
             print("=" * 80 + "\n")
             print("NUMBER OF ITERATIONS: %d\n" % k_out)
@@ -758,7 +758,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
             text = ""
             for j in range(dimensions):
                 text += "\tP(%d) = %.16g\t" % (j, xtmp[j])
-                if numpy.mod(j + 1, 3) == 0:
+                if np.mod(j + 1, 3) == 0:
                     text += "\n"
 
             print(text)
@@ -802,7 +802,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
             text = ""
             for j in range(dimensions):
                 text += "\tP(%d) = %.16g\t" % (j, xtmp[j])
-                if numpy.mod(j + 1, 3) == 0:
+                if np.mod(j + 1, 3) == 0:
                     text += "\n"
 
             ofile.write(text)
@@ -1063,7 +1063,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
         text = ""
         for j in range(dimensions):
             text += "\tP(%d) = %.16g\t" % (j, xtmp[j])
-            if numpy.mod(j + 1, 3) == 0:
+            if np.mod(j + 1, 3) == 0:
                 text += "\n"
 
         print(text)
@@ -1111,7 +1111,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
         text = ""
         for j in range(dimensions):
             text += "\tP(%d) = %.16g\t" % (j, xtmp[j])
-            if numpy.mod(j + 1, 3) == 0:
+            if np.mod(j + 1, 3) == 0:
                 text += "\n"
 
         sfile.write(text)

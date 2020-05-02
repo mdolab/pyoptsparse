@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import argparse
 from pyoptsparse import Optimization, OPT
 
@@ -22,7 +22,7 @@ def sens(xdict, funcs):
     x = xdict["xvars"]
     funcsSens = {}
     funcsSens["obj"] = {
-        "xvars": numpy.array(
+        "xvars": np.array(
             [x[0] * x[3] + x[3] * (x[0] + x[1] + x[2]), x[0] * x[3], x[0] * x[3] + 1.0, x[0] * (x[0] + x[1] + x[2])]
         )
     }

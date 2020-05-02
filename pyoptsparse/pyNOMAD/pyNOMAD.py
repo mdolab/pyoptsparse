@@ -18,7 +18,7 @@ import time
 # =============================================================================
 # External Python modules
 # =============================================================================
-import numpy
+import numpy as np
 
 # ===========================================================================
 # Extension modules
@@ -68,8 +68,8 @@ class NOMAD(Optimizer):
         self.optProb.finalizeConstraints()
         self._setInitialCacheValues()
         blx, bux, xs = self._assembleContinuousVariables()
-        xs = numpy.maximum(xs, blx)
-        xs = numpy.minimum(xs, bux)
+        xs = np.maximum(xs, blx)
+        xs = np.minimum(xs, bux)
         n = len(xs)
         ff = self._assembleObjective()
 
@@ -93,7 +93,7 @@ class NOMAD(Optimizer):
             # Define the objective function
             # --------------------------------------------------------------
             def objfun(o, x_tuple):
-                x = numpy.asarray(x_tuple)
+                x = np.asarray(x_tuple)
                 fail = False
                 fobj, fcon, fail = self._masterFunc(x, ["fobj", "fcon"])
                 f = [fobj]

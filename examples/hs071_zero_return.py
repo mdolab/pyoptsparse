@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import argparse
 from pyoptsparse import Optimization, OPT
 
@@ -31,17 +31,17 @@ def sens(xdict, funcs):
 
     funcsSens = {}
     funcsSens["obj"] = {
-        "x0": numpy.array([x0 * x3 + x3 * (x0 + x1 + x2)]),
-        "x1": numpy.array([x0 * x3]),
-        "x2": numpy.array([x0 * x3 + 1.0, 0]),
-        "x3": numpy.array([x0 * (x0 + x1 + x2)]),
+        "x0": np.array([x0 * x3 + x3 * (x0 + x1 + x2)]),
+        "x1": np.array([x0 * x3]),
+        "x2": np.array([x0 * x3 + 1.0, 0]),
+        "x3": np.array([x0 * (x0 + x1 + x2)]),
     }
 
     funcsSens["con1"] = {
-        "x0": numpy.array([[x1 * x2 * x3]]),
-        "x1": numpy.array([[x0 * x2 * x3]]),
-        #                         'x2': numpy.array([[x0*x1*x3, 0]]),
-        "x3": numpy.array([[x0 * x1 * x2]]),
+        "x0": np.array([[x1 * x2 * x3]]),
+        "x1": np.array([[x0 * x2 * x3]]),
+        # 'x2': np.array([[x0*x1*x3, 0]]),
+        "x3": np.array([[x0 * x1 * x2]]),
     }
     #    ^
     #    |
@@ -49,10 +49,10 @@ def sens(xdict, funcs):
     # pyoptsparse will assume it to be zero.
 
     funcsSens["con2"] = {
-        "x0": numpy.array([[2.0 * x0]]),
-        "x1": numpy.array([[2.0 * x1]]),
-        "x2": numpy.array([[2.0 * x2, 0]]),
-        "x3": numpy.array([[2.0 * x3]]),
+        "x0": np.array([[2.0 * x0]]),
+        "x1": np.array([[2.0 * x1]]),
+        "x2": np.array([[2.0 * x2, 0]]),
+        "x3": np.array([[2.0 * x3]]),
     }
 
     fail = False

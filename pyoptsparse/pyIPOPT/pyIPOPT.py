@@ -21,7 +21,7 @@ import datetime
 # =============================================================================
 # External Python modules
 # =============================================================================
-import numpy
+import numpy as np
 
 # =============================================================================
 # Extension modules
@@ -452,13 +452,13 @@ class IPOPT(Optimizer):
             indices, blc, buc, fact = self.optProb.getOrdering(["ne", "ni", "le", "li"], oneSided=False)
             self.optProb.jacIndices = indices
             self.optProb.fact = fact
-            self.optProb.offset = numpy.zeros(len(indices))
+            self.optProb.offset = np.zeros(len(indices))
             ncon = len(indices)
             jac = extractRows(jac, indices)  # Does reordering
             scaleRows(jac, fact)  # Perform logical scaling
         else:
-            blc = numpy.array([-1e20])
-            buc = numpy.array([1e20])
+            blc = np.array([-1e20])
+            buc = np.array([1e20])
             ncon = 1
 
         jac = convertToCOO(jac)  # Conver to coo format for IPOPT

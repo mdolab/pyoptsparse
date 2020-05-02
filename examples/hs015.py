@@ -11,7 +11,7 @@
 #  at (-0.79212, -1.26243), with final objective = 360.4.
 ##
 
-import numpy
+import numpy as np
 import argparse
 from pyoptsparse import Optimization, OPT
 
@@ -26,7 +26,7 @@ def objfunc(xdict):
     x = xdict["xvars"]
     funcs = {}
     funcs["obj"] = [100 * (x[1] - x[0] ** 2) ** 2 + (1 - x[0]) ** 2]
-    conval = numpy.zeros(2, "D")
+    conval = np.zeros(2, "D")
     conval[0] = x[0] * x[1]
     conval[1] = x[0] + x[1] ** 2
     funcs["con"] = conval

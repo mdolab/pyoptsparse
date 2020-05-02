@@ -6,7 +6,7 @@ difference or complex step.
 # =============================================================================
 # External Python modules
 # =============================================================================
-import numpy
+import numpy as np
 from .pyOpt_MPI import MPI
 
 # =============================================================================
@@ -114,8 +114,8 @@ class Gradient(object):
         # gradients
         ndvs = self.optProb.ndvs
         ncon = self.optProb.nCon
-        gobj = numpy.zeros(ndvs, "d")
-        gcon = numpy.zeros((ncon, ndvs), "d")
+        gobj = np.zeros(ndvs, "d")
+        gcon = np.zeros((ncon, ndvs), "d")
 
         if self.sensMode == "pgc":
             funcsBase = self.comm.bcast(funcs)
@@ -167,8 +167,8 @@ class Gradient(object):
 
             # complex step
             else:
-                gobj[i] = numpy.imag(fobj_ph) / numpy.imag(sensStep)
-                gcon[:, i] = numpy.imag(fcon_ph) / numpy.imag(sensStep)
+                gobj[i] = np.imag(fobj_ph) / np.imag(sensStep)
+                gcon[:, i] = np.imag(fcon_ph) / np.imag(sensStep)
 
         if self.sensMode == "pgc":
             # We just mpi_reduce to the root with sum. This uses the

@@ -25,7 +25,7 @@ from sqlitedict import SqliteDict
 # =============================================================================
 # External Python modules
 # =============================================================================
-import numpy
+import numpy as np
 from scipy.sparse import coo_matrix
 
 # =============================================================================
@@ -245,9 +245,9 @@ class Optimization(object):
             raise Error("Type must be one of 'c' for continuous, " "'i' for integer or 'd' for discrete.")
 
         # ------ Process the value argument
-        value = numpy.atleast_1d(value).real
+        value = np.atleast_1d(value).real
         if len(value) == 1:
-            value = value[0] * numpy.ones(nVars)
+            value = value[0] * np.ones(nVars)
         elif len(value) == nVars:
             pass
         else:
@@ -259,10 +259,10 @@ class Optimization(object):
 
         if lower is None:
             lower = [None for i in range(nVars)]
-        elif numpy.isscalar(lower):
-            lower = lower * numpy.ones(nVars)
+        elif np.isscalar(lower):
+            lower = lower * np.ones(nVars)
         elif len(lower) == nVars:
-            lower = numpy.atleast_1d(lower).real
+            lower = np.atleast_1d(lower).real
         else:
             raise Error(
                 "The 'lower' argument to addVarGroup is "
@@ -272,10 +272,10 @@ class Optimization(object):
 
         if upper is None:
             upper = [None for i in range(nVars)]
-        elif numpy.isscalar(upper):
-            upper = upper * numpy.ones(nVars)
+        elif np.isscalar(upper):
+            upper = upper * np.ones(nVars)
         elif len(upper) == nVars:
-            upper = numpy.atleast_1d(upper).real
+            upper = np.atleast_1d(upper).real
         else:
             raise Error(
                 "The 'upper' argument to addVarGroup is "
@@ -285,11 +285,11 @@ class Optimization(object):
 
         # ------ Process the scale argument
         if scale is None:
-            scale = numpy.ones(nVars)
+            scale = np.ones(nVars)
         else:
-            scale = numpy.atleast_1d(scale)
+            scale = np.atleast_1d(scale)
             if len(scale) == 1:
-                scale = scale[0] * numpy.ones(nVars)
+                scale = scale[0] * np.ones(nVars)
             elif len(scale) == nVars:
                 pass
             else:
@@ -301,11 +301,11 @@ class Optimization(object):
 
         # ------ Process the offset argument
         if offset is None:
-            offset = numpy.ones(nVars)
+            offset = np.ones(nVars)
         else:
-            offset = numpy.atleast_1d(offset)
+            offset = np.atleast_1d(offset)
             if len(offset) == 1:
-                offset = offset[0] * numpy.ones(nVars)
+                offset = offset[0] * np.ones(nVars)
             elif len(offset) == nVars:
                 pass
             else:
@@ -532,7 +532,7 @@ class Optimization(object):
                 var = self.variables[dvGroup][0]
                 outDVs[dvGroup] = var.value
             else:
-                outDVs[dvGroup] = numpy.zeros(nvar)
+                outDVs[dvGroup] = np.zeros(nvar)
                 for i in range(nvar):
                     var = self.variables[dvGroup][i]
                     outDVs[dvGroup][i] = var.value
@@ -640,7 +640,7 @@ class Optimization(object):
         for iCon in self.constraints:
             nRow += 1  # Name
             con = self.constraints[iCon]
-            maxConNameLen = max(maxConNameLen, len(con.name) + 6 + int(numpy.log10(con.ncon)) + 1)
+            maxConNameLen = max(maxConNameLen, len(con.name) + 6 + int(np.log10(con.ncon)) + 1)
             nRow += 1  # Line
 
         # And now the columns:
@@ -667,7 +667,7 @@ class Optimization(object):
             nCol += 2  # Spaces on either side
             nCol += 1  # Line
 
-        txt = numpy.zeros((nRow, nCol), dtype=str)
+        txt = np.zeros((nRow, nCol), dtype=str)
         txt[:, :] = " "
         # Outline of the matrix on left and top
         txt[1, maxConNameLen + 1 : -1] = "-"
@@ -722,9 +722,9 @@ class Optimization(object):
 
             # It has the same width and a height corresponding to the length
             # of the longest design variable name
-            newTxt = numpy.zeros((longestNameLength + 1, nCol), dtype=str)
+            newTxt = np.zeros((longestNameLength + 1, nCol), dtype=str)
             newTxt[:, :] = " "
-            txt = numpy.vstack((newTxt, txt))
+            txt = np.vstack((newTxt, txt))
 
             # Loop through the letters in the longest design variable name
             # and add the letters for each design variable
@@ -852,7 +852,7 @@ class Optimization(object):
         # row end (re) values. The actual ordering depends on if
         # constraints are reordered or not.
         rowCounter = 0
-        conScale = numpy.zeros(self.nCon)
+        conScale = np.zeros(self.nCon)
         for iCon in self.constraints:
             con = self.constraints[iCon]
             con.finalize(self.variables, self.dvOffset, rowCounter)
@@ -871,7 +871,7 @@ class Optimization(object):
         for dvGroup in self.variables:
             for var in self.variables[dvGroup]:
                 xscale.append(var.scale)
-        self.invXScale = 1.0 / numpy.array(xscale)
+        self.invXScale = 1.0 / np.array(xscale)
 
         # -----------------------------------------
         # Step 2a. Assemble design variable offset
@@ -880,7 +880,7 @@ class Optimization(object):
         for dvGroup in self.variables:
             for var in self.variables[dvGroup]:
                 xoffset.append(var.offset)
-        self.xOffset = numpy.array(xoffset)
+        self.xOffset = np.array(xoffset)
 
         # --------------------------------------
         # Step 3. Map objective names to indices
@@ -953,7 +953,7 @@ class Optimization(object):
             if self.dummyConstraint:
                 return [], [-INFINITY], [INFINITY], None
             else:
-                return numpy.array([], "d")
+                return np.array([], "d")
 
         indices = []
         fact = []
@@ -1021,7 +1021,7 @@ class Optimization(object):
 
         if len(fact) == 0:
             fact = None
-        return numpy.array(indices), numpy.array(lower), numpy.array(upper), fact
+        return np.array(indices), np.array(lower), np.array(upper), fact
 
     def processXtoDict(self, x):
         """
@@ -1071,7 +1071,7 @@ class Optimization(object):
             Flattened array of variables
         """
 
-        x_array = numpy.zeros(self.ndvs)
+        x_array = np.zeros(self.ndvs)
         imax = 0
         for dvGroup in self.variables:
             istart = self.dvOffset[dvGroup][0]
@@ -1111,7 +1111,7 @@ class Optimization(object):
         for objKey in self.objectives.keys():
             if objKey in funcs:
                 try:
-                    f = numpy.squeeze(funcs[objKey]).item()
+                    f = np.squeeze(funcs[objKey]).item()
                 except ValueError:
                     raise Error("The objective return value, '%s' must be a " "scalar!" % objKey)
                 # Store objective for printing later
@@ -1124,7 +1124,7 @@ class Optimization(object):
         if scaled:
             fobj = self._mapObjtoOpt(fobj)
         # Finally squeeze back out so we get a scalar for a single objective
-        return numpy.squeeze(fobj)
+        return np.squeeze(fobj)
 
     def processObjtoDict(self, fobj_in, scaled=True):
         """
@@ -1147,7 +1147,7 @@ class Optimization(object):
             for each objective.
         """
         fobj = {}
-        fobj_in = numpy.atleast_1d(fobj_in)
+        fobj_in = np.atleast_1d(fobj_in)
         for objKey in self.objectives.keys():
             iObj = self.objectiveIdx[objKey]
             try:
@@ -1185,18 +1185,18 @@ class Optimization(object):
         """
 
         if self.dummyConstraint:
-            return numpy.array([0])
+            return np.array([0])
 
         # We REQUIRE that fcon_in is a dict:
-        fcon = numpy.zeros(self.nCon, dtype=dtype)
+        fcon = np.zeros(self.nCon, dtype=dtype)
         for iCon in self.constraints:
             con = self.constraints[iCon]
             if iCon in fcon_in:
 
                 # Make sure it is at least 1-dimensional:
-                c = numpy.atleast_1d(fcon_in[iCon])
+                c = np.atleast_1d(fcon_in[iCon])
                 if dtype == "d":
-                    c = numpy.real(c)
+                    c = np.real(c)
                 # Make sure it is the correct size:
                 if c.shape[-1] == self.constraints[iCon].ncon:
                     fcon[..., con.rs : con.re] = c
@@ -1260,7 +1260,7 @@ class Optimization(object):
             return {"dummy": 0}
 
         if not hasattr(self, "jacIndicesInv"):
-            self.jacIndicesInv = numpy.argsort(self.jacIndices)
+            self.jacIndicesInv = np.argsort(self.jacIndices)
 
         # Unscale the nonlinear constraints
         if not natural:
@@ -1330,7 +1330,7 @@ class Optimization(object):
         dvGroups = set(self.variables.keys())
 
         nobj = len(self.objectives)
-        gobj = numpy.zeros((nobj, self.ndvs))
+        gobj = np.zeros((nobj, self.ndvs))
 
         cond = False
         # this version is required for python 3 compatibility
@@ -1344,7 +1344,7 @@ class Optimization(object):
                         if dvGroup in dvGroups:
                             # Now check that the array is the correct length:
                             ss = self.dvOffset[dvGroup]
-                            tmp = numpy.array(funcsSens[objKey][dvGroup]).squeeze()
+                            tmp = np.array(funcsSens[objKey][dvGroup]).squeeze()
                             if tmp.size == ss[1] - ss[0]:
                                 # Everything checks out so set:
                                 gobj[iObj, ss[0] : ss[1]] = tmp
@@ -1372,7 +1372,7 @@ class Optimization(object):
                         ss = self.dvOffset[dvGroup]
                     except KeyError:
                         raise Error("The dvGroup key '%s' is not valid" % dvGroup)
-                    tmp = numpy.array(funcsSens[objKey, dvGroup]).squeeze()
+                    tmp = np.array(funcsSens[objKey, dvGroup]).squeeze()
                     if tmp.size == ss[1] - ss[0]:
                         # Everything checks out so set:
                         gobj[iObj, ss[0] : ss[1]] = tmp
@@ -1395,7 +1395,7 @@ class Optimization(object):
         gobj = self._mapObjGradtoOpt(gobj)
 
         # Finally squeeze back out so we get a 1D vector for a single objective
-        return numpy.squeeze(gobj)
+        return np.squeeze(gobj)
 
     def processConstraintJacobian(self, gcon):
         """
@@ -1433,9 +1433,9 @@ class Optimization(object):
         # include a dummy constraint:
         if self.nCon == 0:
             if self.dummyConstraint:
-                return convertToCSR(numpy.zeros((1, self.ndvs)))
+                return convertToCSR(np.zeros((1, self.ndvs)))
             else:
-                return numpy.zeros((0, self.ndvs), "d")
+                return np.zeros((0, self.ndvs), "d")
 
         # For simplicity we just add the linear constraints into gcon
         # so they can be processed along with the rest:
@@ -1523,21 +1523,21 @@ class Optimization(object):
         # end for (constraint loop)
 
         # now flatten all the data into a single array
-        data = numpy.concatenate(data).ravel()
-        row = numpy.concatenate(row).ravel()
-        col = numpy.concatenate(col).ravel()
+        data = np.concatenate(data).ravel()
+        row = np.concatenate(row).ravel()
+        col = np.concatenate(col).ravel()
 
         # Finally, construct CSR matrix from COO data and perform
         # row and column scaling.
         if self._jac_map_coo_to_csr is None:
-            gcon = {"coo": [row, col, numpy.array(data)], "shape": [self.nCon, self.ndvs]}
+            gcon = {"coo": [row, col, np.array(data)], "shape": [self.nCon, self.ndvs]}
             self._jac_map_coo_to_csr = mapToCSR(gcon)
 
         gcon = {
             "csr": (
                 self._jac_map_coo_to_csr[IROW],
                 self._jac_map_coo_to_csr[ICOL],
-                numpy.array(data)[self._jac_map_coo_to_csr[IDATA]],
+                np.array(data)[self._jac_map_coo_to_csr[IDATA]],
             ),
             "shape": [self.nCon, self.ndvs],
         }
@@ -1547,7 +1547,7 @@ class Optimization(object):
         return gcon
 
     def _mapObjGradtoOpt(self, gobj):
-        gobj_return = numpy.copy(gobj)
+        gobj_return = np.copy(gobj)
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
             gobj_return[iObj, :] *= self.objectives[objKey].scale
@@ -1561,7 +1561,7 @@ class Optimization(object):
         return fcon / self.conScale
 
     def _mapObjtoOpt(self, fobj):
-        fobj_return = numpy.copy(numpy.atleast_1d(fobj))
+        fobj_return = np.copy(np.atleast_1d(fobj))
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
             fobj_return[iObj] *= self.objectives[objKey].scale
@@ -1569,7 +1569,7 @@ class Optimization(object):
         return fobj_return
 
     def _mapObjtoUser(self, fobj):
-        fobj_return = numpy.copy(numpy.atleast_1d(fobj))
+        fobj_return = np.copy(np.atleast_1d(fobj))
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
             fobj_return[iObj] /= self.objectives[objKey].scale

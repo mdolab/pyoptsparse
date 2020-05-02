@@ -19,7 +19,7 @@ import time
 # =============================================================================
 # External Python modules
 # =============================================================================
-import numpy
+import numpy as np
 
 # # ===========================================================================
 # # Extension modules
@@ -243,7 +243,7 @@ class FSQP(Optimizer):
                 if os.path.isfile(ifile):
                     os.remove(ifile)
 
-            gg = numpy.zeros(max(ncon, 1))
+            gg = np.zeros(max(ncon, 1))
             miter = self.getOption("miter")
             inform = 0
             bigbnd = self.getOption("bigbnd")
@@ -252,7 +252,7 @@ class FSQP(Optimizer):
             udelta = 0
             nobj = 1
             iwsize = 6 * nvar + 8 * max([1, ncon]) + 7 * max([1, nobj]) + 30
-            iw = numpy.zeros([iwsize], numpy.float)
+            iw = np.zeros([iwsize], np.float)
             nwsize = (
                 4 * nvar ** 2
                 + 5 * max([1, ncon]) * nvar
@@ -261,7 +261,7 @@ class FSQP(Optimizer):
                 + 45 * max([1, ncon])
                 + 100
             )
-            w = numpy.zeros([nwsize], numpy.float)
+            w = np.zeros([nwsize], np.float)
 
             # Run FSQP
             t0 = time.time()

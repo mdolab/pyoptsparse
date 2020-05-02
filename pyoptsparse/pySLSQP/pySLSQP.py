@@ -20,7 +20,7 @@ import datetime
 # =============================================================================
 # External Python modules
 # =============================================================================
-import numpy
+import numpy as np
 
 # ===========================================================================
 # Extension modules
@@ -143,8 +143,8 @@ class SLSQP(Optimizer):
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
-        xs = numpy.maximum(xs, blx)
-        xs = numpy.minimum(xs, bux)
+        xs = np.maximum(xs, blx)
+        xs = np.minimum(xs, bux)
         n = len(xs)
         ff = self._assembleObjective()
 
@@ -191,10 +191,10 @@ class SLSQP(Optimizer):
 
             # Setup argument list values
             la = max(m, 1)
-            gg = numpy.zeros([la], numpy.float)
-            df = numpy.zeros([n + 1], numpy.float)
-            dg = numpy.zeros([la, n + 1], numpy.float)
-            acc = numpy.array([self.getOption("ACC")], numpy.float)
+            gg = np.zeros([la], np.float)
+            df = np.zeros([n + 1], np.float)
+            dg = np.zeros([la, n + 1], np.float)
+            acc = np.array([self.getOption("ACC")], np.float)
             maxit = self.getOption("MAXIT")
             iprint = self.getOption("IPRINT")
             iout = self.getOption("IOUT")
@@ -210,13 +210,13 @@ class SLSQP(Optimizer):
             lsei = ((n + 1) + mineq) * ((n + 1) - meq) + 2 * meq + (n + 1)
             slsqpb = (n + 1) * (n / 2) + 2 * m + 3 * n + 3 * (n + 1) + 1
             lwM = lsq + lsi + lsei + slsqpb + n + m
-            lw = numpy.array([lwM], numpy.int)
-            w = numpy.zeros(lw, numpy.float)
+            lw = np.array([lwM], np.int)
+            w = np.zeros(lw, np.float)
             ljwM = max(mineq, (n + 1) - meq)
-            ljw = numpy.array([ljwM], numpy.int)
-            jw = numpy.zeros(ljw, numpy.intc)
-            nfunc = numpy.array([0], numpy.int)
-            ngrad = numpy.array([0], numpy.int)
+            ljw = np.array([ljwM], np.int)
+            jw = np.zeros(ljw, np.intc)
+            nfunc = np.array([0], np.int)
+            ngrad = np.array([0], np.int)
 
             # Run SLSQP
             t0 = time.time()

@@ -19,7 +19,7 @@ import datetime
 # =============================================================================
 # External Python modules
 # =============================================================================
-import numpy
+import numpy as np
 
 # ===========================================================================
 # Extension modules
@@ -141,9 +141,9 @@ class PSQP(Optimizer):
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
-        xi = 3 * numpy.ones(len(xs), "int")
-        xs = numpy.maximum(xs, blx)
-        xs = numpy.minimum(xs, bux)
+        xi = 3 * np.ones(len(xs), "int")
+        xs = np.maximum(xs, blx)
+        xs = np.minimum(xs, bux)
         nvar = len(xs)
         ff = self._assembleObjective()
 
@@ -164,10 +164,10 @@ class PSQP(Optimizer):
         else:
             indices, blc, buc, fact = self.optProb.getOrdering(["ne", "le", "ni", "li"], oneSided=oneSided)
             ncon = len(indices)
-            cl = numpy.zeros(ncon)  # -self.getOption('XMAX')*numpy.ones(ncon)
-            cu = numpy.zeros(ncon)
-            cf = numpy.zeros(ncon + 1)
-            ic = 2 * numpy.ones(ncon, "intc")
+            cl = np.zeros(ncon)  # -self.getOption('XMAX')*np.ones(ncon)
+            cu = np.zeros(ncon)
+            cf = np.zeros(ncon + 1)
+            ic = 2 * np.ones(ncon, "intc")
             self.optProb.jacIndices = indices
             self.optProb.fact = fact
             self.optProb.offset = buc

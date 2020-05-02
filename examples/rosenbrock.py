@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from pyoptsparse import Optimization, OPT
 import argparse
-import numpy
+import numpy as np
 
 
 # import cProfile
@@ -51,9 +51,7 @@ def objgrad(xdict):
 
     objsens = {}
     objsens["obj"] = {
-        "xvars": numpy.array(
-            [2 * 100 * (x[1] - x[0] ** 2) * (-2 * x[0]) - 2 * (1 - x[0]), 2 * 100 * (x[1] - x[0] ** 2)]
-        )
+        "xvars": np.array([2 * 100 * (x[1] - x[0] ** 2) * (-2 * x[0]) - 2 * (1 - x[0]), 2 * 100 * (x[1] - x[0] ** 2)])
     }
     fail = False
 
@@ -66,8 +64,8 @@ def jprod(xdict, pdict, sparse_only):
     qdict = {}
 
     if constrained:
-        gcon = numpy.array([-3 * (x[0] - 1) ** 2, -1])
-        qdict["con"] = numpy.array([numpy.dot(gcon, p)])
+        gcon = np.array([-3 * (x[0] - 1) ** 2, -1])
+        qdict["con"] = np.array([np.dot(gcon, p)])
     fail = False
 
     return qdict, fail
@@ -79,10 +77,10 @@ def jtprod(xdict, qdict, sparse_only):
     pdict = {}
     if constrained:
         q = qdict["con"]
-        gcon = numpy.array([-3 * (x[0] - 1) ** 2, -1])
+        gcon = np.array([-3 * (x[0] - 1) ** 2, -1])
         pdict["xvars"] = q * gcon
     else:
-        pdict["xvars"] = numpy.zeros(len(x))
+        pdict["xvars"] = np.zeros(len(x))
     fail = False
 
     return pdict, fail

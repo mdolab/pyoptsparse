@@ -7,7 +7,7 @@ Only testing with SNOPT, which supports sparse formats.
 """
 
 import unittest
-import numpy
+import numpy as np
 from numpy.testing import assert_allclose
 from numpy import arange
 from scipy import sparse
@@ -23,10 +23,10 @@ def objfunc(xdict):
     y = xdict["y"]
     z = xdict["z"]
     funcs = {}
-    funcs["obj"] = x ** 2 + 2 * numpy.sum(y ** 2) + 3 * numpy.sum(z)
+    funcs["obj"] = x ** 2 + 2 * np.sum(y ** 2) + 3 * np.sum(z)
     funcs["con1"] = x + 1e-3 * abs(x) ** 2.05
-    funcs["con2"] = x ** 4 + numpy.sum(y) + numpy.sum(z ** 2)
-    funcs["con3"] = x + numpy.sum(z)
+    funcs["con2"] = x ** 4 + np.sum(y) + np.sum(z ** 2)
+    funcs["con3"] = x + np.sum(z)
 
     return funcs, False
 
@@ -39,13 +39,13 @@ def sens(xdict, funcs):
     funcsSens = {
         ("obj", "x"): [2 * x],
         ("obj", "y"): 4 * y,
-        ("obj", "z"): 3 * numpy.ones(2 * N),
+        ("obj", "z"): 3 * np.ones(2 * N),
         ("con1", "x"): 2.05 * x * (x * x) ** 0.025,
         ("con2", "x"): 4 * x ** 3,
-        ("con2", "y"): numpy.ones(N),
+        ("con2", "y"): np.ones(N),
         ("con2", "z"): 2 * z,
         ("con3", "x"): 1.0,
-        ("con3", "z"): numpy.ones(2 * N),
+        ("con3", "z"): np.ones(2 * N),
     }
 
     return funcsSens, False
@@ -71,7 +71,7 @@ class TestLargeSparse(unittest.TestCase):
             lower=2 - 3 * arange(N),
             linear=True,
             wrt=["x", "y"],
-            jac={"x": numpy.ones((N, 1)), "y": sparse.spdiags(numpy.ones(N), 0, N, N)},
+            jac={"x": np.ones((N, 1)), "y": sparse.spdiags(np.ones(N), 0, N, N)},
         )
         optProb.addObj("obj")
 

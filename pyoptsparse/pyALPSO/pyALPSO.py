@@ -11,7 +11,7 @@ import time
 # =============================================================================
 # External Python modules
 # =============================================================================
-import numpy
+import numpy as np
 
 # ===========================================================================
 # Extension modules
@@ -135,8 +135,8 @@ class ALPSO(Optimizer):
             self.unconstrained = True
 
         xl, xu, xs = self._assembleContinuousVariables()
-        xs = numpy.maximum(xs, xl)
-        xs = numpy.minimum(xs, xu)
+        xs = np.maximum(xs, xl)
+        xs = np.minimum(xs, xu)
         n = len(xs)
         types = [0] * len(xs)
         oneSided = True

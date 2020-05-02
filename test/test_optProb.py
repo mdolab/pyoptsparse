@@ -1,7 +1,7 @@
 """Test for optProb"""
 
 import unittest
-import numpy
+import numpy as np
 from numpy.testing import assert_allclose
 from pyoptsparse import Optimization, OPT
 
@@ -22,13 +22,13 @@ class TestOptProb(unittest.TestCase):
         funcs = {}
         funcs["obj_0"] = 0
         for x in xdict.keys():
-            funcs["obj_0"] += numpy.sum(numpy.power(xdict[x], 2))
+            funcs["obj_0"] += np.sum(np.power(xdict[x], 2))
         for iCon, nc in enumerate(self.nCon):
             conName = "con_{}".format(iCon)
-            funcs[conName] = numpy.zeros(nc)
+            funcs[conName] = np.zeros(nc)
             for x in xdict.keys():
                 for j in range(nc):
-                    funcs[conName][j] = (iCon + 1) * numpy.sum(xdict[x])
+                    funcs[conName][j] = (iCon + 1) * np.sum(xdict[x])
         return funcs, False
 
     def setup_optProb(self, nObj=1, nDV=[4], nCon=[2], xScale=[1.0], objScale=[1.0], conScale=[1.0], offset=[0.0]):
@@ -51,9 +51,9 @@ class TestOptProb(unittest.TestCase):
         # Design Variables
         for iDV in range(len(nDV)):
             n = nDV[iDV]
-            lower = numpy.random.uniform(-5, 2, n)
-            upper = numpy.random.uniform(5, 20, n)
-            x0 = numpy.random.uniform(lower, upper)
+            lower = np.random.uniform(-5, 2, n)
+            upper = np.random.uniform(5, 20, n)
+            x0 = np.random.uniform(lower, upper)
             dvName = "x{}".format(iDV)
             self.x0[dvName] = x0
             self.optProb.addVarGroup(
@@ -63,8 +63,8 @@ class TestOptProb(unittest.TestCase):
         # Constraints
         for iCon in range(len(nCon)):
             nc = nCon[iCon]
-            lower = numpy.random.uniform(-5, 2, nc)
-            upper = numpy.random.uniform(5, 6, nc)
+            lower = np.random.uniform(-5, 2, nc)
+            upper = np.random.uniform(5, 6, nc)
             self.optProb.addConGroup(
                 "con_{}".format(iCon), nc, lower=lower, upper=upper, scale=conScale[iCon],
             )
@@ -92,7 +92,7 @@ class TestOptProb(unittest.TestCase):
         x0 = self.optProb.getDVs()
         self.assert_dict_allclose(x0, self.x0)
         # now set, get, and compare
-        newDV = {"x0": numpy.arange(4), "x1": numpy.arange(8)}
+        newDV = {"x0": np.arange(4), "x1": np.arange(8)}
         self.optProb.setDVs(newDV)
         outDV = self.optProb.getDVs()
         self.assert_dict_allclose(newDV, outDV)
@@ -109,10 +109,10 @@ class TestOptProb(unittest.TestCase):
             nObj=1,
             nDV=nDV,
             nCon=nCon,
-            xScale=[numpy.random.rand(i) for i in nDV],
+            xScale=[np.random.rand(i) for i in nDV],
             objScale=[0.3],
-            conScale=[numpy.random.rand(i) for i in nCon],
-            offset=[numpy.random.rand(i) * numpy.arange(i) for i in nDV],
+            conScale=[np.random.rand(i) for i in nCon],
+            offset=[np.random.rand(i) * np.arange(i) for i in nDV],
         )
 
         # first test X
@@ -187,14 +187,14 @@ class TestOptProb(unittest.TestCase):
         # we only check this for the array version because
         # it's much simpler
         if key == "X":
-            scale = numpy.hstack(self.xScale)
-            offset = numpy.hstack(self.offset)
+            scale = np.hstack(self.xScale)
+            offset = np.hstack(self.offset)
             assert_allclose(val_opt, (val_user - offset) * scale)
         else:
             if key == "Obj":
-                scale = numpy.hstack(self.objScale)
+                scale = np.hstack(self.objScale)
             else:
-                scale = numpy.hstack(self.conScale)
+                scale = np.hstack(self.conScale)
             assert_allclose(val_opt, val_user * scale)
 
     def assert_dict_allclose(self, actual, desired, atol=tol, rtol=tol):
@@ -214,14 +214,14 @@ class TestOptProb(unittest.TestCase):
         """
         self.assertEqual(set(actual.keys()), set(desired.keys()))
         for key in actual.keys():
-            if numpy.allclose(actual[key], desired[key], atol=tol, rtol=tol):
+            if np.allclose(actual[key], desired[key], atol=tol, rtol=tol):
                 raise AssertionError("Dictionaries are close! Inputs are {} and {}".format(actual, desired))
 
     def assert_not_allclose(self, actual, desired, atol=tol, rtol=tol):
         """
         The numpy array version
         """
-        if numpy.allclose(actual, desired, atol=atol, rtol=tol):
+        if np.allclose(actual, desired, atol=atol, rtol=tol):
             raise AssertionError("Arrays are close! Inputs are {} and {}".format(actual, desired))
 
 

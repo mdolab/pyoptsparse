@@ -19,7 +19,7 @@ import datetime
 # =============================================================================
 # External Python modules
 # =============================================================================
-import numpy
+import numpy as np
 
 # ===========================================================================
 # Extension modules
@@ -27,7 +27,7 @@ import numpy
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
 
-eps = numpy.finfo(numpy.float64).eps
+eps = np.finfo(np.float64).eps
 # =============================================================================
 # NLPQL Optimizer Class
 # =============================================================================
@@ -150,8 +150,8 @@ class NLPQLP(Optimizer):
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
-        xs = numpy.maximum(xs, blx)
-        xs = numpy.minimum(xs, bux)
+        xs = np.maximum(xs, blx)
+        xs = np.minimum(xs, bux)
         nvar = len(xs)
         ff = self._assembleObjective()
 
@@ -196,7 +196,7 @@ class NLPQLP(Optimizer):
 
             # setup argument list values
 
-            np = 1  # We only allow a single "processor" ie we are
+            num_procs = 1  # We only allow a single "processor" ie we are
             # actually running NLPQL (no P)
 
             # Set som basic sizes
@@ -210,16 +210,16 @@ class NLPQLP(Optimizer):
 
             # xs, ff, and gg have to have an extra dimension
             # associated with them for the NP. We will do this
-            # correctly even though np is hard-coded to 1.
-            xs = numpy.array(xs).T
-            f = numpy.array(ff)
-            g = numpy.zeros((mmax, np))
+            # correctly even though num_procs is hard-coded to 1.
+            xs = np.array(xs).T
+            f = np.array(ff)
+            g = np.zeros((mmax, num_procs))
 
-            df = numpy.zeros(nmax)
-            dg = numpy.zeros((mmax, nmax))
-            u = numpy.zeros(mnn2)
-            c = numpy.zeros((nmax, nmax))
-            d = numpy.zeros(nmax)
+            df = np.zeros(nmax)
+            dg = np.zeros((mmax, nmax))
+            u = np.zeros(mnn2)
+            c = np.zeros((nmax, nmax))
+            d = np.zeros(nmax)
             go = self.getOption
             if go("iPrint") < 0 or go("iPrint") > 4:
                 raise Error("Incorrect iPrint option. Must be >=0 and <= 4")
@@ -233,7 +233,7 @@ class NLPQLP(Optimizer):
             # Run NLPQL
             t0 = time.time()
             # fmt: off
-            nlpqlp.wrapper(np, m, me, mmax, n, nmax, mnn2, xs, f, g, df, dg, u,
+            nlpqlp.wrapper(num_procs, m, me, mmax, n, nmax, mnn2, xs, f, g, df, dg, u,
                            blx, bux, c, d, go('accuracy'), go('accuracyQP'),
                            go('stepMin'), go('maxFun'), go('maxIt'), go('maxNM'),
                            go('rho'), go('mode'), go('iPrint'), go('iOut'),

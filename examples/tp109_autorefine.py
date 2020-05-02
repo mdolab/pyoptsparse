@@ -1,7 +1,7 @@
 # Example of auto-refinement -- runs ALPSO followed by SNOPT.
 # See TP109.py for more information.
 
-import numpy
+import numpy as np
 from pyoptsparse import Optimization, SNOPT, ALPSO
 from tp109 import objfunc  # Import objective from the other file
 
@@ -26,7 +26,7 @@ optProb.addConGroup("con", len(lower), lower=lower, upper=upper)
 
 # And the 2 linear constriants
 if USE_LINEAR:
-    jac = numpy.zeros((1, 9))
+    jac = np.zeros((1, 9))
     jac[0, 3] = 1.0
     jac[0, 2] = -1.0
     optProb.addConGroup("lin_con", 1, lower=-0.55, upper=0.55, wrt=["xvars"], jac={"xvars": jac}, linear=True)
