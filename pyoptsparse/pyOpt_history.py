@@ -7,7 +7,8 @@ Holds the Python Design Optimization History Class.
 # =============================================================================
 # External Python modules
 # =============================================================================
-import os, copy
+import os
+import copy
 import numpy
 from .pyOpt_error import Error, pyOptSparseWarning
 from sqlitedict import SqliteDict
@@ -145,7 +146,7 @@ class History(object):
         ----------
         key : str or int
             generic key[str] or callCounter[int]
-        
+
         Returns
         -------
         dict
@@ -175,7 +176,7 @@ class History(object):
         int
             The callCounter corresponding to the DV `x`.
             `None` is returned if no match was found.
-        
+
         Notes
         -----
         The tolerance used for this is the value `numpy.finfo(numpy.float64).eps`.
@@ -276,7 +277,7 @@ class History(object):
         -------
         list of str
             A list containing the names of objectives.
-        
+
         Notes
         -----
         Recall that for the sake of generality, pyOptSparse allows for multiple objectives to be
@@ -303,7 +304,7 @@ class History(object):
         -------
         dict
             A dictionary containing ObjInfo. For a single key, the return is one level deeper.
-        
+
         Notes
         -----
         Recall that for the sake of generality, pyOptSparse allows for multiple objectives to be
@@ -478,7 +479,7 @@ class History(object):
             the values of interest, can be the name of any DV, objective or constraint,
             or a list of them. If None, all values are returned. This includes the DVs,
             funcs, and any values stored by the optimizer.
-        
+
         callCounters : list of ints, can also contain 'last'
             a list of callCounters to extract information from.
             If the callCounter is invalid, i.e. outside the range or is a funcsSens evaluation, then it is skipped.
@@ -487,7 +488,7 @@ class History(object):
 
         major : bool
             flag to specify whether to include only major iterations.
-        
+
         scale : bool
             flag to specify whether to apply scaling for the values. True means
             to return values that are scaled the same way as the actual optimization.
@@ -642,7 +643,7 @@ class History(object):
             self.db.close()
             if self.temp:
                 os.remove(self.fileName)
-        except:
+        except:  # noqa: E722
             pass
 
 

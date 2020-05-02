@@ -17,7 +17,7 @@ from collections import OrderedDict
 
 try:
     from six import iteritems, iterkeys, next
-except:
+except ImportError:
     raise ImportError("Could not import 'six'. To install, use\n pip install six")
 
 from sqlitedict import SqliteDict
@@ -36,7 +36,8 @@ from .pyOpt_objective import Objective
 from .pyOpt_constraint import Constraint
 from .pyOpt_error import Error
 from .pyOpt_MPI import MPI
-from .pyOpt_utils import *
+
+from .pyOpt_utils import IROW, ICOL, IDATA, convertToCSR, convertToCOO, mapToCSR, scaleRows, scaleColumns
 
 # =============================================================================
 # Misc Definitions
@@ -337,7 +338,6 @@ class Optimization(object):
 
         if name in self.variables:
             # Check that the variables happen to be the same
-            err = False
             if not len(self.variables[name]) == len(varList):
                 raise Error("The supplied name '%s' for a variable group " "has already been used!" % name)
             for i in range(len(varList)):
@@ -387,7 +387,7 @@ class Optimization(object):
             # (lowest proc) that contains that key
             for iProc in range(len(allKeys)):
                 for key in allKeys[iProc]:
-                    if not key in procKeys:
+                    if key not in procKeys:
                         procKeys[key] = iProc
 
             # Now pop any keys out with iProc = 0, since we want the
@@ -637,7 +637,6 @@ class Optimization(object):
         nRow = 1  # Header
         nRow += 1  # Line
         maxConNameLen = 0
-        hasLinear = False
         for iCon in self.constraints:
             nRow += 1  # Name
             con = self.constraints[iCon]
@@ -682,10 +681,10 @@ class Optimization(object):
                 var_str = "   "
             else:
                 var_str = dvGroup + " (%d)" % nvar
-            l = len(var_str)
-            txt[0, iCol + 1 : iCol + l + 1] = list(var_str)
-            txt[2:-1, iCol + l + 2] = "|"
-            iCol += l + 3
+            var_str_length = len(var_str)
+            txt[0, iCol + 1 : iCol + var_str_length + 1] = list(var_str)
+            txt[2:-1, iCol + var_str_length + 2] = "|"
+            iCol += var_str_length + 3
 
         # Print the constraint names;
         iRow = 2
@@ -697,9 +696,9 @@ class Optimization(object):
                 name = name + "(L)"
 
             name = name + " (%d)" % con.ncon
-            l = len(name)
+            var_str_length = len(name)
             # The name
-            txt[iRow, maxConNameLen - l : maxConNameLen] = list(name)
+            txt[iRow, maxConNameLen - var_str_length : maxConNameLen] = list(name)
 
             # Now we write a 'X' if there is something there:
             varKeys = list(self.variables.keys())

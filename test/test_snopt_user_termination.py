@@ -8,6 +8,7 @@ import unittest
 import numpy as np
 
 from pyoptsparse import Optimization, SNOPT
+from pyoptsparse.pyOpt_error import Error
 
 
 class TerminateComp(object):
@@ -79,7 +80,7 @@ class TestUserTerminationStatus(unittest.TestCase):
         }
         try:
             opt = SNOPT(options=optOptions)
-        except:
+        except Error:
             raise unittest.SkipTest("Optimizer not available: SNOPT")
 
         sol = opt(optProb, sens=termcomp.sens)
@@ -108,7 +109,7 @@ class TestUserTerminationStatus(unittest.TestCase):
         }
         try:
             opt = SNOPT(options=optOptions)
-        except:
+        except Error:
             raise unittest.SkipTest("Optimizer not available: SNOPT")
 
         sol = opt(optProb, sens=termcomp.sens)

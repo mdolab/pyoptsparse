@@ -13,6 +13,7 @@ from numpy import arange
 from scipy import sparse
 
 from pyoptsparse import Optimization, OPT
+from pyoptsparse.pyOpt_error import Error
 
 N = 50000
 
@@ -77,7 +78,7 @@ class TestLargeSparse(unittest.TestCase):
         # Optimizer
         try:
             opt = OPT(optName, options=optOptions)
-        except:
+        except Error:
             raise unittest.SkipTest("Optimizer not available:", optName)
 
         sol = opt(optProb, sens=sens)

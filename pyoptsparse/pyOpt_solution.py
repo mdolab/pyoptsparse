@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-pyOpt_solution 
+pyOpt_solution
 
 This class is used to describe the solution of an optimization
 problem. This class is inherits from Optimization which enables a
@@ -13,7 +13,7 @@ from .pyOpt_optimization import Optimization
 class Solution(Optimization):
     """
     Solution Class Initialization
-    
+
     Parameters
     ----------
     optProb : Optimization problem class
@@ -21,7 +21,7 @@ class Solution(Optimization):
 
     optTime : float
         Time required for the optimziation
-        
+
     optEvals : int
         The number of function evalution for the solution
 

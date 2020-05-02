@@ -9,7 +9,6 @@ except ImportError:
 
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
-from ..pyOpt_utils import convertToCSC, ICOL, IDATA, IROW, IROWIND, ICOLP, extractRows, mapToCSC, scaleRows
 
 
 class ParOpt(Optimizer):

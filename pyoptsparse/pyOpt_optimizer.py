@@ -19,7 +19,6 @@ from .pyOpt_optimization import INFINITY
 from .pyOpt_utils import convertToDense, convertToCOO, extractRows, mapToCSC, scaleRows, IDATA
 from collections import OrderedDict
 import datetime
-import subprocess
 from .pyOpt_MPI import MPI
 
 eps = numpy.finfo(numpy.float64).eps
@@ -318,8 +317,6 @@ class Optimizer(object):
         hist = {"xuser": xuser}
         returns = []
         # Start with fobj:
-        tmpObjCalls = self.userObjCalls
-        tmpSensCalls = self.userSensCalls
         if "fobj" in evaluate:
             if not numpy.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
                 timeA = time.time()

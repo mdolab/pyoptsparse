@@ -41,7 +41,7 @@ class myMPI(object):
 
 try:
     from mpi4py import MPI
-except:
+except ImportError:
     warn = "mpi4py could not be imported. mpi4py is required to use\
  the parallel gradient analysis and parallel objective analysis for\
  non-gradient based optimizers. Continuing using a dummy MPI module\

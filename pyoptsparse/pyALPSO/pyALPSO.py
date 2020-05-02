@@ -138,7 +138,6 @@ class ALPSO(Optimizer):
         xs = numpy.maximum(xs, xl)
         xs = numpy.minimum(xs, xu)
         n = len(xs)
-        ff = self._assembleObjective()
         types = [0] * len(xs)
         oneSided = True
         if self.unconstrained:
@@ -155,8 +154,6 @@ class ALPSO(Optimizer):
             self.optProb.offset = buc
             indices, __, __, __ = self.optProb.getOrdering(["ne", "le"], oneSided=oneSided, noEquality=False)
             me = len(indices)
-
-        nobj = 1
 
         if self.optProb.comm.rank == 0:
             # Set history/hotstart/coldstart

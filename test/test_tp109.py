@@ -31,6 +31,7 @@ import numpy
 from numpy import sin, cos
 from numpy.testing import assert_allclose
 from pyoptsparse import Optimization, OPT
+from pyoptsparse.pyOpt_error import Error
 
 USE_LINEAR = True
 
@@ -122,7 +123,7 @@ class TestTP109(unittest.TestCase):
         # Optimizer
         try:
             opt = OPT(optName, options=optOptions)
-        except:
+        except Error:
             raise unittest.SkipTest("Optimizer not available:", optName)
 
         # Solution
@@ -172,7 +173,7 @@ class TestTP109(unittest.TestCase):
         # Global Optimizer: ALPSO
         try:
             opt1 = OPT("ALPSO")
-        except:
+        except Error:
             raise unittest.SkipTest("Optimizer not available:", "ALPSO")
 
         # Get first Solution
@@ -181,7 +182,7 @@ class TestTP109(unittest.TestCase):
         # Now run the previous solution with SNOPT
         try:
             opt2 = OPT("SNOPT")
-        except:
+        except Error:
             raise unittest.SkipTest("Optimizer not available:", "SNOPT")
 
         sol2 = opt2(sol1)

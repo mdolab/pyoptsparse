@@ -13,7 +13,6 @@ except ImportError:
 # =============================================================================
 # Standard Python modules
 # =============================================================================
-import os
 import time
 
 # =============================================================================
@@ -77,7 +76,6 @@ class NOMAD(Optimizer):
         oneSided = True
         if self.unconstrained:
             m = 0
-            meq = 0
         else:
             indices, blc, buc, fact = self.optProb.getOrdering(
                 ["ne", "le", "ni", "li"], oneSided=oneSided, noEquality=True

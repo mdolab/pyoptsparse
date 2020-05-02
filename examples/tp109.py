@@ -2,7 +2,7 @@
 """
 Solves Schittkowski's TP109 constraint problem.
 
-    min 	3.0*x1+1.*10**(-6)*x1**3+0.522074*10**(-6)*x2**3+2.0*x2 
+    min 	3.0*x1+1.*10**(-6)*x1**3+0.522074*10**(-6)*x2**3+2.0*x2
     s.t.    -(x4-x3+0.550) <= 0
             -(x3-x4+0.550) <= 0
             -(2.25*10**(+6)-x1**2-x8**2) <= 0
@@ -22,7 +22,7 @@ Solves Schittkowski's TP109 constraint problem.
             c = cos(0.25)
             ra = 1.0/50.176
 
-            
+
     f*1 = 0.536206927538e+04
     x*1 = [0.674888100445e+03, 0.113417039470e+04, 0.133569060261e+00, -0.371152592466e+00, 0.252e+03, 0.252e+03, 0.201464535316e+03, 0.426660777226e+03, 0.368494083867e+03]
 """
@@ -34,10 +34,9 @@ from pyoptsparse import Optimization, OPT
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--opt", help="optimizer", type=str, default="SLSQP")
-parser.add_argument("--optOptions", type=str, help="Options for the optimizer", default="{}")
 args = parser.parse_args()
-exec("optOptions=%s" % args.optOptions)
 USE_LINEAR = True
+optOptions = {}
 
 
 def objfunc(xdict):

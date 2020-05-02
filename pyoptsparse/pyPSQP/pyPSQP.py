@@ -1,6 +1,6 @@
 # /bin/env python
 """
-pyPSQP - the pyPSQP wrapper 
+pyPSQP - the pyPSQP wrapper
 """
 # =============================================================================
 # PSQP Library
@@ -13,7 +13,8 @@ except ImportError:
 # Standard Python modules
 # =============================================================================
 import os
-import time, datetime
+import time
+import datetime
 
 # =============================================================================
 # External Python modules
@@ -243,11 +244,11 @@ Must be <= 2"
             # Run PSQP
             t0 = time.time()
             # fmt: off
-            psqp.psqp_wrap(nvar, ncon, xs, xi, blx, bux, cf, ic, cl, cu, 
-                           opt('MIT'), opt('MFV'), opt('MET'), opt('MEC'), 
-                           opt('XMAX'), opt('TOLX'), opt('TOLC'), opt('TOLG'), 
-                           opt('RPF'), ff, gmax, cmax, opt('IPRINT'), 
-                           opt('IOUT'), opt('IFILE'), iterm, pobj, pdobj, 
+            psqp.psqp_wrap(nvar, ncon, xs, xi, blx, bux, cf, ic, cl, cu,
+                           opt('MIT'), opt('MFV'), opt('MET'), opt('MEC'),
+                           opt('XMAX'), opt('TOLX'), opt('TOLC'), opt('TOLG'),
+                           opt('RPF'), ff, gmax, cmax, opt('IPRINT'),
+                           opt('IOUT'), opt('IFILE'), iterm, pobj, pdobj,
                            pcon, pdcon)
             # fmt: on
             optTime = time.time() - t0

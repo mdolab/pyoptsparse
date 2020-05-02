@@ -4,6 +4,7 @@ import unittest
 import numpy
 from numpy.testing import assert_allclose
 from pyoptsparse import Optimization, OPT, History
+from pyoptsparse.pyOpt_error import Error
 
 
 class TestHS71(unittest.TestCase):
@@ -60,7 +61,7 @@ class TestHS71(unittest.TestCase):
         # Optimizer
         try:
             opt = OPT(optName, options=optOptions)
-        except:
+        except Error:
             raise unittest.SkipTest("Optimizer not available:", optName)
 
         if isinstance(setDV, str):

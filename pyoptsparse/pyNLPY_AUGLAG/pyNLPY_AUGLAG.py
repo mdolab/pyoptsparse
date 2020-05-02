@@ -1,7 +1,7 @@
 # /bin/env python
 """
-pyNLPY_AUGLAG - A wrapper for the matrix-free augmented Lagrangian algorithm 
-from the NLPy package. This optimizer can exploit sparsity in the constraint 
+pyNLPY_AUGLAG - A wrapper for the matrix-free augmented Lagrangian algorithm
+from the NLPy package. This optimizer can exploit sparsity in the constraint
 blocks.
 
 Some assumptions to get this wrapper working:
@@ -24,14 +24,12 @@ try:
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianSplitSr1Framework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianSplitLsr1TronFramework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalLsr1AdjBroyAFramework
-    from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalSr1AdjBroyAFramework
     from nlpy.optimize.solvers.auglag2 import AugmentedLagrangianTotalLsr1AdjBroyATronFramework
-except:
+except ImportError:
     MFModel = None
 # =============================================================================
 # Standard Python modules
 # =============================================================================
-import os
 import time
 import copy
 import signal
@@ -41,8 +39,6 @@ from contextlib import contextmanager
 # External Python modules
 # =============================================================================
 import numpy
-
-eps = numpy.finfo(numpy.float64).eps
 import logging
 
 # ===========================================================================
@@ -52,6 +48,7 @@ from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_gradient import Gradient
 from ..pyOpt_error import Error
 
+eps = numpy.finfo(numpy.float64).eps
 # =============================================================================
 # Timeout Class
 # =============================================================================
@@ -224,7 +221,6 @@ be installed to use NLPY_AUGLAG."
 
         # Redefined _setSens function for the matrix-free case
         self._setSens(sens, sensStep, sensMode)
-        ff = self._assembleObjective()
 
         if self.optProb.nCon > 0:
             # We need to reorder this full jacobian...so get ordering:
@@ -234,7 +230,6 @@ be installed to use NLPY_AUGLAG."
             self.optProb.jacIndicesInv = numpy.argsort(self.optProb.jacIndices)
             self.optProb.fact = fact
             self.optProb.offset = numpy.zeros_like(indices)
-            ncon = len(indices)
 
             # Count the number of nonlinear constraints for the quasi-Newton block
             # (A somewhat costly way to do this)
@@ -256,7 +251,7 @@ be installed to use NLPY_AUGLAG."
             return fcon.copy()
 
         # Gradient callbacks are specialized for the matrix-free case
-        if self.matrix_free == True:
+        if self.matrix_free is True:
 
             # Note the different tags for calling matrix-free and
             # standard matrix-vector product functions
@@ -548,8 +543,8 @@ be installed to use NLPY_AUGLAG."
 
     def _setSens(self, sens, sensStep, sensMode):
         """
-        For the matrix-free approach, the sens argument is actually a list 
-        of three separate functions. The order of these functions must be 
+        For the matrix-free approach, the sens argument is actually a list
+        of three separate functions. The order of these functions must be
         [obj_grad, jac_prod, jac_t_prod].
 
         Otherwise, this function is identical to that of the base class.
@@ -598,7 +593,6 @@ of 'FD' or 'CS' or a user supplied function or group of functions."
         # expensive, so we only store function information.
 
         # Set basic parameters in history
-        hist = {"xuser": xuser}
         returns = []
 
         # Evaluate the gradient of the objective function only
@@ -737,7 +731,7 @@ of 'FD' or 'CS' or a user supplied function or group of functions."
 
     def _createSolution(self, optTime, sol_inform, obj, xopt):
         """
-        Create the solution for the optimizer and append the data that is 
+        Create the solution for the optimizer and append the data that is
         specific to the matrix-free optimizer.
         """
 

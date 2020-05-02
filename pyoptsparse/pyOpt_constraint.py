@@ -9,7 +9,7 @@ Holds the representation of a pyOptSparse constraint group
 # =============================================================================
 import copy
 import numpy
-from .pyOpt_error import Error
+from .pyOpt_error import Error, pyOptSparseWarning
 from .pyOpt_utils import convertToCOO
 
 INFINITY = 1e20
@@ -229,17 +229,17 @@ class Constraint(object):
             else:
                 try:
                     self.wrt = list(self.wrt)
-                except:
+                except:  # noqa: E722
                     raise Error("The 'wrt' argument to constraint '%s' must " "be an iterable list" % self.name)
 
             # We allow 'None' to be in the list...they are null so
             # just pop them out:
-            self.wrt = [dvGroup for dvGroup in self.wrt if dvGroup != None]
+            self.wrt = [dvGroup for dvGroup in self.wrt if dvGroup is not None]
 
             # Now, make sure that each dvGroup the user supplied list
             # *actually* are variables
             for dvGroup in self.wrt:
-                if not dvGroup in variables:
+                if dvGroup not in variables:
                     raise Error(
                         "The supplied dvGroup '%s' in 'wrt' "
                         "for the %s constraint, does not exist. It "

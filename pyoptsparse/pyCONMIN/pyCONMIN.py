@@ -135,7 +135,6 @@ class CONMIN(Optimizer):
         blx, bux, xs = self._assembleContinuousVariables()
         xs = numpy.maximum(xs, blx)
         xs = numpy.minimum(xs, bux)
-        n = len(xs)
         ff = self._assembleObjective()
 
         oneSided = True

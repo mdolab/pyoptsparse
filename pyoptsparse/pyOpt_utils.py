@@ -243,13 +243,13 @@ def convertToCOO(mat):
 
                 mat = mat.tocoo()
                 return {"coo": [mat.row, mat.col, mat.data], "shape": mat.shape}
-        except:
+        except:  # noqa: E722
             pass
 
         # Now try to do it with a numpy matrix:
         try:
             return _denseToCOO(numpy.atleast_2d(numpy.array(mat)))
-        except:
+        except:  # noqa: E722
             raise Error(
                 "Unknown matrix format. Must be a dense numpy "
                 "array or a pyoptsparse sparce matrix format of "

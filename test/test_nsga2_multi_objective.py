@@ -3,6 +3,7 @@
 import unittest
 from numpy.testing import assert_allclose
 from pyoptsparse import Optimization, NSGA2
+from pyoptsparse.pyOpt_error import Error
 
 
 def objfunc(xdict):
@@ -34,7 +35,7 @@ class TestNSGA2(unittest.TestCase):
         # Optimizer
         try:
             opt = NSGA2(options=options)
-        except:
+        except Error:
             raise unittest.SkipTest("Optimizer not available:", "NSGA2")
 
         sol = opt(optProb)

@@ -76,10 +76,8 @@ def large_sparse(optimizer="SNOPT", optOptions=None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--opt", help="optimizer", type=str, default="SNOPT")
-    parser.add_argument("--optOptions", type=str, help="Options for the optimizer", default="{}")
     args = parser.parse_args()
-    exec("optOptions=%s" % args.optOptions)
-
+    optOptions = {}
     opt, optProb = large_sparse(args.opt, optOptions)
 
     # Solution

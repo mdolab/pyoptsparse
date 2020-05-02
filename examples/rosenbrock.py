@@ -1,10 +1,8 @@
 #!/usr/bin/env python
-import time, sys
 from pyoptsparse import Optimization, OPT
-import os, argparse
+import argparse
 import numpy
-import sys
-import pdb
+
 
 # import cProfile
 
@@ -70,8 +68,6 @@ def jprod(xdict, pdict, sparse_only):
     if constrained:
         gcon = numpy.array([-3 * (x[0] - 1) ** 2, -1])
         qdict["con"] = numpy.array([numpy.dot(gcon, p)])
-    else:
-        q = numpy.zeros(0)
     fail = False
 
     return qdict, fail

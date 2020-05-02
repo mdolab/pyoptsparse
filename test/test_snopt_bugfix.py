@@ -8,6 +8,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_allclose
 from pyoptsparse import Optimization, SNOPT
+from pyoptsparse.pyOpt_error import Error
 
 
 def objfunc(xdict):
@@ -98,7 +99,7 @@ class TestSNOPTBug(unittest.TestCase):
         # Optimizer
         try:
             opt = SNOPT(options=optOptions)
-        except:
+        except Error:
             raise unittest.SkipTest("Optimizer not available: SNOPT")
 
         sol = opt(optProb, sens=sens)
@@ -130,10 +131,10 @@ class TestSNOPTBug(unittest.TestCase):
         # Optimizer
         try:
             opt = SNOPT(options=optOptions)
-        except:
+        except Error:
             raise unittest.SkipTest("Optimizer not available: SNOPT")
 
-        sol = opt(optProb, sens=sens)
+        opt(optProb, sens=sens)
 
     def test_opt_bug_print_2con(self):
         # Optimization Object
@@ -172,7 +173,7 @@ class TestSNOPTBug(unittest.TestCase):
         # Optimizer
         try:
             opt = SNOPT(options=optOptions)
-        except:
+        except Error:
             raise unittest.SkipTest("Optimizer not available: SNOPT")
 
         sol = opt(optProb, sens=sens)

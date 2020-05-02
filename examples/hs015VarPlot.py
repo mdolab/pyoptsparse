@@ -1,4 +1,3 @@
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from sqlitedict import SqliteDict
@@ -9,7 +8,7 @@ for opt in opts:
     fileName = "%s_hs015_Hist.hst" % opt
     try:
         db[opt] = SqliteDict(fileName)
-    except:
+    except:  # noqa: E722
         pass
 
 obj = {}
@@ -22,12 +21,12 @@ for opt in db.keys():
     obj[opt] = []
     x1[opt] = []
     x2[opt] = []
-    for i in xrange(n):
+    for i in range(n):
         try:
             obj[opt].append(db[opt]["%d" % i]["funcs"]["obj"])
             x1[opt].append(db[opt]["%d" % i]["xuser"]["xvars"][0])
             x2[opt].append(db[opt]["%d" % i]["xuser"]["xvars"][1])
-        except:
+        except:  # noqa: E722
             pass
 
 # Generate the Rosenbrock contours

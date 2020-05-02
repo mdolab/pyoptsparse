@@ -2,13 +2,10 @@
 # See TP109.py for more information.
 
 import numpy
-import argparse
-from numpy import sin, cos
 from pyoptsparse import Optimization, SNOPT, ALPSO
-
-USE_LINEAR = True
 from tp109 import objfunc  # Import objective from the other file
 
+USE_LINEAR = True
 # Optimization Object
 optProb = Optimization("TP109 Constraint Problem", objfunc)
 

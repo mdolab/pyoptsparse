@@ -8,13 +8,14 @@ work with sparse optimization problems.
 # =============================================================================
 try:
     from . import slsqp
-except:
+except ImportError:
     slsqp = None
 # =============================================================================
 # Standard Python modules
 # =============================================================================
 import os
-import time, datetime
+import time
+import datetime
 
 # =============================================================================
 # External Python modules
@@ -191,7 +192,6 @@ class SLSQP(Optimizer):
             # Setup argument list values
             la = max(m, 1)
             gg = numpy.zeros([la], numpy.float)
-            n1 = numpy.array([n + 1], numpy.int)
             df = numpy.zeros([n + 1], numpy.float)
             dg = numpy.zeros([la, n + 1], numpy.float)
             acc = numpy.array([self.getOption("ACC")], numpy.float)

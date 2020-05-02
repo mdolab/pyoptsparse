@@ -15,7 +15,8 @@ except ImportError:
 # standard Python modules
 # =============================================================================
 import copy
-import time, datetime
+import time
+import datetime
 
 # =============================================================================
 # External Python modules
@@ -435,7 +436,6 @@ class IPOPT(Optimizer):
         self._setInitialCacheValues()
         blx, bux, xs = self._assembleContinuousVariables()
         self._setSens(sens, sensStep, sensMode)
-        ff = self._assembleObjective()
 
         # Determine the sparsity structure of the full jacobian
         # -----------------------------------------------------

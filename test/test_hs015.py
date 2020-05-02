@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_allclose
 from pyoptsparse import Optimization, OPT, History
-from sqlitedict import SqliteDict
+from pyoptsparse.pyOpt_error import Error
 
 
 class TestHS15(unittest.TestCase):
@@ -71,12 +71,12 @@ class TestHS15(unittest.TestCase):
         # Optimizer
         try:
             opt = OPT(optName, options=optOptions)
-        except:
+        except Error:
             raise unittest.SkipTest("Optimizer not available:", optName)
 
         # Solution
         if storeHistory is not None:
-            if storeHistory == True:
+            if storeHistory is True:
                 self.histFileName = "%s_hs015_Hist.hst" % (optName.lower())
             elif isinstance(storeHistory, str):
                 self.histFileName = storeHistory

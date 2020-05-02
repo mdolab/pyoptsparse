@@ -13,7 +13,8 @@ except ImportError:
 # Standard Python modules
 # =============================================================================
 import os
-import time, datetime
+import time
+import datetime
 
 # =============================================================================
 # External Python modules
@@ -233,10 +234,10 @@ class NLPQLP(Optimizer):
             t0 = time.time()
             # fmt: off
             nlpqlp.wrapper(np, m, me, mmax, n, nmax, mnn2, xs, f, g, df, dg, u,
-                           blx, bux, c, d, go('accuracy'), go('accuracyQP'), 
+                           blx, bux, c, d, go('accuracy'), go('accuracyQP'),
                            go('stepMin'), go('maxFun'), go('maxIt'), go('maxNM'),
-                           go('rho'), go('mode'), go('iPrint'), go('iOut'), 
-                           go('iFile'), ifail, go('lMerit'), go('lQl'), 
+                           go('rho'), go('mode'), go('iPrint'), go('iOut'),
+                           go('iFile'), ifail, go('lMerit'), go('lQl'),
                            nlfunc, nlgrad)
             # fmt: on
             optTime = time.time() - t0

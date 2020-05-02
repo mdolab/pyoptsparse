@@ -10,8 +10,6 @@ John Jasa 2015-2019
 # ======================================================================
 # Standard Python modules
 # ======================================================================
-import os
-import argparse
 import shelve
 
 import sys
@@ -218,8 +216,6 @@ class OVBaseClass(object):
     def DetermineMajorIterations(self, db, OpenMDAO):
 
         if not OpenMDAO:
-
-            prev_key = 0
             # Loop over each optimization iteration
             for i, iter_type in enumerate(self.iter_type):
 
@@ -277,7 +273,6 @@ class OVBaseClass(object):
 
                 # Get just the info in the dict for this iteration
                 iter_data = db[key][data_str]
-                iter_key = key
 
                 # Loop through each key within this iteration
                 for key in sorted(iter_data):

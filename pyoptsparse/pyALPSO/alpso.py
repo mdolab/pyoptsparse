@@ -5,7 +5,7 @@ alpso - Python Version of the Augmented Lagrangian Particle Swarm Optimizer
 alpso if a global optimizer which solves problems of the form:
 
             min F(x)
-                
+
     subject to: Gi(x)  = 0, i = 1(1)ME
                 Gj(x) <= 0, j = ME+1(1)M
                 xLB <= x <= xUB
@@ -19,8 +19,9 @@ To Do:
 # =============================================================================
 # Standard Python modules
 # =============================================================================
-import os, sys, random, time
-import pdb
+import os
+import random
+import time
 from math import floor
 
 # =============================================================================
@@ -57,10 +58,10 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
           nhm, maxOutIter, maxInnIter, minInnIter, stopCriteria, stopIters, etol,
           itol, rtol, atol, dtol, prtOutIter, prtInnIter, r0, vinit, vmax, c1, c2, w1, w2,
           ns, nf, vcrazy, fileout, filename, logfile, hstfile, rseed, scale, nhs, objfunc):
-# fmt: on
+# fmt: on # noqa: E115
     """
     Python Version of the Augmented Lagrangian Particle Swarm Optimizer
-    
+
     Documentation last updated:  April. 29, 2008 - Ruben E. Perez
     """
 

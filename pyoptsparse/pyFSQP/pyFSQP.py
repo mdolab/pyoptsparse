@@ -267,7 +267,7 @@ class FSQP(Optimizer):
             t0 = time.time()
             # fmt: off
             ffsqp.ffsqp(nparam, nf, nineqn, nineq, neqn, neq, mode, iprint, miter,
-                        inform, bigbnd, epstol, epsneq, udelta, blx, bux, xs, ff, 
+                        inform, bigbnd, epstol, epsneq, udelta, blx, bux, xs, ff,
                         gg, iw, iwsize, w, nwsize, obj, cntr, gradobj, gradcntr,
                         iout, ifile)
             # fmt: on

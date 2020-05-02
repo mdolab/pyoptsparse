@@ -141,8 +141,8 @@ class NSGA2(Optimizer):
             self.optProb.offset = buc
 
         g = nsga2.new_doubleArray(m)
-        l = len(numpy.atleast_1d(ff))
-        f = nsga2.new_doubleArray(l)
+        len_ff = len(numpy.atleast_1d(ff))
+        f = nsga2.new_doubleArray(len_ff)
 
         if self.optProb.comm.rank == 0:
             # Set history/hotstart
@@ -175,9 +175,9 @@ class NSGA2(Optimizer):
             nsga2.set_pyfunc(objconfunc)
             t0 = time.time()
             # fmt: off
-            nsga2.nsga2(n, m, l, f, x, g, nfeval, xl, xu, opt('PopSize'), opt('maxGen'),
+            nsga2.nsga2(n, m, len_ff, f, x, g, nfeval, xl, xu, opt('PopSize'), opt('maxGen'),
                         opt('pCross_real'), opt('pMut_real'), opt('eta_c'), opt('eta_m'),
-                        opt('pCross_bin'), opt('pMut_bin'), printout,seed, opt('xinit'))
+                        opt('pCross_bin'), opt('pMut_bin'), printout, seed, opt('xinit'))
             # fmt: on
             optTime = time.time() - t0
 

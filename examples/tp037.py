@@ -1,4 +1,3 @@
-import numpy
 import argparse
 from pyoptsparse import Optimization, OPT
 

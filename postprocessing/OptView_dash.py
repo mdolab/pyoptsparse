@@ -75,7 +75,7 @@ class ReadOptHist(OVBaseClass):
             try:  # This is the classic method of storing history files
                 db = shelve.open(histFileName, "r")
                 OpenMDAO = False
-            except:  # Bare except because error is not in standard Python.
+            except:  # Bare except because error is not in standard Python. # noqa: E722
                 # If the db has the 'iterations' tag, it's an OpenMDAO db.
                 db = SqliteDict(histFileName, "iterations")
                 OpenMDAO = True
@@ -194,8 +194,6 @@ class ReadOptHist(OVBaseClass):
     def DetermineMajorIterations(self, db, OpenMDAO):
 
         if not OpenMDAO:
-
-            prev_key = 0
             # Loop over each optimization iteration
             for i, iter_type in enumerate(self.iter_type):
 
@@ -232,7 +230,6 @@ class ReadOptHist(OVBaseClass):
                     self.iter_type[i] = 0  # this is not a real iteration,
                     # just the sensitivity evaluation
 
-            min_list = []
             # Loop over each optimization iteration
             for i, iter_type in enumerate(self.iter_type):
 
@@ -273,7 +270,6 @@ class ReadOptHist(OVBaseClass):
 
                 # Get just the info in the dict for this iteration
                 iter_data = db[key][data_str]
-                iter_key = key
 
                 # Loop through each key within this iteration
                 for key in sorted(iter_data):

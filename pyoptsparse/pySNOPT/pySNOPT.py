@@ -14,7 +14,8 @@ except ImportError:
 # Standard Python modules
 # =============================================================================
 import os
-import time, datetime
+import time
+import datetime
 
 # =============================================================================
 # External Python modules
@@ -26,7 +27,7 @@ import numpy
 # # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
-from ..pyOpt_utils import convertToCSC, ICOL, IDATA, IROW, IROWIND, ICOLP, extractRows, mapToCSC, scaleRows
+from ..pyOpt_utils import ICOL, IDATA, IROW, extractRows, mapToCSC, scaleRows
 
 # =============================================================================
 # SNOPT Optimizer Class
@@ -461,7 +462,6 @@ class SNOPT(Optimizer):
             xs = numpy.concatenate((xs, numpy.zeros(ncon, numpy.float)))
             bl = numpy.concatenate((blx, blc))
             bu = numpy.concatenate((bux, buc))
-            lencu = 1
             leniu = 2
             lenru = 3
             cu = numpy.array(["        "], "c")
@@ -577,7 +577,7 @@ class SNOPT(Optimizer):
     def _getHessian(self, iw, rw):
         """
         This function retrieves the approximate Hessian from the SNOPT workspace arrays
-        Call it for example from the _snstop routine or after SNOPT has finished, where iw and rw arrays are available 
+        Call it for example from the _snstop routine or after SNOPT has finished, where iw and rw arrays are available
         Currently only full memory Hessian mode is implemented, do not use this for limited-memory case.
 
         The FM Hessian in SNOPT is stored with its Cholesky factor
@@ -606,10 +606,10 @@ class SNOPT(Optimizer):
         return xPen
 
     # fmt: off
-    def _snstop(self,ktcond,mjrprtlvl,minimize,n,nncon,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,
-        iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,
-        locj,indj,jcol,scales,bl,bu,fx,fcon,gcon,gobj,ycon,pi,rc,rg,x,cu,iu,ru,cw,iw,rw):
-# fmt: on
+    def _snstop(self, ktcond, mjrprtlvl, minimize, n, nncon, nnobj, ns, itn, nmajor, nminor, nswap, condzhz,
+                iobj, scaleobj, objadd, fobj, fmerit, penparm, step, primalinf, dualinf, maxvi, maxvirel, hs,
+                locj, indj, jcol, scales, bl, bu, fx, fcon, gcon, gobj, ycon, pi, rc, rg, x, cu, iu, ru, cw, iw, rw):
+    # fmt: on # noqa: E115
         """
         This routine is called every major iteration in SNOPT, after solving QP but before line search
         Currently we use it just to determine the correct major iteration counting,
@@ -733,7 +733,7 @@ class SNOPT(Optimizer):
         # mnr_code = infocode[0] - 10*mjr_code
         try:
             inform_text = self.informs[mjr_code]
-        except:
+        except KeyError:
             inform_text = "Unknown Exit Status"
         # end try
 
