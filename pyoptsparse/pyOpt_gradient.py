@@ -6,8 +6,9 @@ difference or complex step.
 # =============================================================================
 # External Python modules
 # =============================================================================
-import numpy
+import numpy as np
 from .pyOpt_MPI import MPI
+
 # =============================================================================
 # Gradient Class
 # =============================================================================
@@ -34,14 +35,13 @@ class Gradient(object):
         Flag to compute gradients in parallel.
         """
 
-    def __init__(self, optProb, sensType, sensStep=None, sensMode='',
-                 comm=None):
+    def __init__(self, optProb, sensType, sensStep=None, sensMode="", comm=None):
         self.optProb = optProb
         self.sensType = sensType
         if sensStep is None:
-            if self.sensType in ['fd', 'fdr']:
+            if self.sensType in ["fd", "fdr"]:
                 self.sensStep = 1e-6
-            elif self.sensType in ['cd', 'cdr']:
+            elif self.sensType in ["cd", "cdr"]:
                 self.sensStep = 1e-4
             else:
                 self.sensStep = 1e-40j
@@ -53,7 +53,7 @@ class Gradient(object):
         # Now we can compute which dvs each process will need to
         # compute:
         ndvs = self.optProb.ndvs
-        if self.sensMode == 'pgc' and self.comm:
+        if self.sensMode == "pgc" and self.comm:
             self.mydvs = list(range(self.comm.rank, ndvs, self.comm.size))
         else:
             self.mydvs = list(range(ndvs))
@@ -69,12 +69,10 @@ class Gradient(object):
         self.optProb.evaluateLinearConstraints(x, funcs)
         fobj = self.optProb.processObjtoVec(funcs, scaled=False)
 
-        if self.sensType == 'cs':
-            fcon = self.optProb.processContoVec(funcs, scaled=False,
-                                                   dtype='D', natural=True)
+        if self.sensType == "cs":
+            fcon = self.optProb.processContoVec(funcs, scaled=False, dtype="D", natural=True)
         else:
-            fcon = self.optProb.processContoVec(funcs, scaled=False,
-                                                   natural=True)
+            fcon = self.optProb.processContoVec(funcs, scaled=False, natural=True)
 
         return fobj, fcon, fail
 
@@ -116,10 +114,10 @@ class Gradient(object):
         # gradients
         ndvs = self.optProb.ndvs
         ncon = self.optProb.nCon
-        gobj = numpy.zeros(ndvs, 'd')
-        gcon = numpy.zeros((ncon, ndvs), 'd')
+        gobj = np.zeros(ndvs, "d")
+        gcon = np.zeros((ncon, ndvs), "d")
 
-        if self.sensMode == 'pgc':
+        if self.sensMode == "pgc":
             funcsBase = self.comm.bcast(funcs)
         else:
             funcsBase = funcs
@@ -129,20 +127,19 @@ class Gradient(object):
         # processed as per normal.
         xBase = self.optProb.processXtoVec(x)
         self.optProb.evaluateLinearConstraints(xBase, funcsBase)
-        fconBase = self.optProb.processContoVec(
-            funcsBase, scaled=False, dtype='D', natural=True)
+        fconBase = self.optProb.processContoVec(funcsBase, scaled=False, dtype="D", natural=True)
         fobjBase = self.optProb.processObjtoVec(funcsBase, scaled=False)
 
         # Convert to complex if necessary:
-        if self.sensType == 'cs':
-            xBase = xBase.astype('D')
+        if self.sensType == "cs":
+            xBase = xBase.astype("D")
 
         masterFail = False
 
         for i in self.mydvs:
             xph = xBase.copy()
-            if self.sensType in ['fdr', 'cdr']:
-                sensStep = max(abs(self.sensStep*xph[i]), self.sensStep)
+            if self.sensType in ["fdr", "cdr"]:
+                sensStep = max(abs(self.sensStep * xph[i]), self.sensStep)
             else:
                 sensStep = self.sensStep
             xph[i] += sensStep
@@ -152,28 +149,28 @@ class Gradient(object):
                 masterFail = True
 
             # forward difference
-            if self.sensType in ['fd', 'fdr']:
-                gobj[i]    = (fobj_ph - fobjBase)/sensStep
-                gcon[:, i] = (fcon_ph - fconBase)/sensStep
+            if self.sensType in ["fd", "fdr"]:
+                gobj[i] = (fobj_ph - fobjBase) / sensStep
+                gcon[:, i] = (fcon_ph - fconBase) / sensStep
 
             # central difference
-            elif self.sensType in ['cd', 'cdr']:
+            elif self.sensType in ["cd", "cdr"]:
                 xmh = xph  # xph isn't used anymore so  just point to same location
-                xmh[i] -= 2*sensStep
+                xmh[i] -= 2 * sensStep
 
                 fobj_mh, fcon_mh, fail = self._eval_func(xmh)
                 if fail:
                     masterFail = True
 
-                gobj[i]    = (fobj_ph - fobj_mh)/(2*sensStep)
-                gcon[:, i] = (fcon_ph - fcon_mh)/(2*sensStep)
+                gobj[i] = (fobj_ph - fobj_mh) / (2 * sensStep)
+                gcon[:, i] = (fcon_ph - fcon_mh) / (2 * sensStep)
 
             # complex step
             else:
-                gobj[i]    = numpy.imag(fobj_ph)/numpy.imag(sensStep)
-                gcon[:, i] = numpy.imag(fcon_ph)/numpy.imag(sensStep)
+                gobj[i] = np.imag(fobj_ph) / np.imag(sensStep)
+                gcon[:, i] = np.imag(fcon_ph) / np.imag(sensStep)
 
-        if self.sensMode == 'pgc':
+        if self.sensMode == "pgc":
             # We just mpi_reduce to the root with sum. This uses the
             # efficent numpy versions
             self.comm.Reduce(gobj.copy(), gobj, op=MPI.SUM, root=0)
@@ -191,14 +188,13 @@ class Gradient(object):
             funcs[objKey] = {}
             for dvGroup in self.optProb.variables:
                 ss = self.optProb.dvOffset[dvGroup]
-                funcs[objKey][dvGroup] = gobj[ss[0]:ss[1]]
+                funcs[objKey][dvGroup] = gobj[ss[0] : ss[1]]
 
         for conKey in self.optProb.constraints:
             con = self.optProb.constraints[conKey]
             funcs[conKey] = {}
             for dvGroup in self.optProb.variables:
                 ss = self.optProb.dvOffset[dvGroup]
-                funcs[conKey][dvGroup] = gcon[con.rs:con.re,ss[0]:ss[1]]
+                funcs[conKey][dvGroup] = gcon[con.rs : con.re, ss[0] : ss[1]]
 
         return funcs, masterFail
-

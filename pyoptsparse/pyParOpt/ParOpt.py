@@ -1,6 +1,6 @@
-
 import numpy as np
 import datetime
+
 try:
     from paropt import ParOpt as _ParOpt
     from mpi4py import MPI
@@ -9,8 +9,7 @@ except ImportError:
 
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
-from ..pyOpt_utils import convertToCSC, ICOL, IDATA, IROW, IROWIND, ICOLP, \
-    extractRows, mapToCSC, scaleRows
+
 
 class ParOpt(Optimizer):
     """
@@ -20,56 +19,56 @@ class ParOpt(Optimizer):
     This is not replicated here since pyOptSparse does not have the
     capability to handle this type of design problem.
     """
+
     def __init__(self, *args, **kwargs):
-        name = 'ParOpt'
-        category = 'Local Optimizer'
+        name = "ParOpt"
+        category = "Local Optimizer"
         defOpts = {
-            'filename': [str, 'paropt.out'],
-            'algorithm': [str, 'ip'], # Other options: tr
-
+            "filename": [str, "paropt.out"],
+            "algorithm": [str, "ip"],  # Other options: tr
             # Generic options for the interior point method/trust region
-            'qn_subspace_size': [int, 10],
-            'norm_type': [str, 'l2'], # l1, linfty
-            'barrier_strategy': [str, 'monotone'],
-            'starting_point_strategy': [str, 'least_squares_multipliers'],
-            'max_iterations': [int, 1000],
-            'abs_optimality_tol': [float, 1e-6],
-            'rel_function_tol': [float, 0.0],
-            'penalty_gamma': [float, 1000.0],
-            'barrier_fraction': [float, 0.25],
-            'barrier_power': [float, 1.0],
-            'reset_hessian_frequency': [int, 100000],
-            'bfgs_update_type': [str, 'skip'], # or 'damped'
-            'affine_step_multiplier_min': [float, 1.0],
-            'init_barrier_parameter': [float, 0.1],
-            'max_linesearch_iters': [int, 10],
-            'armijo_parameter': [float, 1e-3],
-            'penalty_descent_fraction': [float, 0.3],
-            'min_penalty_parameter': [float, 0.0],
-
+            "qn_subspace_size": [int, 10],
+            "norm_type": [str, "l2"],  # l1, linfty
+            "barrier_strategy": [str, "monotone"],
+            "starting_point_strategy": [str, "least_squares_multipliers"],
+            "max_iterations": [int, 1000],
+            "abs_optimality_tol": [float, 1e-6],
+            "rel_function_tol": [float, 0.0],
+            "penalty_gamma": [float, 1000.0],
+            "barrier_fraction": [float, 0.25],
+            "barrier_power": [float, 1.0],
+            "reset_hessian_frequency": [int, 100000],
+            "bfgs_update_type": [str, "skip"],  # or 'damped'
+            "affine_step_multiplier_min": [float, 1.0],
+            "init_barrier_parameter": [float, 0.1],
+            "max_linesearch_iters": [int, 10],
+            "armijo_parameter": [float, 1e-3],
+            "penalty_descent_fraction": [float, 0.3],
+            "min_penalty_parameter": [float, 0.0],
             # Trust region specifics
-            'tr_init_size': [float, 0.01],
-            'tr_max_size': [float, 1.0],
-            'tr_min_size': [float, 0.0],
-            'tr_eta': [float, 0.25],
-            'tr_penalty_gamma': [float, 10.0],
-            'tr_max_iterations': [int, 250],
-            'tr_abs_optimality_tol': [float, 1e-6]}
+            "tr_init_size": [float, 0.01],
+            "tr_max_size": [float, 1.0],
+            "tr_min_size": [float, 0.0],
+            "tr_eta": [float, 0.25],
+            "tr_penalty_gamma": [float, 10.0],
+            "tr_max_iterations": [int, 250],
+            "tr_abs_optimality_tol": [float, 1e-6],
+        }
         informs = {}
         if _ParOpt is None:
-            raise Error('There was an error importing ParOpt')
+            raise Error("There was an error importing ParOpt")
 
         self.set_options = []
-        Optimizer.__init__(self, name, category, defOpts, informs,
-                           *args, **kwargs)
+        Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
 
         # ParOpt requires a dense Jacobian format
-        self.jacType = 'dense2d'
+        self.jacType = "dense2d"
 
         return
-    
-    def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
-                 storeHistory=None, hotStart=None, storeSens=True):
+
+    def __call__(
+        self, optProb, sens=None, sensStep=None, sensMode=None, storeHistory=None, hotStart=None, storeSens=True
+    ):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -142,12 +141,11 @@ class ParOpt(Optimizer):
         n = len(xs)
 
         oneSided = True
-        
+
         if self.unconstrained:
             m = 0
         else:
-            indices, blc, buc, fact = self.optProb.getOrdering(
-                ['ne', 'le', 'ni', 'li'], oneSided=oneSided)
+            indices, blc, buc, fact = self.optProb.getOrdering(["ne", "le", "ni", "li"], oneSided=oneSided)
             m = len(indices)
             self.optProb.jacIndices = indices
             self.optProb.fact = fact
@@ -178,12 +176,12 @@ class ParOpt(Optimizer):
 
                 def evalObjCon(self, x):
                     """Evaluate the objective and constraint values"""
-                    fobj, fcon, fail = self.ptr._masterFunc(x[:], ['fobj', 'fcon'])
+                    fobj, fcon, fail = self.ptr._masterFunc(x[:], ["fobj", "fcon"])
                     self.fobj = fobj
                     return fail, fobj, -fcon
 
                 def evalObjConGradient(self, x, g, A):
-                    gobj, gcon, fail = self.ptr._masterFunc(x[:], ['gobj', 'gcon'])
+                    gobj, gcon, fail = self.ptr._masterFunc(x[:], ["gobj", "gcon"])
                     g[:] = gobj[:]
                     for i in range(self.m):
                         A[i][:] = -gcon[i][:]
@@ -193,15 +191,14 @@ class ParOpt(Optimizer):
             problem = Problem(self, n, m, xs, blx, bux)
 
             # Get the algorithm/subspace size parameters
-            algorithm = self.getOption('algorithm').lower()
-            qn_subspace_size = self.getOption('qn_subspace_size')
-            filename = self.getOption('filename')
-                
+            algorithm = self.getOption("algorithm").lower()
+            qn_subspace_size = self.getOption("qn_subspace_size")
+            filename = self.getOption("filename")
+
             optTime = MPI.Wtime()
-            if algorithm == 'ip':
+            if algorithm == "ip":
                 # Create the optimizer
-                opt = _ParOpt.InteriorPoint(problem, qn_subspace_size,
-                                            _ParOpt.BFGS)
+                opt = _ParOpt.InteriorPoint(problem, qn_subspace_size, _ParOpt.BFGS)
 
                 # Set the ParOpt options
                 self._set_paropt_options(opt)
@@ -210,35 +207,32 @@ class ParOpt(Optimizer):
                 opt.setOutputFile(filename)
                 opt.optimize()
             else:
-                norm_type = self.getOption('norm_type').lower()
+                norm_type = self.getOption("norm_type").lower()
 
                 # Optimality tolerance
-                opt_tol = self.getOption('abs_optimality_tol')
+                opt_tol = self.getOption("abs_optimality_tol")
 
                 # Trust region algorithm options
-                tr_init_size = self.getOption('tr_init_size')
-                tr_max_size = self.getOption('tr_max_size')
-                tr_min_size = self.getOption('tr_min_size')
-                tr_eta = self.getOption('tr_eta')
-                tr_penalty_gamma = self.getOption('tr_penalty_gamma')
-                tr_opt_abs_tol = self.getOption('tr_abs_optimality_tol')
-                tr_max_iterations = self.getOption('tr_max_iterations')
+                tr_init_size = self.getOption("tr_init_size")
+                tr_max_size = self.getOption("tr_max_size")
+                tr_min_size = self.getOption("tr_min_size")
+                tr_eta = self.getOption("tr_eta")
+                tr_penalty_gamma = self.getOption("tr_penalty_gamma")
+                tr_opt_abs_tol = self.getOption("tr_abs_optimality_tol")
+                tr_max_iterations = self.getOption("tr_max_iterations")
 
                 # Create the quasi-Newton Hessian approximation
                 qn = _ParOpt.LBFGS(problem, subspace=qn_subspace_size)
 
                 # Create the trust region problem
-                tr = _ParOpt.TrustRegion(problem, qn, tr_init_size,
-                                         tr_min_size, tr_max_size,
-                                         tr_eta, tr_penalty_gamma)
+                tr = _ParOpt.TrustRegion(problem, qn, tr_init_size, tr_min_size, tr_max_size, tr_eta, tr_penalty_gamma)
 
                 # Create the ParOpt problem
-                opt = _ParOpt.InteriorPoint(tr, qn_subspace_size,
-                                            _ParOpt.NO_HESSIAN_APPROX)
+                opt = _ParOpt.InteriorPoint(tr, qn_subspace_size, _ParOpt.NO_HESSIAN_APPROX)
 
                 # Set the ParOpt options
                 self._set_paropt_options(opt)
-                
+
                 # Set the output file name
                 opt.setOutputFile(filename)
 
@@ -250,15 +244,15 @@ class ParOpt(Optimizer):
                 # Set parameters for ParOpt in the subproblem
                 opt.setMaxMajorIterations(tr_max_iterations)
                 opt.setAbsOptimalityTol(tr_opt_abs_tol)
-        
+
                 # Don't update the quasi-Newton method
                 opt.setQuasiNewton(qn)
                 opt.setUseQuasiNewtonUpdates(0)
 
                 # Check the norm type
-                if norm_type == 'l1':
+                if norm_type == "l1":
                     opt.setNormType(_ParOpt.L1_NORM)
-                elif norm_type == 'linfty':
+                elif norm_type == "linfty":
                     opt.setNormType(_ParOpt.INFTY_NORM)
                 else:
                     opt.setNormType(_ParOpt.L2_NORM)
@@ -267,7 +261,7 @@ class ParOpt(Optimizer):
                 tr.initialize()
 
                 # Iterate
-                max_iterations = self.getOption('max_iterations')
+                max_iterations = self.getOption("max_iterations")
                 for i in range(max_iterations):
                     opt.setInitBarrierParameter(100.0)
                     opt.resetDesignAndBounds()
@@ -279,11 +273,11 @@ class ParOpt(Optimizer):
                     # Update the trust region method
                     infeas, l1, linfty = tr.update(x, z, zw)
 
-                    if norm_type == 'l1':
-                        opt_criteria = (l1 < opt_tol)
+                    if norm_type == "l1":
+                        opt_criteria = l1 < opt_tol
                     else:
-                        opt_criteria = (linfty < opt_tol)
-                    if ((infeas < opt_tol) and opt_criteria):
+                        opt_criteria = linfty < opt_tol
+                    if (infeas < opt_tol) and opt_criteria:
                         break
 
             # Set the total opt time
@@ -296,9 +290,9 @@ class ParOpt(Optimizer):
             x, z, zw, zl, zu = opt.getOptimizedPoint()
 
             if self.storeHistory:
-                self.metadata['endTime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                self.metadata['optTime'] = optTime
-                self.hist.writeData('metadata',self.metadata)
+                self.metadata["endTime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.metadata["optTime"] = optTime
+                self.hist.writeData("metadata", self.metadata)
                 self.hist.close()
 
             # Create the optimization solution. Note that the signs on the multipliers
@@ -306,16 +300,13 @@ class ParOpt(Optimizer):
             # uses g(x) = -c(x) <= 0. Therefore the multipliers are reversed.
             sol_inform = {}
 
-            # If number of constraints is zero, ParOpt returns z as None. 
-            # Thus if there is no constraints, should pass an empty list 
+            # If number of constraints is zero, ParOpt returns z as None.
+            # Thus if there is no constraints, should pass an empty list
             # to multipliers instead of z.
             if z is not None:
-                sol = self._createSolution(optTime, sol_inform, fobj, x[:],
-                                            multipliers=-z)
+                sol = self._createSolution(optTime, sol_inform, fobj, x[:], multipliers=-z)
             else:
-                sol = self._createSolution(optTime, sol_inform, fobj, x[:],
-                                            multipliers=[])
-
+                sol = self._createSolution(optTime, sol_inform, fobj, x[:], multipliers=[])
 
             # Indicate solution finished
             self.optProb.comm.bcast(-1, root=0)
@@ -336,61 +327,61 @@ class ParOpt(Optimizer):
         # ---------------------------------------------
 
         for key in self.options:
-            if key != 'defaults':
+            if key != "defaults":
                 value = self.getOption(key)
 
-                if key == 'norm_type':
-                    if value == 'l1':
+                if key == "norm_type":
+                    if value == "l1":
                         opt.setNormType(_ParOpt.L1_NORM)
-                    elif value == 'linfty':
+                    elif value == "linfty":
                         opt.setNormType(_ParOpt.INFTY_NORM)
-                    elif value == 'l2':
+                    elif value == "l2":
                         opt.setNormType(_ParOpt.L2_NORM)
-                elif key == 'barrier_strategy':
-                    if value == 'monotone':
+                elif key == "barrier_strategy":
+                    if value == "monotone":
                         opt.setBarrierStrategy(_ParOpt.MONOTONE)
-                    elif value == 'mehrotra':
+                    elif value == "mehrotra":
                         opt.setBarrierStrategy(_ParOpt.MEHROTRA)
-                    elif value == 'complementarity_fraction':
+                    elif value == "complementarity_fraction":
                         opt.setBarrierStrategy(_ParOpt.COMPLEMENTARITY_FRACTION)
-                elif key == 'starting_point_strategy':
-                    if value == 'none':
+                elif key == "starting_point_strategy":
+                    if value == "none":
                         opt.setStartingPointStrategy(_ParOpt.NO_START_STRATEGY)
-                    elif value == 'least_squares_multipliers':
+                    elif value == "least_squares_multipliers":
                         opt.setStartingPointStrategy(_ParOpt.LEAST_SQUARES_MULTIPLIERS)
-                    elif value == 'affine_step':
+                    elif value == "affine_step":
                         opt.setStartingPointStrategy(_ParOpt.AFFINE_STEP)
-                elif key == 'max_iterations':
+                elif key == "max_iterations":
                     opt.setMaxMajorIterations(value)
-                elif key == 'abs_optimality_tol':
+                elif key == "abs_optimality_tol":
                     opt.setAbsOptimalityTol(value)
-                elif key == 'rel_function_tol':
+                elif key == "rel_function_tol":
                     opt.setRelFunctionTol(value)
-                elif key == 'penalty_gamma':
+                elif key == "penalty_gamma":
                     opt.setPenaltyGamma(value)
-                elif key == 'barrier_power':
+                elif key == "barrier_power":
                     opt.setBarrierFraction(value)
-                elif key == 'barrier_power':
+                elif key == "barrier_power":
                     opt.setBarrierPower(value)
-                elif key == 'reset_hessian_frequency':
+                elif key == "reset_hessian_frequency":
                     opt.setHessianResetFreq(value)
-                elif key == 'bfgs_update_type':
-                    if value == 'skip':
+                elif key == "bfgs_update_type":
+                    if value == "skip":
                         opt.setBFGSUpdateType(_ParOpt.SKIP_NEGATIVE_CURVATURE)
-                    elif value == 'damped':
+                    elif value == "damped":
                         opt.setBFGSUpdateType(_ParOpt.DAMPED_UPDATE)
-                elif key == 'affine_step_multiplier_min':
+                elif key == "affine_step_multiplier_min":
                     opt.setStartAffineStepMultiplierMin(value)
-                elif key == 'init_barrier_parameter':
+                elif key == "init_barrier_parameter":
                     opt.setInitBarrierParameter(value)
-                elif key == 'max_linesearch_iters':
+                elif key == "max_linesearch_iters":
                     opt.setMaxLineSearchIters(value)
-                elif key == 'armijo_parameter':
+                elif key == "armijo_parameter":
                     opt.setArmijoParam(value)
-                elif key == 'penalty_descent_fraction':
+                elif key == "penalty_descent_fraction":
                     opt.setPenaltyDescentFraction(value)
-                elif key == 'min_penalty_parameter':
-                    opt.setPenaltyDescentFraction(value)                       
+                elif key == "min_penalty_parameter":
+                    opt.setPenaltyDescentFraction(value)
 
     def _on_setOption(self, name, value):
         pass
