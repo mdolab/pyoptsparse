@@ -23,4 +23,4 @@ from .pyParOpt.ParOpt import ParOpt
 
 # from .pyNOMAD.pyNOMAD import NOMAD
 
-__version__ = "2.0.3"
+__version__ = "2.1.0"
