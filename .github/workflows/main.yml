@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         python-version: [ '2.7', '3.7', '3.8' ]
-    name: Python ${{ matrix.python-version }} flake8
+    name: flake8 with Python ${{ matrix.python-version }}
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
@@ -27,8 +27,6 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
-      run: pip install flake8 lintly
+      run: pip install flake8
     - name: Lint with flake8
-      run: flake8 | lintly --commit-sha=${{ github.event.pull_request.head.sha }}
-      env:
-        LINTLY_API_KEY: ${{ secrets.lintly_pr }}
+      run: flake8 .
