@@ -1652,7 +1652,7 @@ class Optimization(object):
         for idx, name in enumerate(self.objectives):
             obj = self.objectives[name]
             value = obj.value
-            if numpy.iscomplexobj(value):
+            if np.iscomplexobj(value):
                 value = value.real
             text += fmt.format(idx, obj.name, value, obj.optimum, width=num_c)
 
@@ -1672,7 +1672,7 @@ class Optimization(object):
             for var in self.variables[varname]:
                 if var.type in ["c", "i"]:
                     value = var.value
-                    if numpy.iscomplexobj(value):
+                    if np.iscomplexobj(value):
                         value = value.real
                     lower = var.lower if var.lower is not None else -1.0e20
                     upper = var.upper if var.upper is not None else 1.0e20
@@ -1734,7 +1734,7 @@ class Optimization(object):
                     lower = c.lower[j] if c.lower[j] is not None else -1.0e20
                     upper = c.upper[j] if c.upper[j] is not None else 1.0e20
                     value = c.value[j]
-                    if numpy.iscomplexobj(value):
+                    if np.iscomplexobj(value):
                         value = value.real
                     status = ""
                     typ = "e" if j in c.equalityConstraints["ind"] else "i"
