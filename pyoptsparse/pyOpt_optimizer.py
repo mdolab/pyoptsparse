@@ -10,19 +10,18 @@ Holds the Python Design Optimization Classes (base and inherited).
 import os
 import time
 import copy
-import numpy
+import numpy as np
 from .pyOpt_gradient import Gradient
 from .pyOpt_error import Error, pyOptSparseWarning
 from .pyOpt_history import History
 from .pyOpt_solution import Solution
 from .pyOpt_optimization import INFINITY
-from .pyOpt_utils import convertToDense, convertToCOO, extractRows, \
-    mapToCSC, scaleRows, IDATA
+from .pyOpt_utils import convertToDense, convertToCOO, extractRows, mapToCSC, scaleRows, IDATA
 from collections import OrderedDict
 import datetime
-import subprocess
 from .pyOpt_MPI import MPI
-eps = numpy.finfo(numpy.float64).eps
+
+eps = np.finfo(np.float64).eps
 
 # =============================================================================
 # Optimizer Class
@@ -42,13 +41,13 @@ class Optimizer(object):
     informs : dict
         Dictionary of the inform codes
         """
-    def __init__(self, name=None, category=None, defOptions=None,
-                 informs=None, **kwargs):
+
+    def __init__(self, name=None, category=None, defOptions=None, informs=None, **kwargs):
 
         self.name = name
         self.category = category
         self.options = {}
-        self.options['defaults'] = defOptions
+        self.options["defaults"] = defOptions
         self.informs = informs
         self.callCounter = 0
         self.sens = None
@@ -56,14 +55,14 @@ class Optimizer(object):
         for key in defOptions:
             self.options[key] = defOptions[key]
 
-        koptions = kwargs.pop('options', {})
+        koptions = kwargs.pop("options", {})
         for key in koptions:
             self.setOption(key, koptions[key])
 
         self.optProb = None
         # Default options:
         self.appendLinearConstraints = False
-        self.jacType = 'dense'
+        self.jacType = "dense"
         self.unconstrained = False
         self.userObjTime = 0.0
         self.userSensTime = 0.0
@@ -73,13 +72,12 @@ class Optimizer(object):
         self.storeSens = True
 
         # Cache storage
-        self.cache = {'x': None, 'fobj': None, 'fcon': None,
-                      'gobj': None, 'gcon': None}
+        self.cache = {"x": None, "fobj": None, "fcon": None, "gobj": None, "gcon": None}
 
         # A second-level cache for optimizers that require callbacks
         # for each constraint. (eg. PSQP, FSQP, etc)
         self.storedData = {}
-        self.storedData['x'] = None
+        self.storedData["x"] = None
 
         # Store the jacobian conversion maps
         self._jac_map_csr_to_csc = None
@@ -99,31 +97,34 @@ class Optimizer(object):
 
         # If we have SNOPT set derivative level to 3...it will be
         # reset if necessary
-        if self.name in ['SNOPT']:
+        if self.name in ["SNOPT"]:
             # SNOPT is the only one where None is ok.
-            self.setOption('Derivative level', 3)
+            self.setOption("Derivative level", 3)
 
         # Next we determine what to what to do about
         # derivatives. We must have a function or we use FD or CS:
         if sens is None:
-            if self.name in ['SNOPT']:
+            if self.name in ["SNOPT"]:
                 # SNOPT is the only one where None is ok.
-                self.setOption('Derivative level', 0)
+                self.setOption("Derivative level", 0)
                 self.sens = None
             else:
-                raise Error("'None' value given for sens. Must be one "
-                            " of 'FD', 'FDR', 'CD', 'CDR', 'CS' or a user supplied function.")
-        elif hasattr(sens, '__call__'):
+                raise Error(
+                    "'None' value given for sens. Must be one "
+                    " of 'FD', 'FDR', 'CD', 'CDR', 'CS' or a user supplied function."
+                )
+        elif hasattr(sens, "__call__"):
             # We have function handle for gradients! Excellent!
             self.sens = sens
-        elif sens.lower() in ['fd', 'fdr', 'cd', 'cdr', 'cs']:
+        elif sens.lower() in ["fd", "fdr", "cd", "cdr", "cs"]:
             # Create the gradient class that will operate just like if
             # the user supplied function
-            self.sens = Gradient(self.optProb, sens.lower(), sensStep,
-                                 sensMode, self.optProb.comm)
+            self.sens = Gradient(self.optProb, sens.lower(), sensStep, sensMode, self.optProb.comm)
         else:
-            raise Error("Unknown value given for sens. Must be None, 'FD', "
-                        "'FDR', 'CD', 'CDR', 'CS' or a python function handle")
+            raise Error(
+                "Unknown value given for sens. Must be None, 'FD', "
+                "'FDR', 'CD', 'CDR', 'CS' or a python function handle"
+            )
 
     def _setHistory(self, storeHistory, hotStart):
         """
@@ -147,36 +148,33 @@ class Optimizer(object):
             # of the hotStart file and use *that* instead.
             import tempfile
             import shutil
+
             if storeHistory == hotStart:
                 if os.path.exists(hotStart):
                     fname = tempfile.mktemp()
                     shutil.copyfile(storeHistory, fname)
-                    self.hotStart = History(fname, temp=True, flag='r')
+                    self.hotStart = History(fname, temp=True, flag="r")
             else:
                 if os.path.exists(hotStart):
-                    self.hotStart = History(hotStart, temp=False, flag='r')
+                    self.hotStart = History(hotStart, temp=False, flag="r")
                 else:
-                    pyOptSparseWarning('Hot start file does not exist. \
-                    Performing a regular start')
+                    pyOptSparseWarning(
+                        "Hot start file does not exist. \
+                    Performing a regular start"
+                    )
 
         self.storeHistory = False
         if storeHistory:
-            self.hist = History(storeHistory, flag='n', optProb=self.optProb)
+            self.hist = History(storeHistory, flag="n", optProb=self.optProb)
             self.storeHistory = True
 
             if hotStart is not None:
-                varInfo = self.hotStart.read('varInfo')
-                conInfo = self.hotStart.read('conInfo')
-                objInfo = self.hotStart.read('objInfo')
-                if varInfo is not None:
-                    self.hist.writeData('varInfo', varInfo)
-                if conInfo is not None:
-                    self.hist.writeData('conInfo', conInfo)
-                if objInfo is not None:
-                    self.hist.writeData('objInfo', objInfo)
+                for key in ["varInfo", "conInfo", "objInfo", "optProb"]:
+                    val = self.hotStart.read(key)
+                    if val is not None:
+                        self.hist.writeData(key, val)
                 self._setMetadata()
-                self.hist.writeData('metadata',self.metadata)
-
+                self.hist.writeData("metadata", self.metadata)
 
     def _masterFunc(self, x, evaluate):
         """
@@ -212,23 +210,23 @@ class Optimizer(object):
                 data = self.hotStart.read(self.callCounter)
 
                 # Get the x-value and (de)process
-                xuser_ref = self.optProb.processXtoVec(data['xuser'])
+                xuser_ref = self.optProb.processXtoVec(data["xuser"])
 
                 # Validated x-point point to use:
                 xuser_vec = self.optProb._mapXtoUser(x)
-                if numpy.isclose(xuser_vec,xuser_ref,rtol=eps,atol=eps).all():
+                if np.isclose(xuser_vec, xuser_ref, rtol=eps, atol=eps).all():
 
                     # However, we may need a sens that *isn't* in the
                     # the dictionary:
                     funcs = None
                     funcsSens = None
                     validPoint = True
-                    if 'fobj' in evaluate or 'fcon' in evaluate:
-                        funcs = data['funcs']
+                    if "fobj" in evaluate or "fcon" in evaluate:
+                        funcs = data["funcs"]
 
-                    if 'gobj' in evaluate or 'gcon' in evaluate:
-                        if 'funcsSens' in data:
-                            funcsSens = data['funcsSens']
+                    if "gobj" in evaluate or "gcon" in evaluate:
+                        if "funcsSens" in data:
+                            funcsSens = data["funcsSens"]
                         else:
                             validPoint = False
 
@@ -236,10 +234,10 @@ class Optimizer(object):
                     if validPoint:
                         if self.storeHistory:
                             # Just dump the (exact) dictionary back out:
-                            data['isMajor'] = False
+                            data["isMajor"] = False
                             self.hist.write(self.callCounter, data)
 
-                        fail = data['fail']
+                        fail = data["fail"]
                         returns = []
 
                         # Process constraints/objectives
@@ -247,9 +245,9 @@ class Optimizer(object):
                             self.optProb.evaluateLinearConstraints(xuser_vec, funcs)
                             fcon = self.optProb.processContoVec(funcs)
                             fobj = self.optProb.processObjtoVec(funcs)
-                            if 'fobj' in evaluate:
+                            if "fobj" in evaluate:
                                 returns.append(fobj)
-                            if 'fcon' in evaluate:
+                            if "fcon" in evaluate:
                                 returns.append(fcon)
 
                         # Process gradients if we have them
@@ -258,15 +256,15 @@ class Optimizer(object):
                             gcon = self.optProb.processConstraintJacobian(funcsSens)
                             gcon = self._convertJacobian(gcon)
 
-                            if 'gobj' in evaluate:
+                            if "gobj" in evaluate:
                                 returns.append(gobj)
-                            if 'gcon' in evaluate:
+                            if "gcon" in evaluate:
                                 returns.append(gcon)
 
                         # We can now safely increment the call counter
                         self.callCounter += 1
                         returns.append(fail)
-                        self.interfaceTime += time.time()-timeA
+                        self.interfaceTime += time.time() - timeA
                         return returns
                     # end if (valid point -> all data present)
                 # end if (x's match)
@@ -292,7 +290,7 @@ class Optimizer(object):
         self.optProb.comm.bcast(args)
 
         result = self._masterFunc2(*args)
-        self.interfaceTime += time.time()-timeA
+        self.interfaceTime += time.time() - timeA
         return result
 
     def _masterFunc2(self, x, evaluate, writeHist=True):
@@ -316,30 +314,30 @@ class Optimizer(object):
         masterFail = 0
 
         # Set basic parameters in history
-        hist = {'xuser': xuser}
+        hist = {"xuser": xuser}
         returns = []
         # Start with fobj:
-        tmpObjCalls = self.userObjCalls
-        tmpSensCalls = self.userSensCalls
-        if 'fobj' in evaluate:
-            if not numpy.isclose(x,self.cache['x'],atol=eps,rtol=eps).all():
+        if "fobj" in evaluate:
+            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
                 timeA = time.time()
                 args = self.optProb.objFun(xuser)
                 if isinstance(args, tuple):
                     funcs = args[0]
                     fail = args[1]
                 elif args is None:
-                    raise Error("No return values from user supplied "
-                                "objective function. The function must "
-                                "return \"funcs\" *OR* \"funcs, fail\"")
+                    raise Error(
+                        "No return values from user supplied "
+                        "objective function. The function must "
+                        'return "funcs" *OR* "funcs, fail"'
+                    )
                 else:
                     funcs = args
                     fail = 0
 
-                self.userObjTime += time.time()-timeA
+                self.userObjTime += time.time() - timeA
                 self.userObjCalls += 1
                 # User values stored is immediately
-                self.cache['funcs'] = copy.deepcopy(funcs)
+                self.cache["funcs"] = copy.deepcopy(funcs)
 
                 # Process constraints/objectives
                 self.optProb.evaluateLinearConstraints(xuser_vec, funcs)
@@ -347,21 +345,21 @@ class Optimizer(object):
                 fobj = self.optProb.processObjtoVec(funcs)
                 # Now clear out gobj and gcon in the cache since these
                 # are out of date and set the current ones
-                self.cache['gobj'] = None
-                self.cache['gcon'] = None
-                self.cache['x'] = x.copy()
-                self.cache['fobj'] = copy.deepcopy(fobj)
-                self.cache['fcon'] = copy.deepcopy(fcon)
+                self.cache["gobj"] = None
+                self.cache["gcon"] = None
+                self.cache["x"] = x.copy()
+                self.cache["fobj"] = copy.deepcopy(fobj)
+                self.cache["fcon"] = copy.deepcopy(fcon)
 
                 # Update fail flag
                 masterFail = max(masterFail, fail)
 
             # fobj is now in cache
-            returns.append(self.cache['fobj'])
-            hist['funcs'] = self.cache['funcs']
+            returns.append(self.cache["fobj"])
+            hist["funcs"] = self.cache["funcs"]
 
-        if 'fcon' in evaluate:
-            if not numpy.isclose(x,self.cache['x'],atol=eps,rtol=eps).all():
+        if "fcon" in evaluate:
+            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
                 timeA = time.time()
 
                 args = self.optProb.objFun(xuser)
@@ -369,17 +367,19 @@ class Optimizer(object):
                     funcs = args[0]
                     fail = args[1]
                 elif args is None:
-                    raise Error("No return values from user supplied "
-                                "objective function. The function must "
-                                "return \"funcs\" *OR* \"funcs, fail\"")
+                    raise Error(
+                        "No return values from user supplied "
+                        "objective function. The function must "
+                        'return "funcs" *OR* "funcs, fail"'
+                    )
                 else:
                     funcs = args
                     fail = 0
 
-                self.userObjTime += time.time()-timeA
+                self.userObjTime += time.time() - timeA
                 self.userObjCalls += 1
                 # User values stored is immediately
-                self.cache['funcs'] = copy.deepcopy(funcs)
+                self.cache["funcs"] = copy.deepcopy(funcs)
 
                 # Process constraints/objectives
                 self.optProb.evaluateLinearConstraints(xuser_vec, funcs)
@@ -387,51 +387,53 @@ class Optimizer(object):
                 fobj = self.optProb.processObjtoVec(funcs)
                 # Now clear out gobj and gcon in the cache since these
                 # are out of date and set the current ones
-                self.cache['gobj'] = None
-                self.cache['gcon'] = None
-                self.cache['x'] = x.copy()
-                self.cache['fobj'] = copy.deepcopy(fobj)
-                self.cache['fcon'] = copy.deepcopy(fcon)
+                self.cache["gobj"] = None
+                self.cache["gcon"] = None
+                self.cache["x"] = x.copy()
+                self.cache["fobj"] = copy.deepcopy(fobj)
+                self.cache["fcon"] = copy.deepcopy(fcon)
 
                 # Update fail flag
                 masterFail = max(masterFail, fail)
 
             # fcon is now in cache
-            returns.append(self.cache['fcon'])
-            hist['funcs'] = self.cache['funcs']
+            returns.append(self.cache["fcon"])
+            hist["funcs"] = self.cache["funcs"]
 
-        if 'gobj' in evaluate:
-            if not numpy.isclose(x,self.cache['x'],atol=eps,rtol=eps).all():
+        if "gobj" in evaluate:
+            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recursively call
                 # the routine with ['fobj', and 'fcon']
-                self._masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
+                self._masterFunc2(x, ["fobj", "fcon"], writeHist=False)
                 # We *don't* count that extra call, since that will
                 # screw up the numbering...so we subtract the last call.
                 self.callCounter -= 1
             # Now, the point has been evaluated correctly so we
             # determine if we have to run the sens calc:
 
-            if self.cache['gobj'] is None:
+            if self.cache["gobj"] is None:
                 timeA = time.time()
-                args = self.sens(xuser, self.cache['funcs'])
+                args = self.sens(xuser, self.cache["funcs"])
 
                 if isinstance(args, tuple):
                     funcsSens = args[0]
                     fail = args[1]
                 elif args is None:
-                    raise Error("No return values from user supplied "
-                                "sensitivity function. The function must "
-                                "return \"funcsSens\" *OR* \"funcsSens, fail\"")
+                    raise Error(
+                        "No return values from user supplied "
+                        "sensitivity function. The function must "
+                        'return "funcsSens" *OR* "funcsSens, fail"'
+                    )
                 else:
                     funcsSens = args
                     fail = 0
 
-                self.userSensTime += time.time()-timeA
+                self.userSensTime += time.time() - timeA
                 self.userSensCalls += 1
 
                 # User values are stored is immediately
-                self.cache['funcsSens'] = copy.deepcopy(funcsSens)
+                self.cache["funcsSens"] = copy.deepcopy(funcsSens)
 
                 # Process objective gradient for optimizer
                 gobj = self.optProb.processObjectiveGradient(funcsSens)
@@ -441,48 +443,50 @@ class Optimizer(object):
                 gcon = self._convertJacobian(gcon)
 
                 # Set the cache values:
-                self.cache['gobj'] = gobj.copy()
-                self.cache['gcon'] = gcon.copy()
+                self.cache["gobj"] = gobj.copy()
+                self.cache["gcon"] = gcon.copy()
 
                 # Update fail flag
                 masterFail = max(masterFail, fail)
 
             # gobj is now in the cache
-            returns.append(self.cache['gobj'])
+            returns.append(self.cache["gobj"])
             if self.storeSens:
-                hist['funcsSens'] = self.cache['funcsSens']
+                hist["funcsSens"] = self.cache["funcsSens"]
 
-        if 'gcon' in evaluate:
-            if not numpy.isclose(x,self.cache['x'],atol=eps,rtol=eps).all():
+        if "gcon" in evaluate:
+            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recursively call
                 # the routine with ['fobj', and 'fcon']
-                self._masterFunc2(x, ['fobj', 'fcon'], writeHist=False)
+                self._masterFunc2(x, ["fobj", "fcon"], writeHist=False)
                 # We *don't* count that extra call, since that will
                 # screw up the numbering...so we subtract the last call.
                 self.callCounter -= 1
             # Now, the point has been evaluated correctly so we
             # determine if we have to run the sens calc:
-            if self.cache['gcon'] is None:
+            if self.cache["gcon"] is None:
                 timeA = time.time()
 
-                args = self.sens(xuser, self.cache['funcs'])
+                args = self.sens(xuser, self.cache["funcs"])
 
                 if isinstance(args, tuple):
                     funcsSens = args[0]
                     fail = args[1]
                 elif args is None:
-                    raise Error("No return values from user supplied "
-                                "sensitivity function. The function must "
-                                "return \"funcsSens\" *OR* \"funcsSens, fail\"")
+                    raise Error(
+                        "No return values from user supplied "
+                        "sensitivity function. The function must "
+                        'return "funcsSens" *OR* "funcsSens, fail"'
+                    )
                 else:
                     funcsSens = args
                     fail = 0
 
-                self.userSensTime += time.time()-timeA
+                self.userSensTime += time.time() - timeA
                 self.userSensCalls += 1
                 # User values stored is immediately
-                self.cache['funcsSens'] = copy.deepcopy(funcsSens)
+                self.cache["funcsSens"] = copy.deepcopy(funcsSens)
 
                 # Process objective gradient for optimizer
                 gobj = self.optProb.processObjectiveGradient(funcsSens)
@@ -492,25 +496,25 @@ class Optimizer(object):
                 gcon = self._convertJacobian(gcon)
 
                 # Set cache values
-                self.cache['gobj'] = gobj.copy()
-                self.cache['gcon'] = gcon.copy()
+                self.cache["gobj"] = gobj.copy()
+                self.cache["gcon"] = gcon.copy()
 
                 # Update fail flag
                 masterFail = max(masterFail, fail)
 
             # gcon is now in the cache
-            returns.append(self.cache['gcon'])
+            returns.append(self.cache["gcon"])
             if self.storeSens:
-                hist['funcsSens'] = self.cache['funcsSens']
+                hist["funcsSens"] = self.cache["funcsSens"]
 
         # Put the fail flag in the history:
-        hist['fail'] = masterFail
+        hist["fail"] = masterFail
 
         # Save information about major iteration counting (only matters for SNOPT).
-        if self.name == 'SNOPT':
-            hist['isMajor'] = False # this will be updated in _snstop if it is major
+        if self.name == "SNOPT":
+            hist["isMajor"] = False  # this will be updated in _snstop if it is major
         else:
-            hist['isMajor'] = True # for other optimizers we assume everything's major
+            hist["isMajor"] = True  # for other optimizers we assume everything's major
 
         # Add constraint and variable bounds at beginning of optimization.
         # This info is used for visualization using OptView.
@@ -524,31 +528,31 @@ class Optimizer(object):
                 lower = self.optProb.constraints[key].lower
                 upper = self.optProb.constraints[key].upper
                 scale = self.optProb.constraints[key].scale
-                conInfo[key] = {'lower':lower, 'upper':upper, 'scale':scale}
+                conInfo[key] = {"lower": lower, "upper": upper, "scale": scale}
 
             # Cycle through variables and add the bounds
             for dvGroup in self.optProb.variables:
-                varInfo[dvGroup] = {'lower':[], 'upper':[], 'scale':[]}
+                varInfo[dvGroup] = {"lower": [], "upper": [], "scale": []}
                 for var in self.optProb.variables[dvGroup]:
-                    if var.type == 'c':
-                        varInfo[dvGroup]['lower'].append(var.lower / var.scale)
-                        varInfo[dvGroup]['upper'].append(var.upper / var.scale)
-                        varInfo[dvGroup]['scale'].append(var.scale)
+                    if var.type == "c":
+                        varInfo[dvGroup]["lower"].append(var.lower / var.scale)
+                        varInfo[dvGroup]["upper"].append(var.upper / var.scale)
+                        varInfo[dvGroup]["scale"].append(var.scale)
 
             for objKey in self.optProb.objectives.keys():
-                objInfo[objKey] = {'scale':self.optProb.objectives[objKey].scale}
+                objInfo[objKey] = {"scale": self.optProb.objectives[objKey].scale}
 
             # There is a special write for the bounds data
             if self.storeHistory:
-                self.hist.writeData('varInfo', varInfo)
-                self.hist.writeData('conInfo', conInfo)
-                self.hist.writeData('objInfo', objInfo)
+                self.hist.writeData("varInfo", varInfo)
+                self.hist.writeData("conInfo", conInfo)
+                self.hist.writeData("objInfo", objInfo)
                 self._setMetadata()
-                self.hist.writeData('metadata',self.metadata)
-                self.hist.writeData('optProb', self.optProb)
+                self.hist.writeData("metadata", self.metadata)
+                self.hist.writeData("optProb", self.optProb)
 
         # Write history if necessary
-        if (self.optProb.comm.rank == 0 and  writeHist and self.storeHistory):
+        if self.optProb.comm.rank == 0 and writeHist and self.storeHistory:
             self.hist.write(self.callCounter, hist)
 
         # We can now safely increment the call counter
@@ -564,20 +568,19 @@ class Optimizer(object):
         Special internal evaluation for optimizers that have a
         separate callback for each constraint"""
 
-        fobj, fcon, gobj, gcon, fail = self._masterFunc(
-            x, ['fobj', 'fcon', 'gobj', 'gcon'])
+        fobj, fcon, gobj, gcon, fail = self._masterFunc(x, ["fobj", "fcon", "gobj", "gcon"])
 
-        self.storedData['x'] = x.copy()
-        self.storedData['fobj'] = fobj
-        self.storedData['fcon'] = fcon.copy()
-        self.storedData['gobj'] = gobj.copy()
-        self.storedData['gcon'] = gcon.copy()
+        self.storedData["x"] = x.copy()
+        self.storedData["fobj"] = fobj
+        self.storedData["fcon"] = fcon.copy()
+        self.storedData["gobj"] = gobj.copy()
+        self.storedData["gcon"] = gcon.copy()
 
     def _checkEval(self, x):
         """Special check to be used with _internalEval()"""
-        if self.storedData['x'] is None:
+        if self.storedData["x"] is None:
             return True
-        elif (self.storedData['x'] == x).all():
+        elif (self.storedData["x"] == x).all():
             return False
         else:
             return True
@@ -601,19 +604,19 @@ class Optimizer(object):
             scaleRows(gcon_csr, self.optProb.fact)
 
             # Now convert to final format:
-            if self.jacType == 'dense2d':
+            if self.jacType == "dense2d":
                 gcon = convertToDense(gcon_csr)
-            elif self.jacType == 'csc':
+            elif self.jacType == "csc":
                 if self._jac_map_csr_to_csc is None:
                     self._jac_map_csr_to_csc = mapToCSC(gcon_csr)
-                gcon = gcon_csr['csr'][IDATA][self._jac_map_csr_to_csc[IDATA]]
-            elif self.jacType == 'csr':
+                gcon = gcon_csr["csr"][IDATA][self._jac_map_csr_to_csc[IDATA]]
+            elif self.jacType == "csr":
                 pass
-            elif self.jacType == 'coo':
+            elif self.jacType == "coo":
                 gcon = convertToCOO(gcon_csr)
-                gcon = gcon['coo'][IDATA]
+                gcon = gcon["coo"][IDATA]
         if self.optProb.dummyConstraint:
-            gcon = gcon_csr_in['csr'][IDATA]
+            gcon = gcon_csr_in["csr"][IDATA]
         return gcon
 
     def _waitLoop(self):
@@ -644,7 +647,7 @@ class Optimizer(object):
         cache with a magic number. If the starting points for your
         optimization is -9999999999 then you out of luck!
         """
-        self.cache['x'] = -999999999*numpy.ones(self.optProb.ndvs)
+        self.cache["x"] = -999999999 * np.ones(self.optProb.ndvs)
 
     def _assembleContinuousVariables(self):
         """
@@ -657,18 +660,17 @@ class Optimizer(object):
         xs = []
         for dvGroup in self.optProb.variables:
             for var in self.optProb.variables[dvGroup]:
-                if var.type == 'c':
+                if var.type == "c":
                     blx.append(var.lower)
                     bux.append(var.upper)
                     xs.append(var.value)
 
                 else:
-                    raise Error("%s cannot handle integer or discrete "
-                                "design variables" % self.name)
+                    raise Error("%s cannot handle integer or discrete " "design variables" % self.name)
 
-        blx = numpy.array(blx)
-        bux = numpy.array(bux)
-        xs = numpy.array(xs)
+        blx = np.array(blx)
+        bux = np.array(bux)
+        xs = np.array(xs)
 
         return blx, bux, xs
 
@@ -699,8 +701,8 @@ class Optimizer(object):
             buc.append(INFINITY)
 
         ncon = len(blc)
-        blc = numpy.array(blc)
-        buc = numpy.array(buc)
+        blc = np.array(blc)
+        buc = np.array(buc)
 
         return ncon, blc, buc
 
@@ -714,15 +716,13 @@ class Optimizer(object):
         nobj = len(self.optProb.objectives.keys())
         ff = []
         if nobj == 0:
-            raise Error("No objective function was supplied! One can "
-                        "be added using a call to optProb.addObj()")
+            raise Error("No objective function was supplied! One can " "be added using a call to optProb.addObj()")
         for objKey in self.optProb.objectives:
             ff.append(self.optProb.objectives[objKey].value)
 
-        return numpy.real(numpy.squeeze(ff))
+        return np.real(np.squeeze(ff))
 
-    def _createSolution(self, optTime, sol_inform, obj, xopt,
-                        multipliers=None):
+    def _createSolution(self, optTime, sol_inform, obj, xopt, multipliers=None):
         """
         Generic routine to create the solution after an optimizer
         finishes.
@@ -734,7 +734,7 @@ class Optimizer(object):
         sol.userSensCalls = self.userSensCalls
         sol.interfaceTime = self.interfaceTime - self.userSensTime - self.userObjTime
         sol.optCodeTime = sol.optTime - self.interfaceTime
-        sol.fStar = obj # FIXME: this doesn't work, at least for SNOPT
+        sol.fStar = obj  # FIXME: this doesn't work, at least for SNOPT
         xuser = self.optProb._mapXtoUser(xopt)
         sol.xStar = self.optProb.processXtoDict(xuser)
 
@@ -746,10 +746,10 @@ class Optimizer(object):
                 i += 1
 
         if multipliers is not None:
-            multipliers = self.optProb.processContoDict(multipliers,scaled=True, multipliers=True)
+            multipliers = self.optProb.processContoDict(multipliers, scaled=True, multipliers=True)
 
             # objective scaling
-            if len(self.optProb.objectives.keys()) == 1: # we assume there is only one objective
+            if len(self.optProb.objectives.keys()) == 1:  # we assume there is only one objective
                 obj = list(self.optProb.objectives.keys())[0]
                 for con in multipliers.keys():
                     multipliers[con] /= self.optProb.objectives[obj].scale
@@ -770,7 +770,7 @@ class Optimizer(object):
         sol.comm = self.optProb.comm
 
         return sol
-    
+
     def _setMetadata(self):
         """
         This function is used to set the self.metadata object.
@@ -779,28 +779,29 @@ class Optimizer(object):
         after optimization finishes.
         """
         options = copy.deepcopy(self.options)
-        options.pop('defaults') # remove the default list
+        options.pop("defaults")  # remove the default list
         # we retrieve only the second item which is the actual value
-        for key,val in options.items():
+        for key, val in options.items():
             options[key] = val[1]
-        
-        from .__init__ import __version__ # importing the pyoptsparse version
+
+        from .__init__ import __version__  # importing the pyoptsparse version
+
         # we store the metadata now, and write it later in optimizer calls
         # since we need the runtime at the end of optimization
         self.metadata = {
-            'version'   : __version__,
-            'optimizer' : self.name,
-            'optName'   : self.optProb.name,
-            'nprocs'    : MPI.COMM_WORLD.size,
-            'optOptions': options,
-            'startTime' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "version": __version__,
+            "optimizer": self.name,
+            "optName": self.optProb.name,
+            "nprocs": MPI.COMM_WORLD.size,
+            "optOptions": options,
+            "startTime": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
 
     def _on_setOption(self, name, value):
         """
         Set Optimizer Option Value (Optimizer Specific Routine)
         """
-        raise Error('This optimizer has not implemented _on_setOption')
+        raise Error("This optimizer has not implemented _on_setOption")
 
     def setOption(self, name, value=None):
         """
@@ -815,16 +816,16 @@ class Optimizer(object):
             Variable value to set.
             """
 
-        if name in self.options['defaults']:
-            if type(value) == self.options['defaults'][name][0]:
+        if name in self.options["defaults"]:
+            if type(value) == self.options["defaults"][name][0]:
                 self.options[name] = [type(value), value]
             else:
-                raise Error("Value type for option %s was incorrect. It was "
-                            "expecting type '%s' by received type '%s'" % (
-                            name, self.options['defaults'][name][0],
-                                type(value)))
+                raise Error(
+                    "Value type for option %s was incorrect. It was "
+                    "expecting type '%s' by received type '%s'" % (name, self.options["defaults"][name][0], type(value))
+                )
         else:
-            raise Error('Received an unknown option: %s' % repr(name))
+            raise Error("Received an unknown option: %s" % repr(name))
 
         # Now call the optimizer specific routine
         self._on_setOption(name, value)
@@ -833,7 +834,7 @@ class Optimizer(object):
         """
         Routine to be implemented by optimizer
         """
-        raise Error('This optimizer has not implemented _on_getOption')
+        raise Error("This optimizer has not implemented _on_getOption")
 
     def getOption(self, name):
         """
@@ -850,10 +851,10 @@ class Optimizer(object):
             value of option for 'name'
             """
 
-        if name in self.options['defaults']:
+        if name in self.options["defaults"]:
             return self.options[name][1]
         else:
-            raise Error('Received an unknown option: %s.' % repr(name))
+            raise Error("Received an unknown option: %s." % repr(name))
 
         # Now call the optimizer specific routine
         self._on_getOption(name)
@@ -862,7 +863,7 @@ class Optimizer(object):
         """
         Routine to be implemented by optimizer
         """
-        raise Error('This optimizer has not implemented _on_getInform')
+        raise Error("This optimizer has not implemented _on_getInform")
 
     def getInform(self, infocode=None):
         """
@@ -879,9 +880,11 @@ class Optimizer(object):
         else:
             return self._on_getInform(infocode)
 
+
 # =============================================================================
 # Generic OPT Constructor
 # =============================================================================
+
 
 def OPT(optName, *args, **kwargs):
     """
@@ -905,36 +908,37 @@ def OPT(optName, *args, **kwargs):
        """
 
     optName = optName.lower()
-    optList = ['snopt', 'ipopt', 'slsqp', 'fsqp', 'nlpqlp', 'conmin',
-               'nsga2', 'nlpy_auglag', 'psqp', 'alpso', 'paropt']
-    if optName == 'snopt':
+    optList = ["snopt", "ipopt", "slsqp", "fsqp", "nlpqlp", "conmin", "nsga2", "nlpy_auglag", "psqp", "alpso", "paropt"]
+    if optName == "snopt":
         from .pySNOPT.pySNOPT import SNOPT as opt
-    elif optName == 'ipopt':
+    elif optName == "ipopt":
         from .pyIPOPT.pyIPOPT import IPOPT as opt
-    elif optName == 'slsqp':
+    elif optName == "slsqp":
         from .pySLSQP.pySLSQP import SLSQP as opt
-    elif optName == 'fsqp':
+    elif optName == "fsqp":
         from .pyFSQP.pyFSQP import FSQP as opt
-    elif optName == 'nlpqlp':
+    elif optName == "nlpqlp":
         from .pyNLPQLP.pyNLPQLP import NLPQLP as opt
-    elif optName == 'psqp':
+    elif optName == "psqp":
         from .pyPSQP.pyPSQP import PSQP as opt
-    elif optName == 'conmin':
+    elif optName == "conmin":
         from .pyCONMIN.pyCONMIN import CONMIN as opt
-    elif optName == 'nsga2':
+    elif optName == "nsga2":
         from .pyNSGA2.pyNSGA2 import NSGA2 as opt
-    elif optName == 'nlpy_auglag':
+    elif optName == "nlpy_auglag":
         from .pyNLPY_AUGLAG.pyNLPY_AUGLAG import NLPY_AUGLAG as opt
-    elif optName == 'alpso':
+    elif optName == "alpso":
         from .pyALPSO.pyALPSO import ALPSO as opt
     # elif optName == 'nomad':
     #     from .pyNOMAD.pyNOMAD import NOMAD as opt
-    elif optName == 'paropt':
+    elif optName == "paropt":
         from .pyParOpt.ParOpt import ParOpt as opt
     else:
-        raise Error("The optimizer specified in 'optName' was \
-not recognized. The current list of supported optimizers is: %s" %
-                    repr(optList))
+        raise Error(
+            "The optimizer specified in 'optName' was \
+not recognized. The current list of supported optimizers is: %s"
+            % repr(optList)
+        )
 
     # Create the optimizer and return it
     return opt(*args, **kwargs)

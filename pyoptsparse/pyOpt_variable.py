@@ -5,7 +5,8 @@ pyOpt_variable
 Holds the representation of a single pyOptSparse variable
 """
 from .pyOpt_error import Error
-INFINITY=1e20
+
+INFINITY = 1e20
 # =============================================================================
 # Variable Class
 # =============================================================================
@@ -13,36 +14,35 @@ class Variable(object):
     """
     Variable Class Initialization
     """
-    def __init__(self, name, type, value, lower, upper, scale, offset,
-                 scalar=False, choices=None):
+
+    def __init__(self, name, type, value, lower, upper, scale, offset, scalar=False, choices=None):
 
         self.name = name
         self.type = type
         self.scalar = scalar
         self.choices = None
-        if self.type == 'c':
+        if self.type == "c":
             if lower is None:
                 self.lower = -INFINITY
             else:
-                self.lower = (lower-offset)*scale
+                self.lower = (lower - offset) * scale
 
             if upper is None:
                 self.upper = INFINITY
             else:
-                self.upper = (upper-offset)*scale
+                self.upper = (upper - offset) * scale
 
-            self.value = (value-offset)*scale
+            self.value = (value - offset) * scale
             self.scale = scale
             self.offset = offset
-        elif self.type == 'i':
+        elif self.type == "i":
             self.value = int(value)
             self.lower = lower
             self.upper = upper
             self.scale = scale
-        elif self.type == 'd':
+        elif self.type == "d":
             if choices is None:
-                raise Error("A discrete variable requires "
-                            "to input an array of choices.")
+                raise Error("A discrete variable requires " "to input an array of choices.")
             self.choices = choices
             self.value = self.choices[int(value)]
             self.lower = 0
@@ -53,9 +53,14 @@ class Variable(object):
         """
         Compare two variable objects
         """
-        if (self.name == other.name and self.type == other.type and
-            self.scalar == other.scalar and self.upper == other.upper and
-            self.lower == other.lower and self.choices == other.choices):
+        if (
+            self.name == other.name
+            and self.type == other.type
+            and self.scalar == other.scalar
+            and self.upper == other.upper
+            and self.lower == other.lower
+            and self.choices == other.choices
+        ):
             return True
         else:
             return False
@@ -65,15 +70,18 @@ class Variable(object):
         Print Structured List of Variable
         """
 
-        res = 'Name     Type       Value       '
-        res += 'Lower Bound  Upper Bound\n'
+        res = "Name     Type       Value       "
+        res += "Lower Bound  Upper Bound\n"
 
-        if self.type == 'd':
-            res += '	 '
+        if self.type == "d":
+            res += "	 "
             res += str(self.name).center(15)
-            res += '%25s%20f %14.2e %12.2e \n'% (
-                self.type, self.choices[int(self.value)],
-                min(self.choices), max(self.choices))
+            res += "%25s%20f %14.2e %12.2e \n" % (
+                self.type,
+                self.choices[int(self.value)],
+                min(self.choices),
+                max(self.choices),
+            )
         else:
             lower = self.lower
             upper = self.upper
@@ -82,9 +90,8 @@ class Variable(object):
             if self.upper is None:
                 upper = 1e20
 
-            res += '	 '
+            res += "	 "
             res += str(self.name).center(9)
-            res += '%5s	%14f %14.2e %12.2e \n'% (
-                self.type, self.value, lower, upper)
+            res += "%5s	%14f %14.2e %12.2e \n" % (self.type, self.value, lower, upper)
 
         return res

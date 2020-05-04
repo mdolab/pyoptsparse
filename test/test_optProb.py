@@ -1,7 +1,7 @@
 """Test for optProb"""
 
 import unittest
-import numpy
+import numpy as np
 from numpy.testing import assert_allclose
 from pyoptsparse import Optimization, OPT
 
@@ -20,20 +20,18 @@ class TestOptProb(unittest.TestCase):
         This problem is probably not feasible, but that's okay.
         """
         funcs = {}
-        funcs['obj_0'] = 0
+        funcs["obj_0"] = 0
         for x in xdict.keys():
-            funcs['obj_0'] += numpy.sum(numpy.power(xdict[x], 2))
+            funcs["obj_0"] += np.sum(np.power(xdict[x], 2))
         for iCon, nc in enumerate(self.nCon):
-            conName = 'con_{}'.format(iCon)
-            funcs[conName] = numpy.zeros(nc)
+            conName = "con_{}".format(iCon)
+            funcs[conName] = np.zeros(nc)
             for x in xdict.keys():
                 for j in range(nc):
-                    funcs[conName][j] = (iCon + 1) * numpy.sum(xdict[x])
+                    funcs[conName][j] = (iCon + 1) * np.sum(xdict[x])
         return funcs, False
 
-    def setup_optProb(
-        self, nObj=1, nDV=[4], nCon=[2], xScale=[1.0], objScale=[1.0], conScale=[1.0], offset=[0.0]
-    ):
+    def setup_optProb(self, nObj=1, nDV=[4], nCon=[2], xScale=[1.0], objScale=[1.0], conScale=[1.0], offset=[0.0]):
         """
         This function sets up a general optimization problem, with arbitrary
         DVs, constraints and objectives.
@@ -53,26 +51,20 @@ class TestOptProb(unittest.TestCase):
         # Design Variables
         for iDV in range(len(nDV)):
             n = nDV[iDV]
-            lower = numpy.random.uniform(-5, 2, n)
-            upper = numpy.random.uniform(5, 20, n)
-            x0 = numpy.random.uniform(lower, upper)
+            lower = np.random.uniform(-5, 2, n)
+            upper = np.random.uniform(5, 20, n)
+            x0 = np.random.uniform(lower, upper)
             dvName = "x{}".format(iDV)
             self.x0[dvName] = x0
             self.optProb.addVarGroup(
-                dvName,
-                n,
-                lower=lower,
-                upper=upper,
-                value=x0,
-                scale=xScale[iDV],
-                offset=offset[iDV],
+                dvName, n, lower=lower, upper=upper, value=x0, scale=xScale[iDV], offset=offset[iDV],
             )
 
         # Constraints
         for iCon in range(len(nCon)):
             nc = nCon[iCon]
-            lower = numpy.random.uniform(-5, 2, nc)
-            upper = numpy.random.uniform(5, 6, nc)
+            lower = np.random.uniform(-5, 2, nc)
+            upper = np.random.uniform(5, 6, nc)
             self.optProb.addConGroup(
                 "con_{}".format(iCon), nc, lower=lower, upper=upper, scale=conScale[iCon],
             )
@@ -86,27 +78,21 @@ class TestOptProb(unittest.TestCase):
         # run optimization
         # we don't care about outputs, but this performs optimizer-specific re-ordering
         # of constraints so we need this to test mappings
-        opt = OPT('slsqp', options={'IFILE': 'optProb_SLSQP.out'})
-        opt(self.optProb, 'FD')
+        opt = OPT("slsqp", options={"IFILE": "optProb_SLSQP.out"})
+        opt(self.optProb, "FD")
 
     def test_setDV_getDV(self):
         """
         We just test that setDV and getDV work, even with scaling
         """
         self.setup_optProb(
-            nObj=1,
-            nDV=[4, 8],
-            nCon=[2, 3],
-            xScale=[4, 1],
-            objScale=[0.3],
-            conScale=[0.1, 8],
-            offset=[3, 7],
+            nObj=1, nDV=[4, 8], nCon=[2, 3], xScale=[4, 1], objScale=[0.3], conScale=[0.1, 8], offset=[3, 7],
         )
         # test getDV first
         x0 = self.optProb.getDVs()
         self.assert_dict_allclose(x0, self.x0)
         # now set, get, and compare
-        newDV = {"x0": numpy.arange(4), "x1": numpy.arange(8)}
+        newDV = {"x0": np.arange(4), "x1": np.arange(8)}
         self.optProb.setDVs(newDV)
         outDV = self.optProb.getDVs()
         self.assert_dict_allclose(newDV, outDV)
@@ -123,31 +109,31 @@ class TestOptProb(unittest.TestCase):
             nObj=1,
             nDV=nDV,
             nCon=nCon,
-            xScale=[numpy.random.rand(i) for i in nDV],
+            xScale=[np.random.rand(i) for i in nDV],
             objScale=[0.3],
-            conScale=[numpy.random.rand(i) for i in nCon],
-            offset=[numpy.random.rand(i) * numpy.arange(i) for i in nDV],
+            conScale=[np.random.rand(i) for i in nCon],
+            offset=[np.random.rand(i) * np.arange(i) for i in nDV],
         )
 
         # first test X
         x = self.optProb.getDVs()
-        self.map_check_value('X', x)
+        self.map_check_value("X", x)
 
         # next we check the objective
         funcs, _ = self.objfunc(x)
         obj_funcs = {}
         for key in funcs.keys():
-            if 'obj' in key:
+            if "obj" in key:
                 obj_funcs[key] = funcs[key]
-        self.map_check_value('Obj', obj_funcs)
+        self.map_check_value("Obj", obj_funcs)
 
         # lastly we check the constraints
         funcs, _ = self.objfunc(x)
         con_funcs = {}
         for key in funcs.keys():
-            if 'con' in key:
+            if "con" in key:
                 con_funcs[key] = funcs[key]
-        self.map_check_value('Con', con_funcs)
+        self.map_check_value("Con", con_funcs)
 
     def map_check_value(self, key, val):
         """
@@ -157,41 +143,41 @@ class TestOptProb(unittest.TestCase):
         """
         # dictionary of function handles to test
         map_funcs = {
-            'X': [self.optProb._mapXtoOpt, self.optProb._mapXtoUser],
-            'X_Dict': [self.optProb._mapXtoOpt_Dict, self.optProb._mapXtoUser_Dict],
-            'Con': [self.optProb._mapContoOpt, self.optProb._mapContoUser],
-            'Con_Dict': [self.optProb._mapContoOpt_Dict, self.optProb._mapContoUser_Dict],
-            'Obj': [self.optProb._mapObjtoOpt, self.optProb._mapObjtoUser],
-            'Obj_Dict': [self.optProb._mapObjtoOpt_Dict, self.optProb._mapObjtoUser_Dict],
+            "X": [self.optProb._mapXtoOpt, self.optProb._mapXtoUser],
+            "X_Dict": [self.optProb._mapXtoOpt_Dict, self.optProb._mapXtoUser_Dict],
+            "Con": [self.optProb._mapContoOpt, self.optProb._mapContoUser],
+            "Con_Dict": [self.optProb._mapContoOpt_Dict, self.optProb._mapContoUser_Dict],
+            "Obj": [self.optProb._mapObjtoOpt, self.optProb._mapObjtoUser],
+            "Obj_Dict": [self.optProb._mapObjtoOpt_Dict, self.optProb._mapObjtoUser_Dict],
         }
         process_funcs = {
-            'X': {'vec': self.optProb.processXtoVec, 'dict': self.optProb.processXtoDict},
-            'Con': {'vec': self.optProb.processContoVec, 'dict': self.optProb.processContoDict},
-            'Obj': {'vec': self.optProb.processObjtoVec, 'dict': self.optProb.processObjtoDict},
+            "X": {"vec": self.optProb.processXtoVec, "dict": self.optProb.processXtoDict},
+            "Con": {"vec": self.optProb.processContoVec, "dict": self.optProb.processContoDict},
+            "Obj": {"vec": self.optProb.processObjtoVec, "dict": self.optProb.processObjtoDict},
         }
 
         def processValue(key, val, output):
             """helper function since some functions have optional arguments that are needed"""
-            if key == 'Con':
+            if key == "Con":
                 return process_funcs[key][output](val, scaled=False, natural=True)
-            elif key == 'Obj':
+            elif key == "Obj":
                 return process_funcs[key][output](val, scaled=False)
             else:
                 return process_funcs[key][output](val)
 
         # test dict to vec mappings
-        vec = processValue(key, val, 'vec')
-        dictionary = processValue(key, vec, 'dict')
+        vec = processValue(key, val, "vec")
+        dictionary = processValue(key, vec, "dict")
         self.assert_dict_allclose(val, dictionary)
 
         # test mappings using dictionaries
-        val_opt = map_funcs[key + '_Dict'][0](val)
-        val_user = map_funcs[key + '_Dict'][1](val_opt)
+        val_opt = map_funcs[key + "_Dict"][0](val)
+        val_user = map_funcs[key + "_Dict"][1](val_opt)
         self.assert_dict_allclose(val_user, val)
         self.assert_dict_not_allclose(val_user, val_opt)
 
         # test mappings using vectors
-        val = processValue(key, val, 'vec')
+        val = processValue(key, val, "vec")
         val_opt = map_funcs[key][0](val)
         val_user = map_funcs[key][1](val_opt)
         assert_allclose(val_user, val, atol=tol, rtol=tol)
@@ -200,15 +186,15 @@ class TestOptProb(unittest.TestCase):
         # check that the scaling was actually done correctly
         # we only check this for the array version because
         # it's much simpler
-        if key == 'X':
-            scale = numpy.hstack(self.xScale)
-            offset = numpy.hstack(self.offset)
+        if key == "X":
+            scale = np.hstack(self.xScale)
+            offset = np.hstack(self.offset)
             assert_allclose(val_opt, (val_user - offset) * scale)
         else:
-            if key == 'Obj':
-                scale = numpy.hstack(self.objScale)
+            if key == "Obj":
+                scale = np.hstack(self.objScale)
             else:
-                scale = numpy.hstack(self.conScale)
+                scale = np.hstack(self.conScale)
             assert_allclose(val_opt, val_user * scale)
 
     def assert_dict_allclose(self, actual, desired, atol=tol, rtol=tol):
@@ -228,17 +214,15 @@ class TestOptProb(unittest.TestCase):
         """
         self.assertEqual(set(actual.keys()), set(desired.keys()))
         for key in actual.keys():
-            if numpy.allclose(actual[key], desired[key], atol=tol, rtol=tol):
-                raise AssertionError(
-                    'Dictionaries are close! Inputs are {} and {}'.format(actual, desired)
-                )
+            if np.allclose(actual[key], desired[key], atol=tol, rtol=tol):
+                raise AssertionError("Dictionaries are close! Inputs are {} and {}".format(actual, desired))
 
     def assert_not_allclose(self, actual, desired, atol=tol, rtol=tol):
         """
         The numpy array version
         """
-        if numpy.allclose(actual, desired, atol=atol, rtol=tol):
-            raise AssertionError('Arrays are close! Inputs are {} and {}'.format(actual, desired))
+        if np.allclose(actual, desired, atol=atol, rtol=tol):
+            raise AssertionError("Arrays are close! Inputs are {} and {}".format(actual, desired))
 
 
 if __name__ == "__main__":

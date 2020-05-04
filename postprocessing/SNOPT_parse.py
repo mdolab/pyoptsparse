@@ -13,7 +13,7 @@ import numpy as np
 if len(sys.argv) > 1:
     file_name = sys.argv[1]
 else:
-    file_name = 'SNOPT_print.out'
+    file_name = "SNOPT_print.out"
 
 # Values we want to extract
 merit = []
@@ -21,7 +21,7 @@ optimality = []
 feasibility = []
 
 # Open file
-f = open(file_name,'r')
+f = open(file_name, "r")
 
 QP_line = "    Itn       QPmult  QPstep   nInf   SumInf   rgNorm    QPobjective   +SBS   -SBS    -BS    Pivot     L+U ncp    nS  condHz"
 LP_line = "    Itn       LPmult  LPstep   nInf   SumInf             LPobjective   +SBS   -SBS    -BS    Pivot     L+U ncp    nS"
@@ -51,12 +51,12 @@ for line in f:
 f.close()
 
 # Now dump out the data into a tecplot file:
-f = open("SNOPT.dat",'w')
+f = open("SNOPT.dat", "w")
 iterations = np.arange(len(merit))
-f.write ('VARIABLES = "Iteration","Merit Function","Optimality","Feasibility",\n')
-f.write('Zone T="SNOPT Data" I=%d\n'%(len(merit)))
-f.write('DATAPACKING=POINT\n')
+f.write('VARIABLES = "Iteration","Merit Function","Optimality","Feasibility",\n')
+f.write('Zone T="SNOPT Data" I=%d\n' % (len(merit)))
+f.write("DATAPACKING=POINT\n")
 for i in range(len(merit)):
-    fea = max(feasibility[i],1e-6)
-    f.write('%f %f %f %f\n'%(iterations[i],merit[i],optimality[i],fea))
+    fea = max(feasibility[i], 1e-6)
+    f.write("%f %f %f %f\n" % (iterations[i], merit[i], optimality[i], fea))
 f.close()
