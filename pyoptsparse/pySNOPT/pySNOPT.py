@@ -450,7 +450,6 @@ class SNOPT(Optimizer):
                 cw, iw, rw)
 
             if (minrw > lenrw) or (miniw > leniw) or (mincw > lencw):
-                print('fail')
                 if mincw > lencw:
                     lencw = mincw
                     cw = numpy.array((lencw, 8), 'c')
