@@ -437,7 +437,11 @@ class SNOPT(Optimizer):
             neA = len(indA)
             neGcon = neA  # The nonlinear Jacobian and A are the same
             iExit = 0
-
+            # set restart
+            if restartDict is not None:
+                rw = restartDict['rw']
+                iw = restartDict['iw']
+                cw = restartDict['cw']
             # Set the options into the SNOPT instance
             self._set_snopt_options(iPrint, iSumm, cw, iw, rw)
 
@@ -446,6 +450,7 @@ class SNOPT(Optimizer):
                 cw, iw, rw)
 
             if (minrw > lenrw) or (miniw > leniw) or (mincw > lencw):
+                print('fail')
                 if mincw > lencw:
                     lencw = mincw
                     cw = numpy.array((lencw, 8), 'c')
@@ -461,6 +466,10 @@ class SNOPT(Optimizer):
 
                 # snInit resets all the options to the defaults.
                 # Set them again!
+                if restartDict is not None:
+                    rw = restartDict['rw']
+                    iw = restartDict['iw']
+                    cw = restartDict['cw']
                 self._set_snopt_options(iPrint, iSumm, cw, iw, rw)
 
             # Setup argument list values
@@ -497,13 +506,9 @@ class SNOPT(Optimizer):
             # Set history/hotstart
             self._setHistory(storeHistory, hotStart)
             if restartDict is not None:
-                rw = restartDict['rw']
-                iw = restartDict['iw']
-                cw = restartDict['cw']
                 hs = restartDict['hs']
                 xs = restartDict['xs']
                 pi = restartDict['pi']
-                Acol = restartDict['Acol']
             # The snopt c interface
             timeA = time.time()
             snopt.snkerc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
@@ -511,14 +516,6 @@ class SNOPT(Optimizer):
                          Acol, indA, locA, bl, bu, Names, hs, xs, pi, rc, inform,
                          mincw, miniw, minrw, nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
             optTime = time.time()-timeA
-
-            # self.setOption('Start', 'Hot')
-            # self.setOption('Major iterations limit', 100)
-            # self._set_snopt_options(iPrint, iSumm, cw, iw, rw)
-            # snopt.snkerc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
-            #              self._userfg_wrap, snopt.snlog, snopt.snlog2, snopt.sqlog, self._snstop,
-            #              Acol, indA, locA, bl, bu, Names, hs, xs, pi, rc, inform,
-            #              mincw, miniw, minrw, nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
 
             # Indicate solution finished
             self.optProb.comm.bcast(-1, root=0)
@@ -554,8 +551,8 @@ class SNOPT(Optimizer):
 
         # Communication solution and return
         sol = self._communicateSolution(sol)
-        if self.options['Return work arrays']:
-            hotstartDict = {
+        if self.getOption('Return work arrays'):
+            restartDict = {
                 'cw':cw,
                 'iw':iw,
                 'rw':rw,
