@@ -389,8 +389,6 @@ class ParOpt(Optimizer):
                     opt.setPenaltyDescentFraction(value)
                 elif key == "min_penalty_parameter":
                     opt.setPenaltyDescentFraction(value)
-                elif key == "min_penalty_parameter":
-                    opt.setPenaltyDescentFraction(value)
                 elif key == "output_level":
                     opt.setOutputLevel(value)
 
