@@ -485,14 +485,12 @@ class SNOPT(Optimizer):
 
             # The snopt c interface
             timeA = time.time()
-            # snopt.snkerc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
-            #              self._userfg_wrap, snopt.snlog, snopt.snlog2, snopt.sqlog, self._snstop,
-            #              Acol, indA, locA, bl, bu, Names, hs, xs, pi, rc, inform,
-            #              mincw, miniw, minrw, nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
-            snopt.snoptc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
-                         self._userfg_wrap, Acol, indA, locA, bl, bu,
-                         Names, hs, xs, pi, rc, inform, mincw, miniw, minrw,
-                         nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
+            # fmt: off
+            snopt.snkerc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
+                         self._userfg_wrap, snopt.snlog, snopt.snlog2, snopt.sqlog, self._snstop,
+                         Acol, indA, locA, bl, bu, Names, hs, xs, pi, rc, inform,
+                         mincw, miniw, minrw, nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
+            # fmt: on
             optTime = time.time() - timeA
 
             # Indicate solution finished

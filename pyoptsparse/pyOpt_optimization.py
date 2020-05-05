@@ -1281,9 +1281,9 @@ class Optimization(object):
 
         fcon_unique = fcon_in
         if multipliers:
-            fcon_unique = np.zeros(self.nCon)
+            fcon_unique = numpy.zeros(self.nCon)
             for i, j in enumerate(self.jacIndices):
-                if np.abs(fcon_unique[j]) < np.abs(fcon_in[i]):
+                if numpy.abs(fcon_unique[j]) < numpy.abs(fcon_in[i]):
                     fcon_unique[j] = fcon_in[i]
 
         # We REQUIRE that fcon_in is an array:
