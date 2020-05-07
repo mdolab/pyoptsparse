@@ -397,38 +397,38 @@ python module snopt ! in
             double precision dimension(lenrw) :: rw
             integer optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
         end subroutine snoptc
-        subroutine snkerc(start,m,n,nej,nnames,nncon,nnobju,nnjac,iobju,objuadd,prob,userfg,snlog,snlog2,sqlog,snstop,jcol,indj,locj,bl,bu,names,hs,x,pi,rc,info,mincw,miniw,minrw,ns,ninf,sinf,obj,cu,lencu,iu,leniu,ru,lenru,cw,lencw,iw,leniw,rw,lenrw)
+        subroutine snkerc(start,m,n,nej,nnames,nncon,nnobju,nnjac,iobju,objuadd,prob,userfg,snlog,snlog2,sqlog,snstop,jcol,indj,locj,bl,bu,names,hs,x,pi,rc,info,mincw,miniw,minrw,ns,ninf,sinf,obj,cu,lencu,iu,leniu,ru,lenru,cw,lencw,iw,leniw,rw,lenrw) ! in :snopt7_python:snopt7_python.f90
             use snoptc__user__routines
             character*(*) intent(in) :: start
-            integer, optional,check(len(pi)>=m),depend(pi) :: m=len(pi)
-            integer, optional,check((len(locj)-1)>=n),depend(locj) :: n=(len(locj)-1)
-            integer, optional,check(len(jcol)>=nej),depend(jcol) :: nej=len(jcol)
+            integer, optional, intent(in), check(len(pi)>=m),depend(pi) :: m=len(pi)
+            integer, optional, intent(in), check((len(locj)-1)>=n),depend(locj) :: n=(len(locj)-1)
+            integer, optional, intent(in), check(len(jcol)>=nej),depend(jcol) :: nej=len(jcol)
             integer, optional,check(shape(names,0)==nnames),depend(names) :: nnames=shape(names,0)
-            integer :: nncon
-            integer :: nnobju
-            integer :: nnjac
-            integer :: iobju
-            double precision :: objuadd
-            character*8 :: prob
+            integer intent(in) :: nncon
+            integer intent(in) :: nnobju
+            integer intent(in) :: nnjac
+            integer intent(in) :: iobju
+            double precision intent(in) :: objuadd
+            character*8 intent(in) :: prob
             external userfg,snlog,snlog2,sqlog,snstop
-            double precision dimension(nej) :: jcol
-            integer dimension(nej),depend(nej) :: indj
-            integer dimension(n + 1) :: locj
-            double precision dimension(n+m),depend(m,n) :: bl
-            double precision dimension(n+m),depend(m,n) :: bu
-            character dimension(nnames,8) :: names
-            integer dimension(n+m),depend(m,n) :: hs
-            double precision dimension(n+m),depend(m,n) :: x
-            double precision dimension(m) :: pi
-            double precision dimension(n+m),depend(m,n) :: rc
-            integer intent(inout) :: info
-            integer intent(inout) :: mincw
-            integer intent(inout) :: miniw
-            integer intent(inout) :: minrw
-            integer :: ns
-            integer :: ninf
-            double precision :: sinf
-            double precision :: obj
+            double precision dimension(nej),intent(in) :: jcol
+            integer dimension(nej),intent(in),depend(nej) :: indj
+            integer dimension(n + 1),intent(in) :: locj
+            double precision dimension(n+m),intent(in),depend(m,n) :: bl
+            double precision dimension(n+m),intent(in),depend(m,n) :: bu
+            character dimension(nnames,8),intent(in) :: names
+            integer dimension(n+m),intent(in,out),depend(m,n) :: hs
+            double precision dimension(n+m),intent(in,out),depend(m,n) :: x
+            double precision dimension(m),intent(in,out) :: pi
+            double precision dimension(n+m),intent(out),depend(m,n) :: rc
+            integer intent(out) :: info
+            integer intent(out) :: mincw
+            integer intent(out) :: miniw
+            integer intent(out) :: minrw
+            integer intent(out) :: ns
+            integer intent(out) :: ninf
+            double precision intent(out) :: sinf
+            double precision intent(out) :: obj
             character dimension(lencu,8) :: cu
             integer, optional,check(shape(cu,0)==lencu),depend(cu) :: lencu=shape(cu,0)
             integer dimension(leniu) :: iu
@@ -496,7 +496,7 @@ python module snopt ! in
             double precision dimension(lenrw) :: rw
             integer, optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
         end subroutine snlog
-        subroutine snlog2(probtype,probtag,elastic,gotr,firstfeas,feasible,justphase1,m,mbs,nnh,ns,jsq,jbr,jsr,linesp,liness,itn,itqp,kprc,lvlobje,pivot,step,ninf,sinf,ninfe,sinfe,wtinf,nonopt,objprt,condzhz,djqprt,rgnorm,kbs,xbs,iw,leniw) ! in test.f
+        subroutine snlog2(probtype,probtag,elastic,gotr,firstfeas,feasible,justphase1,m,mbs,nnh,ns,jsq,jbr,jsr,linesp,liness,itn,itqp,kprc,lvlobje,pivot,step,ninf,sinf,ninfe,sinfe,wtinf,nonopt,objprt,condzhz,djqprt,rgnorm,kbs,xbs,iw,leniw)
             integer :: probtype
             character*20 :: probtag
             logical :: elastic

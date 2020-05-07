@@ -493,14 +493,10 @@ class SNOPT(Optimizer):
 
             Names = numpy.array(["        "], 'c')
             pi = numpy.zeros(ncon, numpy.float)
-            rc = numpy.zeros(nvar+ncon, numpy.float)
             inform = numpy.array([-1], numpy.intc)
             mincw = numpy.array([0], numpy.intc)
             miniw = numpy.array([0], numpy.intc)
             minrw = numpy.array([0], numpy.intc)
-            nS = numpy.array([0], numpy.intc)
-            ninf = numpy.array([0], numpy.intc)
-            sinf = numpy.array([0.], numpy.float)
 
             # Set history/hotstart
             self._setHistory(storeHistory, hotStart)
@@ -510,10 +506,10 @@ class SNOPT(Optimizer):
                 pi = restartDict['pi']
             # The snopt c interface
             timeA = time.time()
-            snopt.snkerc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
+            hs, xs, pi, rc, inform, mincw, miniw, minrw, nS, ninf, sinf, ff = snopt.snkerc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
                          self._userfg_wrap, snopt.snlog, snopt.snlog2, snopt.sqlog, self._snstop,
-                         Acol, indA, locA, bl, bu, Names, hs, xs, pi, rc, inform,
-                         mincw, miniw, minrw, nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
+                         Acol, indA, locA, bl, bu, Names, hs, xs, pi,
+                         cu, iu, ru, cw, iw, rw)
             optTime = time.time()-timeA
 
             # Indicate solution finished
@@ -537,7 +533,7 @@ class SNOPT(Optimizer):
             # Store Results
             sol_inform = {}
             sol_inform['value'] = inform
-            sol_inform['text'] = self.informs[inform[0]]
+            sol_inform['text'] = self.informs[inform]
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xs[:nvar],
