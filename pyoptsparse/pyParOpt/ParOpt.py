@@ -178,16 +178,16 @@ class ParOpt(Optimizer):
                             bound_sum += 1.0
                         else:
                             bound_sum += self.bux[i] - self.blx[i]
-                    bound_sum = bound_sum/len(x)
+                    bound_sum = bound_sum / len(x)
 
                     for i in range(len(x)):
                         x[i] = self.xs[i]
                         lb[i] = self.blx[i]
                         ub[i] = self.bux[i]
                         if self.xs[i] <= self.blx[i]:
-                            x[i] = self.blx[i] + 0.5*np.min((bound_sum, self.bux[i] - self.blx[i]))
+                            x[i] = self.blx[i] + 0.5 * np.min((bound_sum, self.bux[i] - self.blx[i]))
                         elif self.xs[i] >= self.bux[i]:
-                            x[i] = self.bux[i] - 0.5*np.min((bound_sum, self.bux[i] - self.blx[i]))
+                            x[i] = self.bux[i] - 0.5 * np.min((bound_sum, self.bux[i] - self.blx[i]))
 
                     return
 
@@ -243,13 +243,10 @@ class ParOpt(Optimizer):
                 subproblem = _ParOpt.QuadraticSubproblem(problem, qn)
 
                 # Create the trust region problem
-                tr = _ParOpt.TrustRegion(subproblem, tr_init_size,
-                                         tr_min_size, tr_max_size,
-                                         tr_eta, tr_penalty_gamma)
+                tr = _ParOpt.TrustRegion(subproblem, tr_init_size, tr_min_size, tr_max_size, tr_eta, tr_penalty_gamma)
 
                 # Create the ParOpt problem
-                opt = _ParOpt.InteriorPoint(subproblem, qn_subspace_size,
-                                            _ParOpt.NO_HESSIAN_APPROX)
+                opt = _ParOpt.InteriorPoint(subproblem, qn_subspace_size, _ParOpt.NO_HESSIAN_APPROX)
 
                 # Set the ParOpt options
                 self._set_paropt_options(opt)
@@ -267,7 +264,7 @@ class ParOpt(Optimizer):
 
                 # Set the output file name
                 opt.setOutputFile(filename)
-                tr.setOutputFile(os.path.splitext(filename)[0] + '.tr')
+                tr.setOutputFile(os.path.splitext(filename)[0] + ".tr")
 
                 # Use the adaptive penalty update scheme by default
                 tr.setAdaptiveGammaUpdate(1)
@@ -309,11 +306,9 @@ class ParOpt(Optimizer):
             # Thus if there is no constraints, should pass an empty list
             # to multipliers instead of z.
             if z is not None:
-                sol = self._createSolution(optTime, sol_inform, fobj, x[:],
-                                           multipliers=-z)
+                sol = self._createSolution(optTime, sol_inform, fobj, x[:], multipliers=-z)
             else:
-                sol = self._createSolution(optTime, sol_inform, fobj, x[:],
-                                           multipliers=[])
+                sol = self._createSolution(optTime, sol_inform, fobj, x[:], multipliers=[])
 
             # Indicate solution finished
             self.optProb.comm.bcast(-1, root=0)

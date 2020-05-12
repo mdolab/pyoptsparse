@@ -1277,7 +1277,7 @@ class Optimization(object):
         # Perform constraint scaling
         if scaled:
             m = len(self.jacIndices)
-            fcon_in[:m] = fcon_in[:m]*self.conScale[self.jacIndices]
+            fcon_in[:m] = fcon_in[:m] * self.conScale[self.jacIndices]
 
         fcon_unique = fcon_in
         if multipliers:
