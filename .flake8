@@ -15,3 +15,4 @@ exclude =
     # OptView and related files need to be fixed eventually
     postprocessing/OptView.py
     postprocessing/OptView_baseclass.py
+    postprocessing/view_saved_figure.py

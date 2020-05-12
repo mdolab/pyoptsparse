@@ -224,8 +224,6 @@ class ParOpt(Optimizer):
                 opt.setOutputFile(filename)
                 opt.optimize()
             else:
-                norm_type = self.getOption("norm_type").lower()
-
                 # Optimality tolerance
                 opt_tol = self.getOption("abs_optimality_tol")
 
@@ -251,17 +249,6 @@ class ParOpt(Optimizer):
                 # Set the ParOpt options
                 self._set_paropt_options(opt)
 
-                # Check the norm type
-                if norm_type == "l1":
-                    opt.setNormType(_ParOpt.L1_NORM)
-                elif norm_type == "linfty":
-                    opt.setNormType(_ParOpt.INFTY_NORM)
-                else:
-                    opt.setNormType(_ParOpt.L2_NORM)
-
-                # Set the ParOpt options
-                self._set_paropt_options(opt)
-
                 # Set the output file name
                 opt.setOutputFile(filename)
                 tr.setOutputFile(os.path.splitext(filename)[0] + ".tr")
@@ -270,11 +257,14 @@ class ParOpt(Optimizer):
                 tr.setAdaptiveGammaUpdate(1)
                 tr.setPenaltyGammaMax(1e3)
 
-                # Set parameters the trust-region algorithm
+                # Set parameters for the trust-region algorithm
                 tr.setMaxTrustRegionIterations(tr_max_iterations)
 
                 # Set the tolerance
                 tr.setTrustRegionTolerances(opt_tol, opt_tol, opt_tol)
+
+                # Set optimality tolerance for the trust region problem
+                opt.setAbsOptimalityTol(tr_opt_abs_tol)
 
                 # Optimize the problem
                 tr.optimize(opt)
