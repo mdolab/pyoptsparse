@@ -244,23 +244,23 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
         if constraints > 0:
 
             # Equality Constraints
-            for l in range(neqcons):
-                tau[i, l] = g[i, l]
+            for ell in range(neqcons):
+                tau[i, ell] = g[i, ell]
 
             # Inequality Constraints
-            for l in range(neqcons, constraints):
-                if rp[l] != 0:
-                    if g[i, l] > -lambda_val[l] / (2 * rp[l]):
-                        tau[i, l] = g[i, l]
+            for ell in range(neqcons, constraints):
+                if rp[ell] != 0:
+                    if g[i, ell] > -lambda_val[ell] / (2 * rp[ell]):
+                        tau[i, ell] = g[i, ell]
                     else:
-                        tau[i, l] = -lambda_val[l] / (2 * rp[l])
+                        tau[i, ell] = -lambda_val[ell] / (2 * rp[ell])
 
                 else:
-                    tau[i, l] = g[i, l]
+                    tau[i, ell] = g[i, ell]
 
             #
-            for l in range(constraints):
-                L[i] += lambda_val[l] * tau[i, l] + rp[l] * tau[i, l] ** 2
+            for ell in range(constraints):
+                L[i] += lambda_val[ell] * tau[i, ell] + rp[ell] * tau[i, ell] ** 2
 
     # Initialize Particles Best
     best_x = np.zeros((swarmsize, dimensions))
@@ -273,8 +273,8 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
 
         best_L[i] = L[i]
         best_f[i] = f[i]
-        for l in range(constraints):
-            best_g[i, l] = g[i, l]
+        for ell in range(constraints):
+            best_g[i, ell] = g[i, ell]
 
     # Initialize Swarm Best
     swarm_i = L.argmin()
@@ -289,9 +289,9 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
     swarm_f_old = f[0]
     swarm_g = np.zeros(constraints, float)
     swarm_g_old = np.zeros(constraints, float)
-    for l in range(constraints):
-        swarm_g[l] = g[swarm_i, l]
-        swarm_g_old[l] = g[0, l]
+    for ell in range(constraints):
+        swarm_g[ell] = g[swarm_i, ell]
+        swarm_g_old[ell] = g[0, ell]
 
     # Initialize Neighbourhood
     if (nhm == "dlring") or (nhm == "slring") or (nhm == "wheel") or (nhm == "spatial") or (nhm == "sfrac"):
@@ -606,23 +606,23 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
                 if constraints > 0:
 
                     # Equality Constraints
-                    for l in range(neqcons):
-                        tau[i, l] = g[i, l]
+                    for ell in range(neqcons):
+                        tau[i, ell] = g[i, ell]
 
                     # Inequality Constraints
-                    for l in range(neqcons, constraints):
-                        if rp[l] != 0:
-                            if g[i, l] > -lambda_val[l] / (2 * rp[l]):
-                                tau[i, l] = g[i, l]
+                    for ell in range(neqcons, constraints):
+                        if rp[ell] != 0:
+                            if g[i, ell] > -lambda_val[ell] / (2 * rp[ell]):
+                                tau[i, ell] = g[i, ell]
                             else:
-                                tau[i, l] = -lambda_val[l] / (2 * rp[l])
+                                tau[i, ell] = -lambda_val[ell] / (2 * rp[ell])
 
                         else:
-                            tau[i, l] = g[i, l]
+                            tau[i, ell] = g[i, ell]
 
                     #
-                    for l in range(constraints):
-                        L[i] += lambda_val[l] * tau[i, l] + rp[l] * tau[i, l] ** 2
+                    for ell in range(constraints):
+                        L[i] += lambda_val[ell] * tau[i, ell] + rp[ell] * tau[i, ell] ** 2
 
             # If there is no new better solution for gbest keep the old best position
             # if (L[swarm_i] > swarm_L):
@@ -734,17 +734,17 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
             if constraints > 0:
                 # Equality Constraints
                 print("EQUALITY CONSTRAINTS VALUES:")
-                for l in range(neqcons):
-                    print("\tH(%d) = %g" % (l, swarm_g[l]))
+                for ell in range(neqcons):
+                    print("\tH(%d) = %g" % (ell, swarm_g[ell]))
 
                 # Inequality Constraints
                 print("\nINEQUALITY CONSTRAINTS VALUES:")
-                for l in range(neqcons, constraints):
-                    print("\tG(%d) = %g" % (l, swarm_g[l]))
+                for ell in range(neqcons, constraints):
+                    print("\tG(%d) = %g" % (ell, swarm_g[ell]))
 
             print("\nLAGRANGIAN MULTIPLIERS VALUES:")
-            for l in range(constraints):
-                print("\tL(%d) = %g" % (l, lambda_val[l]))
+            for ell in range(constraints):
+                print("\tL(%d) = %g" % (ell, lambda_val[ell]))
 
             print("\nBEST POSITION:")
             if scale == 1:
@@ -774,21 +774,21 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
             if constraints > 0:
                 # Equality Constraints
                 ofile.write("\nEQUALITY CONSTRAINTS VALUES:\n")
-                for l in range(neqcons):
-                    ofile.write("\tH(%d) = %.16g\n" % (l, swarm_g[l]))
+                for ell in range(neqcons):
+                    ofile.write("\tH(%d) = %.16g\n" % (ell, swarm_g[ell]))
 
                 # Inequality Constraints
                 ofile.write("\nINEQUALITY CONSTRAINTS VALUES:\n")
-                for l in range(neqcons, constraints):
-                    ofile.write("\tG(%d) = %.16g\n" % (l, swarm_g[l]))
+                for ell in range(neqcons, constraints):
+                    ofile.write("\tG(%d) = %.16g\n" % (ell, swarm_g[ell]))
 
             ofile.write("\nLAGRANGIAN MULTIPLIERS VALUES:\n")
-            for l in range(constraints):
-                ofile.write("\tL(%d) = %.16g\n" % (l, lambda_val[l]))
+            for ell in range(constraints):
+                ofile.write("\tL(%d) = %.16g\n" % (ell, lambda_val[ell]))
 
             ofile.write("\nPENALTY FACTOR:\n")
-            for l in range(constraints):
-                ofile.write("\trp(%d) = %.16g\n" % (l, rp[l]))
+            for ell in range(constraints):
+                ofile.write("\trp(%d) = %.16g\n" % (ell, rp[ell]))
 
             ofile.write("\nBEST POSITION:\n")
             if scale == 1:
@@ -819,17 +819,17 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
         if constraints == 0:
             stop_constraints_flag = 1
         else:
-            for l in range(neqcons):
-                if abs(swarm_g[l]) <= etol:
+            for ell in range(neqcons):
+                if abs(swarm_g[ell]) <= etol:
                     stop_con_num += 1
                 else:
-                    infeas_con.append(l)
+                    infeas_con.append(ell)
 
-            for l in range(neqcons, constraints):
-                if swarm_g[l] < itol:
+            for ell in range(neqcons, constraints):
+                if swarm_g[ell] < itol:
                     stop_con_num += 1
                 else:
-                    infeas_con.append(l)
+                    infeas_con.append(ell)
 
             if stop_con_num == constraints:
                 stop_constraints_flag = 1
@@ -896,8 +896,8 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
         # Output to Summary File
         if (fileout == 2) or (fileout == 3):
             cvss = 0.0
-            for l in infeas_con:
-                cvss += swarm_g[l] ** 2
+            for ell in infeas_con:
+                cvss += swarm_g[ell] ** 2
 
             cvL2 = cvss ** 0.5
             if stopCriteria == 1:
@@ -932,59 +932,59 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
 
             if constraints > 0:
                 # Update new Tau
-                for l in range(neqcons):
-                    tau_new[l] = swarm_g[l]
+                for ell in range(neqcons):
+                    tau_new[ell] = swarm_g[ell]
 
-                for l in range(neqcons, constraints):
-                    if swarm_g[l] > -lambda_val[l] / (2 * rp[l]):
-                        tau_new[l] = swarm_g[l]
+                for ell in range(neqcons, constraints):
+                    if swarm_g[ell] > -lambda_val[ell] / (2 * rp[ell]):
+                        tau_new[ell] = swarm_g[ell]
                     else:
-                        tau_new[l] = -lambda_val[l] / (2 * rp[l])
+                        tau_new[ell] = -lambda_val[ell] / (2 * rp[ell])
 
                 # Update Lagrange Multiplier
-                for l in range(constraints):
-                    lambda_old[l] = lambda_val[l]
-                    lambda_val[l] += 2 * rp[l] * tau_new[l]
-                    if abs(lambda_val[l]) < eps:
-                        lambda_val[l] = 0.0
+                for ell in range(constraints):
+                    lambda_old[ell] = lambda_val[ell]
+                    lambda_val[ell] += 2 * rp[ell] * tau_new[ell]
+                    if abs(lambda_val[ell]) < eps:
+                        lambda_val[ell] = 0.0
 
                 # Update Penalty Factor
-                for l in range(neqcons):
-                    if abs(swarm_g[l]) > abs(swarm_g_old[l]) and abs(swarm_g[l]) > etol:
-                        rp[l] *= 2.0
-                    elif abs(swarm_g[l]) <= etol:
-                        rp[l] *= 0.5
+                for ell in range(neqcons):
+                    if abs(swarm_g[ell]) > abs(swarm_g_old[ell]) and abs(swarm_g[ell]) > etol:
+                        rp[ell] *= 2.0
+                    elif abs(swarm_g[ell]) <= etol:
+                        rp[ell] *= 0.5
 
-                for l in range(neqcons, constraints):
-                    if swarm_g[l] > swarm_g_old[l] and swarm_g[l] > itol:
-                        rp[l] *= 2.0
-                    elif swarm_g[l] <= itol:
-                        rp[l] *= 0.5
+                for ell in range(neqcons, constraints):
+                    if swarm_g[ell] > swarm_g_old[ell] and swarm_g[ell] > itol:
+                        rp[ell] *= 2.0
+                    elif swarm_g[ell] <= itol:
+                        rp[ell] *= 0.5
 
                 # Apply Lower Bounds on rp
-                for l in range(neqcons):
-                    if rp[l] < 0.5 * (abs(lambda_val[l]) / etol) ** 0.5:
-                        rp[l] = 0.5 * (abs(lambda_val[l]) / etol) ** 0.5
+                for ell in range(neqcons):
+                    if rp[ell] < 0.5 * (abs(lambda_val[ell]) / etol) ** 0.5:
+                        rp[ell] = 0.5 * (abs(lambda_val[ell]) / etol) ** 0.5
 
-                for l in range(neqcons, constraints):
-                    if rp[l] < 0.5 * (abs(lambda_val[l]) / itol) ** 0.5:
-                        rp[l] = 0.5 * (abs(lambda_val[l]) / itol) ** 0.5
+                for ell in range(neqcons, constraints):
+                    if rp[ell] < 0.5 * (abs(lambda_val[ell]) / itol) ** 0.5:
+                        rp[ell] = 0.5 * (abs(lambda_val[ell]) / itol) ** 0.5
 
-                for l in range(constraints):
-                    if rp[l] < 1:
-                        rp[l] = 1
+                for ell in range(constraints):
+                    if rp[ell] < 1:
+                        rp[ell] = 1
 
             for i in range(swarmsize):
                 if constraints > 0:
                     # Update Tau
-                    for l in range(neqcons):
-                        tau[i, l] = g[i, l]
+                    for ell in range(neqcons):
+                        tau[i, ell] = g[i, ell]
 
-                    for l in range(neqcons, constraints):
-                        if g[i, l] > -lambda_val[l] / (2 * rp[l]):
-                            tau[i, l] = g[i, l]
+                    for ell in range(neqcons, constraints):
+                        if g[i, ell] > -lambda_val[ell] / (2 * rp[ell]):
+                            tau[i, ell] = g[i, ell]
                         else:
-                            tau[i, l] = -lambda_val[l] / (2 * rp[l])
+                            tau[i, ell] = -lambda_val[ell] / (2 * rp[ell])
 
             # set craziness velocity for next inner loop run
             vcr = (1 - k_out / maxOutIter) * vcrazy
@@ -993,8 +993,8 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
             for i in range(swarmsize):
                 L[i] = f[i]
                 if constraints > 0:
-                    for l in range(constraints):
-                        L[i] += lambda_val[l] * tau[i, l] + rp[l] * tau[i, l] ** 2
+                    for ell in range(constraints):
+                        L[i] += lambda_val[ell] * tau[i, ell] + rp[ell] * tau[i, ell] ** 2
 
             swarm_L = L[swarm_i]
 
@@ -1002,23 +1002,23 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
             if constraints > 0:
 
                 # Equality Constraints
-                for l in range(neqcons):
-                    tau_old[l] = swarm_g_old[l]
+                for ell in range(neqcons):
+                    tau_old[ell] = swarm_g_old[ell]
 
                 # Inequality Constraints
-                for l in range(neqcons, constraints):
-                    if rp[l] != 0:
-                        if swarm_g_old[l] > -lambda_val[l] / (2 * rp[l]):
-                            tau_old[l] = swarm_g_old[l]
+                for ell in range(neqcons, constraints):
+                    if rp[ell] != 0:
+                        if swarm_g_old[ell] > -lambda_val[ell] / (2 * rp[ell]):
+                            tau_old[ell] = swarm_g_old[ell]
                         else:
-                            tau_old[l] = -lambda_val[l] / (2 * rp[l])
+                            tau_old[ell] = -lambda_val[ell] / (2 * rp[ell])
 
                     else:
-                        tau_old[l] = swarm_g_old[l]
+                        tau_old[ell] = swarm_g_old[ell]
 
                 #
-                for l in range(constraints):
-                    swarm_L_old += lambda_val[l] * tau_old[l] + rp[l] * tau_old[l] ** 2
+                for ell in range(constraints):
+                    swarm_L_old += lambda_val[ell] * tau_old[ell] + rp[ell] * tau_old[ell] ** 2
 
             # reset swarm memory for next inner run
             for i in range(swarmsize):
@@ -1039,17 +1039,17 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
         if constraints > 0:
             # Equality Constraints
             print("EQUALITY CONSTRAINTS VALUES:")
-            for l in range(neqcons):
-                print("\tH(%d) = %g" % (l, swarm_g[l]))
+            for ell in range(neqcons):
+                print("\tH(%d) = %g" % (ell, swarm_g[ell]))
 
             # Inequality Constraints
             print("\nINEQUALITY CONSTRAINTS VALUES:")
-            for l in range(neqcons, constraints):
-                print("\tG(%d) = %g" % (l, swarm_g[l]))
+            for ell in range(neqcons, constraints):
+                print("\tG(%d) = %g" % (ell, swarm_g[ell]))
 
         print("\nLAGRANGIAN MULTIPLIERS VALUES:")
-        for l in range(constraints):
-            print("\tL(%d) = %g" % (l, float(lambda_val[l])))
+        for ell in range(constraints):
+            print("\tL(%d) = %g" % (ell, float(lambda_val[ell])))
 
         print("\nBEST POSITION:")
         if scale == 1:
@@ -1083,21 +1083,21 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
         if constraints > 0:
             # Equality Constraints
             sfile.write("\nEQUALITY CONSTRAINTS VALUES:\n")
-            for l in range(neqcons):
-                sfile.write("\tH(%d) = %.16g\n" % (l, swarm_g[l]))
+            for ell in range(neqcons):
+                sfile.write("\tH(%d) = %.16g\n" % (ell, swarm_g[ell]))
 
             # Inequality Constraints
             sfile.write("\nINEQUALITY CONSTRAINTS VALUES:\n")
-            for l in range(neqcons, constraints):
-                sfile.write("\tG(%d) = %.16g\n" % (l, swarm_g[l]))
+            for ell in range(neqcons, constraints):
+                sfile.write("\tG(%d) = %.16g\n" % (ell, swarm_g[ell]))
 
         sfile.write("\nLAGRANGIAN MULTIPLIERS VALUES:\n")
-        for l in range(constraints):
-            sfile.write("\tL(%d) = %.16g\n" % (l, float(lambda_val[l])))
+        for ell in range(constraints):
+            sfile.write("\tL(%d) = %.16g\n" % (ell, float(lambda_val[ell])))
 
         sfile.write("\nPENALTY FACTOR:\n")
-        for l in range(constraints):
-            sfile.write("\trp(%d) = %.16g\n" % (l, rp[l]))
+        for ell in range(constraints):
+            sfile.write("\trp(%d) = %.16g\n" % (ell, rp[ell]))
 
         sfile.write("\nBEST POSITION:\n")
         if scale == 1:
