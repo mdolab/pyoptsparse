@@ -543,9 +543,16 @@ class SNOPT(Optimizer):
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
             sol = None
+            cw = iw = rw = xs = hs = pi = None
 
         # Communication solution and return
         sol = self._communicateSolution(sol)
+        cw = self.optProb.comm.bcast(cw, root=0)
+        iw = self.optProb.comm.bcast(iw, root=0)
+        rw = self.optProb.comm.bcast(rw, root=0)
+        xs = self.optProb.comm.bcast(xs, root=0)
+        hs = self.optProb.comm.bcast(hs, root=0)
+        pi = self.optProb.comm.bcast(pi, root=0)
         if self.getOption('Return work arrays'):
             restartDict = {
                 'cw':cw,
