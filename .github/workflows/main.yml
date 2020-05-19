@@ -17,7 +17,7 @@ jobs:
     - name: Black Code Formatter
       uses: lgeiger/black-action@v1.0.1
       with:
-          args: ". --check -l 120 --target-version py${{ matrix.python-version }} --exclude setup.py"
+          args: ". --check -l 120 --target-version py${{ matrix.python-version }} --exclude setup.py|doc/conf.py"
   flake8:
     runs-on: ubuntu-latest
     strategy:
