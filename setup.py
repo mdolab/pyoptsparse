@@ -61,6 +61,7 @@ if __name__ == "__main__":
         long_description="pyOptSparse is a Python package for formulating and solving nonlinear constrained optimization problems",
         keywords="optimization",
         license="GNU LGPL",
+        install_requires=['sqlitedict>=1.6.0', 'numpy', 'scipy', 'six>=1.13'],
         platforms=["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
         classifiers=[
             "Development Status :: 5 - Production/Stable",
