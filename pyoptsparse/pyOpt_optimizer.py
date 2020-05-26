@@ -666,7 +666,7 @@ class Optimizer(object):
                     xs.append(var.value)
 
                 else:
-                    raise Error("%s cannot handle integer or discrete " "design variables" % self.name)
+                    raise Error("%s cannot handle integer or discrete design variables" % self.name)
 
         blx = np.array(blx)
         bux = np.array(bux)
@@ -716,7 +716,7 @@ class Optimizer(object):
         nobj = len(self.optProb.objectives.keys())
         ff = []
         if nobj == 0:
-            raise Error("No objective function was supplied! One can " "be added using a call to optProb.addObj()")
+            raise Error("No objective function was supplied! One can be added using a call to optProb.addObj()")
         for objKey in self.optProb.objectives:
             ff.append(self.optProb.objectives[objKey].value)
 

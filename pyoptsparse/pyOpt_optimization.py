@@ -237,12 +237,12 @@ class Optimization(object):
         # Check that the nVars is > 0.
         if nVars < 1:
             raise Error(
-                "The 'nVars' argument to addVarGroup must be greater " "than or equal to 1. The bad DV is %s." % name
+                "The 'nVars' argument to addVarGroup must be greater than or equal to 1. The bad DV is %s." % name
             )
 
         # Check that the type is ok:
         if type not in ["c", "i", "d"]:
-            raise Error("Type must be one of 'c' for continuous, " "'i' for integer or 'd' for discrete.")
+            raise Error("Type must be one of 'c' for continuous, 'i' for integer or 'd' for discrete.")
 
         # ------ Process the value argument
         value = np.atleast_1d(value).real
@@ -339,10 +339,10 @@ class Optimization(object):
         if name in self.variables:
             # Check that the variables happen to be the same
             if not len(self.variables[name]) == len(varList):
-                raise Error("The supplied name '%s' for a variable group " "has already been used!" % name)
+                raise Error("The supplied name '%s' for a variable group has already been used!" % name)
             for i in range(len(varList)):
                 if not varList[i] == self.variables[name][i]:
-                    raise Error("The supplied name '%s' for a variable group " "has already been used!" % name)
+                    raise Error("The supplied name '%s' for a variable group has already been used!" % name)
             # We we got here, we know that the variables we wanted to
             # add are **EXACTLY** the same so that's cool. We'll just
             # overwrite with the varList below.
@@ -506,7 +506,7 @@ class Optimization(object):
         """
 
         if name in self.constraints:
-            raise Error("The supplied name '%s' for a constraint group " "has already been used." % name)
+            raise Error("The supplied name '%s' for a constraint group has already been used." % name)
 
         # Simply add constraint object
         self.constraints[name] = Constraint(name, nCon, linear, wrt, jac, lower, upper, scale)
@@ -1048,9 +1048,9 @@ class Optimization(object):
                 else:
                     xg[dvGroup] = x[..., istart:iend].copy()
             except IndexError:
-                raise Error("Error processing x. There " "is a mismatch in the number of variables.")
+                raise Error("Error processing x. There is a mismatch in the number of variables.")
         if imax != self.ndvs:
-            raise Error("Error processing x. There " "is a mismatch in the number of variables.")
+            raise Error("Error processing x. There is a mismatch in the number of variables.")
         return xg
 
     def processXtoVec(self, x):
@@ -1084,9 +1084,9 @@ class Optimization(object):
                 else:
                     x_array[..., istart:iend] = x[dvGroup]
             except IndexError:
-                raise Error("Error deprocessing x. There " "is a mismatch in the number of variables.")
+                raise Error("Error deprocessing x. There is a mismatch in the number of variables.")
         if imax != self.ndvs:
-            raise Error("Error deprocessing x. There is a mismatch in the" " number of variables.")
+            raise Error("Error deprocessing x. There is a mismatch in the number of variables.")
 
         return x_array
 
@@ -1113,7 +1113,7 @@ class Optimization(object):
                 try:
                     f = np.squeeze(funcs[objKey]).item()
                 except ValueError:
-                    raise Error("The objective return value, '%s' must be a " "scalar!" % objKey)
+                    raise Error("The objective return value, '%s' must be a scalar!" % objKey)
                 # Store objective for printing later
                 self.objectives[objKey].value = f
                 fobj.append(f)
@@ -1209,7 +1209,7 @@ class Optimization(object):
                 # Store constraint values for printing later
                 con.value = copy.copy(c)
             else:
-                raise Error("No constraint values were found for the " "constraint '%s'." % iCon)
+                raise Error("No constraint values were found for the constraint '%s'." % iCon)
 
         # Perform scaling on the original jacobian:
         if scaled:
@@ -1570,7 +1570,6 @@ class Optimization(object):
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
             fobj_return[iObj] *= self.objectives[objKey].scale
-        # print(fobj, fobj_return)
         return fobj_return
 
     def _mapObjtoUser(self, fobj):

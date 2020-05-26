@@ -46,7 +46,7 @@ class NOMAD(Optimizer):
         informs = {}
         self.set_options = []
         if nomad is None:
-            raise Error("There was an error importing the compiled" "nomad module")
+            raise Error("There was an error importing the compiled nomad module")
 
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
 
