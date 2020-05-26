@@ -230,7 +230,7 @@ class Constraint(object):
                 try:
                     self.wrt = list(self.wrt)
                 except:  # noqa: E722
-                    raise Error("The 'wrt' argument to constraint '%s' must " "be an iterable list" % self.name)
+                    raise Error("The 'wrt' argument to constraint '%s' must be an iterable list" % self.name)
 
             # We allow 'None' to be in the list...they are null so
             # just pop them out:

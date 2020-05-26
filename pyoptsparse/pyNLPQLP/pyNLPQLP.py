@@ -64,20 +64,20 @@ class NLPQLP(Optimizer):
             0: "The optimality conditions are satisfied.",
             1: " The algorithm has been stopped after MAXIT iterations.",
             2: " The algorithm computed an uphill search direction.",
-            3: " Underflow occurred when determining a new approximation matrix" "for the Hessian of the Lagrangian.",
+            3: " Underflow occurred when determining a new approximation matrix for the Hessian of the Lagrangian.",
             4: "The line search could not be terminated successfully.",
-            5: "Length of a working array is too short." " More detailed error information is obtained with IPRINT>0",
+            5: "Length of a working array is too short. More detailed error information is obtained with IPRINT>0",
             6: "There are false dimensions, for example M>MMAX, N>=NMAX, or MNN2<>M+N+N+2.",
             7: "The search direction is close to zero, but the current iterate is still infeasible.",
             8: "The starting point violates a lower or upper bound.",
-            9: "Wrong input parameter, i.e., MODE, LDL decomposition in D and C" " (in case of MODE=1), IPRINT, IOUT",
+            9: "Wrong input parameter, i.e., MODE, LDL decomposition in D and C (in case of MODE=1), IPRINT, IOUT",
             10: "Internal inconsistency of the quadratic subproblem, division by zero.",
             100: "The solution of the quadratic programming subproblem has been"
             " terminated with an error message and IFAIL is set to IFQL+100,"
             " where IFQL denotes the index of an inconsistent constraint.",
         }
         if nlpqlp is None:
-            raise Error("There was an error importing the compiled " "nlpqlp module")
+            raise Error("There was an error importing the compiled nlpqlp module")
 
         Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
         # NLPQLP needs jacobians in dense format

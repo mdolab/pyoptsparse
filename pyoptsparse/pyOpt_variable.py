@@ -42,7 +42,7 @@ class Variable(object):
             self.scale = scale
         elif self.type == "d":
             if choices is None:
-                raise Error("A discrete variable requires " "to input an array of choices.")
+                raise Error("A discrete variable requires to input an array of choices.")
             self.choices = choices
             self.value = self.choices[int(value)]
             self.lower = 0
