@@ -1570,7 +1570,6 @@ class Optimization(object):
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
             fobj_return[iObj] *= self.objectives[objKey].scale
-        # print(fobj, fobj_return)
         return fobj_return
 
     def _mapObjtoUser(self, fobj):
