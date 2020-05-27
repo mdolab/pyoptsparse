@@ -542,15 +542,15 @@ class Optimization(object):
 
     def setDVs(self, inDVs):
         """
-        set the problem design variables from a dictionary. In most
-        common usage, this function is not required.
+        Set one or more groups of design variables from a dictionary.
+        In most common usage, this function is not required.
 
         Parameters
         ----------
         inDVs : dict
-            The dictionary of variables. This dictionary is like the
-            'x' that would be used to call the user objective
-            function.
+            The dictionary of variables. The keys are the names of the
+            variable groups, and the values are the desired design
+            variable values for each variable group.
         """
         self.finalizeDesignVariables()
         self.finalizeConstraints()
