@@ -97,6 +97,23 @@ class TestOptProb(unittest.TestCase):
         outDV = self.optProb.getDVs()
         self.assert_dict_allclose(newDV, outDV)
 
+    def test_setDV_VarGroup(self):
+        """
+        Test that setDV works with a subset of VarGroups
+        """
+        self.setup_optProb(
+            nObj=1, nDV=[4, 8], nCon=[2, 3], xScale=[4, 1], objScale=[0.3], conScale=[0.1, 8], offset=[3, 7],
+        )
+        oldDV = self.optProb.getDVs()
+        # set values for only one VarGroup
+        newDV = {"x0": np.arange(4)}
+        self.optProb.setDVs(newDV)
+        outDV = self.optProb.getDVs()
+        # check x0 changed
+        assert_allclose(newDV["x0"], outDV["x0"])
+        # check x1 is the same
+        assert_allclose(oldDV["x1"], outDV["x1"])
+
     def test_mappings(self):
         """
         This test checks the various mapping and process helper functions
