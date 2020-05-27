@@ -554,9 +554,13 @@ class Optimization(object):
         """
         self.finalizeDesignVariables()
         self.finalizeConstraints()
+        x0 = self.getDVs()
+        # overwrite subset of DVs with new values
+        for dvGroup in inDVs:
+            x0[dvGroup] = inDVs[dvGroup]
         # we process dicts to arrays to perform scaling in a uniform way
         # then process back to dict
-        scaled_DV = self._mapXtoOpt_Dict(inDVs)
+        scaled_DV = self._mapXtoOpt_Dict(x0)
         for dvGroup in self.variables:
             if dvGroup in inDVs:
                 nvar = len(self.variables[dvGroup])
