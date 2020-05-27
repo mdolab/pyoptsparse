@@ -96,7 +96,7 @@ class TestOptProb(unittest.TestCase):
         self.optProb.setDVs(newDV)
         outDV = self.optProb.getDVs()
         self.assert_dict_allclose(newDV, outDV)
-        
+
     def test_setDV_VarGroup(self):
         """
         Test that setDV works with a subset of VarGroups
