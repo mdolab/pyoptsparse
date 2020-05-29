@@ -27,7 +27,9 @@ The optimization class is created using the following call::
 
   >>> optProb = Optimization('name', objFun)
 
-The general template of the objective function is as follows::
+The general template of the objective function is as follows:
+
+.. code-block:: python
 
   def obj_fun(xdict):
     funcs = {}
