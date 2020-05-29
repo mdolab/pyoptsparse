@@ -41,7 +41,7 @@ It is also possible to install by calling ``python setup.py``, but this is not r
   LICENSE files, and place them in their respective source folders before installing the package.
   Refer to specific optimizer pages for additional information.
 
-Update or Unintall
+Update or Uninstall
 ------------------
 To update ``pyOptSparse``, first delete the ``build`` directory.
 Then update the package using ``git``.
