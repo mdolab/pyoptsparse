@@ -27,7 +27,9 @@ The optimization class is created using the following call::
 
   >>> optProb = Optimization('name', objFun)
 
-The general template of the objective function is as follows::
+The general template of the objective function is as follows:
+
+.. code-block:: python
 
   def obj_fun(xdict):
     funcs = {}
@@ -149,7 +151,8 @@ The ``X``'s denote which parts of the jacobian have non-zero
 values. ``pyOptSparse`` does not determine the sparsity structure of
 the jacobian automatally, it must be specified by the user during
 calls to ``addCon`` and ``addConGroup``.  By way of example, the code
-that generates the  hypothetical optimization problem is as follows::
+that generates the  hypothetical optimization problem is as follows:
+.. code-block:: python
 
   optProb.addVarGroup('varA', 3)
   optProb.addVarGroup('varB', 1)
