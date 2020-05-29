@@ -17,9 +17,9 @@ Simply comment out the corresponding lines in ``pyoptsparse/pyoptsparse/setup.py
 Python dependencies are automatically handled by ``pip``.
 
 .. note::
-  * In Windows MinGW is recommended if c/FORTRAN compilers are not available
   * In Linux, the python header files (python-dev) are also required.
-  * Compatibility on Windows 64bit has not been tested
+  * We do not support operating systems other than Linux.
+    If you want to run this on macOS or Windows, you are on your own.
 
 Installation
 ------------
