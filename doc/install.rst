@@ -36,13 +36,13 @@ For those not using ``conda``, a user install is needed::
 It is also possible to install by calling ``python setup.py``, but this is not recommended.
 
 .. note::
-  Some optimizers are licensed and their sources are not included with this distribution. 
-  To use them, please request their sources from the authors as indicated in the optimizer 
+  Some optimizers are licensed and their sources are not included with this distribution.
+  To use them, please request their sources from the authors as indicated in the optimizer
   LICENSE files, and place them in their respective source folders before installing the package.
   Refer to specific optimizer pages for additional information.
 
 Update or Uninstall
-------------------
+-------------------
 To update ``pyOptSparse``, first delete the ``build`` directory.
 Then update the package using ``git``.
 For stability, stick to tagged releases.
