@@ -31,6 +31,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "numpydoc",
     "sphinx.ext.autosummary",
+    "sphinx.ext.mathjax"
 ]
 numpydoc_show_class_members = False
 
@@ -48,7 +49,7 @@ master_doc = "index"
 
 # General information about the project.
 project = u"pyOptSparse"
-copyright = u"2013, Gaetan Kenway"
+copyright = u"2020, Gaetan Kenway"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
