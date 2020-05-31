@@ -20,7 +20,7 @@ project = 'pyOptSparse'
 copyright = '2020, MDO Lab'
 
 # The full version, including alpha/beta/rc tags
-release = 'v2.1.1'
+# release = 'version'
 
 
 # -- General configuration ---------------------------------------------------
