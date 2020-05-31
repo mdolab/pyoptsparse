@@ -18,7 +18,7 @@ where:
 and :math:`g(x)` is a set of :math:`m` nonlinear functions.
 
 Equality constraints are specified using the same upper and lower
-bounds for the constraint. ie. :math:`g_{j,\text{L}} = g_{j,\text{U}}`.
+bounds for the constraint. i.e., :math:`g_{j,\text{L}} = g_{j,\text{U}}`.
 The ordering of the constraints is arbitrary; ``pyOptSparse``
 reorders the problem automatically depending on the requirements
 of each individual optimizer.
@@ -90,7 +90,7 @@ with no lower bound, and a scale factor of 0.1::
 Constraints
 +++++++++++
 
-The simplest way to add a single constraint with no bounds (ie not a
+The simplest way to add a single constraint with no bounds (i.e., not a
 very useful constraint!) is::
 
   >>> optProb.addCon('not_a_real_constraint')
@@ -125,16 +125,16 @@ also require the use of the ``wrt`` and ``jac`` keyword
 arguments. These are explained below.
 
 One of the major goals of ``pyOptSparse`` is to enable the use of
-sparse constraint jacobians. (Hence the 'Sparse` in the name!).
+sparse constraint Jacobians. (Hence the 'Sparse' in the name!).
 Manually computing sparsity structure of the constraint Jacobian is
 tedious at best and become even more complicated as optimization
 scripts are modified by adding or deleting design variables and/or
 constraints. ``pyOptSParse`` is designed to greatly facilitate the
-assembly of sparse constraint jacobians, alleviating the user of thus
+assembly of sparse constraint Jacobians, alleviating the user of thus
 burden. The idea is that instead of the user computing a dense matrix
-representing the constraint jacobian, a ``dictionary of keys``
+representing the constraint Jacobian, a ``dictionary of keys``
 approach is used which allows incrementally specifying parts of the
-constraint jacobain. Consider the optimization problem given below::
+constraint Jacobian. Consider the optimization problem given below::
 
               varA (3)   varB (1)   varC (3)
             +--------------------------------+
@@ -147,11 +147,12 @@ constraint jacobain. Consider the optimization problem given below::
    conD (3) |          |          |     X    |
             +--------------------------------+
 
-The ``X``'s denote which parts of the jacobian have non-zero
+The ``X``'s denote which parts of the Jacobian have non-zero
 values. ``pyOptSparse`` does not determine the sparsity structure of
-the jacobian automatally, it must be specified by the user during
+the Jacobian automatically, it must be specified by the user during
 calls to ``addCon`` and ``addConGroup``.  By way of example, the code
 that generates the  hypothetical optimization problem is as follows:
+
 .. code-block:: python
 
   optProb.addVarGroup('varA', 3)
@@ -168,14 +169,16 @@ is not significant. Furthermore, if the ``wrt`` argument is omitted
 altogether, ``pyOptSparse`` assumes that the constraint is dense.
 
 Using the ``wrt`` keyword allows the user to determine the overall
-sparsity structure of the constraint jacobian. However, we have
+sparsity structure of the constraint Jacobian. However, we have
 currently assumed that each of the blocks with an ``X`` in is a dense
 sub-block. ``pyOptSparse`` allows each of the *sub-blocks* to itself
 be sparse. ``pyOptSparse`` requires that this sparsity structure to be
 specified when the constraint is added. This information is supplied
 through the ``jac`` keyword argument. Lets say, that the (conD, varC)
-block of the jacobian is actually a sparse and linear. By way of
+block of the Jacobian is actually a sparse and linear. By way of
 example, the call instead may be as follows::
+
+.. code-block:: python
 
   jac = sparse.lil_matrix((3,3))
   jac[0,0] = 1.0
@@ -186,21 +189,21 @@ example, the call instead may be as follows::
 
 We have created a linked list sparse matrix using
 ``scipy.sparse``. Any scipy sparse matrix format can be accepted. We
-have then provided this constraint jacobian using the ``jac=`` keyword
+have then provided this constraint Jacobian using the ``jac=`` keyword
 argument. This argument is a dictionary, and the keys must match the
 design variable sets given in the ``wrt`` to keyword. Essentially what
 we have done is specified the which blocks of the constraint rows are
 non-zero, and provided the sparsity structure of ones that are sparse.
 
 For linear constraints the values in ``jac`` are meaningful: They must
-be the actual linear constraint jacobian values (which do not
+be the actual linear constraint Jacobian values (which do not
 change). For non-linear constraints, on the sparsity structure
 (non-zero pattern) is significant. The values themselves will be
 determined by a call the sens() function.
 
 Also note, that the ``wrt`` and ``jac`` keyword arguments are only
 supported when user-supplied sensitivity is used. If one used the
-automatic gradient in ``pyOptSparse`` the constraint jacobian will
+automatic gradient in ``pyOptSparse`` the constraint Jacobian will
 necessarily be dense.
 
 Objectives
@@ -209,7 +212,7 @@ Objectives
 Each optimization will require at least one objective to be
 added. This is accomplished using a the call::
 
-  otpProb.addObj('obj')
+  optProb.addObj('obj')
 
 What this does is tell ``pyOptSparse`` that the key ``obj`` in the
 function returns will be taken as the objective. For optimizers that
