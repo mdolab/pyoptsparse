@@ -19,6 +19,7 @@ Explain the steps needed to test the new code to verify that it does indeed addr
 ## Checklist
 _Put an `x` in the boxes that apply._
 
+- [ ] I have run `flake8` and `black` to make sure the code adheres to PEP-8 and is consistently formatted
 - [ ] I have run unit and regression tests which pass locally with my changes
 - [ ] I have added new tests that prove my fix is effective or that my feature works
 - [ ] I have added necessary documentation

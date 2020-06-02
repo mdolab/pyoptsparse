@@ -1,17 +1,8 @@
-.. pyOptSparse documentation master file, created by
-   sphinx-quickstart on Sat Dec  7 13:50:49 2013.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-.. _pyoptsparse:
-
 ===========
 pyOptSparse
 ===========
-
-PYthon OPTimization (Sparse) Framework
-
-`pyOptSparseSparse` is a replacement for pyOpt.
+pyOptSparse is an object-oriented framework for formulating and solving nonlinear constrained optimization problems in an efficient, reusable, and portable manner.
+It is a fork of pyOpt that uses sparse matrices throughout the code to more efficiently handle large-scale optimization problems.
 
 .. toctree::
    :maxdepth: 2
@@ -24,3 +15,4 @@ PYthon OPTimization (Sparse) Framework
    optimizers
    reference
    postprocessing
+   contribute
