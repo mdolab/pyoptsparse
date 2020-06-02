@@ -39,11 +39,12 @@ class myMPI(object):
         self.SUM = "SUM"
         self.LOR = "OR"
 
+
 # Attempt to import mpi4py.
 # If PYOPTSPARSE_REQUIRE_MPI is set to a recognized positive value, attempt import
 # and raise exception on failure. If set to anything else, no import is attempted.
-if 'PYOPTSPARSE_REQUIRE_MPI' in os.environ:
-    if os.environ['PYOPTSPARSE_REQUIRE_MPI'].lower() in ['always', '1', 'true', 'yes']:
+if "PYOPTSPARSE_REQUIRE_MPI" in os.environ:
+    if os.environ["PYOPTSPARSE_REQUIRE_MPI"].lower() in ["always", "1", "true", "yes"]:
         from mpi4py import MPI
     else:
         MPI = myMPI()
@@ -59,4 +60,3 @@ else:
      from pyOptSparse."
         warnings.warn(warn)
         MPI = myMPI()
-

@@ -5,8 +5,8 @@ import datetime
 # Attempt to import mpi4py.
 # If PYOPTSPARSE_REQUIRE_MPI is set to a recognized positive value, attempt import
 # and raise exception on failure. If set to anything else, no import is attempted.
-if 'PYOPTSPARSE_REQUIRE_MPI' in os.environ:
-    if os.environ['PYOPTSPARSE_REQUIRE_MPI'].lower() in ['always', '1', 'true', 'yes']:
+if "PYOPTSPARSE_REQUIRE_MPI" in os.environ:
+    if os.environ["PYOPTSPARSE_REQUIRE_MPI"].lower() in ["always", "1", "true", "yes"]:
         from paropt import ParOpt as _ParOpt
         from mpi4py import MPI
     else:
@@ -19,12 +19,6 @@ else:
         from mpi4py import MPI
     except ImportError:
         _ParOpt = None
-
-# try:
-#     from paropt import ParOpt as _ParOpt
-#     from mpi4py import MPI
-# except ImportError:
-#     _ParOpt = None
 
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
