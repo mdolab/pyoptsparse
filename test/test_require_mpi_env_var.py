@@ -5,7 +5,7 @@ import os
 import sys
 
 if sys.version_info[0] == 2:
-    reload_func = reload
+    reload_func = reload  # noqa: F821
 else:
     reload_func = importlib.reload
 
@@ -39,7 +39,7 @@ class TestRequireMPIEnvVarOnParOpt(unittest.TestCase):
     def setUp(self):
         # Just check to see if ParOpt is installed before doing any testing
         try:
-            from paropt import ParOpt as _ParOpt
+            from paropt import ParOpt as _ParOpt  # noqa: F401
         except ImportError:
             raise unittest.SkipTest("Optimizer not available:", "paropt")
 
