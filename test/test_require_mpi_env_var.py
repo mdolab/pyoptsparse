@@ -9,6 +9,7 @@ if sys.version_info[0] == 2:
 else:
     reload_func = importlib.reload
 
+
 class TestRequireMPIEnvVar(unittest.TestCase):
     # Check how the environment variable affects importing MPI
     def test_require_mpi(self):
@@ -32,6 +33,7 @@ class TestRequireMPIEnvVar(unittest.TestCase):
         reload_func(pyoptsparse.pyOpt_MPI)
         self.assertFalse(inspect.ismodule(pyoptsparse.pyOpt_MPI.MPI))
 
+
 class TestRequireMPIEnvVarOnParOpt(unittest.TestCase):
     # Check how the environment variable affects using ParOpt
     def setUp(self):
@@ -39,7 +41,7 @@ class TestRequireMPIEnvVarOnParOpt(unittest.TestCase):
         try:
             from paropt import ParOpt as _ParOpt
         except ImportError:
-            raise unittest.SkipTest("Optimizer not available:", 'paropt')
+            raise unittest.SkipTest("Optimizer not available:", "paropt")
 
     def test_require_mpi_check_paropt(self):
         os.environ["PYOPTSPARSE_REQUIRE_MPI"] = "1"
