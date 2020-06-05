@@ -9,17 +9,18 @@ if sys.version_info[0] == 2:
 else:
     reload_func = importlib.reload
 
+try:
+    HAS_MPI = True
+    import mpi4py  # noqa:F401
+except ImportError:
+    HAS_MPI = False
+
 
 class TestRequireMPIEnvVar(unittest.TestCase):
-    def setUp(self):
-        # check if mpi4py is installed
-        try:
-            import mpi4py  # noqa:F401
-        except ImportError:
-            raise unittest.SkipTest("No mpi4py available, skipping MPI tests.")
-
     # Check how the environment variable affects importing MPI
     def test_require_mpi(self):
+        if not HAS_MPI:
+            raise unittest.SkipTest("mpi4py not available, skipping test.")
         os.environ["PYOPTSPARSE_REQUIRE_MPI"] = "1"
         import pyoptsparse.pyOpt_MPI
 
@@ -31,7 +32,10 @@ class TestRequireMPIEnvVar(unittest.TestCase):
         import pyoptsparse.pyOpt_MPI
 
         reload_func(pyoptsparse.pyOpt_MPI)
-        self.assertTrue(inspect.ismodule(pyoptsparse.pyOpt_MPI.MPI))
+        if HAS_MPI:
+            self.assertTrue(inspect.ismodule(pyoptsparse.pyOpt_MPI.MPI))
+        else:
+            self.assertFalse(inspect.ismodule(pyoptsparse.pyOpt_MPI.MPI))
 
     def test_do_not_use_mpi(self):
         os.environ["PYOPTSPARSE_REQUIRE_MPI"] = "0"
