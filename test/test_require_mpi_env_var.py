@@ -11,6 +11,13 @@ else:
 
 
 class TestRequireMPIEnvVar(unittest.TestCase):
+    def setUp(self):
+        # check if mpi4py is installed
+        try:
+            import mpi4py  # noqa:F401
+        except ImportError:
+            raise unittest.SkipTest("No mpi4py available, skipping MPI tests.")
+
     # Check how the environment variable affects importing MPI
     def test_require_mpi(self):
         os.environ["PYOPTSPARSE_REQUIRE_MPI"] = "1"
