@@ -2,11 +2,27 @@ import numpy as np
 import os
 import datetime
 
-try:
-    from paropt import ParOpt as _ParOpt
-    from mpi4py import MPI
-except ImportError:
-    _ParOpt = None
+# Attempt to import mpi4py.
+# If PYOPTSPARSE_REQUIRE_MPI is set to a recognized positive value, attempt import
+# and raise exception on failure. If set to anything else, no import is attempted.
+if "PYOPTSPARSE_REQUIRE_MPI" in os.environ:
+    if os.environ["PYOPTSPARSE_REQUIRE_MPI"].lower() in ["always", "1", "true", "yes"]:
+        try:
+            from paropt import ParOpt as _ParOpt
+            from mpi4py import MPI
+        except ImportError:
+            _ParOpt = None
+    else:
+        _ParOpt = None
+# If PYOPTSPARSE_REQUIRE_MPI is unset, attempt to import mpi4py.
+# Since ParOpt requires mpi4py, if either _ParOpt or mpi4py is unavailable
+# we disable the optimizer.
+else:
+    try:
+        from paropt import ParOpt as _ParOpt
+        from mpi4py import MPI
+    except ImportError:
+        _ParOpt = None
 
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error

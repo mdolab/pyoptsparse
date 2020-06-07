@@ -1,6 +1,10 @@
 os:
 - linux
 
+branches:
+  only:
+  - master
+
 language: generic
 
 services:
