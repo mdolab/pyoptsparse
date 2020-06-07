@@ -27,6 +27,7 @@ else:
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
 
+
 class ParOpt(Optimizer):
     """
     ParOpt optimizer class
@@ -48,11 +49,11 @@ class ParOpt(Optimizer):
         for name in options:
             # Get the type and default value of the named argument
             _type = None
-            if options[name].option_type == 'bool':
+            if options[name].option_type == "bool":
                 _type = bool
-            elif options[name].option_type == 'int':
+            elif options[name].option_type == "int":
                 _type = int
-            elif options[name].option_type == 'float':
+            elif options[name].option_type == "float":
                 _type = float
             else:
                 _type = str
@@ -236,11 +237,9 @@ class ParOpt(Optimizer):
             # Thus if there is no constraints, should pass an empty list
             # to multipliers instead of z.
             if z is not None:
-                sol = self._createSolution(optTime, sol_inform, fobj, x[:],
-                                           multipliers=-z)
+                sol = self._createSolution(optTime, sol_inform, fobj, x[:], multipliers=-z)
             else:
-                sol = self._createSolution(optTime, sol_inform, fobj, x[:],
-                                           multipliers=[])
+                sol = self._createSolution(optTime, sol_inform, fobj, x[:], multipliers=[])
 
             # Indicate solution finished
             self.optProb.comm.bcast(-1, root=0)
@@ -252,7 +251,6 @@ class ParOpt(Optimizer):
         sol = self._communicateSolution(sol)
 
         return sol
-
 
     def _on_setOption(self, name, value):
         """
