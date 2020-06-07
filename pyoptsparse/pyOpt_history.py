@@ -57,7 +57,7 @@ class History(object):
                 # manually close the underlying db at the end
                 self.db = OrderedDict(SqliteDict(fileName))
             else:
-                raise Error("The requested history file %s to open in " "read-only mode does not exist." % fileName)
+                raise Error("The requested history file %s to open in read-only mode does not exist." % fileName)
             self._processDB()
         else:
             raise Error("The flag argument to History must be 'r' or 'n'.")

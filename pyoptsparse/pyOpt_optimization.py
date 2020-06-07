@@ -237,12 +237,12 @@ class Optimization(object):
         # Check that the nVars is > 0.
         if nVars < 1:
             raise Error(
-                "The 'nVars' argument to addVarGroup must be greater " "than or equal to 1. The bad DV is %s." % name
+                "The 'nVars' argument to addVarGroup must be greater than or equal to 1. The bad DV is %s." % name
             )
 
         # Check that the type is ok:
         if type not in ["c", "i", "d"]:
-            raise Error("Type must be one of 'c' for continuous, " "'i' for integer or 'd' for discrete.")
+            raise Error("Type must be one of 'c' for continuous, 'i' for integer or 'd' for discrete.")
 
         # ------ Process the value argument
         value = np.atleast_1d(value).real
@@ -339,10 +339,10 @@ class Optimization(object):
         if name in self.variables:
             # Check that the variables happen to be the same
             if not len(self.variables[name]) == len(varList):
-                raise Error("The supplied name '%s' for a variable group " "has already been used!" % name)
+                raise Error("The supplied name '%s' for a variable group has already been used!" % name)
             for i in range(len(varList)):
                 if not varList[i] == self.variables[name][i]:
-                    raise Error("The supplied name '%s' for a variable group " "has already been used!" % name)
+                    raise Error("The supplied name '%s' for a variable group has already been used!" % name)
             # We we got here, we know that the variables we wanted to
             # add are **EXACTLY** the same so that's cool. We'll just
             # overwrite with the varList below.
@@ -506,7 +506,7 @@ class Optimization(object):
         """
 
         if name in self.constraints:
-            raise Error("The supplied name '%s' for a constraint group " "has already been used." % name)
+            raise Error("The supplied name '%s' for a constraint group has already been used." % name)
 
         # Simply add constraint object
         self.constraints[name] = Constraint(name, nCon, linear, wrt, jac, lower, upper, scale)
@@ -542,21 +542,25 @@ class Optimization(object):
 
     def setDVs(self, inDVs):
         """
-        set the problem design variables from a dictionary. In most
-        common usage, this function is not required.
+        Set one or more groups of design variables from a dictionary.
+        In most common usage, this function is not required.
 
         Parameters
         ----------
         inDVs : dict
-            The dictionary of variables. This dictionary is like the
-            'x' that would be used to call the user objective
-            function.
+            The dictionary of variables. The keys are the names of the
+            variable groups, and the values are the desired design
+            variable values for each variable group.
         """
         self.finalizeDesignVariables()
         self.finalizeConstraints()
+        x0 = self.getDVs()
+        # overwrite subset of DVs with new values
+        for dvGroup in inDVs:
+            x0[dvGroup] = inDVs[dvGroup]
         # we process dicts to arrays to perform scaling in a uniform way
         # then process back to dict
-        scaled_DV = self._mapXtoOpt_Dict(inDVs)
+        scaled_DV = self._mapXtoOpt_Dict(x0)
         for dvGroup in self.variables:
             if dvGroup in inDVs:
                 nvar = len(self.variables[dvGroup])
@@ -1048,9 +1052,9 @@ class Optimization(object):
                 else:
                     xg[dvGroup] = x[..., istart:iend].copy()
             except IndexError:
-                raise Error("Error processing x. There " "is a mismatch in the number of variables.")
+                raise Error("Error processing x. There is a mismatch in the number of variables.")
         if imax != self.ndvs:
-            raise Error("Error processing x. There " "is a mismatch in the number of variables.")
+            raise Error("Error processing x. There is a mismatch in the number of variables.")
         return xg
 
     def processXtoVec(self, x):
@@ -1084,9 +1088,9 @@ class Optimization(object):
                 else:
                     x_array[..., istart:iend] = x[dvGroup]
             except IndexError:
-                raise Error("Error deprocessing x. There " "is a mismatch in the number of variables.")
+                raise Error("Error deprocessing x. There is a mismatch in the number of variables.")
         if imax != self.ndvs:
-            raise Error("Error deprocessing x. There is a mismatch in the" " number of variables.")
+            raise Error("Error deprocessing x. There is a mismatch in the number of variables.")
 
         return x_array
 
@@ -1113,7 +1117,7 @@ class Optimization(object):
                 try:
                     f = np.squeeze(funcs[objKey]).item()
                 except ValueError:
-                    raise Error("The objective return value, '%s' must be a " "scalar!" % objKey)
+                    raise Error("The objective return value, '%s' must be a scalar!" % objKey)
                 # Store objective for printing later
                 self.objectives[objKey].value = f
                 fobj.append(f)
@@ -1209,7 +1213,7 @@ class Optimization(object):
                 # Store constraint values for printing later
                 con.value = copy.copy(c)
             else:
-                raise Error("No constraint values were found for the " "constraint '%s'." % iCon)
+                raise Error("No constraint values were found for the constraint '%s'." % iCon)
 
         # Perform scaling on the original jacobian:
         if scaled:
@@ -1277,7 +1281,7 @@ class Optimization(object):
         # Perform constraint scaling
         if scaled:
             m = len(self.jacIndices)
-            fcon_in[:m] = fcon_in[:m]*self.conScale[self.jacIndices]
+            fcon_in[:m] = fcon_in[:m] * self.conScale[self.jacIndices]
 
         fcon_unique = fcon_in
         if multipliers:
@@ -1570,7 +1574,6 @@ class Optimization(object):
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
             fobj_return[iObj] *= self.objectives[objKey].scale
-        # print(fobj, fobj_return)
         return fobj_return
 
     def _mapObjtoUser(self, fobj):
@@ -1656,7 +1659,10 @@ class Optimization(object):
         fmt = "    {0:>7d}  {1:{width}s}   {2:>14.6E}   {3:>14.6E}\n"
         for idx, name in enumerate(self.objectives):
             obj = self.objectives[name]
-            text += fmt.format(idx, obj.name, obj.value, obj.optimum, width=num_c)
+            value = obj.value
+            if np.iscomplexobj(value):
+                value = value.real
+            text += fmt.format(idx, obj.name, value, obj.optimum, width=num_c)
 
         # Find the longest name in the variables
         num_c = 0
@@ -1674,6 +1680,8 @@ class Optimization(object):
             for var in self.variables[varname]:
                 if var.type in ["c", "i"]:
                     value = var.value
+                    if np.iscomplexobj(value):
+                        value = value.real
                     lower = var.lower if var.lower is not None else -1.0e20
                     upper = var.upper if var.upper is not None else 1.0e20
                     status = ""
@@ -1734,6 +1742,8 @@ class Optimization(object):
                     lower = c.lower[j] if c.lower[j] is not None else -1.0e20
                     upper = c.upper[j] if c.upper[j] is not None else 1.0e20
                     value = c.value[j]
+                    if np.iscomplexobj(value):
+                        value = value.real
                     status = ""
                     typ = "e" if j in c.equalityConstraints["ind"] else "i"
                     if typ == "e":

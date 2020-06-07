@@ -8,15 +8,20 @@ on:
 jobs:
   black-format:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ '27', '37', '38' ]
     steps:
     - uses: actions/checkout@v2
     - name: Black Code Formatter
       uses: lgeiger/black-action@v1.0.1
       with:
-          args: ". --check -l 120"
+          args: ". --check -l 120 --target-version py${{ matrix.python-version }} --exclude '/setup.py|doc/'"
   flake8:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: [ '2.7', '3.7', '3.8' ]
     name: flake8 with Python ${{ matrix.python-version }}

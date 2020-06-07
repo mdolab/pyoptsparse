@@ -5,7 +5,7 @@
 [![Documentation Status](https://readthedocs.com/projects/mdolab-pyoptsparse/badge/?version=latest)](https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/?badge=latest)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-pyOptsparse is an object-oriented framework for formulating and solving nonlinear constrained optimization problems in an efficient, reusable, and portable manner.
+pyOptSparse is an object-oriented framework for formulating and solving nonlinear constrained optimization problems in an efficient, reusable, and portable manner.
 It is a fork of pyOpt that uses sparse matrices throughout the code to more efficiently handle large-scale optimization problems.
 Many optimization techniques can be used in pyOptSparse, including both gradient-based and gradient-free methods.
 A visualization tool called OptView also comes packaged with pyOptSparse, which shows the optimization history through an interactive GUI.
@@ -15,8 +15,8 @@ An example output from OptView is shown below.
 
 ## Optimizer Support
 pyOptSparse provides Python interfaces for a number of optimizers.
-ALPSO, CONMIN, IPOPT, NLPQLP, NSGA2, PSQP, ParOpt, SLSQP, and SNOPT are currently tested and supported.
-FSQP, AUGLAG, and NOMAD interfaces are also provided, but they are not tested nor supported.
+ALPSO, CONMIN, IPOPT, NLPQLP, NSGA2, PSQP, SLSQP, and SNOPT are currently tested and supported.
+ParOpt, FSQP, AUGLAG, and NOMAD interfaces are also provided, but they are not tested nor supported.
 
 We do not provide the source code for SNOPT and NLPQLP, due to their restrictive license requirements.
 Please contact the authors of the respective codes if you wish to obtain them.
