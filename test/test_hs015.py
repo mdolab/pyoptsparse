@@ -224,7 +224,7 @@ class TestHS15(unittest.TestCase):
         self.optimize_with_hotstart("IPOPT", 1e-4, optOptions=optOptions)
 
     def test_paropt(self):
-        optOptions = {"filename": "hs015_ParOpt.out"}
+        optOptions = {"output_file": "hs015_ParOpt.out"}
         self.optimize_with_hotstart("ParOpt", 1e-6, optOptions=optOptions)
 
     def test_conmin(self):
