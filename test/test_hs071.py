@@ -256,7 +256,7 @@ class TestHS71(unittest.TestCase):
         self.optimize("psqp", 1e-6, optOptions=optOptions)
 
     def test_paropt(self):
-        optOptions = {"filename": "hs071_ParOpt.out"}
+        optOptions = {"output_file": "hs071_ParOpt.out"}
         self.optimize("paropt", 1e-6, optOptions=optOptions)
 
 

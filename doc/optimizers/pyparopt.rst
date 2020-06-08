@@ -5,10 +5,7 @@ ParOpt
 ParOpt is a nonlinear interior point optimizer that is designed for large parallel design optimization problems with structured sparse constraints.
 ParOpt is open source and can be downloaded at `https://github.com/gjkennedy/paropt <https://github.com/gjkennedy/paropt>`_.
 Documentation and examples for ParOpt can be found at `https://gjkennedy.github.io/paropt/ <https://gjkennedy.github.io/paropt/>`_.
-
-.. note::
-   Unfortunately ParOpt is not officially supported by pyOptSparse at this time.
-   This is due to the fact that it is in active development with constantly changing API/functionality, but does not provide stable releases for us to test with.
+The version of ParOpt supported is v2.0.2.
 
 Installation
 ------------

@@ -46,21 +46,21 @@ class ParOpt(Optimizer):
         # Create and fill-in the dictionary of default option values
         defOpts = {}
         options = _ParOpt.getOptionsInfo()
-        for name in options:
+        for option_name in options:
             # Get the type and default value of the named argument
             _type = None
-            if options[name].option_type == "bool":
+            if options[option_name].option_type == "bool":
                 _type = bool
-            elif options[name].option_type == "int":
+            elif options[option_name].option_type == "int":
                 _type = int
-            elif options[name].option_type == "float":
+            elif options[option_name].option_type == "float":
                 _type = float
             else:
                 _type = str
-            default_value = options[name].default
+            default_value = options[option_name].default
 
             # Set the entry into the dictionary
-            defOpts[name] = [_type, default_value]
+            defOpts[option_name] = [_type, default_value]
 
         self.set_options = {}
         informs = {}
