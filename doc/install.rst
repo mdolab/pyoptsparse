@@ -14,7 +14,7 @@ Please make sure these are installed and available for use.
 In order to use NSGA2 and NOMAD, SWIG (v1.3+) is also required.
 If those optimizers are not needed, then you do not need to install SWIG.
 Simply comment out the corresponding lines in ``pyoptsparse/pyoptsparse/setup.py`` so that they are not compiled.
-The corresponding lines in `pyoptsparse/__init__.py` must be commented out as well.
+The corresponding lines in ``pyoptsparse/__init__.py`` must be commented out as well.
 
 Python dependencies are automatically handled by ``pip``, so they do not need to be installed separately.
 
