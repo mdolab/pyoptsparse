@@ -908,15 +908,13 @@ def OPT(optName, *args, **kwargs):
        """
 
     optName = optName.lower()
-    optList = ["snopt", "ipopt", "slsqp", "fsqp", "nlpqlp", "conmin", "nsga2", "psqp", "alpso", "paropt"]
+    optList = ["snopt", "ipopt", "slsqp", "nlpqlp", "conmin", "nsga2", "psqp", "alpso", "paropt"]
     if optName == "snopt":
         from .pySNOPT.pySNOPT import SNOPT as opt
     elif optName == "ipopt":
         from .pyIPOPT.pyIPOPT import IPOPT as opt
     elif optName == "slsqp":
         from .pySLSQP.pySLSQP import SLSQP as opt
-    elif optName == "fsqp":
-        from .pyFSQP.pyFSQP import FSQP as opt
     elif optName == "nlpqlp":
         from .pyNLPQLP.pyNLPQLP import NLPQLP as opt
     elif optName == "psqp":
