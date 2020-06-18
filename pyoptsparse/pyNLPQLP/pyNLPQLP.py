@@ -39,7 +39,7 @@ class NLPQLP(Optimizer):
     def __init__(self, *args, **kwargs):
         name = "NLPQLP"
         category = "Local Optimizer"
-        defOpts = {
+        self.defOpts = {
             # NLPQL Options
             "accuracy": [float, 1e-6],  # Convergence Accurancy
             "accuracyQP": [float, 1e-14],  # Convergence Accurancy for QP
@@ -55,7 +55,7 @@ class NLPQLP(Optimizer):
             "lQl": [bool, False],  # QP Subproblem Solver (True - Quasi-Newton, False - Cholesky)
             "iFile": [str, "NLPQLP.out"],  # Output File Name
         }
-        informs = {
+        self.informs = {
             -2: "Compute gradient values w.r.t. the variables stored in"
             " first column of X, and store them in DF and DG."
             " Only derivatives for active constraints ACTIVE(J)=.TRUE. need to be computed.",
@@ -79,7 +79,7 @@ class NLPQLP(Optimizer):
         if nlpqlp is None:
             raise Error("There was an error importing the compiled nlpqlp module")
 
-        Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
+        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
         # NLPQLP needs jacobians in dense format
         self.jacType = "dense2d"
 

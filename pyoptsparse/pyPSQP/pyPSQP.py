@@ -38,7 +38,7 @@ class PSQP(Optimizer):
     def __init__(self, *args, **kwargs):
         name = "PSQP"
         category = "Local Optimizer"
-        defOpts = {
+        self.defOpts = {
             "XMAX": [float, 1e16],  # Maximum Stepsize
             "TOLX": [float, 1e-16],  # Variable Change Tolerance
             "TOLC": [float, 1e-6],  # Constraint Violation Tolerance
@@ -52,7 +52,7 @@ class PSQP(Optimizer):
             "IOUT": [int, 6],  # Output Unit Number
             "IFILE": [str, "PSQP.out"],  # Output File Name
         }
-        informs = {
+        self.informs = {
             1: "Change in design variable was less than or equal to tolerance",
             2: "Change in objective function was less than or equal to tolerance",
             3: "Objective function less than or equal to tolerance",
@@ -62,7 +62,7 @@ class PSQP(Optimizer):
             13: "Maximum number of gradient evaluations exceeded",
             -6: "Termination criterion not satisfied, but obtained point is acceptable",
         }
-        Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
+        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
         if psqp is None:
             raise Error(
@@ -70,7 +70,7 @@ class PSQP(Optimizer):
                         psqp module"
             )
 
-        Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
+        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
         # PSQP needs jacobians in dense format
         self.jacType = "dense2d"

@@ -39,7 +39,7 @@ class SLSQP(Optimizer):
     def __init__(self, *args, **kwargs):
         name = "SLSQP"
         category = "Local Optimizer"
-        defOpts = {
+        self.defOpts = {
             # SLSQP Options
             "ACC": [float, 1e-6],  # Convergence Accurancy
             "MAXIT": [int, 500],  # Maximum Iterations
@@ -47,7 +47,7 @@ class SLSQP(Optimizer):
             "IOUT": [int, 6],  # Output Unit Number
             "IFILE": [str, "SLSQP.out"],  # Output File Name
         }
-        informs = {
+        self.informs = {
             -1: "Gradient evaluation required (g & a)",
             0: "Optimization terminated successfully.",
             1: "Function evaluation required (f & c)",
@@ -67,7 +67,7 @@ class SLSQP(Optimizer):
             )
 
         self.set_options = []
-        Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
+        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
         # SLSQP needs jacobians in dense format
         self.jacType = "dense2d"

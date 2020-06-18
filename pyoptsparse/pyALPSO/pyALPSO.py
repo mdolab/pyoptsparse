@@ -39,7 +39,7 @@ class ALPSO(Optimizer):
         self.alpso = alpso
 
         category = "Global Optimizer"
-        defOpts = {
+        self.defOpts = {
             "SwarmSize": [int, 40],  # Number of Particles (Depends on Problem dimensions)
             "maxOuterIter": [int, 200],  # Maximum Number of Outer Loop Iterations (Major Iterations)
             "maxInnerIter": [int, 6],  # Maximum Number of Inner Loop Iterations (Minor Iterations)
@@ -94,8 +94,8 @@ class ALPSO(Optimizer):
             "Scaling": [int, 1],  # Design Variables Scaling Flag (0 - no scaling, 1 - scaling between [-1, 1])
             "parallelType": [str, ""],  # Type of parallelization ('' or 'EXT')
         }
-        informs = {}
-        Optimizer.__init__(self, "ALPSO", category, defOpts, informs, *args, **kwargs)
+        self.informs = {}
+        Optimizer.__init__(self, "ALPSO", category, self.defOpts, self.informs, *args, **kwargs)
 
     def __call__(self, optProb, storeHistory=None, **kwargs):
         """

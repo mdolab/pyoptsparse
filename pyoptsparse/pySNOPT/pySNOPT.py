@@ -44,7 +44,7 @@ class SNOPT(Optimizer):
 
         name = "SNOPT"
         category = "Local Optimizer"
-        defOpts = {
+        self.defOpts = {
             # SNOPT Printing Options
             "Major print level": [int, 1],  # Majors Print (1 - line major iteration log)
             "Minor print level": [int, 1],  # Minors Print (1 - line minor iteration log)
@@ -147,7 +147,7 @@ class SNOPT(Optimizer):
                 ["step", "merit", "feasibility", "optimality", "penalty"],
             ],  # 'Hessian', 'slack', 'lambda' and 'condZHZ' are also supported
         }
-        informs = {
+        self.informs = {
             0: "finished successfully",
             1: "optimality conditions satisfied",
             2: "feasible point found",
@@ -227,7 +227,7 @@ class SNOPT(Optimizer):
             )
 
         self.set_options = []
-        Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
+        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
         # Snopt need jacobians in csc format
         self.jacType = "csc"

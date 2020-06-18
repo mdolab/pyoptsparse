@@ -35,7 +35,7 @@ class NOMAD(Optimizer):
     def __init__(self, *args, **kwargs):
         name = "NOMAD"
         category = "MADS Optimizer"
-        defOpts = {
+        self.defOpts = {
             # NOMAD Options
             "maxiter": [int, 1000000],  # Maximum number of function evaluations
             "minmeshsize": [float, 1e-12],  # Minimum refinement size of mesh
@@ -43,12 +43,12 @@ class NOMAD(Optimizer):
             "displaydegree": [int, 0],  # 0-none, 1-minimal display, 2-normal display, 3-full display
             "printfile": [int, 1],  # 0-no output file, 1-output to NOMAD.out
         }
-        informs = {}
+        self.informs = {}
         self.set_options = []
         if nomad is None:
             raise Error("There was an error importing the compiled nomad module")
 
-        Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
+        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
     def __call__(
         self, optProb, sens=None, sensStep=None, sensMode=None, storeHistory=None, hotStart=None, storeSens=True

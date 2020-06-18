@@ -39,7 +39,7 @@ class CONMIN(Optimizer):
     def __init__(self, *args, **kwargs):
         name = "CONMIN"
         category = "Local Optimizer"
-        defOpts = {
+        self.defOpts = {
             "ITMAX": [int, 1e4],  # Maximum Number of Iterations
             "DELFUN": [float, 1e-6],  # Objective Relative Tolerance
             "DABFUN": [float, 1e-6],  # Objective Absolute Tolerance
@@ -49,7 +49,7 @@ class CONMIN(Optimizer):
             "IOUT": [int, 6],  # Output Unit Number
             "IFILE": [str, "CONMIN.out"],  # Output File Name
         }
-        informs = {}
+        self.informs = {}
         if conmin is None:
             raise Error(
                 "There was an error importing the compiled \
@@ -57,7 +57,7 @@ class CONMIN(Optimizer):
             )
 
         self.set_options = []
-        Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
+        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
         # CONMIN needs jacobians in dense format
         self.jacType = "dense2d"
