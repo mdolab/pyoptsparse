@@ -14,7 +14,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath("../"))
-sys.path.insert(0, os.path.abspath("./")) # to import custom Sphinx extension
+sys.path.insert(0, os.path.abspath("./"))  # to import custom Sphinx extension
 
 # -- Project information -----------------------------------------------------
 
@@ -38,7 +38,7 @@ extensions = [
     "numpydoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.mathjax",
-    "optimizertable",
+    "ext.optimizertable",
 ]
 numpydoc_show_class_members = False
 
