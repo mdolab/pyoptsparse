@@ -16,5 +16,3 @@ omit =
     */setup.py
     pyoptsparse/pyALPSO/alpso_ext.py
     pyoptsparse/pyNOMAD/pyNOMAD.py
-    pyoptsparse/pyNLPY_AUGLAG/pyNLPY_AUGLAG.py
-    pyoptsparse/pyFSQP/pyFSQP.py
