@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from sqlitedict import SqliteDict
 
 db = SqliteDict()
-opts = ["ipopt", "slsqp", "snopt", "fsqp", "conmin", "nlpqlp", "psqp"]
+opts = ["ipopt", "slsqp", "snopt", "conmin", "nlpqlp", "psqp"]
 for opt in opts:
     fileName = "%s_hs015_Hist.hst" % opt
     try:

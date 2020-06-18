@@ -75,7 +75,7 @@ class Optimizer(object):
         self.cache = {"x": None, "fobj": None, "fcon": None, "gobj": None, "gcon": None}
 
         # A second-level cache for optimizers that require callbacks
-        # for each constraint. (eg. PSQP, FSQP, etc)
+        # for each constraint. (eg. PSQP etc)
         self.storedData = {}
         self.storedData["x"] = None
 
