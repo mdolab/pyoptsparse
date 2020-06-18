@@ -7,7 +7,7 @@ from docutils import nodes
 
 class OptimizerTable(Table):
     """
-    This Table directive formats the defOpts dictionary in a nice table
+    This Table directive formats the defOpts and informs dictionaries in a nice table
 
     This is heavily adapted from
     https://github.com/BU-NU-CLOUD-SP16/Trusted-Platform-Module-nova/blob/master/api-ref/ext/rest_parameters.py
@@ -15,6 +15,8 @@ class OptimizerTable(Table):
 
     required_arguments = 1
     has_content = True
+    # type is a required argument and must be one of ["options", "informs"]
+    # the rest, if not specified, will be based on the type
     option_spec = {
         "type": directives.uri,
         "header": str,
@@ -22,11 +24,14 @@ class OptimizerTable(Table):
     }
 
     def get_options_informs(self, cls):
+        # extracts the dictionaries from the optimizer instance
         optimizer_instance = cls(raiseError=False)
         self.defOpts = optimizer_instance.defOpts
         self.informs = optimizer_instance.informs
 
     def set_header(self):
+        # sets the self.header and self.max_cols
+        # based on options
         if "header" in self.options:
             self.header = self.options["header"].split(",")
         else:
@@ -38,6 +43,7 @@ class OptimizerTable(Table):
         self.max_cols = len(self.header)
 
     def set_width(self):
+        # sets the self.col_widths
         if "widths" in self.options:
             self.col_widths = self.options["widths"]
         else:

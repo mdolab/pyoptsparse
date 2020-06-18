@@ -39,7 +39,6 @@ extensions = [
     "sphinx.ext.mathjax",
     "ext.optimizertable",
 ]
-autodoc_mock_imports = ["ipoptcore", "nlpqlp"]
 numpydoc_show_class_members = False
 
 # Add any paths that contain templates here, relative to this directory.
