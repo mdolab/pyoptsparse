@@ -37,7 +37,7 @@ extensions = [
     "numpydoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.mathjax",
-    "ext.optimizertable",
+    "optimizertable",
 ]
 numpydoc_show_class_members = False
 
