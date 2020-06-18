@@ -1199,8 +1199,6 @@ class Optimization(object):
 
                 # Make sure it is at least 1-dimensional:
                 c = np.atleast_1d(fcon_in[iCon])
-                if dtype == "d":
-                    c = np.real(c)
                 # Make sure it is the correct size:
                 if c.shape[-1] == self.constraints[iCon].ncon:
                     fcon[..., con.rs : con.re] = c

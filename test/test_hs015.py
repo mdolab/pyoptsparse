@@ -155,6 +155,9 @@ class TestHS15(unittest.TestCase):
             self.assertTrue(val["isMajor"][-1])  # the last callCounter must be a major iteration
             # check optimum stored in history file against xstar
             assert_allclose(val["xuser"][-1], self.xStar1, atol=tol, rtol=tol)
+            # check complex to real casting
+            self.assertFalse(np.iscomplexobj(val["obj"]))
+            self.assertFalse(np.iscomplexobj(val["con"]))
 
     def optimize_with_hotstart(self, optName, tol, optOptions={}):
         """
