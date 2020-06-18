@@ -13,11 +13,9 @@ from .pySNOPT.pySNOPT import SNOPT
 from .pyIPOPT.pyIPOPT import IPOPT
 from .pySLSQP.pySLSQP import SLSQP
 from .pyCONMIN.pyCONMIN import CONMIN
-from .pyFSQP.pyFSQP import FSQP
 from .pyPSQP.pyPSQP import PSQP
 from .pyNLPQLP.pyNLPQLP import NLPQLP
 from .pyNSGA2.pyNSGA2 import NSGA2
-from .pyNLPY_AUGLAG.pyNLPY_AUGLAG import NLPY_AUGLAG
 from .pyALPSO.pyALPSO import ALPSO
 from .pyParOpt.ParOpt import ParOpt
 

@@ -75,7 +75,7 @@ class Optimizer(object):
         self.cache = {"x": None, "fobj": None, "fcon": None, "gobj": None, "gcon": None}
 
         # A second-level cache for optimizers that require callbacks
-        # for each constraint. (eg. PSQP, FSQP, etc)
+        # for each constraint. (eg. PSQP etc)
         self.storedData = {}
         self.storedData["x"] = None
 
@@ -908,15 +908,13 @@ def OPT(optName, *args, **kwargs):
        """
 
     optName = optName.lower()
-    optList = ["snopt", "ipopt", "slsqp", "fsqp", "nlpqlp", "conmin", "nsga2", "nlpy_auglag", "psqp", "alpso", "paropt"]
+    optList = ["snopt", "ipopt", "slsqp", "nlpqlp", "conmin", "nsga2", "psqp", "alpso", "paropt"]
     if optName == "snopt":
         from .pySNOPT.pySNOPT import SNOPT as opt
     elif optName == "ipopt":
         from .pyIPOPT.pyIPOPT import IPOPT as opt
     elif optName == "slsqp":
         from .pySLSQP.pySLSQP import SLSQP as opt
-    elif optName == "fsqp":
-        from .pyFSQP.pyFSQP import FSQP as opt
     elif optName == "nlpqlp":
         from .pyNLPQLP.pyNLPQLP import NLPQLP as opt
     elif optName == "psqp":
@@ -925,8 +923,6 @@ def OPT(optName, *args, **kwargs):
         from .pyCONMIN.pyCONMIN import CONMIN as opt
     elif optName == "nsga2":
         from .pyNSGA2.pyNSGA2 import NSGA2 as opt
-    elif optName == "nlpy_auglag":
-        from .pyNLPY_AUGLAG.pyNLPY_AUGLAG import NLPY_AUGLAG as opt
     elif optName == "alpso":
         from .pyALPSO.pyALPSO import ALPSO as opt
     # elif optName == 'nomad':
