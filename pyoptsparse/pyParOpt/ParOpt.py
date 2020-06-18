@@ -37,14 +37,15 @@ class ParOpt(Optimizer):
     capability to handle this type of design problem.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, raiseError=True, *args, **kwargs):
         name = "ParOpt"
         category = "Local Optimizer"
         if _ParOpt is None:
-            raise Error("There was an error importing ParOpt")
+            if raiseError:
+                raise Error("There was an error importing ParOpt")
 
         # Create and fill-in the dictionary of default option values
-        defOpts = {}
+        self.defOpts = {}
         options = _ParOpt.getOptionsInfo()
         for option_name in options:
             # Get the type and default value of the named argument
@@ -60,11 +61,11 @@ class ParOpt(Optimizer):
             default_value = options[option_name].default
 
             # Set the entry into the dictionary
-            defOpts[option_name] = [_type, default_value]
+            self.defOpts[option_name] = [_type, default_value]
 
         self.set_options = {}
-        informs = {}
-        Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
+        self.informs = {}
+        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
         # ParOpt requires a dense Jacobian format
         self.jacType = "dense2d"

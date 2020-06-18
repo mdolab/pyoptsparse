@@ -38,7 +38,7 @@ class IPOPT(Optimizer):
     IPOPT Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, raiseError=True, *args, **kwargs):
         """
         IPOPT Optimizer Class Initialization
         """
@@ -50,7 +50,7 @@ class IPOPT(Optimizer):
         # http://www.coin-or.org/Ipopt/documentation/node39.html
         # accessed on March 26, 2014.
 
-        def_opts = {
+        self.defOpts = {
             "print_level": [int, 0],
             "output_file": [str, "IPOPT.out"],
             # Output verbosity level. '0-12'
@@ -331,7 +331,7 @@ class IPOPT(Optimizer):
             # 'warm_start_target_mu' : [float, 0.0]
         }
 
-        informs = {
+        self.informs = {
             0: "Solve Succeeded",
             1: "Solved To Acceptable Level",
             2: "Infeasible Problem Detected",
@@ -354,13 +354,11 @@ class IPOPT(Optimizer):
         }
 
         if pyipoptcore is None:
-            raise Error(
-                "There was an error importing the compiled \
-                        IPOPT module"
-            )
+            if raiseError:
+                raise Error("There was an error importing the compiled IPOPT module")
 
         self.set_options = []
-        Optimizer.__init__(self, name, category, def_opts, informs, *args, **kwargs)
+        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
         # IPOPT needs jacobians in coo format
         self.jacType = "coo"
