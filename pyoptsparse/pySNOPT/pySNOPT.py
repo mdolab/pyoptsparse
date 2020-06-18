@@ -37,7 +37,7 @@ class SNOPT(Optimizer):
     SNOPT Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, raiseError=True, *args, **kwargs):
         """
         SNOPT Optimizer Class Initialization
         """
@@ -221,10 +221,8 @@ class SNOPT(Optimizer):
         }
 
         if snopt is None:
-            raise Error(
-                "There was an error importing the compiled \
-                        snopt module"
-            )
+            if raiseError:
+                raise Error("There was an error importing the compiled snopt module")
 
         self.set_options = []
         Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)

@@ -36,7 +36,7 @@ class NLPQLP(Optimizer):
     NLPQL Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, raiseError=True, *args, **kwargs):
         name = "NLPQLP"
         category = "Local Optimizer"
         self.defOpts = {
@@ -77,7 +77,8 @@ class NLPQLP(Optimizer):
             " where IFQL denotes the index of an inconsistent constraint.",
         }
         if nlpqlp is None:
-            raise Error("There was an error importing the compiled nlpqlp module")
+            if raiseError:
+                raise Error("There was an error importing the compiled nlpqlp module")
 
         Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
         # NLPQLP needs jacobians in dense format

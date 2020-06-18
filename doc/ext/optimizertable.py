@@ -22,7 +22,7 @@ class OptimizerTable(Table):
     }
 
     def get_options_informs(self, cls):
-        optimizer_instance = cls()
+        optimizer_instance = cls(raiseError=False)
         self.defOpts = optimizer_instance.defOpts
         self.informs = optimizer_instance.informs
 

@@ -34,7 +34,7 @@ class NSGA2(Optimizer):
     NSGA2 Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, raiseError=True, *args, **kwargs):
 
         name = "NSGA-II"
         category = "Global Optimizer"
@@ -55,10 +55,8 @@ class NSGA2(Optimizer):
         Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
         if nsga2 is None:
-            raise Error(
-                "There was an error importing the compiled \
-                        nsga2 module"
-            )
+            if raiseError:
+                raise Error("There was an error importing the compiled nsga2 module")
 
     def __call__(self, optProb, storeHistory=None, hotStart=None, **kwargs):
         """

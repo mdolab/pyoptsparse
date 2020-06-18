@@ -37,11 +37,12 @@ class ParOpt(Optimizer):
     capability to handle this type of design problem.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, raiseError=True, *args, **kwargs):
         name = "ParOpt"
         category = "Local Optimizer"
         if _ParOpt is None:
-            raise Error("There was an error importing ParOpt")
+            if raiseError:
+                raise Error("There was an error importing ParOpt")
 
         # Create and fill-in the dictionary of default option values
         self.defOpts = {}

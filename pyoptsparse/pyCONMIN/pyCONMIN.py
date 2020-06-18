@@ -36,7 +36,7 @@ class CONMIN(Optimizer):
     CONMIN Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, raiseError=True, *args, **kwargs):
         name = "CONMIN"
         category = "Local Optimizer"
         self.defOpts = {
@@ -51,10 +51,8 @@ class CONMIN(Optimizer):
         }
         self.informs = {}
         if conmin is None:
-            raise Error(
-                "There was an error importing the compiled \
-                        conmin module"
-            )
+            if raiseError:
+                raise Error("There was an error importing the compiled conmin module")
 
         self.set_options = []
         Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)

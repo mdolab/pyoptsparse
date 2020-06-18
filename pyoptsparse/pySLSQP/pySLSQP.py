@@ -36,7 +36,7 @@ class SLSQP(Optimizer):
     SLSQP Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, raiseError=True, *args, **kwargs):
         name = "SLSQP"
         category = "Local Optimizer"
         self.defOpts = {
@@ -61,10 +61,8 @@ class SLSQP(Optimizer):
             9: "Iteration limit exceeded",
         }
         if slsqp is None:
-            raise Error(
-                "There was an error importing the compiled \
-                        slsqp module"
-            )
+            if raiseError:
+                raise Error("There was an error importing the compiled slsqp module")
 
         self.set_options = []
         Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)

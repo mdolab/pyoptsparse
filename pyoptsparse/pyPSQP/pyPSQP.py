@@ -35,7 +35,7 @@ class PSQP(Optimizer):
     PSQP Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, raiseError=True, *args, **kwargs):
         name = "PSQP"
         category = "Local Optimizer"
         self.defOpts = {
@@ -65,10 +65,8 @@ class PSQP(Optimizer):
         Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
         if psqp is None:
-            raise Error(
-                "There was an error importing the compiled \
-                        psqp module"
-            )
+            if raiseError:
+                raise Error("There was an error importing the compiled psqp module")
 
         Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
@@ -232,10 +230,7 @@ class PSQP(Optimizer):
             opt = self.getOption
 
             if not opt("IPRINT") <= 2:
-                raise Error(
-                    "Incorrect output level setting (IPRINT) option. \
-Must be <= 2"
-                )
+                raise Error("Incorrect output level setting (IPRINT) option. Must be <= 2")
 
             if opt("IPRINT") != 0:
                 if os.path.isfile(opt("IFILE")):
