@@ -52,6 +52,16 @@ Install instructions for ``pyIPOPT``.
 
 #. Now the pyOptSparse builder (run from the root directory) should take care of the rest. 
 
+Options
+-------
+.. optimizertable:: pyoptsparse.pyIPOPT.pyIPOPT.IPOPT
+   :type: options
+
+Informs
+-------
+.. optimizertable:: pyoptsparse.pyIPOPT.pyIPOPT.IPOPT
+   :type: informs
+
 API
 ---
 .. currentmodule:: pyoptsparse.pyIPOPT.pyIPOPT

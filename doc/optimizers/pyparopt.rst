@@ -13,9 +13,12 @@ Please follow the instructions `here <https://gjkennedy.github.io/paropt/>`_ to 
 Make sure that the package is named ``paropt`` and the installation location can be found by Python, so that ``from paropt import ParOpt`` works within the pyOptSparse folder.
 This typically requires installing it in a location which is already present under ``$PYTHONPATH`` environment variable, or you can modify the ``.bashrc`` file and manually append the path.
 
+Options
+-------
+Please see the ParOpt documentation for all available options.
+
 API
 ---
-
 .. currentmodule:: pyoptsparse.pyParOpt.ParOpt
 
 .. autoclass:: ParOpt

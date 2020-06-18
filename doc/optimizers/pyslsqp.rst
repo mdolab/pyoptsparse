@@ -10,6 +10,16 @@ nonlinear least-squares solver.
 
 The version provided is the original source code from 1991 by Dieter Kraft.
 
+Options
+-------
+.. optimizertable:: pyoptsparse.pySLSQP.pySLSQP.SLSQP
+   :type: options
+
+Informs
+-------
+.. optimizertable:: pyoptsparse.pySLSQP.pySLSQP.SLSQP
+   :type: informs
+
 API
 ---
 .. currentmodule:: pyoptsparse.pySLSQP.pySLSQP
