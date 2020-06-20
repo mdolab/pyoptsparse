@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+__version__ = "2.1.2"
+
 from .pyOpt_history import History
 from .pyOpt_variable import Variable
 from .pyOpt_gradient import Gradient
@@ -20,5 +21,3 @@ from .pyALPSO.pyALPSO import ALPSO
 from .pyParOpt.ParOpt import ParOpt
 
 # from .pyNOMAD.pyNOMAD import NOMAD
-
-__version__ = "2.1.0"
