@@ -3,7 +3,7 @@
 Guide
 -----
 
-``pyOptSparse`` is designed to solve general, constrained nonlinear
+pyOptSparse is designed to solve general, constrained nonlinear
 optimization problems of the form:
 
 .. math::
@@ -19,7 +19,7 @@ and :math:`g(x)` is a set of :math:`m` nonlinear functions.
 
 Equality constraints are specified using the same upper and lower
 bounds for the constraint. i.e., :math:`g_{j,\text{L}} = g_{j,\text{U}}`.
-The ordering of the constraints is arbitrary; ``pyOptSparse``
+The ordering of the constraints is arbitrary; pyOptSparse
 reorders the problem automatically depending on the requirements
 of each individual optimizer.
 
@@ -109,7 +109,7 @@ magnitude. This can be specified using the ``scale`` keyword::
   >>> optProb.addCon('scaled_constraint', upper=10000, scale=1.0/10000)
 
 Even if the ``scale`` keyword is given, the ``lower`` and ``upper``
-bounds are given in their un-scaled form. Internally, ``pyOptSparse``
+bounds are given in their un-scaled form. Internally, pyOptSparse
 will use the scaling factor to produce the following constraint::
 
   con_optimizer = con_user * scale
@@ -124,12 +124,12 @@ exactly on every function call (SNOPT for example). Linear constraints
 also require the use of the ``wrt`` and ``jac`` keyword
 arguments. These are explained below.
 
-One of the major goals of ``pyOptSparse`` is to enable the use of
+One of the major goals of pyOptSparse is to enable the use of
 sparse constraint Jacobians. (Hence the 'Sparse' in the name!).
 Manually computing sparsity structure of the constraint Jacobian is
 tedious at best and become even more complicated as optimization
 scripts are modified by adding or deleting design variables and/or
-constraints. ``pyOptSParse`` is designed to greatly facilitate the
+constraints. pyOptSParse is designed to greatly facilitate the
 assembly of sparse constraint Jacobians, alleviating the user of thus
 burden. The idea is that instead of the user computing a dense matrix
 representing the constraint Jacobian, a ``dictionary of keys``
@@ -148,7 +148,7 @@ constraint Jacobian. Consider the optimization problem given below::
             +--------------------------------+
 
 The ``X``'s denote which parts of the Jacobian have non-zero
-values. ``pyOptSparse`` does not determine the sparsity structure of
+values. pyOptSparse does not determine the sparsity structure of
 the Jacobian automatically, it must be specified by the user during
 calls to ``addCon`` and ``addConGroup``.  By way of example, the code
 that generates the  hypothetical optimization problem is as follows:
@@ -166,13 +166,13 @@ that generates the  hypothetical optimization problem is as follows:
 
 Note that the order of the ``wrt`` (which stands for with-respect-to)
 is not significant. Furthermore, if the ``wrt`` argument is omitted
-altogether, ``pyOptSparse`` assumes that the constraint is dense.
+altogether, pyOptSparse assumes that the constraint is dense.
 
 Using the ``wrt`` keyword allows the user to determine the overall
 sparsity structure of the constraint Jacobian. However, we have
 currently assumed that each of the blocks with an ``X`` in is a dense
-sub-block. ``pyOptSparse`` allows each of the *sub-blocks* to itself
-be sparse. ``pyOptSparse`` requires that this sparsity structure to be
+sub-block. pyOptSparse allows each of the *sub-blocks* to itself
+be sparse. pyOptSparse requires that this sparsity structure to be
 specified when the constraint is added. This information is supplied
 through the ``jac`` keyword argument. Lets say, that the (conD, varC)
 block of the Jacobian is actually a sparse and linear. By way of
@@ -203,7 +203,7 @@ determined by a call the sens() function.
 
 Also note, that the ``wrt`` and ``jac`` keyword arguments are only
 supported when user-supplied sensitivity is used. If one used the
-automatic gradient in ``pyOptSparse`` the constraint Jacobian will
+automatic gradient in pyOptSparse the constraint Jacobian will
 necessarily be dense.
 
 Objectives
@@ -214,7 +214,7 @@ added. This is accomplished using a the call::
 
   optProb.addObj('obj')
 
-What this does is tell ``pyOptSparse`` that the key ``obj`` in the
+What this does is tell pyOptSparse that the key ``obj`` in the
 function returns will be taken as the objective. For optimizers that
 can do multi-objective optimization, (NSGA2 for example) multiple
 objectives can be added. Optimizers that can only handle one objective

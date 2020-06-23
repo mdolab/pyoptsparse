@@ -22,7 +22,7 @@ Requirements
       \-axisartist (OptView)
     numpy (OptView)
 
-If you are successfully running ``pyOptSparse``, these packages are most likely
+If you are successfully running pyOptSparse, these packages are most likely
 already installed.
 
 Although not necessary for most usage, the ``dill`` package is needed

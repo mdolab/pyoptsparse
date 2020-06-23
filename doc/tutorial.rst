@@ -110,7 +110,7 @@ The optimization problem can be printed to verify that it is setup correctly::
 
   >>> print optProb
 
-To solve an optimization problem with ``pyOptSparse`` an optimizer
+To solve an optimization problem with pyOptSparse an optimizer
 must be initialized. The initialization of one or more optimizers is
 independent of the initialization of any number of optimization
 problems. To initialize ``SLSQP``, which is an open-source, sequential
@@ -125,7 +125,7 @@ for example the internal output flag of ``SLSQP``::
 
   >>> opt.setOption('IPRINT', -1)
 
-Now TP37 can be solved using  ``SLSQP`` and for example, ``pyOptSparse``’s automatic
+Now TP37 can be solved using  ``SLSQP`` and for example, pyOptSparse’s automatic
 finite difference for the gradients::
 
   >>> sol = opt(optProb, sensType='FD')

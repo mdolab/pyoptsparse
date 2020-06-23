@@ -2,12 +2,22 @@
 pyOptSparse
 ===========
 pyOptSparse is an object-oriented framework for formulating and solving nonlinear constrained optimization problems in an efficient, reusable, and portable manner.
-It is a fork of pyOpt that uses sparse matrices throughout the code to more efficiently handle large-scale optimization problems.
+Some key features of pyOptSparse include:
+
+- Object-oriented development maintains independence between the optimization problem formulation and its solution by different optimizers
+- Use of sparse matrices throughout the code to more efficiently handle large-scale optimization problems
+- Enable the use of optimizers when running in a MPI parallel environment, allows for evaluation of gradients in parallel, and can distribute function evaluations for gradient-free optimizers
+- Optimization solution histories can be stored during the optimization process. A partial history can also be used to warm-restart the optimization for any supported optimizer
+- A post-processing GUI utility called OptView to analyze optimization results
+
+
+pyOptSparse is a fork of `pyOpt <http://www.pyopt.org/>`_.
+However, it is not backwards compatible with pyOpt and thus optimization scripts will need to be modified to use pyOptSparse. 
 
 .. toctree::
    :maxdepth: 1
+   :caption: Table of Contents
 
-   introduction
    changes
    install
    tutorial

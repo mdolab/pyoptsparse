@@ -45,7 +45,7 @@ It is also possible to install by calling ``python setup.py``, but this is not r
 
 Update or Uninstall
 -------------------
-To update ``pyOptSparse``, first delete the ``build`` directory.
+To update pyOptSparse, first delete the ``build`` directory.
 Then update the package using ``git``.
 For stability, stick to tagged releases.
 Install the package normally via ``pip``.
@@ -55,12 +55,12 @@ To uninstall the package, type::
   pip uninstall pyoptsparse
 
 .. note::
-  ``pyOptSparse`` can optionally run in parallel if a suitable ``mpi4py``
+  pyOptSparse can optionally run in parallel if a suitable ``mpi4py``
   installation exists. This will be automatically detected and
   imported at run-time.
 
   If you only want to run in parallel, you can
-  force ``pyOptSparse`` to do so by setting the environment variable
+  force pyOptSparse to do so by setting the environment variable
   ``PYOPTSPARSE_REQUIRE_MPI`` to anyone of these values: ``['always', '1', 'true', 'yes']``
   If a suitable ``mpi4py`` is not available, an exception will be raised and the run
   terminated.
