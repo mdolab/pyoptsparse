@@ -5,14 +5,39 @@ pyOptSparse is an object-oriented framework for formulating and solving nonlinea
 It is a fork of pyOpt that uses sparse matrices throughout the code to more efficiently handle large-scale optimization problems.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    introduction
    changes
    install
    tutorial
    guide
-   optimizers
-   reference
    postprocessing
    contribute
+
+.. toctree::
+   :maxdepth: 1
+   :caption: API Reference
+   :hidden:
+
+   api/optimization
+   api/optimizer
+   api/constraint
+   api/variable
+   api/gradient
+   api/history
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Optimizers
+   :hidden:
+
+   optimizers/pysnopt
+   optimizers/pyipopt
+   optimizers/pyslsqp
+   optimizers/pynlpqlp
+   optimizers/pynsga2
+   optimizers/pypsqp
+   optimizers/pyparopt
+   optimizers/pyconmin
+   optimizers/pyalpso
