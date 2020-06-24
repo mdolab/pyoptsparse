@@ -112,7 +112,7 @@ class NSGA2(Optimizer):
             optProb.dummyConstraint = False
 
         # Save the optimization problem and finalize constraint
-        # jacobian, in general can only do on root proc
+        # Jacobian, in general can only do on root proc
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()

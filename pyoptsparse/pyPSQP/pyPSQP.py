@@ -70,7 +70,7 @@ class PSQP(Optimizer):
 
         Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
-        # PSQP needs jacobians in dense format
+        # PSQP needs Jacobians in dense format
         self.jacType = "dense2d"
 
     def __call__(

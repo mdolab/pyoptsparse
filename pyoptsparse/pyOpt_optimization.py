@@ -81,7 +81,7 @@ class Optimization(object):
         self.dummyConstraint = False
         self.objectiveIdx = {}
 
-        # Store the jacobian conversion maps
+        # Store the Jacobian conversion maps
         self._jac_map_coo_to_csr = None
 
     def addVar(self, name, *args, **kwargs):
@@ -449,23 +449,23 @@ class Optimization(object):
             Flag to specify if this constraint is linear. If the
             constraint is linear, both the 'wrt' and 'jac' keyword
             arguments must be given to specify the constant portion of
-            the constraint jacobian.
+            the constraint Jacobian.
 
         wrt : iterable (list, set, OrderedDict, array etc)
             'wrt' stand for stands for 'With Respect To'. This
-            specifies for what dvs have non-zero jacobian values
+            specifies for what dvs have non-zero Jacobian values
             for this set of constraints. The order is not important.
 
         jac : dictionary
             For linear and sparse non-linear constraints, the constraint
-            jacobian must be passed in. The structure is jac dictionary
+            Jacobian must be passed in. The structure is jac dictionary
             is as follows:
 
             {'dvName1':<matrix1>, 'dvName2', <matrix1>, ...}
 
-            They keys of the jacobian must correspond to the dvGroups
+            They keys of the Jacobian must correspond to the dvGroups
             given in the wrt keyword argument. The dimensions of each
-            "chunk" of the constraint jacobian must be consistent. For
+            "chunk" of the constraint Jacobian must be consistent. For
             example, <matrix1> must have a shape of (nCon, nDvs) where
             nDVs is the total number of design variables in
             dvName1. <matrix1> may be a dense numpy array or it may be
@@ -490,7 +490,7 @@ class Optimization(object):
             imperative that entries that will at some point have
             non-zero entries have non-zero entries in jac
             argument. That is, we do not let the sparsity structure of
-            the jacobian change throughout the optimization. This
+            the Jacobian change throughout the optimization. This
             stipulation is automatically checked internally.
         """
 
@@ -591,7 +591,7 @@ class Optimization(object):
 
     def printSparsity(self, verticalPrint=False):
         """
-        This function prints an (ascii) visualization of the jacobian
+        This function prints an (ASCII) visualization of the Jacobian
         sparsity structure. This helps the user visualize what
         pyOptSparse has been given and helps ensure it is what the
         user expected. It is highly recommended this function be
@@ -823,7 +823,7 @@ class Optimization(object):
         2. Determine the final scaling array for the design variables
 
         3. Determine if it is possible to return a complete dense
-           jacobian. Most of this time, we should be using the dictionary-
+           Jacobian. Most of this time, we should be using the dictionary-
            based return
         """
 
@@ -881,7 +881,7 @@ class Optimization(object):
             self.objectiveIdx[objKey] = idx
 
         # ---------------------------------------------
-        # Step 4. Final jacobian for linear constraints
+        # Step 4. Final Jacobian for linear constraints
         # ---------------------------------------------
         for iCon in self.constraints:
             con = self.constraints[iCon]
@@ -1211,7 +1211,7 @@ class Optimization(object):
             else:
                 raise Error("No constraint values were found for the constraint '%s'." % iCon)
 
-        # Perform scaling on the original jacobian:
+        # Perform scaling on the original Jacobian:
         if scaled:
             fcon = self._mapContoOpt(fcon)
 
@@ -1408,7 +1408,7 @@ class Optimization(object):
     def processConstraintJacobian(self, gcon):
         """
         This generic function is used to assemble the entire
-        constraint jacobian. The order of the constraint jacobian is
+        constraint Jacobian. The order of the constraint Jacobian is
         in 'natural' ordering, that is the order the constraints have
         been added (mostly; since it can be different when constraints
         are added on different processors).
@@ -1416,9 +1416,9 @@ class Optimization(object):
         The input is gcon, which is dict or an array. The array format
         should only be used when the pyOpt_gradient class is used
         since this results in a dense (and correctly oriented)
-        jacobian. The user should NEVER return a dense jacobian since
+        Jacobian. The user should NEVER return a dense Jacobian since
         this extremely fickle and easy to break. The dict 'gcon' must
-        contain only the non-linear constraints jacobians; the linear
+        contain only the non-linear constraints Jacobians; the linear
         ones will be added automatically.
 
         Parameters
@@ -1430,7 +1430,7 @@ class Optimization(object):
         Returns
         -------
         gcon : dict with csr data
-            Return the jacobian in a sparse csr format.
+            Return the Jacobian in a sparse csr format.
             can be easily converted to csc, coo or dense format as
             required by individual optimizers
 
@@ -1483,7 +1483,7 @@ class Optimization(object):
                     except KeyError:
                         raise Error(
                             (
-                                "The constraint jacobian entry for '{}' with respect to '{}', as was defined in addConGroup(), "
+                                "The constraint Jacobian entry for '{}' with respect to '{}', as was defined in addConGroup(), "
                                 + "was not found in constraint Jacobian dictionary provided."
                             ).format(con.name, dvGroup)
                         )
@@ -1499,10 +1499,10 @@ class Optimization(object):
                         )
                     else:
                         # This key is not returned. Just use the
-                        # stored jacobian that contains zeros
+                        # stored Jacobian that contains zeros
                         tmp = con.jac[dvGroup]
 
-                # Now check that the jacobian is the correct shape
+                # Now check that the Jacobian is the correct shape
                 if not (tmp["shape"][0] == con.ncon and tmp["shape"][1] == ndvs):
                     raise Error(
                         (
@@ -1521,7 +1521,7 @@ class Optimization(object):
                         ).format(con.name, dvGroup, len(tmp["coo"][2]), len(con.jac[dvGroup]["coo"][2]))
                     )
 
-                # Include data from this jacobian chunk
+                # Include data from this Jacobian chunk
                 data.append(tmp["coo"][IDATA])
                 row.append(tmp["coo"][IROW] + ii)
                 col.append(tmp["coo"][ICOL] + ss[0])

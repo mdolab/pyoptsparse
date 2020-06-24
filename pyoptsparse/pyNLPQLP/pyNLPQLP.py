@@ -87,7 +87,7 @@ class NLPQLP(Optimizer):
                 raise Error("There was an error importing the compiled nlpqlp module")
 
         Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
-        # NLPQLP needs jacobians in dense format
+        # NLPQLP needs Jacobians in dense format
         self.jacType = "dense2d"
 
     def __call__(
@@ -150,7 +150,7 @@ class NLPQLP(Optimizer):
             optProb.dummyConstraint = False
 
         # Save the optimization problem and finalize constraint
-        # jacobian, in general can only do on root proc
+        # Jacobian, in general can only do on root proc
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()

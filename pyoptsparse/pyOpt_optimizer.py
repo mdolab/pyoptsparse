@@ -73,7 +73,7 @@ class Optimizer(object):
         self.storedData = {}
         self.storedData["x"] = None
 
-        # Store the jacobian conversion maps
+        # Store the Jacobian conversion maps
         self._jac_map_csr_to_csc = None
 
     def _clearTimings(self):

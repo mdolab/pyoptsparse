@@ -266,7 +266,7 @@ class Constraint(object):
                 self.wrt = wrt_uniq
 
         # Last thing for wrt is to reorder them such that dvGroups are
-        # in order. This way when the jacobian is assembled in
+        # in order. This way when the Jacobian is assembled in
         # processDerivatives() the coorindate matrix will in the right
         # order.
         dvStart = []
@@ -279,11 +279,11 @@ class Constraint(object):
         # Now we know which dvGroups this constraint will have a
         # derivative with respect to (i.e. what is in the wrt list)
 
-        # Now, it is possible that jacobians were given for none, some
+        # Now, it is possible that Jacobians were given for none, some
         # or all the dvGroups defined in wrt.
         if self.jac is None:
             # If the constraint is linear we have to *Force* the user to
-            # supply a constraint jacobian for *each* of the values in
+            # supply a constraint Jacobian for *each* of the values in
             # wrt. Otherwise, a matrix of zeros isn't meaningful for the
             # sparse constraints.
 
@@ -295,7 +295,7 @@ class Constraint(object):
                     )
                 )
 
-            # without any additional information about the jacobian
+            # without any additional information about the Jacobian
             # structure, we must assume they are all dense.
             self.jac = {}
             for dvGroup in self.wrt:
@@ -334,17 +334,17 @@ class Constraint(object):
                     # set to zero
                     self.jac[dvGroup] = convertToCOO(np.zeros((self.ncon, ndvs)))
 
-                # Convert Now check that the supplied jacobian to COO:
+                # Convert Now check that the supplied Jacobian to COO:
                 self.jac[dvGroup] = convertToCOO(self.jac[dvGroup])
 
                 # Generically check the shape:
                 if self.jac[dvGroup]["shape"][0] != self.ncon or self.jac[dvGroup]["shape"][1] != ndvs:
                     raise Error(
                         (
-                            "The supplied jacobian for dvGroup {}' in constraint {}, was the incorrect size. ".format(
+                            "The supplied Jacobian for dvGroup {}' in constraint {}, was the incorrect size. ".format(
                                 dvGroup, self.name
                             )
-                            + "Expecting a jacobian of size ({}, {}) but received a jacobian of size ({}, {}).".format(
+                            + "Expecting a Jacobian of size ({}, {}) but received a Jacobian of size ({}, {}).".format(
                                 self.ncon, ndvs, self.jac[dvGroup]["shape"][0], self.jac[dvGroup]["shape"][1],
                             )
                         )
@@ -354,7 +354,7 @@ class Constraint(object):
             # If there is anything left in jac print a warning:
             for dvGroup in tmp:
                 pyOptSparseWarning(
-                    "A jacobian with dvGroup key of '{}' was unused in constraint {}. This will be ignored.".format(
+                    "A Jacobian with dvGroup key of '{}' was unused in constraint {}. This will be ignored.".format(
                         dvGroup, self.name
                     )
                 )

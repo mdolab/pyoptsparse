@@ -360,7 +360,7 @@ class IPOPT(Optimizer):
         self.set_options = []
         Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
-        # IPOPT needs jacobians in coo format
+        # IPOPT needs Jacobians in coo format
         self.jacType = "coo"
 
     def __call__(
@@ -427,7 +427,7 @@ class IPOPT(Optimizer):
             optProb.dummyConstraint = True
 
         # Save the optimization problem and finalize constraint
-        # jacobian, in general can only do on root proc
+        # Jacobian, in general can only do on root proc
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()
@@ -435,10 +435,10 @@ class IPOPT(Optimizer):
         blx, bux, xs = self._assembleContinuousVariables()
         self._setSens(sens, sensStep, sensMode)
 
-        # Determine the sparsity structure of the full jacobian
+        # Determine the sparsity structure of the full Jacobian
         # -----------------------------------------------------
 
-        # Gather dummy data and process jacobian:
+        # Gather dummy data and process Jacobian:
         gcon = {}
         for iCon in self.optProb.constraints:
             gcon[iCon] = self.optProb.constraints[iCon].jac
@@ -446,7 +446,7 @@ class IPOPT(Optimizer):
         jac = self.optProb.processConstraintJacobian(gcon)
 
         if self.optProb.nCon > 0:
-            # We need to reorder this full jacobian...so get ordering:
+            # We need to reorder this full Jacobian...so get ordering:
             indices, blc, buc, fact = self.optProb.getOrdering(["ne", "ni", "le", "li"], oneSided=False)
             self.optProb.jacIndices = indices
             self.optProb.fact = fact
