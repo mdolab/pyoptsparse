@@ -26,28 +26,27 @@ Python dependencies are automatically handled by ``pip``, so they do not need to
 Installation
 ------------
 The easiest and recommended way to install pyOptSparse is with ``pip``.
-First clone the repository into a location which is not on the ``$PYTHONPATH``, for example ``~/packages``.
+First clone the repository into a location which is not on the ``$PYTHONPATH``, for example ``$HOME/packages/``.
 Then in the root ``pyoptsparse`` folder type::
 
-  pip install -e .
+  pip install .
 
-For those not using ``conda``, a user install is needed::
+For those not using virtual environments, a user install may be needed::
 
-  pip install -e . --user
+  pip install . --user
 
-It is also possible to install by calling ``python setup.py``, but this is not recommended.
+If you plan to modify pyOptSparse, installing with the developer option, i.e. with ``-e``, will save you from re-installing each time you modify the Python code.
+
+It is also possible to install pyOptSparse by calling ``python setup.py install``, but this is not recommended.
 
 .. note::
-  Some optimizers are licensed and their sources are not included with this distribution.
-  To use them, please request their sources from the authors as indicated in the optimizer
-  LICENSE files, and place them in their respective source folders before installing the package.
-  Refer to specific optimizer pages for additional information.
+  Some optimizers are proprietary and their sources are not distributed with pyOptSparse.
+  To use them, please follow the instructions on specific optimizer pages.
 
 Update or Uninstall
 -------------------
-To update pyOptSparse, first delete the ``build`` directory.
-Then update the package using ``git``.
-For stability, stick to tagged releases.
+To update pyOptSparse, first delete the ``build`` directory, then update the package using ``git``.
+For stability, users are encouraged to stick to tagged releases.
 Install the package normally via ``pip``.
 
 To uninstall the package, type::

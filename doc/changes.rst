@@ -20,7 +20,7 @@ The following list summarizes some of the changes/improvements made to pyOpt to 
 
 * Substantial improvement of optimization script robustness through indexing elimination
 * Automatic assembly of sparse Jacobians with both dense and sparse sub-blocks
-* Automatic conversion of sparse jacobian to dense for optimizers that cannot handle sparse constraints
+* Automatic conversion of sparse Jacobian to dense for optimizers that cannot handle sparse constraints
 * User specification of design variable scaling
 * User specification of constraint scaling
 * Design variable returns in dictionary format only

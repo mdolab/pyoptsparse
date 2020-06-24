@@ -17,11 +17,8 @@ where:
 :math:`f(x)` is a nonlinear function,
 and :math:`g(x)` is a set of :math:`m` nonlinear functions.
 
-Equality constraints are specified using the same upper and lower
-bounds for the constraint. i.e., :math:`g_{j,\text{L}} = g_{j,\text{U}}`.
-The ordering of the constraints is arbitrary; pyOptSparse
-reorders the problem automatically depending on the requirements
-of each individual optimizer.
+Equality constraints are specified using the same upper and lower bounds for the constraint. i.e., :math:`g_{j,\text{L}} = g_{j,\text{U}}`.
+The ordering of the constraints is arbitrary; pyOptSparse reorders the problem automatically depending on the requirements of each individual optimizer.
 
 The optimization class is created using the following call::
 
@@ -33,8 +30,8 @@ The general template of the objective function is as follows:
 
   def obj_fun(xdict):
     funcs = {}
-    funcs['obj'] = function(x)
-    funcs['con_name'] = function(x)
+    funcs['obj_name'] = function(xdict)
+    funcs['con_name'] = function(xdict)
     fail = False # Or True if an analysis failed
 
     return funcs, fail
@@ -176,7 +173,7 @@ be sparse. pyOptSparse requires that this sparsity structure to be
 specified when the constraint is added. This information is supplied
 through the ``jac`` keyword argument. Lets say, that the (conD, varC)
 block of the Jacobian is actually a sparse and linear. By way of
-example, the call instead may be as follows::
+example, the call instead may be as follows:
 
 .. code-block:: python
 
@@ -212,9 +209,9 @@ Objectives
 Each optimization will require at least one objective to be
 added. This is accomplished using a the call::
 
-  optProb.addObj('obj')
+  optProb.addObj('obj_name')
 
-What this does is tell pyOptSparse that the key ``obj`` in the
+What this does is tell pyOptSparse that the key ``obj_name`` in the
 function returns will be taken as the objective. For optimizers that
 can do multi-objective optimization, (NSGA2 for example) multiple
 objectives can be added. Optimizers that can only handle one objective

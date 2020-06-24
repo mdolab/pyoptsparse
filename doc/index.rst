@@ -17,12 +17,13 @@ However, it is not backwards compatible with pyOpt and thus optimization scripts
 .. toctree::
    :maxdepth: 1
    :caption: Table of Contents
+   :hidden:
 
-   changes
    install
-   tutorial
+   quickstart
    guide
    postprocessing
+   changes
    contribute
 
 .. toctree::

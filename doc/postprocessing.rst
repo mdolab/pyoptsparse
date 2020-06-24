@@ -48,7 +48,7 @@ saved images (default is within the same folder as ``OptView.py``.)
 ``OptView`` can also be ran from any directory by adding an alias line
 to your ``.bashrc`` file such as::
 
-    alias OptView='python ~/hg/pyoptsparse/postprocessing/OptView.py
+    alias OptView='python ~/packages/pyoptsparse/postprocessing/OptView.py
 
 Through this usage, ``OptView`` can be called from any directory as::
 
@@ -87,13 +87,13 @@ The top is the canvas where the figure and graphs will be produced,
 while the bottom grayed section contains user-selectable options.
 Here, we will focus on the user options.
 
-The selectable variables are contained on the lefthand
+The selectable variables are contained on the left hand
 side of the options panel in scrollable listboxes.
 You can select multiple items from the listboxes using the normal selection
 operators such as control and shift.
 If a selected variable is an array, a third listbox should appear on the
-righthand side of the options panel, allowing you to select specific
-subvariables within the single array variable.
+right hand side of the options panel, allowing you to select specific
+sub-variables within the single array variable.
 
 There are three main options when selecting how to produce the graph(s):
 
