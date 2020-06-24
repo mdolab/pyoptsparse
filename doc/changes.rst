@@ -1,5 +1,3 @@
-.. _changes:
-
 Major changes compared to pyOpt
 ===============================
 
@@ -8,15 +6,13 @@ The following list summarizes some of the changes/improvements made to pyOpt to 
 * Elimination of :math:`\mathcal{O} (n^2)` scaling behaviour when adding large numbers of
   design variables (>10,000)
 
-* Proper handling of all optimizers when run in parallel environment
-  (Only a single optimization instance is run, not nProc instances)
+* Proper handling of all optimizers when run in parallel environment (only a single optimization instance is run, not one instance per processor)
 
 * More flexible return specification of constraints
   
 * More flexible return specification of constraint *gradients*
   
-* Complete elimination of gradient indexing errors using dictionary
-  based returns
+* Complete elimination of gradient indexing errors using dictionary-based returns
 
 * Substantial improvement of optimization script robustness through indexing elimination
 * Automatic assembly of sparse Jacobians with both dense and sparse sub-blocks

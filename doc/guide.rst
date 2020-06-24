@@ -1,5 +1,3 @@
-.. _guide:
-
 Guide
 -----
 
@@ -67,9 +65,11 @@ signify there is no bound on the variable.
 
 Finally, an additional keyword argument ``scale`` can be specified
 which will perform an internal design variable scaling. The ``scale``
-keyword will result in the following::
+keyword will result in the following:
 
-  x_optimizer = x_user * scale
+.. math::
+
+  x_\text{opt} = x_\text{user} \times \text{scale}
 
 The purpose of the scale factor is ensure that design variables of
 widely different magnitudes can be used in the same optimization. Is
@@ -107,14 +107,16 @@ magnitude. This can be specified using the ``scale`` keyword::
 
 Even if the ``scale`` keyword is given, the ``lower`` and ``upper``
 bounds are given in their un-scaled form. Internally, pyOptSparse
-will use the scaling factor to produce the following constraint::
+will use the scaling factor to produce the following constraint:
 
-  con_optimizer = con_user * scale
+.. math::
+
+  \text{con}_\text{opt} = \text{con}_\text{user} \times \text{scale}
 
 In the example above, the constraint values are divided by 10000,
 which results in a upper bound (that the optimizer sees) of 1.0.
 
-Constraints may also be flagged as liner using the ``linear=True``
+Constraints may also be flagged as linear using the ``linear=True``
 keyword option. Some optimizers can perform special treatment on
 linear constraint, often ensuring that they are always satisfied
 exactly on every function call (SNOPT for example). Linear constraints
@@ -127,7 +129,7 @@ Manually computing sparsity structure of the constraint Jacobian is
 tedious at best and become even more complicated as optimization
 scripts are modified by adding or deleting design variables and/or
 constraints. pyOptSParse is designed to greatly facilitate the
-assembly of sparse constraint Jacobians, alleviating the user of thus
+assembly of sparse constraint Jacobians, alleviating the user of this
 burden. The idea is that instead of the user computing a dense matrix
 representing the constraint Jacobian, a ``dictionary of keys``
 approach is used which allows incrementally specifying parts of the
@@ -165,6 +167,8 @@ Note that the order of the ``wrt`` (which stands for with-respect-to)
 is not significant. Furthermore, if the ``wrt`` argument is omitted
 altogether, pyOptSparse assumes that the constraint is dense.
 
+.. TODO: add printSparsity explanation here
+
 Using the ``wrt`` keyword allows the user to determine the overall
 sparsity structure of the constraint Jacobian. However, we have
 currently assumed that each of the blocks with an ``X`` in is a dense
@@ -186,22 +190,25 @@ example, the call instead may be as follows:
 
 We have created a linked list sparse matrix using
 ``scipy.sparse``. Any scipy sparse matrix format can be accepted. We
-have then provided this constraint Jacobian using the ``jac=`` keyword
+have then provided this constraint Jacobian using the ``jac`` keyword
 argument. This argument is a dictionary, and the keys must match the
 design variable sets given in the ``wrt`` to keyword. Essentially what
 we have done is specified the which blocks of the constraint rows are
 non-zero, and provided the sparsity structure of ones that are sparse.
 
-For linear constraints the values in ``jac`` are meaningful: They must
+For linear constraints the values in ``jac`` are meaningful: they must
 be the actual linear constraint Jacobian values (which do not
-change). For non-linear constraints, on the sparsity structure
-(non-zero pattern) is significant. The values themselves will be
-determined by a call the sens() function.
+change). For non-linear constraints, only the sparsity structure
+(i.e. which entries are nonzero) is significant. The values themselves will be
+determined by a call to the sens() function.
 
 Also note, that the ``wrt`` and ``jac`` keyword arguments are only
-supported when user-supplied sensitivity is used. If one used the
-automatic gradient in pyOptSparse the constraint Jacobian will
+supported when user-supplied sensitivity is used. If automatic gradients
+from pyOptSparse are used, the constraint Jacobian will
 necessarily be dense.
+
+.. note::
+    Currently, only the optimizers SNOPT and IPOPT support sparse Jacobians.
 
 Objectives
 ++++++++++
@@ -213,6 +220,6 @@ added. This is accomplished using a the call::
 
 What this does is tell pyOptSparse that the key ``obj_name`` in the
 function returns will be taken as the objective. For optimizers that
-can do multi-objective optimization, (NSGA2 for example) multiple
+can do multi-objective optimization (e.g. NSGA2), multiple
 objectives can be added. Optimizers that can only handle one objective
 enforce that only a single objective is added to the optimization description.
