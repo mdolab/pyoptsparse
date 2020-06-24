@@ -237,9 +237,10 @@ class Optimization(object):
             pass
         else:
             raise Error(
-                "The length of the 'value' argument to "
-                "addVarGroup is %d, but the number of "
-                "variables in nVars is %d." % (len(value), nVars)
+                (
+                    "The length of the 'value' argument to addVarGroup is {}, "
+                    + "but the number of variables in nVars is {}."
+                ).format(len(value), nVars)
             )
 
         if lower is None:
@@ -250,9 +251,10 @@ class Optimization(object):
             lower = np.atleast_1d(lower).real
         else:
             raise Error(
-                "The 'lower' argument to addVarGroup is "
-                "invalid. It must be None, a scalar, or a "
-                "list/array or length nVars=%d." % (nVars)
+                (
+                    "The 'lower' argument to addVarGroup is invalid. "
+                    + "It must be None, a scalar, or a list/array or length nVars={}.".format(nVars)
+                )
             )
 
         if upper is None:
@@ -263,9 +265,10 @@ class Optimization(object):
             upper = np.atleast_1d(upper).real
         else:
             raise Error(
-                "The 'upper' argument to addVarGroup is "
-                "invalid. It must be None, a scalar, or a "
-                "list/array or length nVars=%d." % (nVars)
+                (
+                    "The 'upper' argument to addVarGroup is invalid. "
+                    + "It must be None, a scalar, or a list/array or length nVars={}.".format(nVars)
+                )
             )
 
         # ------ Process the scale argument
@@ -279,9 +282,10 @@ class Optimization(object):
                 pass
             else:
                 raise Error(
-                    "The length of the 'scale' argument to "
-                    "addVarGroup is %d, but the number of "
-                    "variables in nVars is %d." % (len(scale), nVars)
+                    (
+                        "The length of the 'scale' argument to addVarGroup is {}, "
+                        + "but the number of variables in nVars is {}."
+                    ).format(len(scale), nVars)
                 )
 
         # ------ Process the offset argument
@@ -295,9 +299,10 @@ class Optimization(object):
                 pass
             else:
                 raise Error(
-                    "The length of the 'offset' argument to "
-                    "addVarGroup is %d, but the number of "
-                    "variables in nVars is %d." % (len(offset), nVars)
+                    (
+                        "The length of the 'offset' argument to addVarGroup is {}, "
+                        + "but the number of variables is {}."
+                    ).format(len(offset), nVars)
                 )
 
         # Determine if scalar i.e. it was called from addVar():
@@ -1196,8 +1201,9 @@ class Optimization(object):
                     fcon[..., con.rs : con.re] = c
                 else:
                     raise Error(
-                        "%d constraint values were returned in "
-                        "%s, but expected %d." % (len(fcon_in[iCon]), iCon, self.constraints[iCon].ncon)
+                        "{} constraint values were returned in {}, but expected {}.".format(
+                            len(fcon_in[iCon]), iCon, self.constraints[iCon].ncon
+                        )
                     )
 
                 # Store constraint values for printing later
@@ -1353,11 +1359,10 @@ class Optimization(object):
                                 gobj[iObj, ss[0] : ss[1]] = tmp
                             else:
                                 raise Error(
-                                    "The shape of the objective derivative "
-                                    "for dvGroup '%s' is the incorrect "
-                                    "length. Expecting a shape of %s but "
-                                    "received a shape of %s."
-                                    % (dvGroup, (ss[1] - ss[0],), funcsSens[objKey][dvGroup].shape)
+                                    (
+                                        "The shape of the objective derivative for dvGroup '{}' is the incorrect length. "
+                                        + "Expecting a shape of {} but received a shape of {}."
+                                    ).format(dvGroup, (ss[1] - ss[0],), funcsSens[objKey][dvGroup].shape)
                                 )
                         else:
                             raise Error("The dvGroup key '%s' is not valid" % dvGroup)
@@ -1381,10 +1386,10 @@ class Optimization(object):
                         gobj[iObj, ss[0] : ss[1]] = tmp
                     else:
                         raise Error(
-                            "The shape of the objective derivative "
-                            "for dvGroup '%s' is the incorrect "
-                            "length. Expecting a shape of %s but "
-                            "received a shape of %s." % (dvGroup, (ss[1] - ss[0],), funcsSens[objKey, dvGroup].shape)
+                            (
+                                "The shape of the objective derivative for dvGroup '{}' is the incorrect length. "
+                                + "Expecting a shape of {} but received a shape of {}."
+                            ).format(dvGroup, (ss[1] - ss[0],), funcsSens[objKey, dvGroup].shape)
                         )
 
         # Note that we looped over the keys in funcsSens[objKey]
@@ -1477,19 +1482,20 @@ class Optimization(object):
                         gotDerivative = True
                     except KeyError:
                         raise Error(
-                            'The constraint jacobian entry for "{}" with respect to "{}"'
-                            ", as was defined in addConGroup(), was not found in"
-                            " constraint jacobian dictionary provided.".format(con.name, dvGroup)
+                            (
+                                "The constraint jacobian entry for '{}' with respect to '{}', as was defined in addConGroup(), "
+                                + "was not found in constraint Jacobian dictionary provided."
+                            ).format(con.name, dvGroup)
                         )
                 if not gotDerivative:
                     # All keys for this constraint must be returned
                     # since the user has explictly specified the wrt.
                     if not con.partialReturnOk:
                         raise Error(
-                            "Constraint '%s' was expecting a jacobain with "
-                            "respect to dvGroup '%s' as was supplied in "
-                            "addConGroup(). This was not found in the "
-                            "constraint jacobian dictionary" % (con.name, dvGroup)
+                            (
+                                "Constraint '{}' was expecting a jacobain with respect to dvGroup '{}' as was supplied in addConGroup(). "
+                                + "This was not found in the constraint Jacobian dictionary"
+                            ).format(con.name, dvGroup)
                         )
                     else:
                         # This key is not returned. Just use the
@@ -1499,24 +1505,20 @@ class Optimization(object):
                 # Now check that the jacobian is the correct shape
                 if not (tmp["shape"][0] == con.ncon and tmp["shape"][1] == ndvs):
                     raise Error(
-                        "The shape of the supplied constraint "
-                        "jacobian for constraint %s with respect to %s "
-                        "is incorrect. "
-                        "Expected an array of shape (%d, %d), but "
-                        "received an array of shape (%d, %d)."
-                        % (con.name, dvGroup, con.ncon, ndvs, tmp["shape"][0], tmp["shape"][1])
+                        (
+                            "The shape of the supplied constraint Jacobian for constraint {} with respect to {} is incorrect. "
+                            + "Expected an array of shape ({}, {}), but received an array of shape ({}, {})."
+                        ).format(con.name, dvGroup, con.ncon, ndvs, tmp["shape"][0], tmp["shape"][1])
                     )
 
                 # Now check that supplied coo matrix has same length
                 # of data array
                 if len(tmp["coo"][2]) != len(con.jac[dvGroup]["coo"][2]):
                     raise Error(
-                        "The number of nonzero elements for "
-                        "constraint group '%s' with respect to %s "
-                        "was not the correct size. The supplied "
-                        "jacobian has %d nonzero "
-                        "entries, but must contain %d nonzero "
-                        "entries." % (con.name, dvGroup, len(tmp["coo"][2]), len(con.jac[dvGroup]["coo"][2]))
+                        (
+                            "The number of nonzero elements for constraint group '{}' with respect to {} was not the correct size. "
+                            + "The supplied Jacobian has {} nonzero entries, but must contain {} nonzero entries."
+                        ).format(con.name, dvGroup, len(tmp["coo"][2]), len(con.jac[dvGroup]["coo"][2]))
                     )
 
                 # Include data from this jacobian chunk

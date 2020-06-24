@@ -41,9 +41,10 @@ class Constraint(object):
             pass  # Some iterable object
         else:
             raise Error(
-                "The 'lower' argument to addCon or addConGroup is "
-                "invalid. It must be None, a scalar, or a "
-                "list/array or length ncon=%d." % nCon
+                (
+                    "The 'lower' argument to addCon or addConGroup is invalid. "
+                    + "It must be None, a scalar, or a list/array or length nCon={}.".format(nCon)
+                )
             )
 
         if upper is None:
@@ -54,9 +55,10 @@ class Constraint(object):
             pass  # Some iterable object
         else:
             raise Error(
-                "The 'upper' argument to addCon or addConGroup is "
-                "invalid. It must be None, a scalar, or a "
-                "list/array or length ncon=%d." % nCon
+                (
+                    "The 'upper' argument to addCon or addConGroup is invalid. "
+                    + "It must be None, a scalar, or a list/array or length nCon={}.".format(nCon)
+                )
             )
 
         # ------ Process the scale argument
@@ -67,9 +69,10 @@ class Constraint(object):
             pass
         else:
             raise Error(
-                "The length of the 'scal' argument to "
-                "addCon or addConGroup is %d, but the number of "
-                "constraints is %d." % (len(scale), nCon)
+                (
+                    "The length of the 'scale' argument to addCon or addConGroup is {}, ".format(len(scale))
+                    + "but the number of constraints is {}.".format(nCon)
+                )
             )
 
         # Save lower and upper...they are only used for printing however
@@ -240,10 +243,12 @@ class Constraint(object):
             for dvGroup in self.wrt:
                 if dvGroup not in variables:
                     raise Error(
-                        "The supplied dvGroup '%s' in 'wrt' "
-                        "for the %s constraint, does not exist. It "
-                        "must be added with a call to addVar() or "
-                        "addVarGroup()." % (dvGroup, self.name)
+                        (
+                            "The supplied dvGroup '{}' in 'wrt' for the {} constraint, does not exist. ".format(
+                                dvGroup, self.name
+                            )
+                            + "It must be added with a call to addVar() or addVarGroup()."
+                        )
                     )
 
             # Check for duplicates in wrt
@@ -251,12 +256,13 @@ class Constraint(object):
             if len(wrt_uniq) < len(self.wrt):
                 duplicate_vars = list(set([x for x in self.wrt if self.wrt.count(x) > 1]))
                 pyOptSparseWarning(
-                    "The constraint %s was created with "
-                    "duplicate\nvariables in 'wrt'. The following duplicates "
-                    "were automatically removed: " % self.name
+                    (
+                        "The constraint {} was created with duplicate variables in 'wrt'. ".format(self.name)
+                        + "The following duplicates were automatically removed: "
+                    )
                 )
                 for var in duplicate_vars:
-                    print("\t\t%s" % var)
+                    print("\t\t{}".format(var))
                 self.wrt = wrt_uniq
 
         # Last thing for wrt is to reorder them such that dvGroups are
@@ -283,9 +289,10 @@ class Constraint(object):
 
             if self.linear:
                 raise Error(
-                    "The 'jac' keyword to argument to addConGroup() "
-                    "must be supplied for a linear constraint. "
-                    "The constraint in error is %s." % self.name
+                    (
+                        "The 'jac' keyword to argument to addConGroup() must be supplied for a linear constraint. "
+                        + "The constraint in error is {}.".format(self.name)
+                    )
                 )
 
             # without any additional information about the jacobian
@@ -304,9 +311,10 @@ class Constraint(object):
             # First sanitize input:
             if not isinstance(self.jac, dict):
                 raise Error(
-                    "The 'jac' keyword argument to addConGroup() "
-                    "must be a dictionary. The constraint in error "
-                    "is %s." % self.name
+                    (
+                        "The 'jac' keyword argument to addConGroup() must be a dictionary. "
+                        + "The constraint in error is {}.".format(self.name)
+                    )
                 )
 
             # Now loop over the set we *know* we need and see if any
@@ -332,17 +340,13 @@ class Constraint(object):
                 # Generically check the shape:
                 if self.jac[dvGroup]["shape"][0] != self.ncon or self.jac[dvGroup]["shape"][1] != ndvs:
                     raise Error(
-                        "The supplied jacobian for dvGroup %s' "
-                        "in constraint %s, was the incorrect size. "
-                        "Expecting a jacobian of size (%d, %d) but "
-                        "received a jacobian of size (%d, %d)."
-                        % (
-                            dvGroup,
-                            self.name,
-                            self.ncon,
-                            ndvs,
-                            self.jac[dvGroup]["shape"][0],
-                            self.jac[dvGroup]["shape"][1],
+                        (
+                            "The supplied jacobian for dvGroup {}' in constraint {}, was the incorrect size. ".format(
+                                dvGroup, self.name
+                            )
+                            + "Expecting a jacobian of size ({}, {}) but received a jacobian of size ({}, {}).".format(
+                                self.ncon, ndvs, self.jac[dvGroup]["shape"][0], self.jac[dvGroup]["shape"][1],
+                            )
                         )
                     )
             # end for (dvGroup)
@@ -350,9 +354,9 @@ class Constraint(object):
             # If there is anything left in jac print a warning:
             for dvGroup in tmp:
                 pyOptSparseWarning(
-                    "A jacobian with dvGroup key of "
-                    "'%s' was unused in constraint %s. This will be "
-                    "ignored." % (dvGroup, self.name)
+                    "A jacobian with dvGroup key of '{}' was unused in constraint {}. This will be ignored.".format(
+                        dvGroup, self.name
+                    )
                 )
 
             # Since this function *may* be called multiple times, only

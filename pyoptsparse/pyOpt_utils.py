@@ -228,15 +228,14 @@ def convertToCOO(mat):
 
             if sparse.issparse(mat):
                 warnings.warn(
-                    "Using scipy.sparse matrices with pyOptSparse "
-                    "in VERY STRONGLY discouraged. Please use the "
-                    "simplified pyoptsparse format which allows for "
-                    "fixed sparsity structure and explict zeros in "
-                    "the matrix. There is no way to guarantee "
-                    "a fixed sparsity structure with scipy "
-                    "matrices which is what the underlying "
-                    "optimizers require. Using scipy.sparse "
-                    "matrices may cause unexpected errors."
+                    (
+                        "Using scipy.sparse matrices with pyOptSparse is VERY STRONGLY discouraged. "
+                        + "Please use the simplified pyOptSparse format which allows for "
+                        + "fixed sparsity structure and explicit zeros in the matrix. "
+                        + "There is no way to guarantee a fixed sparsity structure with scipy matrices "
+                        + "which is what the underlying optimizers require. "
+                        + "Using scipy.sparse matrices may cause unexpected errors."
+                    )
                 )
 
                 mat = mat.tocoo()
@@ -249,10 +248,11 @@ def convertToCOO(mat):
             return _denseToCOO(np.atleast_2d(np.array(mat)))
         except:  # noqa: E722
             raise Error(
-                "Unknown matrix format. Must be a dense numpy "
-                "array or a pyoptsparse sparce matrix format of "
-                "COO, CSR or CSC. See documentation for correct "
-                "format. Supplied Matrix is: %s" % repr(mat)
+                (
+                    "Unknown matrix format. "
+                    + "Must be a dense numpy array or a pyOptSparse sparse matrix format of COO, CSR or CSC. "
+                    + "See documentation for correct format. Supplied Matrix is: {}"
+                ).format(repr(mat))
             )
 
 

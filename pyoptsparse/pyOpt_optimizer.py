@@ -104,8 +104,10 @@ class Optimizer(object):
                 self.sens = None
             else:
                 raise Error(
-                    "'None' value given for sens. Must be one "
-                    " of 'FD', 'FDR', 'CD', 'CDR', 'CS' or a user supplied function."
+                    (
+                        "'None' value given for sens. "
+                        + "Must be one of 'FD', 'FDR', 'CD', 'CDR', 'CS' or a user supplied function."
+                    )
                 )
         elif hasattr(sens, "__call__"):
             # We have function handle for gradients! Excellent!
@@ -116,8 +118,7 @@ class Optimizer(object):
             self.sens = Gradient(self.optProb, sens.lower(), sensStep, sensMode, self.optProb.comm)
         else:
             raise Error(
-                "Unknown value given for sens. Must be None, 'FD', "
-                "'FDR', 'CD', 'CDR', 'CS' or a python function handle"
+                "Unknown value given for sens. Must be one of [None,'FD','FDR','CD','CDR','CS'] or a python function handle"
             )
 
     def _setHistory(self, storeHistory, hotStart):
@@ -320,9 +321,10 @@ class Optimizer(object):
                     fail = args[1]
                 elif args is None:
                     raise Error(
-                        "No return values from user supplied "
-                        "objective function. The function must "
-                        'return "funcs" *OR* "funcs, fail"'
+                        (
+                            "No return values from user supplied objective function. "
+                            + "The function must return 'funcs' or 'funcs, fail'"
+                        )
                     )
                 else:
                     funcs = args
@@ -362,9 +364,10 @@ class Optimizer(object):
                     fail = args[1]
                 elif args is None:
                     raise Error(
-                        "No return values from user supplied "
-                        "objective function. The function must "
-                        'return "funcs" *OR* "funcs, fail"'
+                        (
+                            "No return values from user supplied objective function. "
+                            + "The function must return 'funcs' *OR* 'funcs, fail'"
+                        )
                     )
                 else:
                     funcs = args
@@ -415,9 +418,10 @@ class Optimizer(object):
                     fail = args[1]
                 elif args is None:
                     raise Error(
-                        "No return values from user supplied "
-                        "sensitivity function. The function must "
-                        'return "funcsSens" *OR* "funcsSens, fail"'
+                        (
+                            "No return values from user supplied sensitivity function. "
+                            + "The function must return 'funcsSens' or 'funcsSens, fail'"
+                        )
                     )
                 else:
                     funcsSens = args
@@ -469,9 +473,10 @@ class Optimizer(object):
                     fail = args[1]
                 elif args is None:
                     raise Error(
-                        "No return values from user supplied "
-                        "sensitivity function. The function must "
-                        'return "funcsSens" *OR* "funcsSens, fail"'
+                        (
+                            "No return values from user supplied sensitivity function. "
+                            + "The function must 'return 'funcsSens' or 'funcsSens, fail'"
+                        )
                     )
                 else:
                     funcsSens = args
@@ -815,8 +820,9 @@ class Optimizer(object):
                 self.options[name] = [type(value), value]
             else:
                 raise Error(
-                    "Value type for option %s was incorrect. It was "
-                    "expecting type '%s' by received type '%s'" % (name, self.options["defaults"][name][0], type(value))
+                    "Value type for option {} was incorrect. It was expecting type '{}' by received type '{}'".format(
+                        name, self.options["defaults"][name][0], type(value)
+                    )
                 )
         else:
             raise Error("Received an unknown option: %s" % repr(name))
