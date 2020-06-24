@@ -605,8 +605,8 @@ class Optimization(object):
             vertically instead of horizontally. If true, this will make the
             constraint Jacobian print out more narrow and taller.
 
-        Warning
-        -------
+        Warnings
+        --------
         This function is **collective** on the optProb comm. It is
         therefore necessary to call this function on **all**
         processors of the optProb comm.
