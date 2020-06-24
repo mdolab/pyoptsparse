@@ -42,6 +42,9 @@ extensions = [
 ]
 numpydoc_show_class_members = False
 
+# tell autodoc to document the __init__ methods
+autoclass_content = "both"
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 

@@ -37,10 +37,13 @@ To get started, please see the :ref:`install` and the :ref:`quickstart`.
 
    api/optimization
    api/optimizer
-   api/constraint
-   api/variable
    api/gradient
+   api/variable
+   api/constraint
+   api/objective
+   api/solution
    api/history
+   api/utils
 
 .. toctree::
    :maxdepth: 1

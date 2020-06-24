@@ -1,13 +1,4 @@
 #!/usr/bin/env python
-"""
-pyOptSparse_optimization
-
-Holds the Python Design Optimization Class
-
-The main purpose, of this class is to describe the structure and
-potentially, sparsity pattern of an optimization problem.
-"""
-
 # =============================================================================
 # Standard Python modules
 # =============================================================================
@@ -15,10 +6,7 @@ import copy
 import os
 from collections import OrderedDict
 
-try:
-    from six import iteritems, iterkeys, next
-except ImportError:
-    raise ImportError("Could not import 'six'. To install, use\n pip install six")
+from six import iteritems, iterkeys, next
 
 from sqlitedict import SqliteDict
 
@@ -49,28 +37,25 @@ INFINITY = 1e20
 # Optimization Class
 # =============================================================================
 class Optimization(object):
-    """
-    Create a description of an optimization problem.
-
-    Parameters
-    ----------
-    name : str
-        Name given to optimization problem. This is name is currently
-        not used for anything, but may be in the future.
-
-    objFun : python function
-        Python function handle of function used to evaluate the objective
-        function.
-
-    comm : MPI intra communication
-        The communicator this problem will be solved on. This is
-        required for both analysis when the objective is computed in
-        parallel as well as to use the internal parallel gradient
-        computations. Defaults to MPI.COMM_WORLD if not given.
-        """
-
     def __init__(self, name, objFun, comm=None):
+        """
+        The main purpose of this class is to describe the structure and
+        potentially, sparsity pattern of an optimization problem.
 
+        Parameters
+        ----------
+        name : str
+            Name given to optimization problem.
+
+        objFun : Python function handle
+            Function handle used to evaluate the objective function.
+
+        comm : MPI intra communication
+            The communicator this problem will be solved on. This is
+            required for both analysis when the objective is computed in
+            parallel as well as to use the internal parallel gradient
+            computations. Defaults to MPI.COMM_WORLD if not given.
+        """
         self.name = name
         self.objFun = objFun
         if comm is None:
@@ -502,7 +487,6 @@ class Optimization(object):
             argument. That is, we do not let the sparsity structure of
             the jacobian change throughout the optimization. This
             stipulation is automatically checked internally.
-
         """
 
         if name in self.constraints:
@@ -616,12 +600,11 @@ class Optimization(object):
             vertically instead of horizontally. If true, this will make the
             constraint Jacobian print out more narrow and taller.
 
-        Warnings
-        --------
+        Warning
+        -------
         This function is **collective** on the optProb comm. It is
         therefore necessary to call this function on **all**
         processors of the optProb comm.
-
         """
         self.finalizeDesignVariables()
         self.finalizeConstraints()
@@ -1029,8 +1012,6 @@ class Optimization(object):
 
     def processXtoDict(self, x):
         """
-        **This function should not need to be called by the user**
-
         Take the flattened array of variables in 'x' and return a
         dictionary of variables keyed on the name of each variable.
 
@@ -1038,6 +1019,10 @@ class Optimization(object):
         ----------
         x : array
             Flattened array from optimizer
+
+        Warning
+        -------
+        This function should not need to be called by the user
         """
         xg = OrderedDict()
         imax = 0
@@ -1059,8 +1044,6 @@ class Optimization(object):
 
     def processXtoVec(self, x):
         """
-        **This function should not need to be called by the user**
-
         Take the dictionary form of x and convert back to flattened
         array.
 
@@ -1073,8 +1056,11 @@ class Optimization(object):
         -------
         x_array : array
             Flattened array of variables
-        """
 
+        Warning
+        -------
+        This function should not need to be called by the user
+        """
         x_array = np.zeros(self.ndvs)
         imax = 0
         for dvGroup in self.variables:
@@ -1096,8 +1082,6 @@ class Optimization(object):
 
     def processObjtoVec(self, funcs, scaled=True):
         """
-        **This function should not need to be called by the user**
-
         This is currently just a stub-function. It is here since it
         the future we may have to deal with multiple objectives so
         this function will deal with that
@@ -1110,7 +1094,11 @@ class Optimization(object):
         -------
         obj : float or array
             Processed objective(s).
-            """
+
+        Warning
+        -------
+        This function should not need to be called by the user
+        """
         fobj = []
         for objKey in self.objectives.keys():
             if objKey in funcs:
@@ -1164,8 +1152,6 @@ class Optimization(object):
 
     def processContoVec(self, fcon_in, scaled=True, dtype="d", natural=False):
         """
-        **This function should not need to be called by the user**
-
         Parameters
         ----------
         fcon_in : dict
@@ -1186,6 +1172,10 @@ class Optimization(object):
             Flag to specify if the data should be returned in the
             natural ordering. This is only used when computing
             gradient automatically with FD/CS.
+
+        Warning
+        -------
+        This function should not need to be called by the user
         """
 
         if self.dummyConstraint:
@@ -1231,8 +1221,6 @@ class Optimization(object):
 
     def processContoDict(self, fcon_in, scaled=True, dtype="d", natural=False, multipliers=False):
         """
-        **This function should not need to be called by the user**
-
         Parameters
         ----------
         fcon_in : array
@@ -1258,7 +1246,11 @@ class Optimization(object):
             Flag that indicates whether this deprocessing is for the
             multipliers or the constraint values. In the case of multipliers,
             no constraint offset should be applied.
-            """
+
+        Warning
+        -------
+        This function should not need to be called by the user
+        """
 
         if self.dummyConstraint:
             return {"dummy": 0}
@@ -1324,8 +1316,6 @@ class Optimization(object):
 
     def processObjectiveGradient(self, funcsSens):
         """
-        **This function should not need to be called by the user**
-
         This generic function is used to assemble the objective
         gradient(s)
 
@@ -1334,6 +1324,10 @@ class Optimization(object):
         funcsSens : dict
             Dictionary of all function gradients. Just extract the
             objective(s) we need here.
+
+        Warning
+        -------
+        This function should not need to be called by the user
         """
 
         dvGroups = set(self.variables.keys())
@@ -1408,8 +1402,6 @@ class Optimization(object):
 
     def processConstraintJacobian(self, gcon):
         """
-        **This function should not need to be called by the user**
-
         This generic function is used to assemble the entire
         constraint jacobian. The order of the constraint jacobian is
         in 'natural' ordering, that is the order the constraints have
@@ -1436,7 +1428,11 @@ class Optimization(object):
             Return the jacobian in a sparse csr format.
             can be easily converted to csc, coo or dense format as
             required by individual optimizers
-            """
+
+        Warning
+        -------
+        This function should not need to be called by the user
+        """
 
         # We don't have constraints at all! However we *may* have to
         # include a dummy constraint:

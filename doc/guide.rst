@@ -167,7 +167,10 @@ Note that the order of the ``wrt`` (which stands for with-respect-to)
 is not significant. Furthermore, if the ``wrt`` argument is omitted
 altogether, pyOptSparse assumes that the constraint is dense.
 
-.. TODO: add printSparsity explanation here
+To examine the sparsity pattern, pyOptSparse can generate the ASCII table shown above.
+To do so, use the following call after adding all the design variables, objectives and constraints::
+
+  >>> optProb.printSparsity()
 
 Using the ``wrt`` keyword allows the user to determine the overall
 sparsity structure of the constraint Jacobian. However, we have

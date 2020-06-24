@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-"""
-pyOpt_constraint
-
-Holds the representation of a pyOptSparse constraint group
-"""
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -18,12 +13,14 @@ eps = np.finfo(np.float64).eps
 # Constraint Class
 # =============================================================================
 class Constraint(object):
-    """
-    Constraint Class Initialization
-    """
-
     def __init__(self, name, nCon, linear, wrt, jac, lower, upper, scale):
+        """
+        This class holds the representation of a pyOptSparse constraint group
 
+        See Also
+        --------
+        Optimization.addConGroup : for the full documentation
+        """
         self.name = name
         self.ncon = nCon
         self.linear = linear
@@ -196,8 +193,7 @@ class Constraint(object):
         self.twoSidedConstraints = twoSidedConstraints
 
     def finalize(self, variables, dvOffset, index):
-        """ **This function should not need to be called by the user**
-
+        """
         After the design variables have been finalized and the order
         is known we can check the constraint for consistency.
 
@@ -212,6 +208,9 @@ class Constraint(object):
         index : int
             The starting index of this constraint in natural order
 
+        Warnings
+        --------
+            This function should not need to be called by the user
         """
 
         # Set the row start and end
@@ -368,8 +367,6 @@ class Constraint(object):
     def __str__(self):
         """
         Print Constraint
-
-        Documentation last updated:  April. 30, 2008 - Peter W. Jansen
         """
         res = ""
         for i in range(self.ncon):

@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-"""
-pyOpt_optimizer
-
-Holds the Python Design Optimization Classes (base and inherited).
-"""
 # =============================================================================
 # Imports
 # =============================================================================
@@ -27,23 +22,22 @@ eps = np.finfo(np.float64).eps
 # Optimizer Class
 # =============================================================================
 class Optimizer(object):
-    """
-    Base optimizer class
-
-    Parameters
-    ----------
-    name : str
-        Optimizer name
-    category : str
-        Typically local or global
-    defOptions : dictionary
-        A dictionary containing the default options
-    informs : dict
-        Dictionary of the inform codes
-        """
-
     def __init__(self, name=None, category=None, defOptions=None, informs=None, **kwargs):
+        """
+        This is the base optimizer class that all optimizers inherit from.
+        We define common methods here to avoid code duplication.
 
+        Parameters
+        ----------
+        name : str
+            Optimizer name
+        category : str
+            Typically local or global
+        defOptions : dictionary
+            A dictionary containing the default options
+        informs : dict
+            Dictionary of the inform codes
+        """
         self.name = name
         self.category = category
         self.options = {}
