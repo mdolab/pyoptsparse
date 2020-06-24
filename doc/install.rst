@@ -43,6 +43,19 @@ It is also possible to install pyOptSparse by calling ``python setup.py install`
   Some optimizers are proprietary and their sources are not distributed with pyOptSparse.
   To use them, please follow the instructions on specific optimizer pages.
 
+Testing
+-------
+pyOptSparse provides a set of unit and regression tests to verify the installation.
+To run these tests, first install ``testflo`` which is a testing framework developed by the OpenMDAO team::
+
+  pip install testflo
+
+Then, in the project root directory, type::
+
+  testflo . -v
+
+to run all tests.
+
 Update or Uninstall
 -------------------
 To update pyOptSparse, first delete the ``build`` directory, then update the package using ``git``.
