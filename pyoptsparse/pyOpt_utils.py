@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 pyOptSparse_utils holds a minimal set of sparse-matrix type routines for pyOptSparse. This
-is designed to replace the HORRENDOUS scipy sparse matrix format. The
+is designed to replace the HORRENDOUS scipy sparse matrix format. The problem
 with scipy.sparse is that is the NO way to enforce a constant sparsity
 structure which is required for the optimizers. We use a very simple
 dictionary format to represent the three most common forms of sparse matrices::
