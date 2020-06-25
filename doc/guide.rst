@@ -128,7 +128,7 @@ sparse constraint Jacobians. (Hence the 'Sparse' in the name!).
 Manually computing sparsity structure of the constraint Jacobian is
 tedious at best and become even more complicated as optimization
 scripts are modified by adding or deleting design variables and/or
-constraints. pyOptSParse is designed to greatly facilitate the
+constraints. pyOptSparse is designed to greatly facilitate the
 assembly of sparse constraint Jacobians, alleviating the user of this
 burden. The idea is that instead of the user computing a dense matrix
 representing the constraint Jacobian, a ``dictionary of keys``
