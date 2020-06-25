@@ -7,7 +7,7 @@ class Solution(Optimization):
     def __init__(self, optProb, optTime, optInform):
         """
         This class is used to describe the solution of an optimization
-        problem. This class is inherits from Optimization which enables a
+        problem. This class inherits from Optimization which enables a
         solution to be used as an input to a subsequent optimization problem.
 
         Parameters
