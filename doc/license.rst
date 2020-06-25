@@ -1,6 +1,6 @@
 License
 =======
-.. literalinclude:: ../LICENSE.md
+.. literalinclude:: ../LICENSE
 
 ALPSO
 ------------
