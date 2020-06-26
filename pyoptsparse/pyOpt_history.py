@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-"""
-pyOpt_history
-
-Holds the Python Design Optimization History Class.
-"""
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -19,31 +14,27 @@ eps = np.finfo(np.float64).eps
 # History Class
 # =============================================================================
 class History(object):
-    """
-    Optimizer History Class Initialization. This is essentially a
-    thin wrapper around a SqliteDict dictionary to facilitate
-    operations with pyOptSparse
-
-    Parameters
-    ----------
-    fileName : str
-       File name for history file
-
-    optProb : pyOpt_Optimization
-        the optimization object
-
-    temp : bool
-       Flag to signify that the file should be deleted after it is
-       closed
-
-    flag : str
-        String specifying the mode. Similar to what was used in
-        shelve. 'n' for a new database and 'r' to read an existing one.
-
-    """
-
     def __init__(self, fileName, optProb=None, temp=False, flag="r"):
+        """
+        This class is essentially a thin wrapper around a SqliteDict dictionary to facilitate
+        operations with pyOptSparse
 
+        Parameters
+        ----------
+        fileName : str
+            File name for history file
+
+        optProb : pyOpt_Optimization
+            The optimization object
+
+        temp : bool
+            Flag to signify that the file should be deleted after it is
+            closed
+
+        flag : str
+            String specifying the mode. Similar to what was used in shelve.
+            ``n`` for a new database and ``r`` to read an existing one.
+        """
         if flag == "n":
             # If writing, we expliclty remove the file to
             # prevent old keys from "polluting" the new histrory

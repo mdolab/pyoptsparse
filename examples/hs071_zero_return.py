@@ -45,7 +45,7 @@ def sens(xdict, funcs):
     }
     #    ^
     #    |
-    # If we don't return any one of the constraint jacobian blocks,
+    # If we don't return any one of the constraint Jacobian blocks,
     # pyoptsparse will assume it to be zero.
 
     funcsSens["con2"] = {

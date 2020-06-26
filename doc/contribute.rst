@@ -23,7 +23,8 @@ Please install it following its instructions, and run it at the project root wit
     flake8 .
 
 which will use the ``.flake8`` configuration file provided by pyOptSparse.
-
+If there are any PEP-8 violations, ``flake8`` will print out the nature of the violation.
+Please fix all violations before submitting the PR.
 For an easier workflow, we recommend integrating these tools with your code editor.
 
 .. warning::
@@ -34,6 +35,12 @@ Documentation
 When you add or modify code, make sure to provide relevant documentation that explains the new code.
 This should be done in code via docstrings and comments, but also in the Sphinx documentation as well if you add a new feature or capability.
 Look at the ``.rst`` files in the ``doc`` section of the repo.
+
+To build documentation locally, go to the ``doc`` folder and type ``make html``.
+Building the documentation requires ``sphinx`` and ``numpydoc``, as well as the Sphinx RTD theme.
+To install these dependencies, type::
+
+    pip install sphinx numpydoc sphinx-rtd-theme
 
 Testing
 -------

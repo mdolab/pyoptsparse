@@ -15,8 +15,10 @@ try:
 except ImportError:
     if "bdist_wheel" in sys.argv:
         print(
-            "\nThe bdist_wheel option requires the 'wheel' package to be installed.\n"
-            "Install it using 'pip install wheel'."
+            (
+                "\nThe bdist_wheel option requires the 'wheel' package to be installed.\n"
+                + "Install it using 'pip install wheel'."
+            )
         )
         sys.exit(-1)
 else:
@@ -25,12 +27,14 @@ else:
 
 if len(sys.argv) == 1:
     print(
-        "\nTo install, run: python setup.py install --user\n\n"
-        "To build, run: python setup.py build_ext --inplace\n\n"
-        "For help on C-compiler options run: python setup.py build --help-compiler\n\n"
-        "For help on Fortran-compiler options run: python setup.py build --help-fcompiler\n\n"
-        "To specify a Fortran compiler to use run: python setup.py install --user --fcompiler=<fcompiler name>\n\n"
-        "For further help run: python setup.py build --help"
+        (
+            "\nTo install, run: python setup.py install --user\n\n"
+            + "To build, run: python setup.py build_ext --inplace\n\n"
+            + "For help on C-compiler options run: python setup.py build --help-compiler\n\n"
+            + "For help on Fortran-compiler options run: python setup.py build --help-fcompiler\n\n"
+            + "To specify a Fortran compiler to use run: python setup.py install --user --fcompiler=<fcompiler name>\n\n"
+            + "For further help run: python setup.py build --help"
+        )
     )
     sys.exit(-1)
 
@@ -53,27 +57,19 @@ if __name__ == "__main__":
     setup(
         name="pyoptsparse",
         version=__version__,
-        author="Dr. Gaetan Kenway",
-        author_email="gaetank@gmail.com",
-        maintainer="Dr. Gaetan Kenway",
-        maintainer_email="gaetank@gmail.com",
         description="Python package for formulating and solving nonlinear constrained optimization problems",
         long_description="pyOptSparse is a Python package for formulating and solving nonlinear constrained optimization problems",
         keywords="optimization",
-        license="GNU LGPL",
         install_requires=["sqlitedict>=1.6.0", "numpy>=1.16.4", "scipy>1.2.1", "six>=1.13"],
-        platforms=["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
+        platforms=["Linux"],
         classifiers=[
             "Development Status :: 5 - Production/Stable",
             "Environment :: Console",
             "Intended Audience :: Science/Research",
             "Intended Audience :: Developers",
             "Intended Audience :: Education",
-            "License :: LGPL",
-            "Operating System :: Microsoft :: Windows",
+            "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
             "Operating System :: POSIX :: Linux",
-            "Operating System :: Unix",
-            "Operating System :: MacOS",
             "Programming Language :: Python",
             "Topic :: Scientific/Engineering",
             "Topic :: Software Development",

@@ -1,9 +1,5 @@
 #!/usr/bin/env python
-"""
-pyOpt_variable
 
-Holds the representation of a single pyOptSparse variable
-"""
 from .pyOpt_error import Error
 
 INFINITY = 1e20
@@ -11,12 +7,14 @@ INFINITY = 1e20
 # Variable Class
 # =============================================================================
 class Variable(object):
-    """
-    Variable Class Initialization
-    """
-
     def __init__(self, name, type, value, lower, upper, scale, offset, scalar=False, choices=None):
+        """
+        This class holds the representation of a single pyOptSparse variable
 
+        See Also
+        --------
+        Optimization.addVarGroup : for the full documentation
+        """
         self.name = name
         self.type = type
         self.scalar = scalar

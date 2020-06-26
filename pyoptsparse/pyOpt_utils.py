@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 """
-pyOptSparse_utils
-
-Holds a minimal set of sparse-matrix type routines for pyOptSparse. This
-is designed to replace the HORRENDOUS scipy sparse matrix format. The
+pyOptSparse_utils holds a minimal set of sparse-matrix type routines for pyOptSparse. This
+is designed to replace the HORRENDOUS scipy sparse matrix format. The problem
 with scipy.sparse is that is the NO way to enforce a constant sparsity
 structure which is required for the optimizers. We use a very simple
-dictionary format to represent the three most common forms of sparse matrices:
+dictionary format to represent the three most common forms of sparse matrices::
 
-mat = {'coo':[row, col, data], 'shape':[nrow, ncols]} # A coo matrix
-mat = {'csr':[rowp, colind, data], 'shape':[nrow, ncols]} # A csr matrix
-mat = {'coo':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
+    mat = {'coo':[row,  col,    data], 'shape':[nrow, ncols]} # A coo matrix
+    mat = {'csr':[rowp, colind, data], 'shape':[nrow, ncols]} # A csr matrix
+    mat = {'coo':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
 """
 import numpy as np
 import warnings
@@ -230,15 +228,14 @@ def convertToCOO(mat):
 
             if sparse.issparse(mat):
                 warnings.warn(
-                    "Using scipy.sparse matrices with pyOptSparse "
-                    "in VERY STRONGLY discouraged. Please use the "
-                    "simplified pyoptsparse format which allows for "
-                    "fixed sparsity structure and explict zeros in "
-                    "the matrix. There is no way to guarantee "
-                    "a fixed sparsity structure with scipy "
-                    "matrices which is what the underlying "
-                    "optimizers require. Using scipy.sparse "
-                    "matrices may cause unexpected errors."
+                    (
+                        "Using scipy.sparse matrices with pyOptSparse is VERY STRONGLY discouraged. "
+                        + "Please use the simplified pyOptSparse format which allows for "
+                        + "fixed sparsity structure and explicit zeros in the matrix. "
+                        + "There is no way to guarantee a fixed sparsity structure with scipy matrices "
+                        + "which is what the underlying optimizers require. "
+                        + "Using scipy.sparse matrices may cause unexpected errors."
+                    )
                 )
 
                 mat = mat.tocoo()
@@ -251,10 +248,11 @@ def convertToCOO(mat):
             return _denseToCOO(np.atleast_2d(np.array(mat)))
         except:  # noqa: E722
             raise Error(
-                "Unknown matrix format. Must be a dense numpy "
-                "array or a pyoptsparse sparce matrix format of "
-                "COO, CSR or CSC. See documentation for correct "
-                "format. Supplied Matrix is: %s" % repr(mat)
+                (
+                    "Unknown matrix format. "
+                    + "Must be a dense numpy array or a pyOptSparse sparse matrix format of COO, CSR or CSC. "
+                    + "See documentation for correct format. Supplied Matrix is: {}"
+                ).format(repr(mat))
             )
 
 

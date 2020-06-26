@@ -57,4 +57,12 @@ doi:10.1007/s00158-011-0666-3.
 ```
 
 ## License
-Copyright 2020 MDO Lab. See the LICENSE file for details.
+pyOptSparse is licensed under the  Apache License 2.0.
+See `LICENSE` for the full license.
+
+## Copyright
+Copyright (c) 2011 University of Toronto\
+Copyright (c) 2014 University of Michigan\
+Additional copyright (c) 2014 Gaetan K. W. Kenway, Ruben Perez, Charles A. Mader, and\
+Joaquim R. R. A. Martins\
+All rights reserved.
