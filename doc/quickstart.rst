@@ -68,9 +68,9 @@ related variables:
    :start-after: # rst begin addVar
    :end-before: # rst begin addCon
 
-This calls adds a group of 3 variables with name 'xvars'. The variable
+This calls adds a group of 3 variables with name ``xvars``. The variable
 bounds (side constraints) are 0 for the lower bounds, 42 for the upper
-bounds. The initial values for each variable is 10.0
+bounds. The initial values for each variable is 10.0.
 
 Now, we must add the constraints. Like design variables, these may be
 added individually or by group. It is recommended that related
@@ -80,7 +80,7 @@ constraints are added by group where possible:
    :start-after: # rst begin addCon
    :end-before: # rst begin addObj
 
-This call adds two variables with name 'con'. There is no lower bound
+This call adds two variables with name ``con``. There is no lower bound
 for the variables and the upper bound is 0.0. 
 
 We must also assign the the key value for the objective using the

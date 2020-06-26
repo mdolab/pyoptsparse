@@ -176,9 +176,9 @@ Using the ``wrt`` keyword allows the user to determine the overall
 sparsity structure of the constraint Jacobian. However, we have
 currently assumed that each of the blocks with an ``X`` in is a dense
 sub-block. pyOptSparse allows each of the *sub-blocks* to itself
-be sparse. pyOptSparse requires that this sparsity structure to be
+be sparse. pyOptSparse requires this sparsity structure to be
 specified when the constraint is added. This information is supplied
-through the ``jac`` keyword argument. Lets say, that the (conD, varC)
+through the ``jac`` keyword argument. Lets say, that the ``(conD, varC)``
 block of the Jacobian is actually a sparse and linear. By way of
 example, the call instead may be as follows:
 

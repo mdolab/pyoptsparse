@@ -4,10 +4,10 @@ pyOptSparse
 pyOptSparse is an object-oriented framework for formulating and solving nonlinear constrained optimization problems in an efficient, reusable, and portable manner.
 Some key features of pyOptSparse include:
 
-- Object-oriented development maintains independence between the optimization problem formulation and its solution by different optimizers
-- Use of sparse matrices throughout the code to more efficiently handle large-scale optimization problems
-- Enable the use of optimizers when running in a MPI parallel environment, allows for evaluation of gradients in parallel, and can distribute function evaluations for gradient-free optimizers
-- Optimization solution histories can be stored during the optimization process. A partial history can also be used to warm-restart the optimization for any supported optimizer
+- Object-oriented development, which maintains independence between the optimization problem formulation and its solution by different optimizers
+- The use of sparse matrices throughout the code, to more efficiently handle large-scale optimization problems
+- Parallel model execution under MPI, both for expensive analyses that must be done in parallel, and for parallel function evaluation when using certain gradient-free optimizers
+- The optimization histories can be stored during the optimization process, and a partial history can also be used to hot-restart the optimization
 - A post-processing GUI utility called OptView to analyze optimization results
 
 
