@@ -1025,8 +1025,8 @@ class Optimization(object):
         x : array
             Flattened array from optimizer
 
-        Warning
-        -------
+        Warnings
+        --------
         This function should not need to be called by the user
         """
         xg = OrderedDict()
@@ -1062,8 +1062,8 @@ class Optimization(object):
         x_array : array
             Flattened array of variables
 
-        Warning
-        -------
+        Warnings
+        --------
         This function should not need to be called by the user
         """
         x_array = np.zeros(self.ndvs)
@@ -1100,8 +1100,8 @@ class Optimization(object):
         obj : float or array
             Processed objective(s).
 
-        Warning
-        -------
+        Warnings
+        --------
         This function should not need to be called by the user
         """
         fobj = []
@@ -1178,8 +1178,8 @@ class Optimization(object):
             natural ordering. This is only used when computing
             gradient automatically with FD/CS.
 
-        Warning
-        -------
+        Warnings
+        --------
         This function should not need to be called by the user
         """
 
@@ -1253,8 +1253,8 @@ class Optimization(object):
             multipliers or the constraint values. In the case of multipliers,
             no constraint offset should be applied.
 
-        Warning
-        -------
+        Warnings
+        --------
         This function should not need to be called by the user
         """
 
@@ -1331,8 +1331,8 @@ class Optimization(object):
             Dictionary of all function gradients. Just extract the
             objective(s) we need here.
 
-        Warning
-        -------
+        Warnings
+        --------
         This function should not need to be called by the user
         """
 
@@ -1434,8 +1434,8 @@ class Optimization(object):
             can be easily converted to csc, coo or dense format as
             required by individual optimizers
 
-        Warning
-        -------
+        Warnings
+        --------
         This function should not need to be called by the user
         """
 
