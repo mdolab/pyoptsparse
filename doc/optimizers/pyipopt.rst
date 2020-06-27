@@ -3,7 +3,7 @@
 IPOPT
 =====
 IPOPT (Interior Point OPTimizer) is an open source interior point optimizer, designed for large-scale nonlinear optimization.
-The source code can be found `here <https://github.com/coin-or/Ipopt>`_.
+The source code can be found `here <https://www.coin-or.org/download/source/Ipopt/>`_.
 The latest version we support is 3.11.7.
 
 Installation
