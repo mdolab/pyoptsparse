@@ -1,25 +1,8 @@
-#/bin/env python
+# /bin/env python
 """
 pyCONMIN - A variation of the pyCONMIN wrapper specificially designed to
 work with sparse optimization problems.
-
-Copyright (c) 2013-2014 by Dr. Gaetan Kenway
-All rights reserved.
-
-Tested on:
----------
-Linux with intel
-
-Developers:
------------
-- Dr. Gaetan Kenway (GKK)
-
-History
--------
-    v. 0.1    - Initial Wrapper Creation
 """
-from __future__ import absolute_import
-from __future__ import print_function
 # =============================================================================
 # CONMIN Library
 # =============================================================================
@@ -32,15 +15,19 @@ except ImportError:
 # =============================================================================
 import os
 import time
+import datetime
+
 # =============================================================================
 # External Python modules
 # =============================================================================
-import numpy
+import numpy as np
+
 # ===========================================================================
 # Extension modules
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
+
 # =============================================================================
 # CONMIN Optimizer Class
 # =============================================================================
@@ -48,33 +35,34 @@ class CONMIN(Optimizer):
     """
     CONMIN Optimizer Class - Inherited from Optimizer Abstract Class
     """
-    def __init__(self, *args, **kwargs):
-        name = 'CONMIN'
-        category = 'Local Optimizer'
-        defOpts = {
-            'ITMAX':[int, 1e4], # Maximum Number of Iterations
-            'DELFUN':[float, 1e-6], # Objective Relative Tolerance
-            'DABFUN':[float, 1e-6], # Objective Absolute Tolerance
-            'ITRM':[int, 5],
-            'NFEASCT':[int, 20],
-            'IPRINT':[int, 4],  # Print Control (0 - None, 1 - Final, 2,3,4 - Debug)
-            'IOUT':[int, 6], # Output Unit Number
-            'IFILE':[str, 'CONMIN.out'], # Output File Name
+
+    def __init__(self, raiseError=True, *args, **kwargs):
+        name = "CONMIN"
+        category = "Local Optimizer"
+        self.defOpts = {
+            "ITMAX": [int, 1e4],  # Maximum Number of Iterations
+            "DELFUN": [float, 1e-6],  # Objective Relative Tolerance
+            "DABFUN": [float, 1e-6],  # Objective Absolute Tolerance
+            "ITRM": [int, 5],
+            "NFEASCT": [int, 20],
+            "IPRINT": [int, 4],  # Print Control (0 - None, 1 - Final, 2,3,4 - Debug)
+            "IOUT": [int, 6],  # Output Unit Number
+            "IFILE": [str, "CONMIN.out"],  # Output File Name
         }
-        informs = {}
+        self.informs = {}
         if conmin is None:
-            raise Error('There was an error importing the compiled \
-                        conmin module')
+            if raiseError:
+                raise Error("There was an error importing the compiled conmin module")
 
         self.set_options = []
-        Optimizer.__init__(self, name, category, defOpts, informs, *args,
-                           **kwargs)
+        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
-        # CONMIN needs jacobians in dense format
-        self.jacType = 'dense2d'
+        # CONMIN needs Jacobians in dense format
+        self.jacType = "dense2d"
 
-    def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
-                 storeHistory=None, hotStart=None, storeSens=True):
+    def __call__(
+        self, optProb, sens=None, sensStep=None, sensMode=None, storeHistory=None, hotStart=None, storeSens=True
+    ):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -136,16 +124,15 @@ class CONMIN(Optimizer):
             optProb.dummyConstraint = False
 
         # Save the optimization problem and finalize constraint
-        # jacobian, in general can only do on root proc
+        # Jacobian, in general can only do on root proc
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
-        xs = numpy.maximum(xs, blx)
-        xs = numpy.minimum(xs, bux)
-        n = len(xs)
+        xs = np.maximum(xs, blx)
+        xs = np.minimum(xs, bux)
         ff = self._assembleObjective()
 
         oneSided = True
@@ -154,8 +141,8 @@ class CONMIN(Optimizer):
             m = 0
         else:
             indices, blc, buc, fact = self.optProb.getOrdering(
-                ['ne', 'le', 'ni', 'li'], oneSided=oneSided,
-                noEquality=noEquality)
+                ["ne", "le", "ni", "li"], oneSided=oneSided, noEquality=noEquality
+            )
             m = len(indices)
 
             self.optProb.jacIndices = indices
@@ -166,22 +153,22 @@ class CONMIN(Optimizer):
             # Set history/hotstart/coldstart
             self._setHistory(storeHistory, hotStart)
 
-            #=================================================================
+            # =================================================================
             # CONMIN - Objective/Constraint Values Function
-            #=================================================================
+            # =================================================================
             def cnmnfun(n1, n2, x, f, g):
-                fobj, fcon, fail = self._masterFunc(x[0:ndv], ['fobj', 'fcon'])
+                fobj, fcon, fail = self._masterFunc(x[0:ndv], ["fobj", "fcon"])
                 f = fobj
                 g[0:ncn] = fcon
 
                 return f, g
 
-            #=================================================================
+            # =================================================================
             # CONMIN - Objective/Constraint Gradients Function
-            #=================================================================
+            # =================================================================
             def cnmngrad(n1, n2, x, f, g, ct, df, a, ic, nac):
 
-                gobj, gcon, fail = self._masterFunc(x[0:ndv], ['gobj', 'gcon'])
+                gobj, gcon, fail = self._masterFunc(x[0:ndv], ["gobj", "gcon"])
                 df[0:ndv] = gobj.copy()
 
                 # Only assign the gradients for constraints that are
@@ -198,33 +185,33 @@ class CONMIN(Optimizer):
             ndv = len(xs)
             ncn = m
             nn1 = ndv + 2
-            nn2 = ncn + 2*ndv
+            nn2 = ncn + 2 * ndv
             nn3 = max(nn2, ndv)
             nn4 = max(nn2, ndv)
-            nn5 = 2*nn4
-            gg = numpy.zeros(ncn, numpy.float)
-            if self.getOption('IPRINT') >= 0 and self.getOption('IPRINT')  <= 4:
-                iprint = self.getOption('IPRINT')
+            nn5 = 2 * nn4
+            gg = np.zeros(ncn, np.float)
+            if self.getOption("IPRINT") >= 0 and self.getOption("IPRINT") <= 4:
+                iprint = self.getOption("IPRINT")
             else:
-                raise Error('IPRINT option must be >= 0 and <= 4')
+                raise Error("IPRINT option must be >= 0 and <= 4")
 
-            iout = self.getOption('IOUT')
-            ifile = self.getOption('IFILE')
+            iout = self.getOption("IOUT")
+            ifile = self.getOption("IFILE")
 
             # Check if file exists and remove if necessary
             if iprint > 0:
                 if os.path.isfile(ifile):
                     os.remove(ifile)
 
-            itmax = self.getOption('ITMAX')
-            delfun = self.getOption('DELFUN')
+            itmax = self.getOption("ITMAX")
+            delfun = self.getOption("DELFUN")
 
-            #finit, ginit = cnmnfun([],[],xx,ff,gg)
-            dabfun = self.getOption('DABFUN')
+            # finit, ginit = cnmnfun([],[],xx,ff,gg)
+            dabfun = self.getOption("DABFUN")
 
-            itrm = self.getOption('ITRM')
-            nfeasct = self.getOption('ITRM')
-            nfdg = 1 # User will supply all gradients
+            itrm = self.getOption("ITRM")
+            nfeasct = self.getOption("ITRM")
+            nfdg = 1  # User will supply all gradients
 
             # Counters for functions and gradients
             nfun = 0
@@ -232,22 +219,30 @@ class CONMIN(Optimizer):
 
             # Run CONMIN
             t0 = time.time()
+            # fmt: off
             conmin.conmin(ndv, ncn, xs, blx, bux, ff, gg,
                           nn1, nn2, nn3, nn4, nn5,
                           iprint, iout, ifile, itmax, delfun, dabfun, itrm,
                           nfeasct, nfdg, nfun, ngrd, cnmnfun, cnmngrad)
+            # fmt: on
             optTime = time.time() - t0
 
+            if self.storeHistory:
+                self.metadata["endTime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.metadata["optTime"] = optTime
+                self.hist.writeData("metadata", self.metadata)
+                self.hist.close()
+
             if iprint > 0:
-                conmin.closeunit(self.getOption('IOUT'))
+                conmin.closeunit(self.getOption("IOUT"))
 
             # Broadcast a -1 to indcate SLSQP has finished
             self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
             sol_inform = {}
-            #sol_inform['value'] = inform
-            #sol_inform['text'] = self.informs[inform[0]]
+            # sol_inform['value'] = inform
+            # sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xs)
@@ -266,4 +261,3 @@ class CONMIN(Optimizer):
 
     def _on_getOption(self, name, value):
         pass
-

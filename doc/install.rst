@@ -1,89 +1,83 @@
 .. _install:
 
-Installation
-============
+Installation Instructions
+=========================
 
 Requirements
 ------------
-pyOpt has the following dependencies:
+pyOptSparse has the following dependencies:
 
-* Python 2.7+ (Python 3.2+)
-* Numpy 1.16+
-* Scipy 1.3+
-* six 1.13
-* sqlitedict 1.6.0
-* c/FORTRAN compiler (compatible with f2py)
+* Python 2.7, 3.7 or 3.8, though other Python 3 versions will likely work
+* C/FORTRAN compiler (compatible with f2py)
 
 Please make sure these are installed and available for use.
-In order to use NSGA2 and NOMAD, swig (v1.3+) is also required.
+In order to use NSGA2 and NOMAD, SWIG (v1.3+) is also required.
+If those optimizers are not needed, then you do not need to install SWIG.
+Simply comment out the corresponding lines in ``pyoptsparse/pyoptsparse/setup.py`` so that they are not compiled.
+The corresponding lines in ``pyoptsparse/__init__.py`` must be commented out as well.
 
-To facilitate the installation of Python dependencies, there is a file called ``requirements.txt`` which can be used together with ``pip``.
-Simply type
+Python dependencies are automatically handled by ``pip``, so they do not need to be installed separately.
 
-.. code-block:: bash
+.. note::
+  * In Linux, the python header files (python-dev) are also required.
+  * We do not support operating systems other than Linux.
+    If you want to run this on macOS or Windows, you are on your own.
 
-  pip install -r requirements.txt
+Installation
+------------
+The easiest and recommended way to install pyOptSparse is with ``pip``.
+First clone the repository into a location which is not on the ``$PYTHONPATH``, for example ``$HOME/packages/``.
+Then in the root ``pyoptsparse`` folder type::
 
-In the future, we hope to make the package pip-installable so that dependencies can be managed more easily.
+  pip install .
 
-Notes:
+For those not using virtual environments, a user install may be needed::
 
-* In Windows MinGW is recommended if c/FORTRAN compilers are not available
-* In Linux, the python header files (python-dev) are also required.
-* Compatibility on Windows 64bit has not been tested
+  pip install . --user
 
-Building
---------
+If you plan to modify pyOptSparse, installing with the developer option, i.e. with ``-e``, will save you from re-installing each time you modify the Python code.
 
-The recommended approach to using pyOptSparse is to install
-inplace. This does not require root access. From the ``pyoptsparse``
-directory run::
-    
-  >>> python setup.py build_ext --inplace
+It is also possible to install pyOptSparse by calling ``python setup.py install``, but this is not recommended.
 
-To use pyOptSparse in this case, the user should add the path of the
-diretory containing ``pyoptsparse`` to the user's ``PYTHONPATH``
-enviromental variable. For example, if the pyoptsparse directory is
-located at::
+.. note::
+  Some optimizers are proprietary and their sources are not distributed with pyOptSparse.
+  To use them, please follow the instructions on specific optimizer pages.
 
-  /home/user/hg/pyoptsparse
+Testing
+-------
+pyOptSparse provides a set of unit and regression tests to verify the installation.
+To run these tests, first install ``testflo`` which is a testing framework developed by the OpenMDAO team::
 
-The required line in the .bashrc file would be::
+  pip install testflo
 
-  export PYTHONPATH=$PYTHONPATH:/home/user/hg/
+Then, in the project root directory, type::
 
-To install the ``pyOptSparse`` package in a folder on the Python search path 
-(usually in a python site-packages or dist-packages folder) run:
-    
->>> python setup.py install --user
+  testflo . -v
 
-This will install the package to ``~/.local`` which is typically found
-automatically by Python. If a system wide install is desired the
-command to run would be (requiring root access)
+to run all tests.
 
->>> sudo python setup.py install
+Update or Uninstall
+-------------------
+To update pyOptSparse, first delete the ``build`` directory, then update the package using ``git``.
+For stability, users are encouraged to stick to tagged releases.
+Install the package normally via ``pip``.
 
-Notes:
-    
-* You may want to uninstall any previous version of pyOpt before installing a new 
-  version, as there may be conflicts.
-* Some optimizers are licensed and their sources are not included with this distribution. 
-  To use them, please request their sources from the authors as indicated in the optimizer 
-  LICENSE files, and place them in their respective source folders before installing the package.
-  Refer to specific optimizer pages for additional information.
-* In Windows, if MinGW is used make sure to install for it the C, C++, and Fortran compilers and run:
-  
-  >>> python setup.py install --compiler=mingw32
-  
-* By default pyOpt will attempt to use compilers available on the system. To get a list of 
-  available compilers and their corresponding flag on a specific system use:
-  
-  >>> python setup.py build --help-fcompiler
+To uninstall the package, type::
 
-* To see a list of all available ``setup.py`` options for building run 
-  
-  >>> python setup.py build --help
+  pip uninstall pyoptsparse
 
-* In macOS, you may need to force an update of gcc using ‘brew uninstall gcc’ followed by a fresh
-  installation of gcc using ‘brew install gcc’ as ‘brew upgrade gcc’ can be insufficient if you
-  have recently updated your macOS version.
+.. note::
+  pyOptSparse can optionally run in parallel if a suitable ``mpi4py``
+  installation exists. This will be automatically detected and
+  imported at run-time.
+
+  If you only want to run in parallel, you can
+  force pyOptSparse to do so by setting the environment variable
+  ``PYOPTSPARSE_REQUIRE_MPI`` to anyone of these values: ``['always', '1', 'true', 'yes']``
+  If a suitable ``mpi4py`` is not available, an exception will be raised and the run
+  terminated.
+
+  If you explicitly do not wish to use ``mpi4py``, set the environment variable ``PYOPTSPARSE_REQUIRE_MPI``
+  to anything other than those values. This can come in handy, for example, if your ``MPI`` installation
+  is not functioning properly, but you still need to run serial code.
+

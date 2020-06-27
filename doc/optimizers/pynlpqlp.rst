@@ -15,6 +15,16 @@ by a modified BFGS formula.
 NLPQLP is a proprietary software, which can be obtained `here <http://www.ai7.uni-bayreuth.de/nlpqlp.htm>`_.
 The latest version supported is v4.2.2.
 
+Options
+-------
+.. optimizertable:: pyoptsparse.pyNLPQLP.pyNLPQLP.NLPQLP
+   :type: options
+
+Informs
+-------
+.. optimizertable:: pyoptsparse.pyNLPQLP.pyNLPQLP.NLPQLP
+   :type: informs
+
 API
 ---
 .. currentmodule:: pyoptsparse.pyNLPQLP.pyNLPQLP

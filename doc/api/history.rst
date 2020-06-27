@@ -15,6 +15,7 @@ In this case, the history file would have the following layout::
     │   ├── optTime
     │   ├── optimizer
     │   └── version
+    ├── optProb
     ├── varInfo
     │   └── xvars
     │       ├── lower

@@ -10,12 +10,10 @@ John Jasa 2015-2019
 # ======================================================================
 # Standard Python modules
 # ======================================================================
-from __future__ import print_function
-import os
-import argparse
 import shelve
 
 import sys
+
 major_python_version = sys.version_info[0]
 
 if major_python_version == 2:
@@ -32,20 +30,22 @@ import warnings
 # External Python modules
 # ======================================================================
 import matplotlib
-matplotlib.use('TkAgg')
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,\
-    NavigationToolbar2Tk
+
+matplotlib.use("TkAgg")
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
+
 try:
-    warnings.filterwarnings("ignore",category=matplotlib.cbook.mplDeprecation)
-    warnings.filterwarnings("ignore",category=UserWarning)
+    warnings.filterwarnings("ignore", category=matplotlib.cbook.mplDeprecation)
+    warnings.filterwarnings("ignore", category=UserWarning)
 except:
     pass
 import numpy as np
 from sqlitedict import SqliteDict
 import traceback
+
 
 class OVBaseClass(object):
 
@@ -77,18 +77,18 @@ class OVBaseClass(object):
 
             # If they only have one history file, we don't change the keys' names
             if len(self.histList) == 1:
-                histIndex = ''
-            else: # If multiple history files, append letters to the keys,
-                  # such that 'key' becomes 'key_A', 'key_B', etc
-                histIndex = '_' + chr(histIndex + ord('A'))
+                histIndex = ""
+            else:  # If multiple history files, append letters to the keys,
+                # such that 'key' becomes 'key_A', 'key_B', etc
+                histIndex = "_" + chr(histIndex + ord("A"))
             self.histIndex = histIndex
 
-            try: # This is the classic method of storing history files
-                db = shelve.open(histFileName, 'r')
+            try:  # This is the classic method of storing history files
+                db = shelve.open(histFileName, "r")
                 OpenMDAO = False
-            except: # Bare except because error is not in standard Python.
+            except:  # Bare except because error is not in standard Python.
                 # If the db has the 'iterations' tag, it's an OpenMDAO db.
-                db = SqliteDict(histFileName, 'iterations')
+                db = SqliteDict(histFileName, "iterations")
                 OpenMDAO = True
 
                 # Need to do this since in py3 db.keys() is a generator object
@@ -106,9 +106,9 @@ class OVBaseClass(object):
                 # in the split string names for each entry in the db
                 if major_python_version == 3:
                     for string in db.keys():
-                        string = string.split('|')
+                        string = string.split("|")
                 else:
-                    string = db.keys()[-1].split('|')
+                    string = db.keys()[-1].split("|")
 
                 nkey = int(string[-1])
                 self.solver_name = string[0]
@@ -119,31 +119,31 @@ class OVBaseClass(object):
                 # Get the keys of the database where derivatives were evaluated.
                 # These correspond to major iterations, while no derivative
                 # info is calculated for gradient-free linesearches.
-                deriv_keys = SqliteDict(histFileName, 'derivs').keys()
-                self.deriv_keys = [int(key.split('|')[-1]) for key in deriv_keys]
+                deriv_keys = SqliteDict(histFileName, "derivs").keys()
+                self.deriv_keys = [int(key.split("|")[-1]) for key in deriv_keys]
 
                 # Save information from the history file for the funcs.
                 self.DetermineMajorIterations(db, OpenMDAO=OpenMDAO)
 
                 # Save information from the history file for the unknowns.
-                self.SaveDBData(db, self.func_data_all, self.func_data_major, OpenMDAO=OpenMDAO, data_str='Unknowns')
+                self.SaveDBData(db, self.func_data_all, self.func_data_major, OpenMDAO=OpenMDAO, data_str="Unknowns")
 
                 # Save information from the history file for the design variables.
-                self.SaveDBData(db, self.var_data_all, self.var_data_major, OpenMDAO=OpenMDAO, data_str='Parameters')
+                self.SaveDBData(db, self.var_data_all, self.var_data_major, OpenMDAO=OpenMDAO, data_str="Parameters")
 
                 # Add labels to OpenMDAO variables.
                 # Corresponds to constraints, design variables, and objective.
                 try:
-                    db = SqliteDict(histFileName, 'metadata')
+                    db = SqliteDict(histFileName, "metadata")
                     self.SaveOpenMDAOData(db)
 
-                except KeyError: # Skip metadata info if not included in OpenMDAO hist file
+                except KeyError:  # Skip metadata info if not included in OpenMDAO hist file
                     pass
 
             else:
 
                 # Get the number of iterations
-                nkey = int(db['last']) + 1
+                nkey = int(db["last"]) + 1
                 self.nkey = nkey
 
                 # Initalize a list detailing if the iterations are major or minor
@@ -153,16 +153,18 @@ class OVBaseClass(object):
                 # If so, add them to self.bounds to plot later.
                 try:
                     try:
-                        info_dict = db['varInfo'].copy()
-                        info_dict.update(db['conInfo'])
+                        info_dict = db["varInfo"].copy()
+                        info_dict.update(db["conInfo"])
                         scale_info = True
                     except KeyError:
-                        self.warning_display('This is an older optimization history file.\n' +
-                            'Only bounds information has been stored, not scalar info.')
-                        info_dict = db['varBounds'].copy()
-                        info_dict.update(db['conBounds'])
+                        self.warning_display(
+                            "This is an older optimization history file.\n"
+                            + "Only bounds information has been stored, not scalar info."
+                        )
+                        info_dict = db["varBounds"].copy()
+                        info_dict.update(db["conBounds"])
                         scale_info = False
-                        
+
                     # Got to be a little tricky here since we're modifying
                     # info_dict; if we simply loop over it with the generator
                     # from Python3, it will contain the new keys and then the
@@ -171,12 +173,12 @@ class OVBaseClass(object):
                     scaling_dict = {}
                     for key in info_dict.keys():
                         bounds_dict[key + histIndex] = {
-                            'lower': info_dict[key]['lower'],
-                            'upper': info_dict[key]['upper']
+                            "lower": info_dict[key]["lower"],
+                            "upper": info_dict[key]["upper"],
                         }
                         if scale_info:
-                            scaling_dict[key + histIndex] = info_dict[key]['scale']
-                        
+                            scaling_dict[key + histIndex] = info_dict[key]["scale"]
+
                     self.bounds.update(bounds_dict)
                     if scale_info:
                         self.scaling.update(scaling_dict)
@@ -184,7 +186,7 @@ class OVBaseClass(object):
                     pass
 
                 # Check to see if there is proper saved info about iter type
-                if 'isMajor' in db['0'].keys():
+                if "isMajor" in db["0"].keys():
                     self.storedIters = True
                 else:
                     self.storedIters = False
@@ -193,10 +195,10 @@ class OVBaseClass(object):
                 self.DetermineMajorIterations(db, OpenMDAO=OpenMDAO)
 
                 # Save information from the history file for the funcs.
-                self.SaveDBData(db, self.func_data_all, self.func_data_major, OpenMDAO=OpenMDAO, data_str='funcs')
+                self.SaveDBData(db, self.func_data_all, self.func_data_major, OpenMDAO=OpenMDAO, data_str="funcs")
 
                 # Save information from the history file for the design variables.
-                self.SaveDBData(db, self.var_data_all, self.var_data_major, OpenMDAO=OpenMDAO, data_str='xuser')
+                self.SaveDBData(db, self.var_data_all, self.var_data_major, OpenMDAO=OpenMDAO, data_str="xuser")
 
         # Set the initial dictionaries to reference all iterations.
         # Later this can be set to reference only the major iterations.
@@ -214,43 +216,41 @@ class OVBaseClass(object):
     def DetermineMajorIterations(self, db, OpenMDAO):
 
         if not OpenMDAO:
-
-            prev_key = 0
             # Loop over each optimization iteration
             for i, iter_type in enumerate(self.iter_type):
 
                 # If this is an OpenMDAO file, the keys are of the format
                 # 'rank0:SNOPT|1', etc
-                key = '%d' % i
+                key = "%d" % i
 
                 # Only actual optimization iterations have 'funcs' in them.
                 # pyOptSparse saves info for two iterations for every
                 # actual major iteration. In particular, one has funcs
                 # and the next has funcsSens, but they're both part of the
                 # same major iteration.
-                if 'funcs' in db[key].keys():
+                if "funcs" in db[key].keys():
                     # if we did not store major iteration info, everything's major
                     if not self.storedIters:
                         self.iter_type[i] = 1
                     # this is major iteration
-                    elif self.storedIters and db[key]['isMajor']:
+                    elif self.storedIters and db[key]["isMajor"]:
                         self.iter_type[i] = 1
                     else:
                         self.iter_type[i] = 2
                 else:
-                    self.iter_type[i] = 0 # this is not a real iteration,
-                                          # just the sensitivity evaluation
+                    self.iter_type[i] = 0  # this is not a real iteration,
+                    # just the sensitivity evaluation
 
-        else: # this is if it's OpenMDAO
+        else:  # this is if it's OpenMDAO
             for i, iter_type in enumerate(self.iter_type):
-                key = '{}|{}'.format(self.solver_name, i+1) # OpenMDAO uses 1-indexing
+                key = "{}|{}".format(self.solver_name, i + 1)  # OpenMDAO uses 1-indexing
                 if i in self.deriv_keys:
-                    self.iter_type[i] = 1.
+                    self.iter_type[i] = 1.0
 
             # If no derivative info is saved, we don't know which iterations are major.
             # Treat all iterations as major.
             if len(self.deriv_keys) < 1:
-                self.iter_type[:] = 1.
+                self.iter_type[:] = 1.0
 
     def SaveDBData(self, db, data_all, data_major, OpenMDAO, data_str):
         """ Method to save the information within the database corresponding
@@ -264,23 +264,22 @@ class OVBaseClass(object):
             # If this is an OpenMDAO file, the keys are of the format
             # 'rank0:SNOPT|1', etc
             if OpenMDAO:
-                key = '{}|{}'.format(self.solver_name, i+1) # OpenMDAO uses 1-indexing
-            else: # Otherwise the keys are simply a number
-                key = '%d' % i
+                key = "{}|{}".format(self.solver_name, i + 1)  # OpenMDAO uses 1-indexing
+            else:  # Otherwise the keys are simply a number
+                key = "%d" % i
 
             # Do this for both major and minor iterations
             if self.iter_type[i]:
 
                 # Get just the info in the dict for this iteration
                 iter_data = db[key][data_str]
-                iter_key = key
 
                 # Loop through each key within this iteration
                 for key in sorted(iter_data):
 
                     # Format a new_key string where we append a modifier
                     # if we have multiple history files
-                    new_key = key + '{}'.format(self.histIndex)
+                    new_key = key + "{}".format(self.histIndex)
 
                     # If this key is not in the data dictionaries, add it
                     if new_key not in data_all:
@@ -305,42 +304,42 @@ class OVBaseClass(object):
         for tag in db:
 
             # Only look at variables and unknowns
-            if tag in ['Unknowns', 'Parameters']:
+            if tag in ["Unknowns", "Parameters"]:
                 for old_item in db[tag]:
 
                     # We'll rename each item, so we need to get the old item
                     # name and modify it
-                    item = old_item + '{}'.format(self.histIndex)
+                    item = old_item + "{}".format(self.histIndex)
 
                     # Here we just have an open parenthesis, and then we will
                     # add o, c, or dv. Note that we could add multiple flags
                     # to a single item. That's why we have a sort of convoluted
                     # process of adding the tags.
-                    new_key = item + ' ('
+                    new_key = item + " ("
                     flag_list = []
 
                     # Check each flag and see if they have the relevant entries
                     # within the dict; if so, tag them.
                     for flag in db[tag][old_item]:
-                        if 'is_objective' in flag:
-                            flag_list.append('o')
-                        if 'is_desvar' in flag:
-                            flag_list.append('dv')
-                        if 'is_constraint' in flag:
-                            flag_list.append('c')
+                        if "is_objective" in flag:
+                            flag_list.append("o")
+                        if "is_desvar" in flag:
+                            flag_list.append("dv")
+                        if "is_constraint" in flag:
+                            flag_list.append("c")
 
                     # Create the new_key based on the flags for each variable
                     for flag in flag_list:
                         if flag == flag_list[-1]:
-                            new_key += flag + ')'
+                            new_key += flag + ")"
                         else:
-                            new_key += flag + ', '
+                            new_key += flag + ", "
 
                     # If there are actually flags to add, pop out the old items
                     # in the dict and re-add them with the new name.
                     if flag_list:
                         try:
-                            if 'dv' in flag_list:
+                            if "dv" in flag_list:
                                 self.var_data_all[new_key] = self.func_data_all.pop(item)
                                 self.var_data_major[new_key] = self.func_data_major.pop(item)
 

@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-from __future__ import absolute_import
+__version__ = "2.1.3"
+
 from .pyOpt_history import History
 from .pyOpt_variable import Variable
 from .pyOpt_gradient import Gradient
@@ -14,13 +14,10 @@ from .pySNOPT.pySNOPT import SNOPT
 from .pyIPOPT.pyIPOPT import IPOPT
 from .pySLSQP.pySLSQP import SLSQP
 from .pyCONMIN.pyCONMIN import CONMIN
-from .pyFSQP.pyFSQP import FSQP
 from .pyPSQP.pyPSQP import PSQP
 from .pyNLPQLP.pyNLPQLP import NLPQLP
 from .pyNSGA2.pyNSGA2 import NSGA2
-from .pyNLPY_AUGLAG.pyNLPY_AUGLAG import NLPY_AUGLAG
 from .pyALPSO.pyALPSO import ALPSO
-from .pyParOpt import ParOpt
-# from .pyNOMAD.pyNOMAD import NOMAD
+from .pyParOpt.ParOpt import ParOpt
 
-__version__ = '2.0.1'
+# from .pyNOMAD.pyNOMAD import NOMAD
