@@ -20,10 +20,19 @@ From v2.0 onwards, only SNOPT v7.7 is officially supported.
 To use pyOptSparse with previous versions of SNOPT, please checkout release v1.2.
 
 
+Options
+-------
+.. optimizertable:: pyoptsparse.pySNOPT.pySNOPT.SNOPT
+   :type: options
+
+
+Informs
+-------
+.. optimizertable:: pyoptsparse.pySNOPT.pySNOPT.SNOPT
+   :type: informs
+
 API
 ---
-
-
 .. currentmodule:: pyoptsparse.pySNOPT.pySNOPT
 
 .. autoclass:: SNOPT

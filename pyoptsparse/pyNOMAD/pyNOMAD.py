@@ -3,8 +3,6 @@
 # Description: This program finds the optimum solution for a given objective
 # function using the optimization package NOMAD.
 
-from __future__ import absolute_import
-from __future__ import print_function
 # =============================================================================
 # NOMAD Library
 # =============================================================================
@@ -15,44 +13,47 @@ except ImportError:
 # =============================================================================
 # Standard Python modules
 # =============================================================================
-import os
 import time
+
 # =============================================================================
 # External Python modules
 # =============================================================================
-import numpy
+import numpy as np
+
 # ===========================================================================
 # Extension modules
 # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
+
 # =============================================================================
 # SLSQP Optimizer Class
 # =============================================================================
 
-class NOMAD(Optimizer):
 
-    def __init__(self, *args, **kwargs):
-        name = 'NOMAD'
-        category = 'MADS Optimizer'
-        defOpts = {
+class NOMAD(Optimizer):
+    def __init__(self, raiseError=True, *args, **kwargs):
+        name = "NOMAD"
+        category = "MADS Optimizer"
+        self.defOpts = {
             # NOMAD Options
-            'maxiter':[int, 1000000],                   # Maximum number of function evaluations
-            'minmeshsize':[float, 1e-12],           # Minimum refinement size of mesh
-            'minpollsize':[float, 1e-12],           # Minimum step size for polling procedure
-            'displaydegree':[int, 0],               # 0-none, 1-minimal display, 2-normal display, 3-full display
-            'printfile':[int, 1]                    # 0-no output file, 1-output to NOMAD.out
-            }
-        informs = {}
+            "maxiter": [int, 1000000],  # Maximum number of function evaluations
+            "minmeshsize": [float, 1e-12],  # Minimum refinement size of mesh
+            "minpollsize": [float, 1e-12],  # Minimum step size for polling procedure
+            "displaydegree": [int, 0],  # 0-none, 1-minimal display, 2-normal display, 3-full display
+            "printfile": [int, 1],  # 0-no output file, 1-output to NOMAD.out
+        }
+        self.informs = {}
         self.set_options = []
         if nomad is None:
-            raise Error('There was an error importing the compiled'
-                        'nomad module')
+            if raiseError:
+                raise Error("There was an error importing the compiled nomad module")
 
-        Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
+        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
-    def __call__(self, optProb, sens=None, sensStep=None, sensMode=None,
-                 storeHistory=None, hotStart=None, storeSens=True):
+    def __call__(
+        self, optProb, sens=None, sensStep=None, sensMode=None, storeHistory=None, hotStart=None, storeSens=True
+    ):
 
         if len(optProb.constraints) == 0:
             # If the user *actually* has an unconstrained problem,
@@ -68,18 +69,18 @@ class NOMAD(Optimizer):
         self.optProb.finalizeConstraints()
         self._setInitialCacheValues()
         blx, bux, xs = self._assembleContinuousVariables()
-        xs = numpy.maximum(xs, blx)
-        xs = numpy.minimum(xs, bux)
+        xs = np.maximum(xs, blx)
+        xs = np.minimum(xs, bux)
         n = len(xs)
         ff = self._assembleObjective()
 
         oneSided = True
         if self.unconstrained:
             m = 0
-            meq = 0
         else:
             indices, blc, buc, fact = self.optProb.getOrdering(
-                ['ne', 'le', 'ni', 'li'], oneSided=oneSided, noEquality=True)
+                ["ne", "le", "ni", "li"], oneSided=oneSided, noEquality=True
+            )
             m = len(indices)
 
             self.optProb.jacIndices = indices
@@ -91,11 +92,11 @@ class NOMAD(Optimizer):
             self._setHistory(storeHistory, hotStart)
 
             # Define the objective function
-            #--------------------------------------------------------------
+            # --------------------------------------------------------------
             def objfun(o, x_tuple):
-                x = numpy.asarray(x_tuple)
+                x = np.asarray(x_tuple)
                 fail = False
-                fobj, fcon, fail = self._masterFunc(x, ['fobj', 'fcon'])
+                fobj, fcon, fail = self._masterFunc(x, ["fobj", "fcon"])
                 f = [fobj]
                 g = fcon.tolist()
                 if not fail:
@@ -110,17 +111,19 @@ class NOMAD(Optimizer):
             problemset.setCallback(objfun)
 
             # Setup NOMAD options
-            maxit = self.getOption('maxiter')
-            min_mesh_size = self.getOption('minmeshsize')
-            min_poll_size = self.getOption('minpollsize')
-            display_degree = self.getOption('displaydegree')
-            print_file = self.getOption('printfile')
+            maxit = self.getOption("maxiter")
+            min_mesh_size = self.getOption("minmeshsize")
+            min_poll_size = self.getOption("minpollsize")
+            display_degree = self.getOption("displaydegree")
+            print_file = self.getOption("printfile")
 
             # Run NOMAD
             t0 = time.time()
-            solutionset = problemset.call(n, m+2, xs, blx, bux, min_poll_size, min_mesh_size, maxit, display_degree, print_file)
+            solutionset = problemset.call(
+                n, m + 2, xs, blx, bux, min_poll_size, min_mesh_size, maxit, display_degree, print_file
+            )
             ff = solutionset[1]
-            optTime = time.time() -t0
+            optTime = time.time() - t0
 
             if self.storeHistory:
                 self.hist.close()
@@ -130,8 +133,8 @@ class NOMAD(Optimizer):
 
             # Store Results
             sol_inform = {}
-            #sol_inform['value'] = inform
-            #sol_inform['text'] = self.informs[inform[0]]
+            # sol_inform['value'] = inform
+            # sol_inform['text'] = self.informs[inform[0]]
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xs)

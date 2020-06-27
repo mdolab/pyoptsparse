@@ -7,10 +7,12 @@ exclude_lines =
     if __name__ == .__main__.:
 
 [run]
-
 omit =
     */build/*
     */doc/*
     */examples/*
     */postprocessing/*
     */test/*
+    */setup.py
+    pyoptsparse/pyALPSO/alpso_ext.py
+    pyoptsparse/pyNOMAD/pyNOMAD.py

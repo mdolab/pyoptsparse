@@ -1,7 +1,7 @@
 .. _optimizer:
 
-Optimzer
---------
+Optimizer
+---------
 
 .. currentmodule:: pyoptsparse.pyOpt_optimizer
 
