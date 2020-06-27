@@ -57,7 +57,7 @@ doi:10.1007/s00158-011-0666-3.
 ```
 
 ## License
-pyOptSparse is licensed under the  Apache License 2.0.
+pyOptSparse is licensed under the GNU Lesser General Public License.
 See `LICENSE` for the full license.
 
 ## Copyright
