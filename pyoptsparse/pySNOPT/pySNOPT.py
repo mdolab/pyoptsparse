@@ -147,10 +147,10 @@ class SNOPT(Optimizer):
                 list,
                 ["step", "merit", "feasibility", "optimality", "penalty"],
             ],  # 'Hessian', 'slack', 'lambda' and 'condZHZ' are also supported
-            "Return work arrays": [
-                bool,
-                False,
-            ],  # whether or not the work arrays are returned in addition to the solution
+            # whether or not the work arrays are returned in addition to the solution
+            "Return work arrays": [bool, False],
+            "User specified snSTOP": [bool, False],
+            "snSTOP function handle": [type(lambda: None), lambda: None],  # called every major iteration
         }
         self.informs = {
             0: "finished successfully",
@@ -652,56 +652,11 @@ class SNOPT(Optimizer):
         xPen = rw[lxPen : lxPen + nnCon]
         return xPen
 
-    def _snstop(
-        self,
-        ktcond,
-        mjrprtlvl,
-        minimize,
-        n,
-        nncon,
-        nnobj,
-        ns,
-        itn,
-        nmajor,
-        nminor,
-        nswap,
-        ninfe,
-        sinfe,
-        condzhz,
-        iobj,
-        scaleobj,
-        objadd,
-        fobj,
-        fmerit,
-        penparm,
-        step,
-        primalinf,
-        dualinf,
-        maxvi,
-        maxvirel,
-        hs,
-        locj,
-        indj,
-        jcol,
-        scales,
-        bl,
-        bu,
-        fx,
-        fcon,
-        gcon,
-        gobj,
-        ycon,
-        pi,
-        rc,
-        rg,
-        x,
-        cu,
-        iu,
-        ru,
-        cw,
-        iw,
-        rw,
-    ):
+    # fmt: off
+    def _snstop(self, ktcond, mjrprtlvl, minimize, n, nncon, nnobj, ns, itn, nmajor, nminor, nswap, ninfe, sinfe, condzhz, iobj, scaleobj,
+                objadd, fobj, fmerit, penparm, step, primalinf, dualinf, maxvi, maxvirel, hs, locj, indj, jcol, scales, bl, bu, fx, fcon, gcon, gobj, ycon,
+                pi, rc, rg, x, cu, iu, ru, cw, iw, rw):
+        # fmt: on
         """
         This routine is called every major iteration in SNOPT, after solving QP but before line search
         Currently we use it just to determine the correct major iteration counting,
@@ -744,7 +699,17 @@ class SNOPT(Optimizer):
                 callCounter = self.hist._searchCallCounter(xuser_vec)
             if callCounter is not None:
                 self.hist.write(callCounter, iterDict)
-        iabort = 0
+                iterDict = self.hist.read(callCounter)
+        if self.getOption("User specified snSTOP"):
+            if not self.storeHistory:
+                raise Error("User specified snSTOP must be used with storeHistory=True")
+            snstop_handle = self.getOption("snSTOP function handle")
+            iabort = snstop_handle(iterDict)
+            # if no return, assume everything went fine
+            if iabort is None:
+                iabort = 0
+        else:
+            iabort = 0
         return iabort
 
     def _set_snopt_options(self, iPrint, iSumm, cw, iw, rw):

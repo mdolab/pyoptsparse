@@ -782,6 +782,8 @@ class Optimizer(object):
         # we retrieve only the second item which is the actual value
         for key, val in options.items():
             options[key] = val[1]
+        if "snSTOP function handle" in options.keys():
+            options.pop("snSTOP function handle")
 
         from .__init__ import __version__  # importing the pyoptsparse version
 
