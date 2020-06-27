@@ -544,7 +544,7 @@ class SNOPT(Optimizer):
             # Store Results
             sol_inform = {}
             sol_inform["value"] = inform
-            sol_inform["text"] = self.informs[inform[0]]
+            sol_inform["text"] = self.informs[inform]
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xs[:nvar], multipliers=pi)
