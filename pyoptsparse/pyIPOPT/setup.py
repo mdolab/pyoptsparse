@@ -51,7 +51,7 @@ def configuration(parent_package="", top_path=None):
             "pyipoptcore",
             FILES,
             library_dirs=[IPOPT_LIB],
-            libraries=["ipopt", "coinhsl", "dl", "m", "blas", "lapack"],
+            libraries=["ipopt", "coinmumps", "coinmetis", "dl", "m", "blas", "lapack"],
             extra_link_args=["-Wl,-rpath,%s -L%s" % (IPOPT_LIB, IPOPT_LIB)],
             include_dirs=[numpy_include, IPOPT_INC],
         )
