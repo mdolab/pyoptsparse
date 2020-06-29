@@ -41,7 +41,7 @@ def configuration(parent_package="", top_path=None):
     elif os.getenv("IPOPT_DIR") is not None:
         IPOPT_DIR = os.getenv("IPOPT_DIR")
         IPOPT_LIB = os.path.join(IPOPT_DIR, "lib")
-        IPOPT_INC = os.path.join(IPOPT_DIR, "include/coin/")
+        IPOPT_INC = os.path.join(IPOPT_DIR, "include/coin-or/")
         add_ipopt = True
 
     if add_ipopt:
