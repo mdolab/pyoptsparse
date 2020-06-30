@@ -47,6 +47,7 @@ Here we explain a basic setup using MUMPS as the linear solver, together with ME
    .. code-block:: bash
 
       # build IPOPT
+      cd $IPOPT_DIR
       mkdir build
       cd build
       ../configure --prefix=${IPOPT_DIR} --disable-java --with-mumps --with-mumps-lflags="-L${IPOPT_DIR}/lib -lcoinmumps" \
