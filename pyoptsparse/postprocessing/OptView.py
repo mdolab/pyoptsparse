@@ -1166,7 +1166,7 @@ class Display(OVBaseClass):
         w.grid(row=10, column=1)
 
 
-if __name__ == "__main__":
+def main():
     # Called only if this script is run as main.
 
     # ======================================================================
@@ -1200,3 +1200,7 @@ if __name__ == "__main__":
         "Select functions or design variables from the listboxes \nbelow to view the optimization history."
     )
     Tk.mainloop()
+
+
+if __name__ == "__main__":
+    main()
