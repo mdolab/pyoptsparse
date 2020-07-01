@@ -487,7 +487,7 @@ external_css = [
 for css in external_css:
     app.css.append_css({"external_url": css})
 
-app.config.supress_callback_exceptions = True
+app.config.suppress_callback_exceptions = True
 
 
 @app.callback(
