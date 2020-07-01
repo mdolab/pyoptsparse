@@ -48,7 +48,7 @@ except:
 import numpy as np
 from sqlitedict import SqliteDict
 import traceback
-from OptView_baseclass import OVBaseClass
+from .OptView_baseclass import OVBaseClass
 
 
 class Display(OVBaseClass):
