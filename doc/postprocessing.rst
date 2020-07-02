@@ -58,8 +58,8 @@ Optionally, if you want to save the generated figures, there is an optional argu
 
     optview histFile --output ~/my_figures
 
-``outputDirectory`` is the name of the desired output directory for
-saved images (default is within the same folder as ``OptView.py``.)
+``outputDirectory`` is the name of the desired output directory for saved images.
+By default, the figure is saved to the directory where you invokved ``optview``.
 
 Features
 ~~~~~~~~

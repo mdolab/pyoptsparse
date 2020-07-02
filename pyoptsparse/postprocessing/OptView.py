@@ -1176,14 +1176,17 @@ def main():
     parser.add_argument(
         "histFile", nargs="*", type=str, default="opt_hist.hst", help="Specify the history file to be plotted"
     )
-    parser.add_argument("--output", nargs="?", type=str, default="./", help="Specify the output directory")
+    parser.add_argument("--output", nargs="?", type=str, default=None, help="Specify the output directory")
     parser.add_argument(
         "--figsize", nargs="?", type=float, default="4", help="Specify the desired minimum figure canvas size"
     )
 
     args = parser.parse_args()
     histList = args.histFile
-    outputDir = args.output
+    if args.output is None:
+        outputDir = os.getcwd()
+    else:
+        outputDir = args.output
     figsize = args.figsize
 
     histFileName = histList[0]
