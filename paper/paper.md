@@ -16,7 +16,7 @@ authors:
 affiliations:
  - name: Department of Aerospace Engineering, University of Michigan
    index: 1
- - name: NREL
+ - name: National Renewable Energy Laboratory
    index: 2
 date: June 24, 2020
 bibliography: paper.bib
@@ -25,19 +25,19 @@ bibliography: paper.bib
 # Summary
 pyOptSparse is an optimization framework designed for constrained nonlinear optimization of large sparse problems, providing a unified interface for a variety of gradient-free and gradient-based optimizers.
 By using an object-oriented approach, it maintains independence between the optimization problem formulation and the implementation of the specific optimizers.
-The code is MPI-wrapped to enable execution of expensive parallel analyses and gradient evaluations, such as using computational fluid dynamics (CFD) simulations.
+The code is MPI-wrapped to enable execution of expensive parallel analyses and gradient evaluations, such as when using computational fluid dynamics (CFD) simulations.
 During optimization, a history file can be stored to record the optimization history, both for post-processing and for performing an optimization hot-start.
 A graphical user interface application is also provided, which can interactively plot various quantities over an optimization.
 
-pyOptSparse is a fork of pyOpt [@Perez2012], and as the name suggests, its primary motivation is to support the use of sparse linear and nonlinear constraints which sets itself apart from other frameworks such as SciPy [@SciPy] and NLopt [NLopt].
+pyOptSparse is a fork of pyOpt [@Perez2012], and as the name suggests, its primary motivation is to support the use of sparse linear and nonlinear constraints which sets itself apart from other frameworks such as SciPy [@SciPy] and NLopt [@NLopt].
 pyOptSparse considers optimization problems of the form
 \begin{align}
-\text{min}\quad & f(x)\\
+\text{minimize}\quad & f(x)\\
 \text{with respect to}\quad & x\\
 \text{such that}\quad & l \le \begin{pmatrix}
 x\\
 Ax\\
-g_j(x)\\
+g(x)\\
 \end{pmatrix}
 \le u\\
 \end{align}
@@ -49,7 +49,7 @@ For nonlinear constraints, the sparsity pattern of the constraint Jacobian $\nab
 
 pyOptSparse has been used extensively in the field of multidisciplinary design optimization (MDO).
 Researchers have used it to perform aerodynamic shape optimization of aircraft wings[@Secco2019] and wind turbines [@Madsen2019], and aerostructural optimization of an entire aircraft [@Brooks2018].
-pyOptSparse is also supported by OpenMDAO [@Gray2019], a popular framework for multidisciplinary analysis and optimization.
+pyOptSparse is also supported by OpenMDAO [@Gray2019], a popular Python framework for multidisciplinary analysis and optimization.
 Through OpenMDAO, pyOptSparse has been applied to problems such as low-fidelity aero-structural wing design [@Chauhan2020] and aeropropulsive optimization of a boundary-layer ingestion propulsor [@Gray2018].
 
 <!-- # Available optimizers
