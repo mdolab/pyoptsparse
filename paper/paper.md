@@ -51,7 +51,8 @@ Researchers have used it to perform aerodynamic shape optimization of aircraft w
 pyOptSparse is also supported by OpenMDAO [@Gray2019], a popular Python framework for multidisciplinary analysis and optimization.
 Through OpenMDAO, pyOptSparse has been applied to problems such as low-fidelity aero-structural wing design [@Chauhan2020] and aeropropulsive optimization of a boundary-layer ingestion propulsor [@Gray2018].
 
-<!-- # Acknowledgements
-pyOpt -->
+# Acknowledgements
+We acknowledge the efforts of the original pyOpt developers, particularly Dr. Ruben E. Perez and Dr. Peter W. Jansen, who laid the foundation of the code.
+We also acknowledge the numerous pyOptSparse users who have contributed to the code over the years.
 
 # References
