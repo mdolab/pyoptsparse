@@ -30,7 +30,7 @@ A graphical user interface application is also provided to interactively plot va
 pyOptSparse is a fork of pyOpt [@Perez2012], and as the name suggests, its primary motivation is to support the use of sparse linear and nonlinear constraints.
 This sets itself apart from other optimization frameworks such as SciPy [@SciPy] and NLopt [@NLopt], and is more tailored to gradient-based optimizations of large-scale problems with sparse constraints.
 pyOptSparse considers optimization problems of the form
-\begin{align}
+\begin{align*}
 \text{minimize}\quad & f(x)\\
 \text{with respect to}\quad & x\\
 \text{such that}\quad & l \le \begin{pmatrix}
@@ -39,7 +39,7 @@ Ax\\
 g(x)\\
 \end{pmatrix}
 \le u\\
-\end{align}
+\end{align*}
 where $x$ is the vector of design variables and $f(x)$ is a nonlinear objective function.
 $A$ is the linear constraint Jacobian, and $g(x)$ is the set of nonlinear constraint functions.
 pyOptSparse makes a distinction between linear and nonlinear constraints, since some optimizers have special treatments for linear constraints.
