@@ -1,5 +1,5 @@
 ---
-title: 'pyOptSparse: A Python package for large-scale constrained nonlinear optimization of sparse systems'
+title: 'pyOptSparse: A Python framework for large-scale constrained nonlinear optimization of sparse systems'
 tags:
   - optimization
   - Python
