@@ -16,7 +16,6 @@ env:
     - DOCKER_MOUNT_DIR=/home/mdolabuser/travis/$REPO_NAME
     - SNOPT_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pySNOPT/source
     - NLPQLP_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pyNLPQLP/source
-    - IPOPT_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pyIPOPT/Ipopt
   jobs:
     - DOCKER_TAG=py2-latest
     - DOCKER_TAG=py3-stable
@@ -43,7 +42,7 @@ before_install:
 install:
   # We back up the proprietary source codes first
   - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
-      docker exec -it app /bin/bash -c "cp -r $SNOPT_DIR \$HOME/SNOPT && cp -r $NLPQLP_DIR \$HOME/NLPQLP && cp -r $IPOPT_DIR \$HOME/IPOPT";
+      docker exec -it app /bin/bash -c "cp -r $SNOPT_DIR \$HOME/SNOPT && cp -r $NLPQLP_DIR \$HOME/NLPQLP";
     fi
   # We thrown away the existing repo in Docker, and copy the new one in-place
   - docker exec -it app /bin/bash -c "rm -rf $DOCKER_WORKING_DIR && cp -r $DOCKER_MOUNT_DIR $DOCKER_WORKING_DIR"
@@ -52,7 +51,7 @@ install:
   - docker exec -it app /bin/bash -c ". \$HOME/.bashrc_mdolab && pip install testflo==1.3.5"
   # Copy back the proprietary codes
   - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
-      docker exec -it app /bin/bash -c "cp -r \$HOME/NLPQLP/* $NLPQLP_DIR/ && cp -r \$HOME/SNOPT/* $SNOPT_DIR/ && cp -r \$HOME/IPOPT/ $IPOPT_DIR";
+      docker exec -it app /bin/bash -c "cp -r \$HOME/NLPQLP/* $NLPQLP_DIR/ && cp -r \$HOME/SNOPT/* $SNOPT_DIR/";
     fi
   # Build and install
   - docker exec -it app /bin/bash -c ". \$HOME/.bashrc_mdolab && cd $DOCKER_WORKING_DIR && pip install -e ."
