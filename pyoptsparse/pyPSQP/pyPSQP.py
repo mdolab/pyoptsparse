@@ -224,7 +224,7 @@ class PSQP(Optimizer):
                 return dg
 
             # Setup argument list values
-            iterm = 0
+            iterm = np.array(0, int)
             gmax = 0.0
             cmax = 0.0
             opt = self.getOption
@@ -255,9 +255,10 @@ class PSQP(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
+            inform = np.asscalar(iterm)
             sol_inform = {}
-            # sol_inform['value'] = inform
-            # sol_inform['text'] = self.informs[inform[0]]
+            sol_inform["value"] = inform
+            sol_inform["text"] = self.informs[inform]
             if self.storeHistory:
                 self.metadata["endTime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 self.metadata["optTime"] = optTime

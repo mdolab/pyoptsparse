@@ -88,7 +88,7 @@ class TestUserTerminationStatus(unittest.TestCase):
         self.assertEqual(termcomp.obj_count, 3)
 
         # Exit code for user requested termination.
-        self.assertEqual(sol.optInform["value"][0], 71)
+        self.assertEqual(sol.optInform["value"], 71)
 
     def test_sens(self):
         termcomp = TerminateComp(max_sens=3)
@@ -117,7 +117,7 @@ class TestUserTerminationStatus(unittest.TestCase):
         self.assertEqual(termcomp.sens_count, 4)
 
         # Exit code for user requested termination.
-        self.assertEqual(sol.optInform["value"][0], 71)
+        self.assertEqual(sol.optInform["value"], 71)
 
 
 if __name__ == "__main__":

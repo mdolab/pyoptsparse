@@ -201,7 +201,7 @@ class SLSQP(Optimizer):
                 if os.path.isfile(ifile):
                     os.remove(ifile)
 
-            mode = 0
+            mode = np.array(0, int)
             mineq = m - meq + 2 * (n + 1)
             lsq = (n + 1) * ((n + 1) + 1) + meq * ((n + 1) + 1) + mineq * ((n + 1) + 1)
             lsi = ((n + 1) - meq + 1) * (mineq + 2) + 2 * mineq
@@ -257,9 +257,10 @@ class SLSQP(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
+            inform = np.asscalar(mode)
             sol_inform = {}
-            # sol_inform['value'] = inform
-            # sol_inform['text'] = self.informs[inform[0]]
+            sol_inform["value"] = inform
+            sol_inform["text"] = self.informs[inform]
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xs)
