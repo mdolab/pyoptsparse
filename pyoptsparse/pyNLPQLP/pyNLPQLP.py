@@ -76,6 +76,7 @@ class NLPQLP(Optimizer):
             8: "The starting point violates a lower or upper bound.",
             9: "Wrong input parameter, i.e., MODE, LDL decomposition in D and C (in case of MODE=1), IPRINT, IOUT",
             10: "Internal inconsistency of the quadratic subproblem, division by zero.",
+            11: "More than MAXFUN successive non-evaluable function calls.",
             100: (
                 "The solution of the quadratic programming subproblem has been"
                 + " terminated with an error message and IFAIL is set to IFQL+100,"
@@ -236,7 +237,7 @@ class NLPQLP(Optimizer):
 
             if os.path.isfile(go("iFile")):
                 os.remove(go("iFile"))
-            ifail = 0
+            ifail = np.array(0, dtype=int)
             # Run NLPQL
             t0 = time.time()
             # fmt: off
@@ -259,9 +260,10 @@ class NLPQLP(Optimizer):
                 self.hist.close()
 
             # Store Results
+            inform = np.asscalar(ifail)
             sol_inform = {}
-            # sol_inform['value'] = inform
-            # sol_inform['text'] = self.informs[inform[0]]
+            sol_inform["value"] = inform
+            sol_inform["text"] = self.informs[inform]
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xs)
