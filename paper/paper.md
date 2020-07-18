@@ -27,8 +27,6 @@ The code is MPI-wrapped to enable execution of expensive parallel analyses and g
 During the optimization, a history file can be stored to record the optimization history, which can be used both for post-processing and for performing an optimization hot-start.
 A graphical user interface application is also provided to interactively plot various quantities over an optimization.
 
-pyOptSparse is a fork of pyOpt [@Perez2012], and as the name suggests, its primary motivation is to support the use of sparse linear and nonlinear constraints.
-This sets itself apart from other optimization frameworks such as SciPy [@SciPy] and NLopt [@NLopt], and is more tailored to gradient-based optimizations of large-scale problems with sparse constraints.
 pyOptSparse considers optimization problems of the form
 \begin{align*}
 \text{minimize}\quad & f(x)\\
@@ -46,7 +44,15 @@ pyOptSparse makes a distinction between linear and nonlinear constraints, since 
 Sparse linear constraints can be directly supplied in a number of different formats, and pyOptSparse will automatically handle the assembly and conversion for each optimizer.
 For nonlinear constraints, the sparsity pattern of the constraint Jacobian $\nabla g(x)$ can be specified as well.
 
-pyOptSparse has been used extensively in the field of multidisciplinary design optimization (MDO).
+# Statement of Need
+pyOptSparse is a fork of pyOpt [@Perez2012], and as the name suggests, its primary motivation is to support the use of sparse linear and nonlinear constraints in the context of gradient-based optimization.
+This sets itself apart from other optimization frameworks such as SciPy [@SciPy] and NLopt [@NLopt], which do not provide the same level of support for sparse constraints.
+NLopt does not support sparse Jacobians, either for linear or nonlinear constraints.
+While SciPy does support both, it does not allow for the Jacobians to be specified separately for each sub-block, since it treats the design vector as a single array.
+These frameworks also do not offer convenience features such as user-supplied optimization problem scaling, optimization hot-start, or post-processing utilities.
+Although pyOptSparse is a general optimization framework, it is tailored to gradient-based optimizations of large-scale problems with sparse constraints.
+
+pyOptSparse has been used extensively in engineering applications, particularly in the field of multidisciplinary design optimization (MDO).
 Researchers have used it to perform aerodynamic shape optimization of aircraft wings [@Secco2019] and wind turbines [@Madsen2019], and aero-structural optimization of an entire aircraft [@Brooks2018].
 pyOptSparse is also supported by OpenMDAO [@Gray2019], a popular Python framework for multidisciplinary analysis and optimization.
 Through OpenMDAO, pyOptSparse has been applied to problems such as low-fidelity aero-structural wing design [@Chauhan2020] and aeropropulsive optimization of a boundary-layer ingestion propulsor [@Gray2018].
