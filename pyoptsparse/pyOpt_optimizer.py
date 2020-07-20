@@ -524,10 +524,11 @@ class Optimizer(object):
 
             # Cycle through constraints adding the bounds
             for key in self.optProb.constraints.keys():
-                lower = self.optProb.constraints[key].lower
-                upper = self.optProb.constraints[key].upper
-                scale = self.optProb.constraints[key].scale
-                conInfo[key] = {"lower": lower, "upper": upper, "scale": scale}
+                if not self.optProb.constraints[key].linear:
+                    lower = self.optProb.constraints[key].lower
+                    upper = self.optProb.constraints[key].upper
+                    scale = self.optProb.constraints[key].scale
+                    conInfo[key] = {"lower": lower, "upper": upper, "scale": scale}
 
             # Cycle through variables and add the bounds
             for dvGroup in self.optProb.variables:

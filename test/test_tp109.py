@@ -30,7 +30,7 @@ import unittest
 import numpy as np
 from numpy import sin, cos
 from numpy.testing import assert_allclose
-from pyoptsparse import Optimization, OPT
+from pyoptsparse import Optimization, OPT, History
 from pyoptsparse.pyOpt_error import Error
 
 USE_LINEAR = True
@@ -88,7 +88,7 @@ def objfunc(xdict):
 
 
 class TestTP109(unittest.TestCase):
-    def optimize(self, optName, tol, optOptions={}):
+    def optimize(self, optName, tol, optOptions={}, storeHistory=None):
         # Optimization Object
         optProb = Optimization("TP109 Constraint Problem", objfunc)
 
@@ -127,13 +127,18 @@ class TestTP109(unittest.TestCase):
             raise unittest.SkipTest("Optimizer not available:", optName)
 
         # Solution
-        sol = opt(optProb, sens="CS")
+        sol = opt(optProb, sens="CS", storeHistory=storeHistory)
 
         # Check Solution
         assert_allclose(sol.objectives["obj"].value, 0.536206927538e04, atol=tol, rtol=tol)
 
     def test_snopt(self):
-        self.optimize("snopt", 1e-7)
+        name = "tp109_snopt.hst"
+        self.optimize("snopt", 1e-7, storeHistory=name)
+        hist = History(name)
+        self.assertNotIn("lin_con", hist.getConNames())
+        self.assertNotIn("lin_con", hist.getConInfo())
+        hist.getValues()
 
     def test_slsqp(self):
         self.optimize("slsqp", 1e-7)
