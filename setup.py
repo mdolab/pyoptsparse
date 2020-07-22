@@ -1,6 +1,8 @@
 import os
 import sys
 
+import setuptools  # magic import to allow us to use entry_point
+
 # Check if we have numpy:
 try:
     from numpy.distutils.misc_util import Configuration
@@ -76,4 +78,5 @@ if __name__ == "__main__":
             "Topic :: Education",
         ],
         configuration=configuration,
+        entry_points={"gui_scripts": ["optview = pyoptsparse.postprocessing.OptView:main"]},
     )
