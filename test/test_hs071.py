@@ -85,14 +85,6 @@ class TestHS71(unittest.TestCase):
                 assert_allclose(sol.lambdaStar["con"], self.lambdaStar, atol=tol, rtol=tol)
         return sol
 
-    def test_snopt(self):
-        test_name = "hs071_SNOPT"
-        optOptions = {
-            "Print file": "{}.out".format(test_name),
-            "Summary file": "{}_summary.out".format(test_name),
-        }
-        self.optimize("snopt", 1e-6, optOptions=optOptions)
-
     def test_slsqp_setDV(self):
         """
         Test that setDV works as expected, even with scaling/offset
@@ -218,13 +210,34 @@ class TestHS71(unittest.TestCase):
         con_scaled = scaled_values["con"][0]
         assert_allclose(con_scaled, con_orig * conScale, atol=1e-12, rtol=1e-12)
 
+    def test_snopt(self):
+        test_name = "hs071_SNOPT"
+        optOptions = {
+            "Print file": "{}.out".format(test_name),
+            "Summary file": "{}_summary.out".format(test_name),
+        }
+        sol = self.optimize("snopt", 1e-6, optOptions=optOptions)
+        self.assertEqual(sol.optInform["value"], 1)
+        optOptions["Major iterations limit"] = 1
+        sol = self.optimize("snopt", 1e-6, optOptions=optOptions, check_solution=False)
+        self.assertEqual(sol.optInform["value"], 32)
+
     def test_slsqp(self):
         optOptions = {"IFILE": "hs071_SLSQP.out"}
-        self.optimize("slsqp", 1e-6, optOptions=optOptions)
+        sol = self.optimize("slsqp", 1e-6, optOptions=optOptions)
+        self.assertEqual(sol.optInform["value"], 0)
+        # now we set max iteration to 1 and verify that we get a different inform
+        optOptions["MAXIT"] = 1
+        sol = self.optimize("slsqp", 1e-6, optOptions=optOptions, check_solution=False)
+        self.assertEqual(sol.optInform["value"], 9)
 
     def test_nlpqlp(self):
         optOptions = {"iFile": "hs071_NLPQLP.out"}
-        self.optimize("nlpqlp", 1e-6, optOptions=optOptions)
+        sol = self.optimize("nlpqlp", 1e-6, optOptions=optOptions)
+        self.assertEqual(sol.optInform["value"], 0)
+        optOptions["maxIt"] = 1
+        sol = self.optimize("nlpqlp", 1e-6, optOptions=optOptions, check_solution=False)
+        self.assertEqual(sol.optInform["value"], 1)
 
     def test_ipopt(self):
         optOptions = {"print_level": 5, "output_file": "hs071_IPOPT.out"}
@@ -253,7 +266,11 @@ class TestHS71(unittest.TestCase):
 
     def test_psqp(self):
         optOptions = {"IFILE": "hs071_PSQP.out"}
-        self.optimize("psqp", 1e-6, optOptions=optOptions)
+        sol = self.optimize("psqp", 1e-6, optOptions=optOptions)
+        self.assertEqual(sol.optInform["value"], 4)
+        optOptions["MIT"] = 1
+        sol = self.optimize("psqp", 1e-6, optOptions=optOptions, check_solution=False)
+        self.assertEqual(sol.optInform["value"], 11)
 
     def test_paropt(self):
         optOptions = {"output_file": "hs071_ParOpt.out"}
