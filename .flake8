@@ -13,6 +13,6 @@ exclude =
     *__init__.py
     *setup.py
     # OptView and related files need to be fixed eventually
-    postprocessing/OptView.py
-    postprocessing/OptView_baseclass.py
-    postprocessing/view_saved_figure.py
+    pyoptsparse/postprocessing/OptView.py
+    pyoptsparse/postprocessing/OptView_baseclass.py
+    pyoptsparse/postprocessing/view_saved_figure.py

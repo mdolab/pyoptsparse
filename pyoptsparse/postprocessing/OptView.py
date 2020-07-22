@@ -48,7 +48,7 @@ except:
 import numpy as np
 from sqlitedict import SqliteDict
 import traceback
-from OptView_baseclass import OVBaseClass
+from .OptView_baseclass import OVBaseClass
 
 
 class Display(OVBaseClass):
@@ -1166,7 +1166,7 @@ class Display(OVBaseClass):
         w.grid(row=10, column=1)
 
 
-if __name__ == "__main__":
+def main():
     # Called only if this script is run as main.
 
     # ======================================================================
@@ -1176,14 +1176,17 @@ if __name__ == "__main__":
     parser.add_argument(
         "histFile", nargs="*", type=str, default="opt_hist.hst", help="Specify the history file to be plotted"
     )
-    parser.add_argument("--output", nargs="?", type=str, default="./", help="Specify the output directory")
+    parser.add_argument("--output", nargs="?", type=str, default=None, help="Specify the output directory")
     parser.add_argument(
         "--figsize", nargs="?", type=float, default="4", help="Specify the desired minimum figure canvas size"
     )
 
     args = parser.parse_args()
     histList = args.histFile
-    outputDir = args.output
+    if args.output is None:
+        outputDir = os.getcwd()
+    else:
+        outputDir = args.output
     figsize = args.figsize
 
     histFileName = histList[0]
@@ -1200,3 +1203,7 @@ if __name__ == "__main__":
         "Select functions or design variables from the listboxes \nbelow to view the optimization history."
     )
     Tk.mainloop()
+
+
+if __name__ == "__main__":
+    main()
