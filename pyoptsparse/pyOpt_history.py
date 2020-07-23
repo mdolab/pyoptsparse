@@ -35,14 +35,15 @@ class History(object):
             String specifying the mode. Similar to what was used in shelve.
             ``n`` for a new database and ``r`` to read an existing one.
         """
-        if flag == "n":
+        self.flag = flag
+        if self.flag == "n":
             # If writing, we expliclty remove the file to
             # prevent old keys from "polluting" the new histrory
             if os.path.exists(fileName):
                 os.remove(fileName)
             self.db = SqliteDict(fileName)
             self.optProb = optProb
-        elif flag == "r":
+        elif self.flag == "r":
             if os.path.exists(fileName):
                 # we cast the db to OrderedDict so we do not have to
                 # manually close the underlying db at the end
@@ -54,7 +55,6 @@ class History(object):
             raise Error("The flag argument to History must be 'r' or 'n'.")
         self.temp = temp
         self.fileName = fileName
-        self.flag = flag
 
     def close(self):
         """
@@ -193,10 +193,13 @@ class History(object):
         self.DVInfo = self.read("varInfo")
         self.conInfo = self.read("conInfo")
         self.objInfo = self.read("objInfo")
+        # metadata
+        self.metadata = self.read("metadata")
+        self.optProb = self.read("optProb")
         # load names
-        self.DVNames = set(self.DVInfo.keys())
-        self.conNames = set(self.conInfo.keys())
-        self.objNames = set(self.objInfo.keys())
+        self.DVNames = set(self.getDVNames())
+        self.conNames = set(self.getConNames())
+        self.objNames = set(self.getObjNames())
 
         # extract list of callCounters from self.keys
         # this just checks if each key contains only digits, then cast into int
@@ -207,10 +210,6 @@ class History(object):
         for i in self.callCounters:
             val = self.read(i)
             self.iterKeys.update(val.keys())
-
-        # metadata
-        self.metadata = self.read("metadata")
-        self.optProb = self.read("optProb")
 
         from .__init__ import __version__
 
@@ -258,7 +257,11 @@ class History(object):
         # only do this if we open the file with 'r' flag
         if self.flag != "r":
             return
-        return copy.deepcopy(list(self.conInfo.keys()))
+        conNames = list(self.conInfo.keys())
+        for con in conNames:
+            if self.optProb.constraints[con].linear:
+                conNames.remove(con)
+        return copy.deepcopy(conNames)
 
     def getObjNames(self):
         """
