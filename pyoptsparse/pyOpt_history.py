@@ -433,10 +433,12 @@ class History(object):
         These are all "flat" dictionaries, with simple key:value pairs.
         """
         conDict = {}
-        for con in self.conNames:
+        for con in self.optProb.constraints.keys():
             # linear constraints are not stored in funcs
             if not self.optProb.constraints[con].linear:
                 conDict[con] = d["funcs"][con]
+            else:
+                self.optProb.constraints.pop(con)
         objDict = {}
         for obj in self.objNames:
             objDict[obj] = d["funcs"][obj]
