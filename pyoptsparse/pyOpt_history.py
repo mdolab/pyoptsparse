@@ -436,6 +436,8 @@ class History(object):
             if not self.optProb.constraints[con].linear:
                 conDict[con] = d["funcs"][con]
             else:
+                # the linear constraints are removed from optProb so that scaling works
+                # without needing the linear constraints to be present
                 self.optProb.constraints.pop(con)
         objDict = {}
         for obj in self.objNames:
