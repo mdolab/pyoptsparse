@@ -139,6 +139,7 @@ class TestTP109(unittest.TestCase):
         self.assertNotIn("lin_con", hist.getConNames())
         self.assertNotIn("lin_con", hist.getConInfo())
         hist.getValues()
+        hist.getValues(scale=True)
 
     def test_slsqp(self):
         self.optimize("slsqp", 1e-7)

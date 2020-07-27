@@ -257,10 +257,8 @@ class History(object):
         # only do this if we open the file with 'r' flag
         if self.flag != "r":
             return
-        conNames = list(self.conInfo.keys())
-        for con in conNames:
-            if self.optProb.constraints[con].linear:
-                conNames.remove(con)
+        # we remove linear constraints
+        conNames = [con for con in self.conInfo.keys() if not self.optProb.constraints[con].linear]
         return copy.deepcopy(conNames)
 
     def getObjNames(self):
@@ -433,10 +431,14 @@ class History(object):
         These are all "flat" dictionaries, with simple key:value pairs.
         """
         conDict = {}
-        for con in self.conNames:
+        for con in list(self.optProb.constraints.keys()):
             # linear constraints are not stored in funcs
             if not self.optProb.constraints[con].linear:
                 conDict[con] = d["funcs"][con]
+            else:
+                # the linear constraints are removed from optProb so that scaling works
+                # without needing the linear constraints to be present
+                self.optProb.constraints.pop(con)
         objDict = {}
         for obj in self.objNames:
             objDict[obj] = d["funcs"][obj]
