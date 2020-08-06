@@ -207,7 +207,7 @@ class TestHS15(unittest.TestCase):
         for var in store_vars:
             self.assertIn(var, data.keys())
         self.assertEqual(data["Hessian"].shape, (1, 2, 2))
-        self.assertEqual(data["feasibility"].shape, (1,))
+        self.assertEqual(data["feasibility"].shape, (1, 1))
         self.assertEqual(data["slack"].shape, (1, 2))
         self.assertEqual(data["lambda"].shape, (1, 2))
 

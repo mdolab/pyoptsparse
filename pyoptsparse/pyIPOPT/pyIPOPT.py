@@ -223,7 +223,7 @@ class IPOPT(Optimizer):
             "warm_start_mult_init_max": [float, 1e06],
             "warm_start_entire_iterate": [float, "no"],
             # Linear Solver.
-            "linear_solver": [str, "ma27"],
+            "linear_solver": [str, "mumps"],
             "linear_system_scaling": [str, "none"],  # Had been "mc19", but not always available.
             "linear_scaling_on_demand": [str, "yes"],
             # Step Calculation.

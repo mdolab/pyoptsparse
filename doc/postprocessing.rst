@@ -36,33 +36,30 @@ if you wish to save an editable version of the graph produced in ``OptView``.
 
 Usage
 ~~~~~
-``OptView`` can be run via terminal as::
+``OptView`` can be run via terminal from any directory as::
 
-    python OptView.py --histFile --outputDirectory
+    optview histFile
 
 Here, ``histFile`` is the name of the history file to be examined
-(default is 'opt_hist.hst').
-``outputDirectory`` is the name of the desired output directory for
-saved images (default is within the same folder as ``OptView.py``.)
+(default is ``opt_hist.hst``).
 
-``OptView`` can also be ran from any directory by adding an alias line
-to your ``.bashrc`` file such as::
-
-    alias OptView='python ~/packages/pyoptsparse/postprocessing/OptView.py
-
-Through this usage, ``OptView`` can be called from any directory as::
-
-    OptView histFile --outputDirectory
 
 Additionally, you can open multiple history files in the same ``OptView`` instance
 by calling them via the command line::
 
-    OptView histFile1 histFile2 histFile3 --outputDirectory
+    optview histFile1 histFile2 histFile3
 
 Each file's contents will be loaded into ``OptView`` with a flag appended to the end
 of each variable or function name corresponding to the history file. The first one
 listed will have '_A' added to the name, the second will have '_B' added, etc.
 There is currently no limit to the number of history files than can be loaded.
+
+Optionally, if you want to save the generated figures, there is an optional argument::
+
+    optview histFile --output ~/my_figures
+
+``outputDirectory`` is the name of the desired output directory for saved images.
+By default, the figure is saved to the directory where you invokved ``optview``.
 
 Features
 ~~~~~~~~
