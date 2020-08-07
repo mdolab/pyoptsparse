@@ -62,7 +62,7 @@ class PSQP(Optimizer):
             13: "Maximum number of gradient evaluations exceeded",
             -6: "Termination criterion not satisfied, but obtained point is acceptable",
             -7: "Positive directional derivative in line search",
-            -8: "Error in interpolation in line search",
+            -8: "Interpolation error in line search",
             -10: "Optimization failed",
         }
         Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
