@@ -61,6 +61,9 @@ class PSQP(Optimizer):
             12: "Maximum number of function evaluations exceeded",
             13: "Maximum number of gradient evaluations exceeded",
             -6: "Termination criterion not satisfied, but obtained point is acceptable",
+            -7: "Positive directional derivative in line search",
+            -8: "Interpolation error in line search",
+            -10: "Optimization failed",
         }
         Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
@@ -256,6 +259,8 @@ class PSQP(Optimizer):
 
             # Store Results
             inform = np.asscalar(iterm)
+            if inform < 0 and inform not in self.informs:
+                inform = -10
             sol_inform = {}
             sol_inform["value"] = inform
             sol_inform["text"] = self.informs[inform]
