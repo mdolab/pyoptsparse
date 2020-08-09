@@ -42,6 +42,8 @@ It is also possible to install pyOptSparse by calling ``python setup.py install`
 .. note::
   Some optimizers are proprietary and their sources are not distributed with pyOptSparse.
   To use them, please follow the instructions on specific optimizer pages.
+  
+For those who intend to use pyOptSparse with IPOPT, OpenMDAO developers provide a `bash script <https://github.com/OpenMDAO/build_pyoptsparse>`_ that simplifies the installation of the optimizer with different linear solvers.
 
 Testing
 -------
