@@ -101,6 +101,7 @@ This is particularly useful in engineering applications, where the physical quan
 pyOptSparse allows the user to adjust problem scaling for each design variable, constraint and objective separately, without needing to change the bound specification or derivative computation.
 
 ## Parallel execution
+<!-- mention mpi4py? -->
 pyOptSparse offers parallel execution in three ways.
 Firstly and most commonly, it can perform parallel function evaluations when the functions themselves require multiple processors.
 This is commonly the case when performing large-scale optimizations, where the objective and constraint functions are the result of a complex analysis such as computational fluid simulations.
@@ -129,6 +130,95 @@ This feature is particularly useful if the objective function is expensive to ev
 In this case, the full state within the optimizer can be regenerated through the hot start process, so that the optimization can continue without performance penalties.
 
 # Simple optimization script
+To highlight some of the features discussed above, we present the pyOptSparse script to solve a toy problem involving two sets of design variables $x$ and $y$, subject to two nonlinear constraints and one linear constraint.
+The optimization is as follows:
+\begin{align*}
+\text{minimize}\quad & x_0 + x_1^3 + y_0^2 + y_1^2 + y_2^2 + y_3^2\\
+\text{with respect to}\quad & x_0, x_1, y_0, y_1, y_2, y_3\\
+\text{such that}\quad & -10 \le x_0 x_1\\
+& -10 \le 3x_0 - \sin(x_1) \le 10\\
+& y_0 - 2y_1 = 5
+\end{align*}
+
+The sparsity structure of the constraint Jacobian is shown below:
+```
+                 x (2)   y (4)
+               +---------------+
+       con (2) |   X   |       |
+               -----------------
+lin_con(L) (1) |       |   X   |
+               +---------------+
+```
+which allows us to only specify derivatives for the two nonzero sub-blocks.
+For simplicity, we will supply the linear Jacobian explicitly, and use complex step to compute the derivative for the nonlinear constraints automatically.
+
+First we define the imports and the objective function.
+```python
+import numpy as np
+from pyoptsparse import Optimization, OPT
+
+def objfunc(xdict):
+    x = xdict["x"]
+    y = xdict["y"]
+    funcs = {}
+    funcs["obj"] = x[0] + x[1] ** 3 + np.sum(np.power(y, 2))
+    funcs["con"] = np.zeros(2, np.complex)
+    funcs["con"][0] = x[0] * x[1]
+    funcs["con"][1] = 3 * x[0] - np.sin(x[1])
+    fail = False
+    return funcs, fail
+```
+Note that only the nonlinear constraints need to be evaluated here.
+
+Next, we set up the optimization problem, including design variables, objective and constraints.
+```python
+# Optimization Object
+optProb = Optimization("Example Optimization", objfunc)
+
+# Design Variables
+nx = 2
+lower = [-10, -10]
+upper = [10, 100]
+value = [-5, 6]
+optProb.addVarGroup("x", nx, lower=lower, upper=upper, value=value)
+ny = 4
+optProb.addVarGroup("y", ny, lower=-10, upper=None, value=0)
+
+# Nonlinear constraints
+ncons = 2
+lower = [-10, -10]
+upper = [None, 10]
+optProb.addConGroup("con", ncons, wrt="x", lower=lower, upper=upper)
+# Linear constraint
+jac = np.zeros((1, ny))
+jac[0, 0] = 1
+jac[0, 1] = -2
+optProb.addConGroup("lin_con", 1, lower=5, upper=5, wrt=["y"], jac={"y": jac}, linear=True)
+# Objective
+optProb.addObj("obj")
+```
+By using the `wrt` argument when adding constraints, we tell pyOptSparse that only the specified sub-blocks of the Jacobian are nonzero.
+
+The linear Jacobian for this problem is
+\begin{pmatrix}
+1\\
+-2\\
+0\\
+0
+\end{pmatrix}
+which we construct as `jac` and pass to pyOptSparse.
+For large optimization problems, the Jacobian can be constructed using sparse matrices.
+
+Finally, we set up the optimizer and solve the optimization problem.
+```python
+# Optimizer
+optOptions = {}
+opt = OPT("SLSQP", options=optOptions)
+
+# Optimize
+sol = opt(optProb, sens="CS")
+print(sol)
+```
 
 # Statement of Need
 pyOptSparse is a fork of pyOpt [@Perez2012], and as the name suggests, its primary motivation is to support the use of sparse linear and nonlinear constraints in the context of gradient-based optimization.
