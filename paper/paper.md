@@ -169,7 +169,6 @@ def objfunc(xdict):
     return funcs, fail
 ```
 Note that only the nonlinear constraints need to be evaluated here.
-
 Next, we set up the optimization problem, including design variables, objective and constraints.
 ```python
 # Optimization Object
@@ -193,7 +192,9 @@ optProb.addConGroup("con", ncons, wrt="x", lower=lower, upper=upper)
 jac = np.zeros((1, ny))
 jac[0, 0] = 1
 jac[0, 1] = -2
-optProb.addConGroup("lin_con", 1, lower=5, upper=5, wrt=["y"], jac={"y": jac}, linear=True)
+optProb.addConGroup(
+    "lin_con", 1, lower=5, upper=5, wrt=["y"], jac={"y": jac}, linear=True
+)
 # Objective
 optProb.addObj("obj")
 ```
