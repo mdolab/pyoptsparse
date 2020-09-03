@@ -130,14 +130,39 @@ This feature is particularly useful if the objective function is expensive to ev
 In this case, the full state within the optimizer can be regenerated through the hot start process, so that the optimization can continue without performance penalties.
 
 # Simple optimization script
-To highlight some of the features discussed above, we present the pyOptSparse script to solve a toy problem involving two sets of design variables $x$ and $y$, subject to two nonlinear constraints and one linear constraint.
+To highlight some of the features discussed above, we present the pyOptSparse script to solve a toy problem involving six design variables split into two groups, $x$ and $y$.
+We also add two nonlinear constraints and one linear constraint, as well as design variable bounds.
 The optimization is as follows:
 \begin{align*}
 \text{minimize}\quad & x_0 + x_1^3 + y_0^2 + y_1^2 + y_2^2 + y_3^2\\
 \text{with respect to}\quad & x_0, x_1, y_0, y_1, y_2, y_3\\
 \text{such that}\quad & -10 \le x_0 x_1\\
 & -10 \le 3x_0 - \sin(x_1) \le 10\\
-& y_0 - 2y_1 = 5
+& y_0 - 2y_1 = 5\\
+& \begin{pmatrix}
+-10\\
+-10
+\end{pmatrix}
+< \begin{pmatrix}
+x_0\\
+x_1
+\end{pmatrix}
+< \begin{pmatrix}
+10\\
+100
+\end{pmatrix}\\
+& \begin{pmatrix}
+-10\\
+-10\\
+-10\\
+-10
+\end{pmatrix}
+< \begin{pmatrix}
+y_0\\
+y_1\\
+y_2\\
+y_3
+\end{pmatrix}
 \end{align*}
 
 The sparsity structure of the constraint Jacobian is shown below:
