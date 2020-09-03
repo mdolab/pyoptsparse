@@ -200,12 +200,12 @@ optProb.addObj("obj")
 By using the `wrt` argument when adding constraints, we tell pyOptSparse that only the specified sub-blocks of the Jacobian are nonzero.
 
 The linear Jacobian for this problem is
-\begin{pmatrix}
+\begin{align*}\begin{pmatrix}
 1\\
 -2\\
 0\\
 0
-\end{pmatrix}
+\end{pmatrix}\end{align*}
 which we construct as `jac` and pass to pyOptSparse.
 For large optimization problems, the Jacobian can be constructed using sparse matrices.
 
