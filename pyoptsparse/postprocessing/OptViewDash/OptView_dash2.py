@@ -322,7 +322,7 @@ def getValues(name, dataType, hist):
 
 def addVarTraces(var, trace, dataType, names, groupType):
     """
-    Adds traces to the plotly figure traces[] list for the passed in variable, based on specified user input including data tpye
+    Adds traces to the plotly figure trace[] list for the passed in variable, based on specified user input including data tpye
     and plot type. Also adds upper and lower bounds traces if specified by user in dataType.
 
     If 'bounds' is in dataType, three traces are added: the var's trace, and the upper and lower bound traces for the var.
@@ -337,6 +337,9 @@ def addVarTraces(var, trace, dataType, names, groupType):
         One history file:
             EX: EX: xvars_0 -> This would be the first variable in the xvars group
         *NOTE* If the xvars group only has one scalar quantity, the corresponding name will only be xvars with no _INDEX
+
+    trace: list
+        List containing the traces to be displayed on the plotly figure. 
 
     datatType : list of str
         Contains dataType str values selected by user (i.e scale, major, delta, bounds)
@@ -450,6 +453,28 @@ def addVarTraces(var, trace, dataType, names, groupType):
 
 
 def addMaxMinTraces(var, trace, dataType, histList):
+    """
+    Adds min and max to the plotly figure trace[] list for the passed in variable group.
+
+    Parameters
+    ----------
+    var : str
+        The name of the variable group name to add min/max traces for.
+            EX: xvars
+    
+    trace: list
+        List containing the traces to be displayed on the plotly figure. 
+
+    datatType : list of str
+        Contains dataType str values selected by user (i.e scale, major, delta, bounds)
+
+    histList: list of str
+        List of str file names to be turned into history objects.
+
+    Returns
+    -------
+    Nothing
+    """
     var = str(var)
     # Variable key name that is used in history file (removed _INDEX or _indexHist) (EX: var=xvars_0/xvars_A_0  -> varName=xvars)
     varName = var
