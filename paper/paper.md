@@ -23,11 +23,11 @@ bibliography: paper.bib
 ---
 
 # Summary
-pyOptSparse is an optimization framework designed for constrained nonlinear optimization of large sparse problems, providing a unified interface for a variety of gradient-free and gradient-based optimizers.
-By using an object-oriented approach, it maintains independence between the optimization problem formulation and the implementation of the specific optimizers.
-The code is MPI-wrapped to enable execution of expensive parallel analyses and gradient evaluations, such as when using computational fluid dynamics (CFD) simulations which can require hundreds of processors.
-During the optimization, the user can store the optimization history in a database file, which can then be used both for post-processing and for restarting an optimization.
-A graphical user interface application is also provided to interactively visualize the optimization history.
+pyOptSparse is an optimization framework designed for constrained nonlinear optimization of large sparse problems, providing a unified interface for various gradient-free and gradient-based optimizers.
+Using an object-oriented approach maintains independence between the optimization problem formulation and the implementation of the specific optimizers.
+The code is MPI-wrapped to enable execution of expensive parallel analyses and gradient evaluations, such as when using computational fluid dynamics (CFD) simulations, which can require hundreds of processors.
+The optimization history can be stored in a database file, which can then be used both for post-processing and restarting another optimization.
+A graphical user interface application is provided to visualize the optimization history interactively.
 
 pyOptSparse considers optimization problems of the form
 \begin{align*}
@@ -45,94 +45,96 @@ $A$ is the linear constraint Jacobian, and $g(x)$ is the set of nonlinear constr
 
 # Features
 ## Support for multiple optimizers
-pyOptSparse provides built-in support for a number of popular proprietary and open-source optimizers.
-Different optimizers typically have different requirements for formulating the optimization problem, such as constraint ordering, specification of equality constraints, and the sparse matrix format used to specify the constraint Jacobian.
-However, thankfully this is all handled automatically by the various optimizer wrappers within pyOptSparse.
-By isolating the optimization problem definition from the optimizer, the user is able to easily switch between different optimizers applied to the same optimization problem.
-In fact, the user has to change only a single line of code to switch to another optimizer.
+pyOptSparse provides built-in support for several popular proprietary and open-source optimizers.
+Each optimizer usually has its own way to specify the problem:
+It might require different constraint ordering, have different ways of specifying equality constraints, or use a sparse matrix format to represent the constraint Jacobian.
+pyOptSparse provides a common Python interface for the various optimizer that hides these differences from the user. 
+By isolating the optimization problem definition from the optimizer, the user can easily switch between different optimizers applied to the same optimization problem.
+The optimizer can be switched by editing a single line of code.
 
-Although pyOptSparse is primarily focused on large-scale gradient-based optimization, it provides support for gradient-free optimizers as well.
-In addition, discrete variables, multi-objective and population-based optimizers are all supported.
-Due to the object-oriented programming approach, it is also straightforward to extend pyOptSparse to support any additional optimizers not currently available.
-That way, new optimizers would automatically inherit all the capabilities within pyOptSparse.
+Although pyOptSparse focuses primarily on large-scale gradient-based optimization, it provides support for gradient-free optimizers as well.
+Also, discrete variables, multi-objective, and population-based optimizers are all supported.
+Because of the object-oriented programming approach, it is also straightforward to extend pyOptSparse to support any additional optimizers that are not currently available.
+When adding a new optimizer, it automatically inherits all the capabilities within pyOptSparse.
+[//]: # (TODO JM-: What do you mean by this last sentence? The optimizer does not gain any new capability, just a new interface, right?)
 
 ## String-based indexing
-Unlike many of the other publicly available optimization frameworks, pyOptSparse is designed for large-scale optimizations, with a particular focus on engineering applications.
-With $\mathcal{O}(1000)$ design variables and constraints, it is important to correctly keep track of all values during optimization.
+Unlike many other publicly available optimization frameworks, pyOptSparse is designed to handle large-scale optimizations, focusing on engineering applications.
+With $\mathcal{O}(1000)$ design variables and constraints, it is crucial to keep track of all values during optimization correctly.
+[//]: # (TODO JM-: Some people don't like using O notation in this context. Replace with "thousands"?)
 pyOptSparse employs string-based indexing to accomplish this.
-Instead of using a single flattened array, the related design variables and constraints can be grouped together into separate arrays.
-These are combined using an ordered dictionary, with each group identified by a unique key.
-Similarly, the constraint Jacobian is represented using a nested dictionary approach.
-This has several advantages:
+Instead of using a single flattened array, the related design variables and constraints can be grouped into separate arrays.
+These arrays are combined using an ordered dictionary, where each group is identified by a unique key.
+Similarly, the constraint Jacobian is represented by a nested dictionary approach.
+This representation has several advantages:
 
-- Accessing design variable and constraint values without needing to consider their global indices, which is clumsy and prone to error.
+- The design variable and constraint values can be accessed without needing to consider their global indices, which is clumsy and prone to error.
 - The global indices are also often optimizer-dependent, and this extra level of abstraction allows pyOptSparse to handle everything behind the scenes.
-- The constraint Jacobian can be computed and provided at the sub-block level, with the whole Jacobian assembled by pyOptSparse.
-  This closely mirrors the engineering workflow, where different sub-blocks of the Jacobian are often computed by different tools.
-  The user only has to ensure that the indices within each sub-block is correct, and the rest is handled automatically.
+- The constraint Jacobian can be computed and provided at the sub-block level, leaving pyOptSparse to assemble the whole Jacobian.
+  This mimics the engineering workflow, where different tools often compute different sub-blocks of the Jacobian.
+  The user only has to ensure that the indices within each sub-block are correct, and the rest is handled automatically.
 
 ## Support for sparse linear and nonlinear constraints
-One major feature of pyOptSparse is the support for sparse constraints.
-When defining constraints, it's possible to provide the sparsity pattern of the Jacobian.
-This can be done at the global level, by specifying which constraint groups are independent of which design variable groups, thereby letting pyOptSparse know that the corresponding sub-blocks of the Jacobian are always zero.
-For non-zero sub-blocks, it's also possible to supply the sparsity pattern of that sub-block, again using local indexing, such that the actual derivative computation can use sparse matrices as well.
+One prominent feature of pyOptSparse is the support for sparse constraints.
+When defining constraints, it is possible to provide the sparsity pattern of the Jacobian.
+This can be done at the global level by specifying which constraint groups are independent of which design variable groups, thereby letting pyOptSparse know that the corresponding sub-blocks of the Jacobian are always zero.
+For nonzero sub-blocks, it is also possible to supply the sparsity pattern of that sub-block, again using local indexing, such that the actual derivative computation can use sparse matrices as well.
 
 pyOptSparse also provides explicit support for linear constraints, since some optimizers provide special handling for these constraints.
 In these cases, only the Jacobian and the bounds of the constraint need to be supplied.
-The values and gradients of these constraints do not need to be evaluated every iteration, since the optimizer will satisfy them internally.
+The values and gradients of these constraints do not need to be evaluated every iteration, since the optimizer satisfies them internally.
 
 ## Automatic computation of derivatives
-If analytic derivatives for the objective and constraint functions are not available, pyOptSparse can automatically compute them internally using finite differences or complex step.
-For finite differences, the user has the option of either using forward or central differences, and with either an absolute or relative step size.
+If analytic derivatives for the objective and constraint functions are not available, pyOptSparse can automatically compute them internally using finite differences or the complex-step method [@Martins2003].
+For finite differences, the user can use forward or central differences, with either an absolute or relative step size.
 Computing derivatives using finite differences can be expensive, requiring $n$ extra evaluations for forward differences and $2n$ for centered differences.
-They are also inaccurate due to subtractive cancellation error under finite precision arithmetic.
-Complex step [@Martins2003] on the other hand, still requires the same number of function evaluations.
-However, by perturbing each design variable along the imaginary axis, subtractive cancellation errors are avoided.
-As a result, by taking very small steps, derivatives can be accurate down to machine precision.
-To use this feature, the user must make sure that the objective and constraint functions can be evaluated correctly with complex design variables.
+Finite differences are also inaccurate due to subtractive cancellation errors under finite precision arithmetic.
+The complex-step method, on the other hand, avoids subtractive cancellation errors.
+By using small enough steps, the complex-step derivatives can be accurate to machine precision [@Martins2003].
+The user must make sure that the objective and constraint functions can be evaluated correctly with complex design variable values when using this feature.
 
 ## Optimizer-independent problem scaling
-pyOptSparse offers optimizer-independent scaling for individual design variables, objective and constraints.
-By separating the optimization problem definition from the optimizer used, pyOptSparse is able to apply the scaling automatically and consistently with any supported optimizer.
-Since the optimization problem is always defined in the physical, user-defined space, bounds on the design variables and constraints do not need to be modified when applying a different scaling.
+pyOptSparse offers optimizer-independent scaling for individual design variables, objective, and constraints.
+By separating the optimization problem definition from the particular optimizer, pyOptSparse can apply the scaling automatically and consistently with any supported optimizer.
+[//]: # (TODO JM-: The optimizer does not need to support a scaling option; we can always scale ourselves, right?)
+Since the optimization problem is always defined in the physical, user-defined space, the bounds on the design variables and constraints do not need to be modified when applying a different scaling.
 Furthermore, for gradient-based optimizers, all the derivatives are scaled automatically and consistently without any effort from the user.
-The user only needs to pass in a `scale` option when defining design variables, objective and constraints.
-This is particularly useful in engineering applications, where the physical quantities can sometimes cause undesirable problem scaling, and leading to poor optimization convergence.
-pyOptSparse allows the user to adjust problem scaling for each design variable, constraint and objective separately, without needing to change the bound specification or derivative computation.
+The user only needs to pass in a `scale` option when defining design variables, objective, and constraints.
+This is particularly useful in engineering applications, where the physical quantities can sometimes cause undesirable problem scaling, leading to poor optimization convergence.
+pyOptSparse allows the user to adjust problem scaling for each design variable, constraint, and objective separately, without needing to change the bound specification or derivative computation.
 
 ## Parallel execution
 pyOptSparse can use MPI to execute function evaluations in parallel, in three distinct ways.
 Firstly and most commonly, it can perform parallel function evaluations when the functions themselves require multiple processors.
-This is commonly the case when performing large-scale optimizations, where the objective and constraint functions are the result of a complex analysis such as computational fluid dynamic simulations.
-In this scenario, pyOptSparse can be executed with multiple processors, and all processors will be used to perform function evaluation, but only the root processor will run the optimizer itself.
-That way, we avoid the scenario where each processor is running an independent copy of the optimizer, and potentially causing inconsistencies or processor locking.
+This is usually the case when performing large-scale optimizations, where the objective and constraint functions are the result of a complex analysis, such as computational fluid dynamic simulations.
+In this scenario, pyOptSparse can be executed with multiple processors, where all processors perform the function evaluation, but only the root processor runs the optimizer itself.
+That way, we avoid the scenario where each processor runs an independent copy of the optimizer, potentially causing inconsistencies or processor locking.
 
-Secondly, it is possible to perform parallel gradient evaluation when automatic finite difference or complex step derivatives are used.
-If the function evaluation only requires a single processor, it's possible to call pyOptSparse with multiple processors so that each point in the finite difference stencil is evaluated in parallel, reducing the wall time for derivative computation.
+Secondly, it is possible to perform parallel gradient evaluation when automatic finite-difference or complex-step derivatives are computed.
+If the function evaluation only requires a single processor, it is possible to call pyOptSparse with multiple processors so that each point in the finite-difference stencil is evaluated in parallel, reducing the wall time for derivative computations.
 
-Lastly, certain population-based optimizers may support parallel function evaluation for each optimizer iteration.
-In the case of genetic algorithm or particle swarm optimization, a fixed number of function evaluations are required at each optimizer iteration, and they can be done in parallel if multiple processors are available and the functions only require a single processor to execute.
-However, the implementation of this mechanism is optimizer-dependent, and support varies between the different optimizers available.
+Lastly, some population-based optimizers may support parallel function evaluation for each optimizer iteration.
+In the case of a genetic algorithm or particle swarm optimization, a fixed number of function evaluations are required at each optimizer iteration. These evaluations can be done in parallel if multiple processors are available, and the functions only require a single processor to execute.
+However, the support and implementation of this mechanism is optimizer dependent.
 
 ## Leveraging the history file: visualization and restart
 pyOptSparse can store an optimization history file using its own format, which is based on SQLite.
-The optimization history can then be visualized using OptView, a graphical user interface application provided by pyOptSparse.
-Alternatively, users can post-process results manually.
-To facilitate this task, an API is provided for querying the history file and accessing the optimization history.
+The optimization history can then be visualized using OptView: a graphical user interface application provided by pyOptSparse.
+Alternatively, users can manually post-process results by using an API designed to query the history file and access the optimization history.
 
 The history file also enables two types of optimization restarts.
-A *cold start* can be used by simply setting the initial design variables to the final design variables of a previous optimization.
-A *hot start*, on the other hand, will initialize the optimizer with the full state, by replaying the previous optimization history.
-For a deterministic optimizer, as long as the functions and gradients remain the same, it will generate the same sequence of iterates.
-pyOptSparse will simply retrieve the previously-evaluated quantities and supply them to the optimizer, without actually calling the objective function.
-This allows us to exactly retrace the previous optimization and generate the exact same state within the optimizer in a non-intrusive fashion.
-This feature is particularly useful if the objective function is expensive to evaluate, and the previous optimization terminated due to problems such as reaching the maximum iteration limit.
+A *cold start* merely sets the initial design variables to the previous optimization's final design variables.
+A *hot start*, on the other hand, initializes the optimizer with the full state by replaying the previous optimization history.
+For a deterministic optimizer, the hot start generates the same sequence of iterates, as long as the functions and gradients remain the same.
+For each iteration, pyOptSparse retrieves the previously-evaluated quantities and provides them to the optimizer, without actually calling the objective and constraint function evaluations.
+This allows us to exactly retrace the previous optimization and generate the same state within the optimizer in a non-intrusive fashion.
+This feature is particularly useful if the objective function is expensive to evaluate, and the previous optimization was terminated due to problems such as reaching the maximum iteration limit.
 In this case, the full state within the optimizer can be regenerated through the hot start process, so that the optimization can continue without performance penalties.
 
 # Simple optimization script
 To highlight some of the features discussed above, we present the pyOptSparse script to solve a toy problem involving six design variables split into two groups, $x$ and $y$.
 We also add two nonlinear constraints and one linear constraint, as well as design variable bounds.
-The optimization is as follows:
+The optimization problem is as follows:
 \begin{align*}
 \text{minimize}\quad & x_0 + x_1^3 + y_0^2 + y_1^2 + y_2^2 + y_3^2\\
 \text{with respect to}\quad & x_0, x_1, y_0, y_1, y_2, y_3\\
@@ -165,7 +167,7 @@ lin_con(L) (1) |       |   X   |
                +---------------+
 ```
 which allows us to only specify derivatives for the two nonzero sub-blocks.
-For simplicity, we will supply the linear Jacobian explicitly, and use complex step to compute the derivative for the nonlinear constraints automatically.
+For simplicity, we supply the linear Jacobian explicitly, and use complex-step method to compute the derivative for the nonlinear constraints automatically.
 
 First we define the imports and the objective function.
 ```python
@@ -183,8 +185,8 @@ def objfunc(xdict):
     fail = False
     return funcs, fail
 ```
-Note that only the nonlinear constraints need to be evaluated here.
-Next, we set up the optimization problem, including design variables, objective and constraints.
+Only the nonlinear constraints need to be evaluated here.
+Next, we set up the optimization problem, including design variables, objective, and constraints.
 ```python
 # Optimization Object
 optProb = Optimization("Example Optimization", objfunc)
@@ -237,19 +239,20 @@ print(sol)
 ```
 
 # Statement of Need
-pyOptSparse is a fork of pyOpt [@Perez2012], and as the name suggests, its primary motivation is to support the use of sparse linear and nonlinear constraints in the context of gradient-based optimization.
-This sets itself apart from other optimization frameworks such as SciPy [@SciPy] and NLopt [@NLopt], which do not provide the same level of support for sparse constraints.
-Furthermore, these frameworks do not offer string-based indexing which is crucial when performing large-scale optimizations.
-These frameworks also do not offer convenience features such as user-supplied optimization problem scaling, optimization hot-start, or post-processing utilities.
+pyOptSparse is a fork of pyOpt [@Perez2012].
+As the name suggests, its primary motivation is to support sparse linear and nonlinear constraints in gradient-based optimization.
+This sets pyOptSparse apart from other optimization frameworks, such as SciPy [@SciPy] and NLopt [@NLopt], which do not provide the same level of support for sparse constraints.
+Furthermore, these frameworks do not offer string-based indexing, which is crucial when performing large-scale optimizations.
+In addition, other frameworks do not offer convenience features, such as user-supplied optimization problem scaling, optimization hot-start, or post-processing utilities.
 Although pyOptSparse is a general optimization framework, it is tailored to gradient-based optimizations of large-scale problems with sparse constraints.
 
-pyOptSparse has been used extensively in engineering applications, particularly in the field of multidisciplinary design optimization (MDO).
-Researchers have used it to perform aerodynamic shape optimization of aircraft wings [@Secco2019] and wind turbines [@Madsen2019], and aero-structural optimization of an entire aircraft [@Brooks2018].
+pyOptSparse has been used extensively in engineering applications, particularly in multidisciplinary design optimization (MDO).
+Researchers have used it to perform aerodynamic shape optimization of aircraft wings [@Secco2019] and wind turbines [@Madsen2019], and aerostructural optimization of an entire aircraft [@Brooks2018].
 pyOptSparse is also supported by OpenMDAO [@Gray2019], a popular Python framework for multidisciplinary analysis and optimization.
-Through OpenMDAO, pyOptSparse has been applied to problems such as low-fidelity aero-structural wing design [@Chauhan2020] and aeropropulsive optimization of a boundary-layer ingestion propulsor [@Gray2018].
+Through OpenMDAO, pyOptSparse has been applied to problems such as low-fidelity aerostructural wing design [@Chauhan2020] and aeropropulsive optimization of a boundary-layer ingestion propulsor [@Gray2018].
 
 # Acknowledgements
-We acknowledge the efforts of the original pyOpt developers, particularly Dr. Ruben E. Perez and Dr. Peter W. Jansen, who laid the foundation of the code.
+We acknowledge the original pyOpt developers' efforts, notably Ruben E. Perez and Peter W. Jansen, who helped lay the code's foundation.
 We also acknowledge the numerous pyOptSparse users who have contributed to the code over the years.
 
 # References
