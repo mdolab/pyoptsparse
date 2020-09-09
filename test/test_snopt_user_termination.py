@@ -37,8 +37,7 @@ class TerminateComp(object):
         return funcs, fail
 
     def sens(self, xdict, funcs):
-        """f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3
-        """
+        """f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3"""
         x = xdict["x"]
         y = xdict["y"]
         funcsSens = {}

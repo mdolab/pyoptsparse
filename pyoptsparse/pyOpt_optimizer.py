@@ -191,7 +191,7 @@ class Optimizer(object):
             This list contains at least one of 'fobj', 'fcon', 'gobj'
             or 'gcon'. This list tells this function which of the
             values is required on return
-            """
+        """
 
         # We are hot starting, we should be able to read the required
         # information out of the hot start file, process it and then
@@ -814,7 +814,7 @@ class Optimizer(object):
             Name of the option to set
         value : varies
             Variable value to set.
-            """
+        """
 
         if name in self.options["defaults"]:
             if type(value) == self.options["defaults"][name][0]:
@@ -850,7 +850,7 @@ class Optimizer(object):
         -------
         value : varies
             value of option for 'name'
-            """
+        """
 
         if name in self.options["defaults"]:
             return self.options[name][1]
@@ -874,7 +874,7 @@ class Optimizer(object):
         ----------
         infocode : int
             Integer information code
-            """
+        """
 
         if infocode is None:
             return self.informs
@@ -906,7 +906,7 @@ def OPT(optName, *args, **kwargs):
     -------
     opt : pyOpt_optimizer inherited optimizer
        The desired optimizer
-       """
+    """
 
     optName = optName.lower()
     optList = ["snopt", "ipopt", "slsqp", "nlpqlp", "conmin", "nsga2", "psqp", "alpso", "paropt"]

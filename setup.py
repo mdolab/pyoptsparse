@@ -54,7 +54,10 @@ if __name__ == "__main__":
 
     import re
 
-    __version__ = re.findall(r"""__version__ = ["']+([0-9\.]*)["']+""", open("pyoptsparse/__init__.py").read(),)[0]
+    __version__ = re.findall(
+        r"""__version__ = ["']+([0-9\.]*)["']+""",
+        open("pyoptsparse/__init__.py").read(),
+    )[0]
 
     setup(
         name="pyoptsparse",

@@ -87,7 +87,7 @@ class NSGA2(Optimizer):
         -----
         The kwargs are there such that the sens= argument can be
         supplied (but ignored here in nsga2)
-            """
+        """
 
         # ======================================================================
         # NSGA-II - Objective/Constraint Values Function

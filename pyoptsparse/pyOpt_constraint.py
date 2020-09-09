@@ -345,7 +345,10 @@ class Constraint(object):
                                 dvGroup, self.name
                             )
                             + "Expecting a Jacobian of size ({}, {}) but received a Jacobian of size ({}, {}).".format(
-                                self.ncon, ndvs, self.jac[dvGroup]["shape"][0], self.jac[dvGroup]["shape"][1],
+                                self.ncon,
+                                ndvs,
+                                self.jac[dvGroup]["shape"][0],
+                                self.jac[dvGroup]["shape"][1],
                             )
                         )
                     )

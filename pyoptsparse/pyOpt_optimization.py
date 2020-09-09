@@ -109,7 +109,7 @@ class Optimization(object):
         validName : str
             A valid variable name. May be the same as varName it that
             was, in fact, a valid name.
-            """
+        """
         if varName not in self.variables:
             return varName
         else:
@@ -137,7 +137,7 @@ class Optimization(object):
         validName : str
             A valid constraint name. May be the same as conName it that
             was, in fact, a valid name.
-            """
+        """
         if conName not in self.constraints:
             return conName
         else:
@@ -348,7 +348,7 @@ class Optimization(object):
         ----------
         name : str
            Name of variable or variable group to remove
-           """
+        """
         try:
             self.variables.pop(name)
         except KeyError:
@@ -924,7 +924,7 @@ class Optimization(object):
            Flag to split equality constraints into two inequality
            constraints. Some optimizers (CONMIN for example) can't do
            equality constraints explicitly.
-           """
+        """
 
         # Now for the fun part determine what *actual* order the
         # constraints need to be in: We recognize the following
@@ -1312,7 +1312,7 @@ class Optimization(object):
         fcon : dict
             Dictionary of the constraints. The linear constraints are
             to be added to this dictionary.
-            """
+        """
 
         # This is actually pretty easy; it's just a matvec with the
         # proper linearJacobian entry we've already computed
