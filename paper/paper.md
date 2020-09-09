@@ -56,12 +56,11 @@ Although pyOptSparse focuses primarily on large-scale gradient-based optimizatio
 Also, discrete variables, multi-objective, and population-based optimizers are all supported.
 Because of the object-oriented programming approach, it is also straightforward to extend pyOptSparse to support any additional optimizers that are not currently available.
 When adding a new optimizer, it automatically inherits all the capabilities within pyOptSparse.
-[//]: # (TODO JM-: What do you mean by this last sentence? The optimizer does not gain any new capability, just a new interface, right?)
+<!-- [//]: (TODO JM-: What do you mean by this last sentence? The optimizer does not gain any new capability, just a new interface, right?) -->
 
 ## String-based indexing
 Unlike many other publicly available optimization frameworks, pyOptSparse is designed to handle large-scale optimizations, focusing on engineering applications.
-With $\mathcal{O}(1000)$ design variables and constraints, it is crucial to keep track of all values during optimization correctly.
-[//]: # (TODO JM-: Some people don't like using O notation in this context. Replace with "thousands"?)
+With thousands of design variables and constraints, it is crucial to keep track of all values during optimization correctly.
 pyOptSparse employs string-based indexing to accomplish this.
 Instead of using a single flattened array, the related design variables and constraints can be grouped into separate arrays.
 These arrays are combined using an ordered dictionary, where each group is identified by a unique key.
@@ -96,7 +95,7 @@ The user must make sure that the objective and constraint functions can be evalu
 ## Optimizer-independent problem scaling
 pyOptSparse offers optimizer-independent scaling for individual design variables, objective, and constraints.
 By separating the optimization problem definition from the particular optimizer, pyOptSparse can apply the scaling automatically and consistently with any supported optimizer.
-[//]: # (TODO JM-: The optimizer does not need to support a scaling option; we can always scale ourselves, right?)
+<!-- [//]: (TODO JM-: The optimizer does not need to support a scaling option; we can always scale ourselves, right?) -->
 Since the optimization problem is always defined in the physical, user-defined space, the bounds on the design variables and constraints do not need to be modified when applying a different scaling.
 Furthermore, for gradient-based optimizers, all the derivatives are scaled automatically and consistently without any effort from the user.
 The user only needs to pass in a `scale` option when defining design variables, objective, and constraints.
