@@ -17,11 +17,13 @@ env:
     - SNOPT_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pySNOPT/source
     - NLPQLP_DIR=$DOCKER_WORKING_DIR/pyoptsparse/pyNLPQLP/source
   jobs:
-    - DOCKER_TAG=py2-latest
-    - DOCKER_TAG=py3-stable
-    - DOCKER_TAG=py3-latest
-    - DOCKER_TAG=py3-impi
-    - DOCKER_TAG=py3-centos7-impi
+    # - DOCKER_TAG=c7-gcc-ompi-py3-latest
+    - DOCKER_TAG=c7-intel-impi-py3-latest
+    - DOCKER_TAG=u18-gcc-ompi-py2-stable
+    - DOCKER_TAG=u18-gcc-ompi-py3-latest
+    - DOCKER_TAG=u18-gcc-ompi-py3-stable
+    - DOCKER_TAG=u20-gcc-ompi-py3-latest
+    - DOCKER_TAG=u20-gcc-ompi-py3-stable
 
 before_install:
   - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
