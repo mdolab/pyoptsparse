@@ -212,7 +212,7 @@ def convertToCOO(mat):
     -------
     newMat : dict
         A coo representation of the same matrix
-        """
+    """
 
     if isinstance(mat, dict):
         if "coo" in mat:
@@ -396,7 +396,7 @@ def convertToDense(mat):
 
 
 def scaleColumns(mat, factor):
-    """ d=
+    """d=
     Scale the columns of the matrix. Must be CSR format
     """
     if not isinstance(mat, dict):
@@ -443,7 +443,7 @@ def extractRows(mat, indices):
     -------
     newMat : dic
        pyoptsparse CSR matrix
-        """
+    """
     rowp = mat["csr"][IROWP]
     cols = mat["csr"][ICOLIND]
     data = mat["csr"][IDATA]
@@ -482,7 +482,7 @@ def _denseToCOO(arr):
     -------
     dict : mat
         The pyoptsparse representation of a sparse matrix
-        """
+    """
     nRows = arr.shape[0]
     nCols = arr.shape[1]
     data = arr.flatten()

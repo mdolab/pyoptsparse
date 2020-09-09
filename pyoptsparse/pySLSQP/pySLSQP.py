@@ -120,7 +120,7 @@ class SLSQP(Optimizer):
         storeSens : bool
             Flag sepcifying if sensitivities are to be stored in hist.
             This is necessay for hot-starting only.
-            """
+        """
 
         self.callCounter = 0
         self.storeSens = storeSens

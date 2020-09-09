@@ -303,7 +303,7 @@ class SNOPT(Optimizer):
             Must be in seconds. This can be useful on queue systems when
             you want an optimization to cleanly finish before the
             job runs out of time.
-            """
+        """
 
         self.callCounter = 0
         self.storeSens = storeSens
