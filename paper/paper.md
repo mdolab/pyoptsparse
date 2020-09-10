@@ -24,7 +24,7 @@ bibliography: paper.bib
 
 # Summary
 pyOptSparse is an optimization framework designed for constrained nonlinear optimization of large sparse problems and provides a unified interface for various gradient-free and gradient-based optimizers.
-Using an object-oriented approach maintains independence between the optimization problem formulation and the implementation of the specific optimizers.
+By using an object-oriented approach, the software maintains independence between the optimization problem formulation and the implementation of the specific optimizers.
 The code is MPI-wrapped to enable execution of expensive parallel analyses and gradient evaluations, such as when using computational fluid dynamics (CFD) simulations, which can require hundreds of processors.
 The optimization history can be stored in a database file, which can then be used both for post-processing and restarting another optimization.
 A graphical user interface application is provided to visualize the optimization history interactively.
@@ -42,6 +42,7 @@ g(x)\\
 \end{align*}
 where $x$ is the vector of design variables and $f(x)$ is a nonlinear objective function.
 $A$ is the linear constraint Jacobian, and $g(x)$ is the set of nonlinear constraint functions.
+At time of writing, the latest released version of pyOptSparse is v2.1.6.
 
 # Features
 ## Support for multiple optimizers
@@ -55,12 +56,13 @@ The optimizer can be switched by editing a single line of code.
 Although pyOptSparse focuses primarily on large-scale gradient-based optimization, it provides support for gradient-free optimizers as well.
 Also, discrete variables, multi-objective, and population-based optimizers are all supported.
 Because of the object-oriented programming approach, it is also straightforward to extend pyOptSparse to support any additional optimizers that are not currently available.
-All of the capabilities within pyOptSparse, including history recording and postprocessing, are automatically inherited when new optimizers are added.
+All of the features within pyOptSparse, including problem scaling and optimization hotstart, are automatically inherited when new optimizers are added.
 <!-- [//]: (TODO JM-: What do you mean by this last sentence? The optimizer does not gain any new capability, just a new interface, right?) -->
 <!-- JJ rephrased sentence, feel free to fine-tune -->
+<!-- NW rephrased slightly -->
 
 ## String-based indexing
-Unlike many other publicly available optimization frameworks, pyOptSparse is designed to handle large-scale optimizations, focusing on engineering applications.
+Unlike many other publicly available optimization frameworks, pyOptSparse is designed to handle large-scale optimizations, with a focus on engineering applications.
 With thousands of design variables and constraints, it is crucial to keep track of all values during optimization correctly.
 pyOptSparse employs string-based indexing to accomplish this.
 Instead of using a single flattened array, the related design variables and constraints can be grouped into separate arrays.
@@ -114,22 +116,22 @@ Secondly, it is possible to perform parallel gradient evaluation when automatic 
 If the function evaluation only requires a single processor, it is possible to call pyOptSparse with multiple processors so that each point in the finite-difference stencil is evaluated in parallel, reducing the wall time for derivative computations.
 
 Lastly, some population-based optimizers may support parallel function evaluation for each optimizer iteration.
-In the case of a genetic algorithm or particle swarm optimization, a fixed number of function evaluations are required at each optimizer iteration.
+In the case of a genetic algorithm or particle swarm optimization, multiple function evaluations are required at each optimizer iteration.
 These evaluations can be done in parallel if multiple processors are available and the functions only require a single processor to execute.
 However, the support and implementation of this mechanism is optimizer-dependent.
 
 ## Leveraging the history file: visualization and restart
-pyOptSparse can store an optimization history file using its own format, which is based on SQLite.
+pyOptSparse can store an optimization history file using its own format based on SQLite.
 The optimization history can then be visualized using OptView, a graphical user interface application provided by pyOptSparse.
 Alternatively, users can manually post-process results by using an API designed to query the history file and access the optimization history.
 
 The history file also enables two types of optimization restarts.
-A *warm start* merely sets the initial design variables to the previous optimization's final design variables.
+A *cold start* merely sets the initial design variables to the previous optimization's final design variables.
 <!-- JJ: A cold start is a start from anywhere, warm is from a previous singular point, hot start has the full state. I believe that's the case, correct this if I'm wrong. -->
+<!-- NW: No a cold start is one where you set the DV, warm start sets other states within the optimizer such as an active set or initial Hessian -->
 A *hot start*, on the other hand, initializes the optimizer with the full state by replaying the previous optimization history.
 For a deterministic optimizer, the hot start generates the same sequence of iterates as long as the functions and gradients remain the same.
-For each iteration, pyOptSparse retrieves the previously-evaluated quantities and provides them to the optimizer without actually calling the objective and constraint function evaluations.
-This allows us to exactly retrace the previous optimization and generate the same state within the optimizer in a non-intrusive fashion.
+For each iteration, pyOptSparse retrieves the previously-evaluated quantities and provides them to the optimizer without actually calling the objective and constraint functions, allowing us to exactly retrace the previous optimization and generate the same state within the optimizer in a non-intrusive fashion.
 This feature is particularly useful if the objective function is expensive to evaluate and the previous optimization was terminated due to problems such as reaching the maximum iteration limit.
 In this case, the full state within the optimizer can be regenerated through the hot start process so that the optimization can continue without performance penalties.
 
@@ -229,7 +231,7 @@ The linear Jacobian for this problem is
 which we construct as `jac` and pass to pyOptSparse.
 For large optimization problems, the Jacobian can be constructed using sparse matrices.
 
-Finally, we set up the optimizer and solve the optimization problem.
+Finally, we set up SLSQP [@Kraft1988a] as the optimizer and solve the optimization problem.
 ```python
 # Optimizer
 optOptions = {}
@@ -239,6 +241,7 @@ opt = OPT("SLSQP", options=optOptions)
 sol = opt(optProb, sens="CS")
 print(sol)
 ```
+For more extensive examples and API documentation, please refer to the documentation site for pyOptSparse
 
 # Statement of Need
 pyOptSparse is a fork of pyOpt [@Perez2012].
