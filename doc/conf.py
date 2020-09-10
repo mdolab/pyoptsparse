@@ -42,6 +42,9 @@ extensions = [
 ]
 numpydoc_show_class_members = False
 
+# mock import for autodoc
+autodoc_mock_imports = ["numpy", "scipy", "six", "sqlitedict"]
+
 # tell autodoc to document the __init__ methods
 autoclass_content = "both"
 
