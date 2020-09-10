@@ -1,4 +1,4 @@
 scipy
 numpy
 six>=1.13
-sqlitedict>=1.6.0
+sqlitedict>=1.6
