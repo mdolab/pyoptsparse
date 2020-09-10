@@ -126,7 +126,7 @@ class PSQP(Optimizer):
         storeSens : bool
             Flag sepcifying if sensitivities are to be stored in hist.
             This is necessay for hot-starting only.
-        """
+            """
 
         self.callCounter = 0
         self.storeSens = storeSens
@@ -158,10 +158,17 @@ class PSQP(Optimizer):
         # Set the number of nonlinear constraints snopt *thinks* we have:
         if self.unconstrained:
             ncon = 0
-            cf = [0.0]
-            cl = []
-            cu = []
-            ic = []
+            # cf = [0.0] # these are lists, doesn't work with PSQP PR
+            # cl = []
+            # cu = []
+            # ic = []
+            cf = np.zeros(1)
+            cl = np.zeros(1)
+            cu = np.zeros(1)
+            ic = np.zeros(1)
+            # taken from SLSQP. It looks like we need this dummy constraint to make the code work PR
+            optProb.dummyConstraint = True
+
         else:
             indices, blc, buc, fact = self.optProb.getOrdering(["ne", "le", "ni", "li"], oneSided=oneSided)
             ncon = len(indices)

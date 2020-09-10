@@ -110,7 +110,7 @@ class CONMIN(Optimizer):
         storeSens : bool
             Flag sepcifying if sensitivities are to be stored in hist.
             This is necessay for hot-starting only.
-        """
+            """
 
         self.callCounter = 0
         self.storeSens = storeSens
@@ -121,7 +121,7 @@ class CONMIN(Optimizer):
             # least one constraint. So we will add one
             # automatically here:
             self.unconstrained = True
-            optProb.dummyConstraint = False
+            optProb.dummyConstraint = True # changed to True PR
 
         # Save the optimization problem and finalize constraint
         # Jacobian, in general can only do on root proc
@@ -189,7 +189,14 @@ class CONMIN(Optimizer):
             nn3 = max(nn2, ndv)
             nn4 = max(nn2, ndv)
             nn5 = 2 * nn4
-            gg = np.zeros(ncn, np.float)
+            # gg = np.zeros(ncn, np.float)
+            
+# code error fixed  PR            
+            if ncn > 0:
+                gg = np.zeros(ncn, np.float)
+            else:
+                gg = np.array([0], np.float)
+                                    
             if self.getOption("IPRINT") >= 0 and self.getOption("IPRINT") <= 4:
                 iprint = self.getOption("IPRINT")
             else:
