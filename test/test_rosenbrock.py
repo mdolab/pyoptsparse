@@ -122,20 +122,17 @@ class TestRosenbrock(unittest.TestCase):
 
         # Info checks
         self.assertEqual(hist.getDVNames(), ["xvars"])
-        # self.assertEqual(hist.getConNames(), ["con"])
         self.assertEqual(hist.getObjNames(), ["obj"])
         dvInfo = hist.getDVInfo()
         self.assertEqual(len(dvInfo), 1)
         self.assertEqual(dvInfo["xvars"], hist.getDVInfo(key="xvars"))
         conInfo = hist.getConInfo()
         self.assertEqual(len(conInfo), 0)
-        # self.assertEqual(conInfo["con"], hist.getConInfo(key="con"))
         objInfo = hist.getObjInfo()
         self.assertEqual(len(objInfo), 1)
         self.assertEqual(objInfo["obj"], hist.getObjInfo(key="obj"))
         for key in ["lower", "upper", "scale"]:
             self.assertIn(key, dvInfo["xvars"])
-            # self.assertIn(key, conInfo["con"])
         self.assertIn("scale", objInfo["obj"])
 
         # callCounter checks
