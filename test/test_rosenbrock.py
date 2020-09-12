@@ -220,9 +220,9 @@ class TestRosenbrock(unittest.TestCase):
         optOptions = {"ACC": 1e-10, "IFILE": "Rsbrk_SLSQP.out"}
         self.optimize_with_hotstart("SLSQP", 1e-6, optOptions=optOptions)
 
-    # def test_nlpqlp(self):  ######### requires the same fix for gcon!!
-    #     optOptions = {"iFile": "Rsbrk_NLPQLP.out"}
-    #     self.optimize_with_hotstart("NLPQLP", 1e-8, optOptions=optOptions)
+    def test_nlpqlp(self):
+        optOptions = {"accuracy": 1e-10, "iFile": "Rsbrk_NLPQLP.out"}
+        self.optimize_with_hotstart("NLPQLP", 1e-6, optOptions=optOptions)
 
     def test_ipopt(self):
         optOptions = {"output_file": "Rsbrk_IPOPT.out"}
