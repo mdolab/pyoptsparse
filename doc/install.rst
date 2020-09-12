@@ -8,7 +8,8 @@ Requirements
 pyOptSparse has the following dependencies:
 
 * Python 2.7, 3.7 or 3.8, though other Python 3 versions will likely work
-* C/FORTRAN compiler (compatible with f2py)
+* C and Fortran compilers.
+  We recommend ``gcc`` and ``gfortran`` which can be installed via the package manager for your operating system.
 
 Please make sure these are installed and available for use.
 In order to use NSGA2 and NOMAD, SWIG (v1.3+) is also required.
