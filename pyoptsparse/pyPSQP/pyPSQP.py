@@ -158,10 +158,13 @@ class PSQP(Optimizer):
         # Set the number of nonlinear constraints snopt *thinks* we have:
         if self.unconstrained:
             ncon = 0
-            cf = [0.0]
-            cl = []
-            cu = []
-            ic = []
+            cf = np.zeros(1)
+            cl = np.zeros(1)
+            cu = np.zeros(1)
+            ic = np.zeros(1)
+            # as done for SLSQP, we need this dummy constraint to make the code work
+            optProb.dummyConstraint = True
+
         else:
             indices, blc, buc, fact = self.optProb.getOrdering(["ne", "le", "ni", "li"], oneSided=oneSided)
             ncon = len(indices)

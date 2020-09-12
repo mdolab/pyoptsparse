@@ -148,7 +148,7 @@ class NLPQLP(Optimizer):
 
         if len(optProb.constraints) == 0:
             self.unconstrained = True
-            optProb.dummyConstraint = False
+            optProb.dummyConstraint = True
 
         # Save the optimization problem and finalize constraint
         # Jacobian, in general can only do on root proc
