@@ -5,9 +5,6 @@
 import copy
 import os
 from collections import OrderedDict
-
-from six import iteritems, iterkeys, next
-
 from sqlitedict import SqliteDict
 
 # =============================================================================
@@ -1343,9 +1340,8 @@ class Optimization(object):
 
         cond = False
         # this version is required for python 3 compatibility
-        cond = isinstance(next(iterkeys(funcsSens)), str)
-
-        if cond:
+        cond = isinstance(list(funcsSens.keys())[0], str)
+        if cond:  # we have a nested dictionary
             iObj = 0
             for objKey in self.objectives.keys():
                 if objKey in funcsSens:
@@ -1370,7 +1366,7 @@ class Optimization(object):
                     raise Error("The key for the objective gradient, '%s', was not found." % objKey)
                 iObj += 1
         else:  # Then it must be a tuple; assume flat dict
-            for (objKey, dvGroup), _ in iteritems(funcsSens):
+            for (objKey, dvGroup), val in funcsSens.items():
                 if objKey in self.objectives.keys():
                     try:
                         iObj = self.objectiveIdx[objKey]
@@ -1380,7 +1376,7 @@ class Optimization(object):
                         ss = self.dvOffset[dvGroup]
                     except KeyError:
                         raise Error("The dvGroup key '%s' is not valid" % dvGroup)
-                    tmp = np.array(funcsSens[objKey, dvGroup]).squeeze()
+                    tmp = np.array(val).squeeze()
                     if tmp.size == ss[1] - ss[0]:
                         # Everything checks out so set:
                         gobj[iObj, ss[0] : ss[1]] = tmp
@@ -1389,7 +1385,7 @@ class Optimization(object):
                             (
                                 "The shape of the objective derivative for dvGroup '{}' is the incorrect length. "
                                 + "Expecting a shape of {} but received a shape of {}."
-                            ).format(dvGroup, (ss[1] - ss[0],), funcsSens[objKey, dvGroup].shape)
+                            ).format(dvGroup, (ss[1] - ss[0],), val.shape)
                         )
 
         # Note that we looped over the keys in funcsSens[objKey]
