@@ -1442,21 +1442,17 @@ class Optimization(object):
                 ndvs = ss[1] - ss[0]
 
                 gotDerivative = False
-                try:  # Try using a nested dictionary return
+                try:
                     if dvGroup in gcon[iCon]:
                         tmp = convertToCOO(gcon[iCon][dvGroup])
                         gotDerivative = True
                 except KeyError:
-                    try:  # Using tuple dictornary return
-                        tmp = convertToCOO(gcon[iCon, dvGroup])
-                        gotDerivative = True
-                    except KeyError:
-                        raise Error(
-                            (
-                                "The constraint Jacobian entry for '{}' with respect to '{}', as was defined in addConGroup(), "
-                                + "was not found in constraint Jacobian dictionary provided."
-                            ).format(con.name, dvGroup)
-                        )
+                    raise Error(
+                        (
+                            "The constraint Jacobian entry for '{}' with respect to '{}', as was defined in addConGroup(), "
+                            + "was not found in constraint Jacobian dictionary provided."
+                        ).format(con.name, dvGroup)
+                    )
                 if not gotDerivative:
                     # All keys for this constraint must be returned
                     # since the user has explictly specified the wrt.
