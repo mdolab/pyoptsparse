@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ '27', '37', '38' ]
+        python-version: [ '37', '38' ]
     steps:
     - uses: actions/checkout@v2
     - name: Black Code Formatter
@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ '2.7', '3.7', '3.8' ]
+        python-version: [ '3.7', '3.8' ]
     name: flake8 with Python ${{ matrix.python-version }}
     steps:
     - uses: actions/checkout@v2
