@@ -11,7 +11,8 @@ services:
   - docker
 env:
   global:
-    - REPO_NAME=$(eval basename $TRAVIS_REPO_SLUG)
+    - REPO_NAME=$(basename $TRAVIS_REPO_SLUG)
+    - PR_FROM=$(dirname $TRAVIS_PULL_REQUEST_SLUG)
     - DOCKER_WORKING_DIR=/home/mdolabuser/packages/$REPO_NAME
     - DOCKER_MOUNT_DIR=/home/mdolabuser/travis/$REPO_NAME
     - SNOPT_DIR=$DOCKER_WORKING_DIR/$REPO_NAME/pySNOPT/source
@@ -25,7 +26,7 @@ env:
     - DOCKER_TAG=u20-gcc-ompi-latest
 
 before_install:
-  - if [ dirname $TRAVIS_PULL_REQUEST_SLUG != "mdolab" ]; then
+  - if [ $PR_FROM != "mdolab" ]; then
       export DOCKER_REPO=public;
     else
       export DOCKER_REPO=private;
@@ -42,7 +43,7 @@ before_install:
 
 install:
   # We back up the proprietary source codes first
-  - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+  - if [ $PR_FROM == "mdolab" ]; then
       docker exec -it app /bin/bash -c "cp -r $SNOPT_DIR \$HOME/SNOPT && cp -r $NLPQLP_DIR \$HOME/NLPQLP";
     fi
   # We thrown away the existing repo in Docker, and copy the new one in-place
@@ -50,7 +51,7 @@ install:
   # We also remove the python installation
   - docker exec -it app /bin/bash -c "rm -rf $DOCKER_WORKING_DIR/build"
   # Copy back the proprietary codes
-  - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+  - if [ $PR_FROM == "mdolab" ]; then
       docker exec -it app /bin/bash -c "cp -r \$HOME/NLPQLP/* $NLPQLP_DIR/ && cp -r \$HOME/SNOPT/* $SNOPT_DIR/";
     fi
   # Build and install
