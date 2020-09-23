@@ -21,9 +21,8 @@ env:
     - DOCKER_TAG=c7-intel-impi-latest
     - DOCKER_TAG=u18-gcc-ompi-stable
     - DOCKER_TAG=u18-gcc-ompi-latest
-    - DOCKER_TAG=u18-gcc-ompi-stable
-    - DOCKER_TAG=u20-gcc-ompi-latest
     - DOCKER_TAG=u20-gcc-ompi-stable
+    - DOCKER_TAG=u20-gcc-ompi-latest
 
 before_install:
   - if [ dirname $TRAVIS_PULL_REQUEST_SLUG != "mdolab" ]; then
@@ -58,7 +57,7 @@ install:
   - docker exec -it app /bin/bash -c ". \$HOME/.bashrc && cd $DOCKER_WORKING_DIR && pip install -e ."
 script:
   # We need to source the mdolab bashrc before running anything
-  - docker exec -it app /bin/bash -c ". \$HOME/.bashrc && cd $DOCKER_WORKING_DIR && testflo --pre_announce -v . --coverage --coverpkg $REPO_NAME"
+  - docker exec -it app /bin/bash -c ". \$HOME/.bashrc_mdolab && cd $DOCKER_WORKING_DIR && testflo --pre_announce -v . --coverage --coverpkg $REPO_NAME"
 
 after_success:
   # Coveralls
