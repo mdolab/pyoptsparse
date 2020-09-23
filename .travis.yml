@@ -26,7 +26,7 @@ env:
     - DOCKER_TAG=u20-gcc-ompi-stable
 
 before_install:
-  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+  - if [ dirname $TRAVIS_PULL_REQUEST_SLUG != "mdolab" ]; then
       export DOCKER_REPO=public;
     else
       export DOCKER_REPO=private;
