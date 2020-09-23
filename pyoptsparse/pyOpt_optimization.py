@@ -1338,55 +1338,29 @@ class Optimization(object):
         nobj = len(self.objectives)
         gobj = np.zeros((nobj, self.ndvs))
 
-        cond = False
-        # this version is required for python 3 compatibility
-        cond = isinstance(list(funcsSens.keys())[0], str)
-        if cond:  # we have a nested dictionary
-            iObj = 0
-            for objKey in self.objectives.keys():
-                if objKey in funcsSens:
-                    for dvGroup in funcsSens[objKey]:
-                        if dvGroup in dvGroups:
-                            # Now check that the array is the correct length:
-                            ss = self.dvOffset[dvGroup]
-                            tmp = np.array(funcsSens[objKey][dvGroup]).squeeze()
-                            if tmp.size == ss[1] - ss[0]:
-                                # Everything checks out so set:
-                                gobj[iObj, ss[0] : ss[1]] = tmp
-                            else:
-                                raise Error(
-                                    (
-                                        "The shape of the objective derivative for dvGroup '{}' is the incorrect length. "
-                                        + "Expecting a shape of {} but received a shape of {}."
-                                    ).format(dvGroup, (ss[1] - ss[0],), funcsSens[objKey][dvGroup].shape)
-                                )
-                        else:
-                            raise Error("The dvGroup key '%s' is not valid" % dvGroup)
-                else:
-                    raise Error("The key for the objective gradient, '%s', was not found." % objKey)
-                iObj += 1
-        else:  # Then it must be a tuple; assume flat dict
-            for (objKey, dvGroup), val in funcsSens.items():
-                if objKey in self.objectives.keys():
-                    try:
-                        iObj = self.objectiveIdx[objKey]
-                    except KeyError:
-                        raise Error("The key for the objective gradient, '%s', was not found." % objKey)
-                    try:
+        iObj = 0
+        for objKey in self.objectives.keys():
+            if objKey in funcsSens:
+                for dvGroup in funcsSens[objKey]:
+                    if dvGroup in dvGroups:
+                        # Now check that the array is the correct length:
                         ss = self.dvOffset[dvGroup]
-                    except KeyError:
-                        raise Error("The dvGroup key '%s' is not valid" % dvGroup)
-                    tmp = np.array(val).squeeze()
-                    if tmp.size == ss[1] - ss[0]:
-                        # Everything checks out so set:
-                        gobj[iObj, ss[0] : ss[1]] = tmp
+                        tmp = np.array(funcsSens[objKey][dvGroup]).squeeze()
+                        if tmp.size == ss[1] - ss[0]:
+                            # Everything checks out so set:
+                            gobj[iObj, ss[0] : ss[1]] = tmp
+                        else:
+                            raise Error(
+                                (
+                                    "The shape of the objective derivative for dvGroup '{}' is the incorrect length. "
+                                    + "Expecting a shape of {} but received a shape of {}."
+                                ).format(dvGroup, (ss[1] - ss[0],), funcsSens[objKey][dvGroup].shape)
+                            )
                     else:
-                        raise Error(
-                            (
-                                "The shape of the objective derivative for dvGroup '{}' is the incorrect length. "
-                                + "Expecting a shape of {} but received a shape of {}."
-                            ).format(dvGroup, (ss[1] - ss[0],), val.shape)
-                        )
+                        raise Error("The dvGroup key '%s' is not valid" % dvGroup)
+            else:
+                raise Error("The key for the objective gradient, '%s', was not found." % objKey)
+            iObj += 1
 
         # Note that we looped over the keys in funcsSens[objKey]
         # and not the variable keys since a variable key not in
@@ -1468,21 +1442,17 @@ class Optimization(object):
                 ndvs = ss[1] - ss[0]
 
                 gotDerivative = False
-                try:  # Try using a nested dictionary return
+                try:
                     if dvGroup in gcon[iCon]:
                         tmp = convertToCOO(gcon[iCon][dvGroup])
                         gotDerivative = True
                 except KeyError:
-                    try:  # Using tuple dictornary return
-                        tmp = convertToCOO(gcon[iCon, dvGroup])
-                        gotDerivative = True
-                    except KeyError:
-                        raise Error(
-                            (
-                                "The constraint Jacobian entry for '{}' with respect to '{}', as was defined in addConGroup(), "
-                                + "was not found in constraint Jacobian dictionary provided."
-                            ).format(con.name, dvGroup)
-                        )
+                    raise Error(
+                        (
+                            "The constraint Jacobian entry for '{}' with respect to '{}', as was defined in addConGroup(), "
+                            + "was not found in constraint Jacobian dictionary provided."
+                        ).format(con.name, dvGroup)
+                    )
                 if not gotDerivative:
                     # All keys for this constraint must be returned
                     # since the user has explictly specified the wrt.
