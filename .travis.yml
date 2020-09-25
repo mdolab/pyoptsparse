@@ -18,12 +18,12 @@ env:
     - SNOPT_DIR=$DOCKER_WORKING_DIR/$REPO_NAME/pySNOPT/source
     - NLPQLP_DIR=$DOCKER_WORKING_DIR/$REPO_NAME/pyNLPQLP/source
   jobs:
-    # - DOCKER_TAG=c7-gcc-ompi-latest
+    - DOCKER_TAG=c7-gcc-ompi-latest
     - DOCKER_TAG=c7-intel-impi-latest
-    - DOCKER_TAG=u18-gcc-ompi-stable
     - DOCKER_TAG=u18-gcc-ompi-latest
-    - DOCKER_TAG=u20-gcc-ompi-stable
+    - DOCKER_TAG=u18-gcc-ompi-stable
     - DOCKER_TAG=u20-gcc-ompi-latest
+    - DOCKER_TAG=u20-gcc-ompi-stable
 
 before_install:
   - if [ $PR_FROM != "mdolab" ]; then
