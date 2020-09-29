@@ -21,7 +21,7 @@ before_install:
         --name app
         --mount "type=bind,src=$(pwd),target=$DOCKER_MOUNT_DIR"
         mdolab/$DOCKER_REPO:$DOCKER_TAG
-        /bin/bash
+        /bin/bash;
     fi
 
 install:
