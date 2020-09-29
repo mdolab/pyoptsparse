@@ -15,7 +15,7 @@ before_install:
       export DOCKER_REPO=private;
       echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin;
     fi
-  - if [ $TEST_TYPE != "docker" ]; then
+  - if [ $TEST_TYPE == "docker" ]; then
       docker pull mdolab/$DOCKER_REPO:$DOCKER_TAG;
       docker run -t -d --rm
         --name app
@@ -41,7 +41,7 @@ install:
   - docker exec -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR && pip install -e ."
 
 script:
-  - if [ $TEST_TYPE != "docker" ]; then
+  - if [ $TEST_TYPE == "docker" ]; then
       docker exec -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR && testflo --pre_announce -v . --coverage --coverpkg $REPO_NAME";
     fi
 
