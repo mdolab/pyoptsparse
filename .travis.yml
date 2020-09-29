@@ -1,5 +1,6 @@
 import:
   - mdolab/.github:travis/jobs-env.yml
+  - mdolab/.github:travis/before-install.yml
   - mdolab/.github:travis/script.yml
 
 env:
@@ -13,15 +14,6 @@ before_install:
       export DOCKER_REPO=public;
     else
       export DOCKER_REPO=private;
-      echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin;
-    fi
-  - if [ $TEST_TYPE == "docker" ]; then
-      docker pull mdolab/$DOCKER_REPO:$DOCKER_TAG;
-      docker run -t -d --rm
-        --name app
-        --mount "type=bind,src=$(pwd),target=$DOCKER_MOUNT_DIR"
-        mdolab/$DOCKER_REPO:$DOCKER_TAG
-        /bin/bash;
     fi
 
 install:
