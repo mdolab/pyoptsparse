@@ -17,10 +17,10 @@ before_install:
     fi
   - if [ $TEST_TYPE != "docker" ]; then
       docker pull mdolab/$DOCKER_REPO:$DOCKER_TAG;
-      docker run -t -d --rm \
-        --name app \
-        --mount "type=bind,src=$(pwd),target=$DOCKER_MOUNT_DIR" \
-        mdolab/$DOCKER_REPO:$DOCKER_TAG \
+      docker run -t -d --rm
+        --name app
+        --mount "type=bind,src=$(pwd),target=$DOCKER_MOUNT_DIR"
+        mdolab/$DOCKER_REPO:$DOCKER_TAG
         /bin/bash
     fi
 
@@ -47,8 +47,7 @@ script:
 
 after_success:
   # Coveralls
-  # These environment variables must be exposed to coveralls for it to work (since we are on Docker)
-  - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
-      docker exec -it app /bin/bash -c ". $BASHRC && pip install coveralls";
-      docker exec -e COVERALLS_REPO_TOKEN="$COVERALLS_REPO_TOKEN" -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" -e TRAVIS_BRANCH="$TRAVIS_BRANCH" -it app /bin/bash -c ". \$HOME/.bashrc_mdolab && cd $DOCKER_WORKING_DIR && coveralls --rcfile=.coveragerc";
-    fi
+  # These environment variables must be exposed to coveralls for it to work (since we are using Docker)
+  - docker exec -it app /bin/bash -c ". $BASHRC && pip install coveralls";
+  - docker exec -e COVERALLS_REPO_TOKEN="$COVERALLS_REPO_TOKEN" -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" -e TRAVIS_BRANCH="$TRAVIS_BRANCH" -it app /bin/bash -c ". \$HOME/.bashrc_mdolab && cd $DOCKER_WORKING_DIR && coveralls --rcfile=.coveragerc";
+ 
