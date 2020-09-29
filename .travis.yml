@@ -1,5 +1,6 @@
 import:
-  - mdolab/.github:travis-env.yml
+  - mdolab/.github:travis/jobs-env.yml
+  - mdolab/.github:travis/script.yml
 
 env:
   global:
@@ -14,13 +15,14 @@ before_install:
       export DOCKER_REPO=private;
       echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin;
     fi
-  - docker pull mdolab/$DOCKER_REPO:$DOCKER_TAG
-  # run Docker, key is we mount the current Travis directory into Docker to access content of repo
-  - docker run -t -d --rm
-        --name app
-        --mount "type=bind,src=$(pwd),target=$DOCKER_MOUNT_DIR"
-        mdolab/$DOCKER_REPO:$DOCKER_TAG
+  - if [ $TEST_TYPE != "docker" ]; then
+      docker pull mdolab/$DOCKER_REPO:$DOCKER_TAG;
+      docker run -t -d --rm \
+        --name app \
+        --mount "type=bind,src=$(pwd),target=$DOCKER_MOUNT_DIR" \
+        mdolab/$DOCKER_REPO:$DOCKER_TAG \
         /bin/bash
+    fi
 
 install:
   # We back up the proprietary source codes first
@@ -37,9 +39,11 @@ install:
     fi
   # Build and install
   - docker exec -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR && pip install -e ."
+
 script:
-  # We need to source the mdolab bashrc before running anything
-  - docker exec -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR && testflo --pre_announce -v . --coverage --coverpkg $REPO_NAME"
+  - if [ $TEST_TYPE != "docker" ]; then
+      docker exec -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR && testflo --pre_announce -v . --coverage --coverpkg $REPO_NAME";
+    fi
 
 after_success:
   # Coveralls
