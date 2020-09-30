@@ -9,6 +9,7 @@ env:
     - DOCKER_WORKING_DIR=/home/mdolabuser/packages/$REPO_NAME # pyOptSparse is under packages, so this should overwrite what's set in travis-env.yml
     - SNOPT_DIR=$DOCKER_WORKING_DIR/$REPO_NAME/pySNOPT/source
     - NLPQLP_DIR=$DOCKER_WORKING_DIR/$REPO_NAME/pyNLPQLP/source
+    - DOCKER_REPO=public
 
 before_install:
   - if [ $PR_FROM != "mdolab" ]; then
