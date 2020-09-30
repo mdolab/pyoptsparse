@@ -1,7 +1,7 @@
 import:
   - mdolab/.github:travis/jobs-env.yml
   - source: mdolab/.github:travis/before-install.yml
-    mode: deep_merge_append
+    mode: deep_merge_prepend
   - mdolab/.github:travis/script.yml
 
 env:
