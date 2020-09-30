@@ -31,7 +31,7 @@ install:
       docker exec -it app /bin/bash -c "cp -r \$HOME/NLPQLP/* $NLPQLP_DIR/ && cp -r \$HOME/SNOPT/* $SNOPT_DIR/";
     fi
   # Build and install
-  - docker exec -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR && pip install -e ."
+  - docker exec -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR && pip install ."
 
 script:
   - if [ $TEST_TYPE == "docker" ]; then
