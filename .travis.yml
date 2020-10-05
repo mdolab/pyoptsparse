@@ -19,7 +19,7 @@ before_install:
 
 install:
   # We back up the proprietary source codes first
-  - if [ $PR_FROM == "mdolab" ]; then
+  - if [ $DOCKER_REPO == "private" ]; then
       docker exec -it app /bin/bash -c "cp -r $SNOPT_DIR \$HOME/SNOPT && cp -r $NLPQLP_DIR \$HOME/NLPQLP";
     fi
   # We thrown away the existing repo in Docker, and copy the new one in-place
@@ -27,7 +27,7 @@ install:
   # We also remove the python installation
   - docker exec -it app /bin/bash -c "rm -rf $DOCKER_WORKING_DIR/build"
   # Copy back the proprietary codes
-  - if [ $PR_FROM == "mdolab" ]; then
+  - if [ $DOCKER_REPO == "private" ]; then
       docker exec -it app /bin/bash -c "cp -r \$HOME/NLPQLP/* $NLPQLP_DIR/ && cp -r \$HOME/SNOPT/* $SNOPT_DIR/";
     fi
   # Build and install
