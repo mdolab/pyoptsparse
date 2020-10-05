@@ -1,20 +1,18 @@
 #!/usr/bin/env python
 """
-pyOptSparse_utils holds a minimal set of sparse-matrix type routines for pyOptSparse. This
-is designed to replace the HORRENDOUS scipy sparse matrix format. The problem
-with scipy.sparse is that is the NO way to enforce a constant sparsity
-structure which is required for the optimizers. We use a very simple
-dictionary format to represent the three most common forms of sparse matrices::
+pyOptSparse_utils holds a minimal set of sparse-matrix type routines for pyOptSparse.
+This is designed to replace the SciPy sparse matrix formats, which have no way to enforce a constant sparsity structure as required by the optimizers.
+We use a very simple dictionary format to represent the three most common forms of sparse matrices::
 
     mat = {'coo':[row,  col,    data], 'shape':[nrow, ncols]} # A coo matrix
     mat = {'csr':[rowp, colind, data], 'shape':[nrow, ncols]} # A csr matrix
-    mat = {'coo':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
+    mat = {'csc':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
 """
 import numpy as np
 import warnings
 from .pyOpt_error import Error
 
-# Define index memonics
+# Define index mnemonics
 IROW = 0
 ICOL = 1
 
