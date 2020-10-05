@@ -6,13 +6,13 @@ We use a very simple dictionary format to represent the three most common forms 
 
     mat = {'coo':[row,  col,    data], 'shape':[nrow, ncols]} # A coo matrix
     mat = {'csr':[rowp, colind, data], 'shape':[nrow, ncols]} # A csr matrix
-    mat = {'coo':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
+    mat = {'csc':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
 """
 import numpy as np
 import warnings
 from .pyOpt_error import Error
 
-# Define index memonics
+# Define index mnemonics
 IROW = 0
 ICOL = 1
 
