@@ -5,6 +5,7 @@
 import os
 import time
 import copy
+from enum import Enum
 import numpy as np
 from .pyOpt_gradient import Gradient
 from .pyOpt_error import Error, pyOptSparseWarning
@@ -883,6 +884,9 @@ class Optimizer(object):
 # Generic OPT Constructor
 # =============================================================================
 
+# List of optimizers as an enum
+Optimizers = Enum("Optimizers", "SNOPT IPOPT SLSQP NLPQLP CONMIN NSGA2 PSQP ALPSO ParOpt")
+
 
 def OPT(optName, *args, **kwargs):
     """
@@ -893,8 +897,9 @@ def OPT(optName, *args, **kwargs):
 
     Parameters
     ----------
-    optName : str
-       String identifying the optimizer to create
+    optName : str or enum
+       Either a string identifying the optimizer to create, e.g. "SNOPT", or
+       an enum accessed via ``pyoptsparse.Optimizers``, e.g. ``Optimizers.SNOPT``.
 
     *args, **kwargs : varies
        Passed to optimizer creation.
@@ -904,35 +909,34 @@ def OPT(optName, *args, **kwargs):
     opt : pyOpt_optimizer inherited optimizer
        The desired optimizer
     """
-
-    optName = optName.lower()
-    optList = ["snopt", "ipopt", "slsqp", "nlpqlp", "conmin", "nsga2", "psqp", "alpso", "paropt"]
-    if optName == "snopt":
+    if isinstance(optName, str):
+        optName = optName.lower()
+    if optName == "snopt" or optName == Optimizers.SNOPT:
         from .pySNOPT.pySNOPT import SNOPT as opt
-    elif optName == "ipopt":
+    elif optName == "ipopt" or optName == Optimizers.IPOPT:
         from .pyIPOPT.pyIPOPT import IPOPT as opt
-    elif optName == "slsqp":
+    elif optName == "slsqp" or optName == Optimizers.SLSQP:
         from .pySLSQP.pySLSQP import SLSQP as opt
-    elif optName == "nlpqlp":
+    elif optName == "nlpqlp" or optName == Optimizers.NLPQLP:
         from .pyNLPQLP.pyNLPQLP import NLPQLP as opt
-    elif optName == "psqp":
+    elif optName == "psqp" or optName == Optimizers.PSQP:
         from .pyPSQP.pyPSQP import PSQP as opt
-    elif optName == "conmin":
+    elif optName == "conmin" or optName == Optimizers.CONMIN:
         from .pyCONMIN.pyCONMIN import CONMIN as opt
-    elif optName == "nsga2":
+    elif optName == "nsga2" or optName == Optimizers.NSGA2:
         from .pyNSGA2.pyNSGA2 import NSGA2 as opt
-    elif optName == "alpso":
+    elif optName == "alpso" or optName == Optimizers.ALPSO:
         from .pyALPSO.pyALPSO import ALPSO as opt
-    # elif optName == 'nomad':
+    # elif optName == 'nomad' or optName == Optimizers.NOMAD:
     #     from .pyNOMAD.pyNOMAD import NOMAD as opt
-    elif optName == "paropt":
+    elif optName == "paropt" or optName == Optimizers.ParOpt:
         from .pyParOpt.ParOpt import ParOpt as opt
     else:
         raise Error(
             (
                 "The optimizer specified in 'optName' was not recognized. "
                 + "The current list of supported optimizers is {}"
-            ).format(optList)
+            ).format(list(map(str, Optimizers)))
         )
 
     # Create the optimizer and return it
