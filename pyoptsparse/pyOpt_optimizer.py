@@ -153,10 +153,7 @@ class Optimizer(object):
                 if os.path.exists(hotStart):
                     self.hotStart = History(hotStart, temp=False, flag="r")
                 else:
-                    pyOptSparseWarning(
-                        "Hot start file does not exist. \
-                    Performing a regular start"
-                    )
+                    pyOptSparseWarning("Hot start file does not exist. Performing a regular start")
 
         self.storeHistory = False
         if storeHistory:
@@ -932,9 +929,10 @@ def OPT(optName, *args, **kwargs):
         from .pyParOpt.ParOpt import ParOpt as opt
     else:
         raise Error(
-            "The optimizer specified in 'optName' was \
-not recognized. The current list of supported optimizers is: %s"
-            % repr(optList)
+            (
+                "The optimizer specified in 'optName' was not recognized. "
+                + "The current list of supported optimizers is {}"
+            ).format(optList)
         )
 
     # Create the optimizer and return it
