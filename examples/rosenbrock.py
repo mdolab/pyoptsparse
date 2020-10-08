@@ -1,12 +1,11 @@
 #!/usr/bin/env python
-from pyoptsparse import Optimization, OPT
+from pyoptsparse import Optimization, SLSQP
 import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--sens", help="sensitivity mode", type=str, default="FD", choices=["FD", "CS", "CD", "user"])
 parser.add_argument("--constrained", help="add a constraint", action="store_true")
 parser.add_argument("--testHotstart", help="test hotstart", action="store_true")
-parser.add_argument("--opt", help="optimizer", type=str, default="SLSQP")
 args = parser.parse_args()
 optOptions = {}
 
@@ -45,37 +44,19 @@ if args.constrained:
 optProb.addObj("obj")
 
 # Create optimizer
-opt = OPT(args.opt, options=optOptions)
+opt = SLSQP(options=optOptions)
 
 if args.testHotstart:
     histName = "opt_hist.hst"
-    # we map the max iteration option to the specific name for each optimizer
-    if args.opt.lower() == "slsqp":
-        OPTION = "MAXIT"
-    elif args.opt.lower() == "snopt":
-        OPTION = "Major iterations limit"
-    elif args.opt.lower() == "ipopt":
-        OPTION = "max_iter"
-    elif args.opt.lower() == "ipopt":
-        OPTION = "max_iter"
-    elif args.opt.lower() == "nlpqlp":
-        OPTION = "maxIt"
-    elif args.opt.lower() == "psqp":
-        OPTION = "MIT"
-    elif args.opt.lower() == "paropt":
-        OPTION = "tr_max_iterations"
-    elif args.opt.lower() == "conmin":
-        OPTION = "ITMAX"
-
     # First call just does 10 iterations
-    opt.setOption(OPTION, 10)
+    opt.setOption("MAXIT", 10)
     sol1 = opt(optProb, sens=sens, storeHistory=histName)
 
     # Now we are allowed to do 50
-    opt.setOption(OPTION, 50)
+    opt.setOption("MAXIT", 50)
     sol2 = opt(optProb, sens=sens, hotStart=histName, storeHistory=histName)
-    print(sol2)
+    print(sol2.fStar)
 else:
     # Just do a normal run
     sol = opt(optProb, sens=sens)
-    print(sol)
+    print(sol.fStar)
