@@ -26,12 +26,16 @@ def sens(xdict, funcs):
     """f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3"""
     x = xdict["x"]
     y = xdict["y"]
-    funcsSens = {}
-
-    funcsSens["obj", "x"] = 2.0 * x - 6.0 + y
-    funcsSens["obj", "y"] = 2.0 * y + 8.0 + x
-    # funcsSens['con', 'x'] = -1.0
-    # funcsSens['con', 'y'] = 1.0
+    funcsSens = {
+        "obj": {
+            "x": 2.0 * x - 6.0 + y,
+            "y": 2.0 * y + 8.0 + x,
+        },
+        # "con": {
+        #     "x": -1.0,
+        #     "y": 1.0,
+        # },
+    }
 
     fail = False
     return funcsSens, fail
@@ -65,4 +69,4 @@ sol = opt(optProb, sens=sens)
 
 # Check Solution
 print(sol)
-print("Solution shoud be (x, y) = (7.166667, -7.833334)\n")
+print("Solution should be (x, y) = (7.166667, -7.833334)\n")
