@@ -17,7 +17,7 @@ from pyoptsparse import Optimization, OPT
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--opt", help="optimizer", type=str, default="SLSQP")
-parser.add_argument("--storeHistory", help="option to store history", type=int, default=0)
+parser.add_argument("--storeHistory", help="option to store history", action="store_true")
 args = parser.parse_args()
 optOptions = {}
 
