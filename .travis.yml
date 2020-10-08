@@ -1,5 +1,5 @@
 import:
-  - mdolab/.github:travis-env.yml
+  - mdolab/.github:travis/jobs-env.yml
 
 env:
   global:
