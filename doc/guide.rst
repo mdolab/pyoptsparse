@@ -200,3 +200,21 @@ This is accomplished using a the call to :meth:`addObj <pyoptsparse.pyOpt_optimi
 What this does is tell pyOptSparse that the key ``obj_name`` in the function returns will be taken as the objective.
 For optimizers that can do multi-objective optimization (e.g. NSGA2), multiple objectives can be added.
 Optimizers that can only handle one objective enforce that only a single objective is added to the optimization description.
+
+Optimizer Instantiation
++++++++++++++++++++++++
+There are two ways to instantiate the optimizer object.
+The first, and most explicit approach is to directly import the optimizer class, for example via::
+
+  from pyoptsparse import SLSQP
+  opt = SLSQP(...)
+
+However, in order to easily switch between different optimizers without having to import each class, a convenience function called
+:meth:`OPT <pyoptsparse.pyOpt_optimizer.OPT>` is provided.
+It accepts a string argument in addition to the usual options, and instantiates the optimizer object based on the string::
+
+  from pyoptsparse import OPT
+  opt = OPT("SLSQP", ...)
+
+Note that the name of the optimizer is case-insensitive, so ``slsqp`` can also be used.
+This makes it easy to for example choose the optimizer from the command-line, or more generally select the optimizer using strings without preemptively importing all classes.
