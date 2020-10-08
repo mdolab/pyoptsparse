@@ -216,5 +216,5 @@ It accepts a string argument in addition to the usual options, and instantiates 
   from pyoptsparse import OPT
   opt = OPT("SLSQP", ...)
 
-Note that the name of the optimizer is case-insensitive, so ``slsqp`` would've worked also.
+Note that the name of the optimizer is case-insensitive, so ``slsqp`` can also be used.
 This makes it easy to for example choose the optimizer from the command-line, or more generally select the optimizer using strings without preemptively importing all classes.
