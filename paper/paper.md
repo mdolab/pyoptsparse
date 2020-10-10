@@ -249,7 +249,7 @@ Although pyOptSparse is a general optimization framework, it is tailored to grad
 pyOptSparse has been used extensively in engineering applications, particularly in multidisciplinary design optimization (MDO).
 Researchers have used it to perform aerodynamic shape optimization of aircraft wings [@Secco2019], wind turbines [@Madsen2019], and aerostructural optimization of an entire aircraft [@Brooks2018].
 pyOptSparse is also supported by OpenMDAO [@Gray2019], a popular Python framework for multidisciplinary analysis and optimization.
-Through OpenMDAO, pyOptSparse has been applied to problems such as low-fidelity aerostructural wing design [@Chauhan2020] and aeropropulsive optimization of a boundary-layer ingestion propulsor [@Gray2018].
+Through OpenMDAO, pyOptSparse has been applied to problems such as low-fidelity aerostructural wing design [@Chauhan2018] and aeropropulsive optimization of a boundary-layer ingestion propulsor [@Gray2018].
 
 # Acknowledgements
 We acknowledge the original pyOpt developers' efforts, notably Ruben E. Perez and Peter W. Jansen, who helped lay the code's foundation.
