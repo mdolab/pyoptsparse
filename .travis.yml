@@ -1,7 +1,6 @@
 import:
   - mdolab/.github:travis/jobs-env.yml
-  - source: mdolab/.github:travis/before-install.yml
-    mode: deep_merge_append
+  - mdolab/.github:travis/before-install.yml
   - mdolab/.github:travis/script.yml
 
 env:
@@ -9,13 +8,7 @@ env:
     - DOCKER_WORKING_DIR=/home/mdolabuser/packages/$REPO_NAME # pyOptSparse is under packages, so this should overwrite what's set in travis-env.yml
     - SNOPT_DIR=$DOCKER_WORKING_DIR/$REPO_NAME/pySNOPT/source
     - NLPQLP_DIR=$DOCKER_WORKING_DIR/$REPO_NAME/pyNLPQLP/source
-
-before_install:
-  - if [ $PR_FROM != "mdolab" ]; then
-      export DOCKER_REPO=public;
-    else
-      export DOCKER_REPO=private;
-    fi
+    - AUTO_DOCKER_REPO=true
 
 install:
   # We back up the proprietary source codes first
