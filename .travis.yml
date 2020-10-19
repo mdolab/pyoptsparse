@@ -1,6 +1,6 @@
 import:
   - mdolab/.github:travis/jobs-env.yml
-  - mdolab/.github:travis/before-install.yml
+  - mdolab/.github:travis/before-install.yml # we skip importing the install step because this repo requires extra steps
   - mdolab/.github:travis/script.yml
 
 env:
