@@ -37,14 +37,14 @@ class SNOPT(Optimizer):
     SNOPT Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, raiseError=True, *args, **kwargs):
         """
         SNOPT Optimizer Class Initialization
         """
 
         name = "SNOPT"
         category = "Local Optimizer"
-        defOpts = {
+        self.defOpts = {
             # SNOPT Printing Options
             "Major print level": [int, 1],  # Majors Print (1 - line major iteration log)
             "Minor print level": [int, 1],  # Minors Print (1 - line minor iteration log)
@@ -147,7 +147,7 @@ class SNOPT(Optimizer):
                 ["step", "merit", "feasibility", "optimality", "penalty"],
             ],  # 'Hessian', 'slack', 'lambda' and 'condZHZ' are also supported
         }
-        informs = {
+        self.informs = {
             0: "finished successfully",
             1: "optimality conditions satisfied",
             2: "feasible point found",
@@ -221,18 +221,16 @@ class SNOPT(Optimizer):
         }
 
         if snopt is None:
-            raise Error(
-                "There was an error importing the compiled \
-                        snopt module"
-            )
+            if raiseError:
+                raise Error("There was an error importing the compiled snopt module")
 
         self.set_options = []
-        Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
+        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
-        # Snopt need jacobians in csc format
+        # SNOPT need Jacobians in csc format
         self.jacType = "csc"
 
-        # Snopt specific jacobian map
+        # SNOPT specific Jacobian map
         self._snopt_jac_map_csr_to_csc = None
 
         # Check if we have numpy version 1.13.1. This version broke the callback in snopt.
@@ -305,7 +303,7 @@ class SNOPT(Optimizer):
             Must be in seconds. This can be useful on queue systems when
             you want an optimization to cleanly finish before the
             job runs out of time.
-            """
+        """
 
         self.callCounter = 0
         self.storeSens = storeSens
@@ -354,10 +352,10 @@ class SNOPT(Optimizer):
         # problem and run SNOPT, otherwise we go to the waiting loop:
         if self.optProb.comm.rank == 0:
 
-            # Determine the sparsity structure of the full jacobian
+            # Determine the sparsity structure of the full Jacobian
             # -----------------------------------------------------
 
-            # Gather dummy data and process jacobian:
+            # Gather dummy data and process Jacobian:
             gcon = {}
             for iCon in self.optProb.constraints:
                 gcon[iCon] = self.optProb.constraints[iCon].jac
@@ -365,7 +363,7 @@ class SNOPT(Optimizer):
             jac = self.optProb.processConstraintJacobian(gcon)
 
             if self.optProb.nCon > 0:
-                # We need to reorder this full jacobian...so get ordering:
+                # We need to reorder this full Jacobian...so get ordering:
                 indices, blc, buc, fact = self.optProb.getOrdering(["ne", "ni", "le", "li"], oneSided=oneSided)
                 jac = extractRows(jac, indices)  # Does reordering
                 scaleRows(jac, fact)  # Perform logical scaling
@@ -512,9 +510,10 @@ class SNOPT(Optimizer):
                 snopt.closeunit(self.options["iSumm"][1])
 
             # Store Results
+            inform = np.asscalar(inform)
             sol_inform = {}
             sol_inform["value"] = inform
-            sol_inform["text"] = self.informs[inform[0]]
+            sol_inform["text"] = self.informs[inform]
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xs[:nvar], multipliers=pi)

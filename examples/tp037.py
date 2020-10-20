@@ -1,14 +1,9 @@
-import argparse
-from pyoptsparse import Optimization, OPT
+# rst begin import
+from pyoptsparse import Optimization, SLSQP
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--opt", help="optimizer", type=str, default="SLSQP")
-args = parser.parse_args()
-optOptions = {}
-
-
-def objfunc(xx):
-    x = xx["xvars"]
+# rst begin objfunc
+def objfunc(xdict):
+    x = xdict["xvars"]
     funcs = {}
     funcs["obj"] = -x[0] * x[1] * x[2]
     conval = [0] * 2
@@ -20,26 +15,36 @@ def objfunc(xx):
     return funcs, fail
 
 
+# rst begin optProb
 # Optimization Object
 optProb = Optimization("TP037 Constraint Problem", objfunc)
 
+# rst begin addVar
 # Design Variables
 optProb.addVarGroup("xvars", 3, "c", lower=[0, 0, 0], upper=[42, 42, 42], value=10)
 
+# rst begin addCon
 # Constraints
 optProb.addConGroup("con", 2, lower=None, upper=0.0)
 
+# rst begin addObj
 # Objective
 optProb.addObj("obj")
 
-# Check optimization problem:
+# rst begin print
+# Check optimization problem
 print(optProb)
 
+# rst begin OPT
 # Optimizer
-opt = OPT(args.opt, options=optOptions)
+optOptions = {"IPRINT": -1}
+opt = SLSQP(options=optOptions)
 
-# Solution
-sol = opt(optProb, sens="CS")
+# rst begin solve
+# Solve
+sol = opt(optProb, sens="FD")
 
+# rst begin check
 # Check Solution
 print(sol)
+# rst end opt

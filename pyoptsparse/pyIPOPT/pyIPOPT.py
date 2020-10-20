@@ -38,7 +38,7 @@ class IPOPT(Optimizer):
     IPOPT Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, raiseError=True, *args, **kwargs):
         """
         IPOPT Optimizer Class Initialization
         """
@@ -50,7 +50,7 @@ class IPOPT(Optimizer):
         # http://www.coin-or.org/Ipopt/documentation/node39.html
         # accessed on March 26, 2014.
 
-        def_opts = {
+        self.defOpts = {
             "print_level": [int, 0],
             "output_file": [str, "IPOPT.out"],
             # Output verbosity level. '0-12'
@@ -223,7 +223,7 @@ class IPOPT(Optimizer):
             "warm_start_mult_init_max": [float, 1e06],
             "warm_start_entire_iterate": [float, "no"],
             # Linear Solver.
-            "linear_solver": [str, "ma27"],
+            "linear_solver": [str, "mumps"],
             "linear_system_scaling": [str, "none"],  # Had been "mc19", but not always available.
             "linear_scaling_on_demand": [str, "yes"],
             # Step Calculation.
@@ -331,7 +331,7 @@ class IPOPT(Optimizer):
             # 'warm_start_target_mu' : [float, 0.0]
         }
 
-        informs = {
+        self.informs = {
             0: "Solve Succeeded",
             1: "Solved To Acceptable Level",
             2: "Infeasible Problem Detected",
@@ -354,15 +354,13 @@ class IPOPT(Optimizer):
         }
 
         if pyipoptcore is None:
-            raise Error(
-                "There was an error importing the compiled \
-                        IPOPT module"
-            )
+            if raiseError:
+                raise Error("There was an error importing the compiled IPOPT module")
 
         self.set_options = []
-        Optimizer.__init__(self, name, category, def_opts, informs, *args, **kwargs)
+        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
-        # IPOPT needs jacobians in coo format
+        # IPOPT needs Jacobians in coo format
         self.jacType = "coo"
 
     def __call__(
@@ -415,7 +413,7 @@ class IPOPT(Optimizer):
         storeSens : bool
             Flag sepcifying if sensitivities are to be stored in hist.
             This is necessay for hot-starting only.
-            """
+        """
 
         self.callCounter = 0
         self.storeSens = storeSens
@@ -429,7 +427,7 @@ class IPOPT(Optimizer):
             optProb.dummyConstraint = True
 
         # Save the optimization problem and finalize constraint
-        # jacobian, in general can only do on root proc
+        # Jacobian, in general can only do on root proc
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()
@@ -437,10 +435,10 @@ class IPOPT(Optimizer):
         blx, bux, xs = self._assembleContinuousVariables()
         self._setSens(sens, sensStep, sensMode)
 
-        # Determine the sparsity structure of the full jacobian
+        # Determine the sparsity structure of the full Jacobian
         # -----------------------------------------------------
 
-        # Gather dummy data and process jacobian:
+        # Gather dummy data and process Jacobian:
         gcon = {}
         for iCon in self.optProb.constraints:
             gcon[iCon] = self.optProb.constraints[iCon].jac
@@ -448,7 +446,7 @@ class IPOPT(Optimizer):
         jac = self.optProb.processConstraintJacobian(gcon)
 
         if self.optProb.nCon > 0:
-            # We need to reorder this full jacobian...so get ordering:
+            # We need to reorder this full Jacobian...so get ordering:
             indices, blc, buc, fact = self.optProb.getOrdering(["ne", "ni", "le", "li"], oneSided=False)
             self.optProb.jacIndices = indices
             self.optProb.fact = fact

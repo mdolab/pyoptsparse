@@ -36,10 +36,10 @@ class SLSQP(Optimizer):
     SLSQP Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, raiseError=True, *args, **kwargs):
         name = "SLSQP"
         category = "Local Optimizer"
-        defOpts = {
+        self.defOpts = {
             # SLSQP Options
             "ACC": [float, 1e-6],  # Convergence Accurancy
             "MAXIT": [int, 500],  # Maximum Iterations
@@ -47,7 +47,7 @@ class SLSQP(Optimizer):
             "IOUT": [int, 6],  # Output Unit Number
             "IFILE": [str, "SLSQP.out"],  # Output File Name
         }
-        informs = {
+        self.informs = {
             -1: "Gradient evaluation required (g & a)",
             0: "Optimization terminated successfully.",
             1: "Function evaluation required (f & c)",
@@ -61,15 +61,13 @@ class SLSQP(Optimizer):
             9: "Iteration limit exceeded",
         }
         if slsqp is None:
-            raise Error(
-                "There was an error importing the compiled \
-                        slsqp module"
-            )
+            if raiseError:
+                raise Error("There was an error importing the compiled slsqp module")
 
         self.set_options = []
-        Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
+        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
-        # SLSQP needs jacobians in dense format
+        # SLSQP needs Jacobians in dense format
         self.jacType = "dense2d"
 
     def __call__(
@@ -122,7 +120,7 @@ class SLSQP(Optimizer):
         storeSens : bool
             Flag sepcifying if sensitivities are to be stored in hist.
             This is necessay for hot-starting only.
-            """
+        """
 
         self.callCounter = 0
         self.storeSens = storeSens
@@ -136,7 +134,7 @@ class SLSQP(Optimizer):
             optProb.dummyConstraint = True
 
         # Save the optimization problem and finalize constraint
-        # jacobian, in general can only do on root proc
+        # Jacobian, in general can only do on root proc
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()
@@ -203,7 +201,7 @@ class SLSQP(Optimizer):
                 if os.path.isfile(ifile):
                     os.remove(ifile)
 
-            mode = 0
+            mode = np.array(0, int)
             mineq = m - meq + 2 * (n + 1)
             lsq = (n + 1) * ((n + 1) + 1) + meq * ((n + 1) + 1) + mineq * ((n + 1) + 1)
             lsi = ((n + 1) - meq + 1) * (mineq + 2) + 2 * mineq
@@ -259,9 +257,10 @@ class SLSQP(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
+            inform = np.asscalar(mode)
             sol_inform = {}
-            # sol_inform['value'] = inform
-            # sol_inform['text'] = self.informs[inform[0]]
+            sol_inform["value"] = inform
+            sol_inform["text"] = self.informs[inform]
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xs)

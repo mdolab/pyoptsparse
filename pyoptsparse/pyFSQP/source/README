@@ -1,3 +1,0 @@
-This directory contains the Fortran 77 source for
-FSQP, plus two helper files called openunit.f and
-closeunit.f to manipulate Fortran units from Python.

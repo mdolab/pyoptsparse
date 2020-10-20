@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-"""
-pyOpt_history
-
-Holds the Python Design Optimization History Class.
-"""
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -19,51 +14,49 @@ eps = np.finfo(np.float64).eps
 # History Class
 # =============================================================================
 class History(object):
-    """
-    Optimizer History Class Initialization. This is essentially a
-    thin wrapper around a SqliteDict dictionary to facilitate
-    operations with pyOptSparse
-
-    Parameters
-    ----------
-    fileName : str
-       File name for history file
-
-    optProb : pyOpt_Optimization
-        the optimization object
-
-    temp : bool
-       Flag to signify that the file should be deleted after it is
-       closed
-
-    flag : str
-        String specifying the mode. Similar to what was used in
-        shelve. 'n' for a new database and 'r' to read an existing one.
-
-    """
-
     def __init__(self, fileName, optProb=None, temp=False, flag="r"):
+        """
+        This class is essentially a thin wrapper around a SqliteDict dictionary to facilitate
+        operations with pyOptSparse
 
-        if flag == "n":
+        Parameters
+        ----------
+        fileName : str
+            File name for history file
+
+        optProb : pyOpt_Optimization
+            The optimization object
+
+        temp : bool
+            Flag to signify that the file should be deleted after it is
+            closed
+
+        flag : str
+            String specifying the mode. Similar to what was used in shelve.
+            ``n`` for a new database and ``r`` to read an existing one.
+        """
+        self.flag = flag
+        if self.flag == "n":
             # If writing, we expliclty remove the file to
             # prevent old keys from "polluting" the new histrory
             if os.path.exists(fileName):
                 os.remove(fileName)
             self.db = SqliteDict(fileName)
             self.optProb = optProb
-        elif flag == "r":
+        elif self.flag == "r":
             if os.path.exists(fileName):
                 # we cast the db to OrderedDict so we do not have to
                 # manually close the underlying db at the end
                 self.db = OrderedDict(SqliteDict(fileName))
             else:
-                raise Error("The requested history file %s to open in read-only mode does not exist." % fileName)
+                raise FileNotFoundError(
+                    "The requested history file %s to open in read-only mode does not exist." % fileName
+                )
             self._processDB()
         else:
             raise Error("The flag argument to History must be 'r' or 'n'.")
         self.temp = temp
         self.fileName = fileName
-        self.flag = flag
 
     def close(self):
         """
@@ -202,10 +195,13 @@ class History(object):
         self.DVInfo = self.read("varInfo")
         self.conInfo = self.read("conInfo")
         self.objInfo = self.read("objInfo")
+        # metadata
+        self.metadata = self.read("metadata")
+        self.optProb = self.read("optProb")
         # load names
-        self.DVNames = set(self.DVInfo.keys())
-        self.conNames = set(self.conInfo.keys())
-        self.objNames = set(self.objInfo.keys())
+        self.DVNames = set(self.getDVNames())
+        self.conNames = set(self.getConNames())
+        self.objNames = set(self.getObjNames())
 
         # extract list of callCounters from self.keys
         # this just checks if each key contains only digits, then cast into int
@@ -216,10 +212,6 @@ class History(object):
         for i in self.callCounters:
             val = self.read(i)
             self.iterKeys.update(val.keys())
-
-        # metadata
-        self.metadata = self.read("metadata")
-        self.optProb = self.read("optProb")
 
         from .__init__ import __version__
 
@@ -267,7 +259,9 @@ class History(object):
         # only do this if we open the file with 'r' flag
         if self.flag != "r":
             return
-        return copy.deepcopy(list(self.conInfo.keys()))
+        # we remove linear constraints
+        conNames = [con for con in self.conInfo.keys() if not self.optProb.constraints[con].linear]
+        return copy.deepcopy(conNames)
 
     def getObjNames(self):
         """
@@ -439,10 +433,14 @@ class History(object):
         These are all "flat" dictionaries, with simple key:value pairs.
         """
         conDict = {}
-        for con in self.conNames:
+        for con in list(self.optProb.constraints.keys()):
             # linear constraints are not stored in funcs
             if not self.optProb.constraints[con].linear:
                 conDict[con] = d["funcs"][con]
+            else:
+                # the linear constraints are removed from optProb so that scaling works
+                # without needing the linear constraints to be present
+                self.optProb.constraints.pop(con)
         objDict = {}
         for obj in self.objNames:
             objDict[obj] = d["funcs"][obj]
@@ -635,6 +633,9 @@ class History(object):
         for name in names:
             # we just stack along axis 0
             data[name] = np.stack(data[name], axis=0)
+            # we cast 1D arrays to 2D, for scalar values
+            if data[name].ndim == 1:
+                data[name] = np.expand_dims(data[name], 1)
 
         return data
 
