@@ -9,6 +9,7 @@ env:
     - SNOPT_DIR=$DOCKER_WORKING_DIR/$REPO_NAME/pySNOPT/source
     - NLPQLP_DIR=$DOCKER_WORKING_DIR/$REPO_NAME/pyNLPQLP/source
     - AUTO_DOCKER_REPO=true # this will automatically set DOCKER_REPO depending on where the build originates
+    - SKIP_COPY_DIR=true # skip copying directories for the pre_install step
 
 install:
   # We back up the proprietary source codes first
