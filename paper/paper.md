@@ -42,7 +42,7 @@ g(x)\\
 \end{align*}
 where $x$ is the vector of design variables and $f(x)$ is a nonlinear objective function.
 $A$ is the linear constraint Jacobian, and $g(x)$ is the set of nonlinear constraint functions.
-At time of writing, the latest released version of pyOptSparse is v2.1.6.
+At time of writing, the latest released version of pyOptSparse is v2.2.0.
 
 # Features
 ## Support for multiple optimizers
@@ -56,7 +56,7 @@ The optimizer can be switched by editing a single line of code.
 Although pyOptSparse focuses primarily on large-scale gradient-based optimization, it provides support for gradient-free optimizers as well.
 Also, discrete variables, multi-objective, and population-based optimizers are all supported.
 Because of the object-oriented programming approach, it is also straightforward to extend pyOptSparse to support any additional optimizers that are not currently available.
-All of the features within pyOptSparse, including problem scaling and optimization hotstart, are automatically inherited when new optimizers are added.
+All of the features within pyOptSparse, including problem scaling and optimization hot-start, are automatically inherited when new optimizers are added.
 
 ## String-based indexing
 Unlike many other publicly available optimization frameworks, pyOptSparse is designed to handle large-scale optimizations, with a focus on engineering applications.
@@ -68,7 +68,7 @@ Similarly, the constraint Jacobian is represented by a nested dictionary approac
 This representation has several advantages:
 
 - The design variable and constraint values can be accessed without knowing their global indices, which reduces possible user error.
-- The global indices are also often optimizer-dependent and this extra level of wrapping abstracts away potentially confusing differences between optimizers.
+- The global indices are also often optimizer-dependent and this extra level of wrapping abstracts away potentially-confusing differences between optimizers.
 - The constraint Jacobian can be computed and provided at the sub-block level, leaving pyOptSparse to assemble the whole Jacobian.
   This mimics the engineering workflow where different tools often compute different sub-blocks of the Jacobian.
   The user only has to ensure that the indices within each sub-block are correct, and the rest is handled automatically.
@@ -209,7 +209,7 @@ jac = np.zeros((1, ny))
 jac[0, 0] = 1
 jac[0, 1] = -2
 optProb.addConGroup(
-    "lin_con", 1, lower=5, upper=5, wrt=["y"], jac={"y": jac}, linear=True
+    "lin_con", 1, lower=5, upper=5, wrt="y", jac={"y": jac}, linear=True
 )
 # Objective
 optProb.addObj("obj")
@@ -229,8 +229,7 @@ For large optimization problems, the Jacobian can be constructed using sparse ma
 Finally, we set up SLSQP [@Kraft1988a] as the optimizer and solve the optimization problem.
 ```python
 # Optimizer
-optOptions = {}
-opt = OPT("SLSQP", options=optOptions)
+opt = OPT("SLSQP", options={})
 
 # Optimize
 sol = opt(optProb, sens="CS")
@@ -246,7 +245,7 @@ By using string-based indexing, different sub-blocks of the constraint Jacobian 
 In addition, other frameworks do not offer convenience features, such as user-supplied optimization problem scaling, optimization hot-start, or post-processing utilities.
 Although pyOptSparse is a general optimization framework, it is tailored to gradient-based optimizations of large-scale problems with sparse constraints.
 
-pyOptSparse has been used extensively in engineering applications, particularly in multidisciplinary design optimization (MDO).
+pyOptSparse has been used extensively in engineering applications, particularly in multidisciplinary design optimization.
 Researchers have used it to perform aerodynamic shape optimization of aircraft wings [@Secco2019], wind turbines [@Madsen2019], and aerostructural optimization of an entire aircraft [@Brooks2018].
 pyOptSparse is also supported by OpenMDAO [@Gray2019], a popular Python framework for multidisciplinary analysis and optimization.
 Through OpenMDAO, pyOptSparse has been applied to problems such as low-fidelity aerostructural wing design [@Chauhan2018] and aeropropulsive optimization of a boundary-layer ingestion propulsor [@Gray2018].
