@@ -22,9 +22,9 @@ Please install it following its instructions, and run it at the project root wit
 
     flake8 .
 
-which will use the ``.flake8`` configuration file provided by pyOptSparse.
+The configuration file we use for flake8 is a combination of `this file <https://github.com/mdolab/.github/blob/master/.flake8>`__ and the one at the root of this repository.
 If there are any PEP-8 violations, ``flake8`` will print out the nature of the violation.
-Please fix all violations before submitting the PR.
+We run continuous integration with these tools on all pull requests submitted.
 For an easier workflow, we recommend integrating these tools with your code editor.
 
 .. warning::

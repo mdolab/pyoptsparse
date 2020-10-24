@@ -29,6 +29,7 @@ To get started, please see the :ref:`install` and the :ref:`quickstart`.
    postprocessing
    changes
    contribute
+   citation
    license
 
 .. toctree::

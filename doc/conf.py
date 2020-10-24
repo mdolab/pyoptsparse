@@ -22,4 +22,3 @@ project = "pyOptSparse"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions.extend(["numpydoc", "ext.optimizertable"])
-numpydoc_show_class_members = False
