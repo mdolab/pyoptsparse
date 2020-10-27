@@ -29,7 +29,7 @@ script:
   - |
     if [ $TEST_TYPE == "docker" ]; then
       # run tests
-      docker exec -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR/test && testflo --pre_announce -v . --coverage --coverpkg $REPO_NAME"
+      docker exec -it app /bin/bash -c ". $BASHRC && cd  && testflo --pre_announce -v . --coverage --coverpkg $REPO_NAME"
     fi
 
 after_success:
@@ -37,6 +37,8 @@ after_success:
   - |
     if [ $TEST_TYPE == "docker" ]; then
       docker exec -it app /bin/bash -c ". $BASHRC && pip install coveralls";
+      # move the coverage file to the root
+      docker exec -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR/test && mv .coverage ../";
       # These environment variables must be exposed to coveralls for it to work (since we are using Docker)
-      docker exec -e COVERALLS_REPO_TOKEN="$COVERALLS_REPO_TOKEN" -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" -e TRAVIS_BRANCH="$TRAVIS_BRANCH" -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR/test && coveralls --rcfile=../.coveragerc";
+      docker exec -e COVERALLS_REPO_TOKEN="$COVERALLS_REPO_TOKEN" -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" -e TRAVIS_BRANCH="$TRAVIS_BRANCH" -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR && coveralls --rcfile=.coveragerc";
     fi
