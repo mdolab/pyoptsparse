@@ -23,7 +23,7 @@ install:
       docker exec -it app /bin/bash -c "cp -r \$HOME/NLPQLP/* $NLPQLP_DIR/ && cp -r \$HOME/SNOPT/* $SNOPT_DIR/";
     fi
   # Build and install
-  - docker exec -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR && pip install ."
+  - docker exec -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR && pip install -e ."
 
 script:
   - |
@@ -34,6 +34,11 @@ script:
 
 after_success:
   # Coveralls
-  # These environment variables must be exposed to coveralls for it to work (since we are using Docker)
-  - docker exec -it app /bin/bash -c ". $BASHRC && pip install coveralls";
-  - docker exec -e COVERALLS_REPO_TOKEN="$COVERALLS_REPO_TOKEN" -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" -e TRAVIS_BRANCH="$TRAVIS_BRANCH" -it app /bin/bash -c ". \$HOME/.bashrc_mdolab && cd $DOCKER_WORKING_DIR && coveralls --rcfile=.coveragerc";
+  - |
+    if [ $TEST_TYPE == "docker" ]; then
+      docker exec -it app /bin/bash -c ". $BASHRC && pip install coveralls";
+      # move the coverage file to the root
+      docker exec -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR/test && mv .coverage ../";
+      # These environment variables must be exposed to coveralls for it to work (since we are using Docker)
+      docker exec -e COVERALLS_REPO_TOKEN="$COVERALLS_REPO_TOKEN" -e TRAVIS="$TRAVIS"  -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" -e TRAVIS_BRANCH="$TRAVIS_BRANCH" -e TRAVIS_PULL_REQUEST="$TRAVIS_PULL_REQUEST" -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR && coveralls --rcfile=.coveragerc";
+    fi
