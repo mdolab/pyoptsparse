@@ -31,6 +31,9 @@ class TestHS15(unittest.TestCase):
         conval[0] = x[0] * x[1]
         conval[1] = x[0] + x[1] ** 2
         funcs["con"] = conval
+        # extra keys
+        funcs["extra1"] = 0.0
+        funcs["extra2"] = 1.0
         fail = False
         return funcs, fail
 
@@ -142,10 +145,18 @@ class TestHS15(unittest.TestCase):
         last = hist.read("last")  # 'last' key should be present
         self.assertIn(last, callCounters)
 
-        # iterKey checks
+        # iterKeys checks
         iterKeys = hist.getIterKeys()
         for key in ["xuser", "fail", "isMajor"]:
             self.assertIn(key, iterKeys)
+
+        # extraFuncsNames checks
+        extraFuncsNames = hist.getExtraFuncsNames()
+        for key in ["extra1", "extra2"]:
+            self.assertIn(key, extraFuncsNames)
+
+        # getValues checks
+        val = hist.getValues()
 
         # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
         if optimizer in ["SNOPT", "SLSQP", "PSQP"]:

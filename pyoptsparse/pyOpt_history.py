@@ -209,9 +209,14 @@ class History(object):
 
         # extract all information stored in the call counters
         self.iterKeys = set()
+        self.extraFuncsNames = set()
         for i in self.callCounters:
             val = self.read(i)
             self.iterKeys.update(val.keys())
+            if "funcs" in val.keys():
+                self.extraFuncsNames.update(val["funcs"].keys())
+        # remove objective and constraint keys
+        self.extraFuncsNames = self.extraFuncsNames.difference(self.conNames).difference(self.objNames)
 
         from .__init__ import __version__
 
@@ -282,6 +287,22 @@ class History(object):
         if self.flag != "r":
             return
         return copy.deepcopy(list(self.objInfo.keys()))
+
+    def getExtraFuncsNames(self):
+        """
+        Returns extra funcs names.
+        These are extra key: value pairs stored in the ``funcs`` dictionary for each iteration, which are not used by the optimizer.
+
+        Returns
+        -------
+        list of str
+            A list containing the names of extra funcs keys.
+
+        """
+        # only do this if we open the file with 'r' flag
+        if self.flag != "r":
+            return
+        return copy.deepcopy(list(self.extraFuncsNames))
 
     def getObjInfo(self, key=None):
         """
@@ -535,6 +556,7 @@ class History(object):
             self.DVNames.union(self.conNames)
             .union(self.objNames)
             .union(self.iterKeys)
+            .union(self.extraFuncsNames)
             .difference(set(["funcs", "funcsSens", "xuser"]))
         )
         # cast string input into a single list
@@ -615,6 +637,8 @@ class History(object):
                                 data[name].append(conDict[name])
                             elif name in self.objNames:
                                 data[name].append(objDict[name])
+                            elif name in self.extraFuncsNames:
+                                data[name].append(val["funcs"][name])
                             else:  # must be opt
                                 data[name].append(val[name])
                     elif val["fail"] and user_specified_callCounter:
