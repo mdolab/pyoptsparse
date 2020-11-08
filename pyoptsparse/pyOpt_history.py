@@ -532,7 +532,8 @@ class History(object):
             return
 
         allNames = (
-            self.DVNames.union(self.conNames)
+            self.DVNames.union(self.db["0"]["funcs"].keys())
+            .union(self.conNames)
             .union(self.objNames)
             .union(self.iterKeys)
             .difference(set(["funcs", "funcsSens", "xuser"]))
@@ -615,6 +616,8 @@ class History(object):
                                 data[name].append(conDict[name])
                             elif name in self.objNames:
                                 data[name].append(objDict[name])
+                            elif name in val["funcs"].keys():
+                                data[name].append(val["funcs"][name])
                             else:  # must be opt
                                 data[name].append(val[name])
                     elif val["fail"] and user_specified_callCounter:
