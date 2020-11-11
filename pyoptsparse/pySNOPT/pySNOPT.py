@@ -668,10 +668,7 @@ class SNOPT(Optimizer):
         # Set Options from the local options dictionary
         # ---------------------------------------------
         inform = np.array([-1], np.intc)
-        for item in self.set_options:
-            name = item[0]
-            value = item[1]
-
+        for name, value in self.set_options:
             if name == "iPrint" or name == "iSumm":
                 continue
 
