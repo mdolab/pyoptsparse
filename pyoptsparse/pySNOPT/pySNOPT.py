@@ -703,8 +703,6 @@ class SNOPT(Optimizer):
     def _on_setOption(self, name, value):
         """
         Set Optimizer Option Value (Optimizer Specific Routine)
-
-        Documentation last updated:  May. 07, 2008 - Ruben E. Perez
         """
 
         self.set_options.append([name, value])
@@ -712,8 +710,6 @@ class SNOPT(Optimizer):
     def _on_getOption(self, name):
         """
         Get Optimizer Option Value (Optimizer Specific Routine)
-
-        Documentation last updated:  May. 07, 2008 - Ruben E. Perez
         """
 
         pass
@@ -725,8 +721,6 @@ class SNOPT(Optimizer):
         Keyword arguments:
         -----------------
         id -> STRING: Option Name
-
-        Documentation last updated:  May. 07, 2008 - Ruben E. Perez
         """
 
         #
@@ -743,8 +737,6 @@ class SNOPT(Optimizer):
     def _on_flushFiles(self):
         """
         Flush the Output Files (Optimizer Specific Routine)
-
-        Documentation last updated:  August. 09, 2009 - Ruben E. Perez
         """
 
         #

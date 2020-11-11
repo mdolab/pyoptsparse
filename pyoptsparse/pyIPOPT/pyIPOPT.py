@@ -555,8 +555,6 @@ class IPOPT(Optimizer):
     def _on_setOption(self, name, value):
         """
         Set Optimizer Option Value (Optimizer Specific Routine)
-
-        Documentation last updated:  May. 07, 2008 - Ruben E. Perez
         """
 
         self.set_options.append([name, value])
