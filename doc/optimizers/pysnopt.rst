@@ -18,7 +18,7 @@ SNOPT is available for purchase `here
 
 From v2.0 onwards, only SNOPT v7.7.x is officially supported.
 To use pyOptSparse with previous versions of SNOPT, please checkout release v1.2.
-The current version of SNOPT being tested is v7.7.1, although v7.7.5 is also expected to work.
+The current version of SNOPT being tested is v7.7.5, although v7.7.1 is also expected to work.
 
 
 Options
