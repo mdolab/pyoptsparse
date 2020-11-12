@@ -76,6 +76,7 @@ class SNOPT(Optimizer):
             # SNOPT Other Tolerances Options
             "Crash tolerance": [float, 0.1],
             "Linesearch tolerance": [float, 0.9],  # smaller for more accurate search
+            "Backoff factor": [float, 0.1],  # backtracking factor for failed evaluations
             "Pivot tolerance": [float, 3.7e-11],  # epsilon^(2/3)
             # SNOPT QP subproblems Options
             "QPSolver": [str, "Cholesky"],  # Default: Cholesky
@@ -88,6 +89,7 @@ class SNOPT(Optimizer):
             # SNOPT SQP method Options
             "Major iterations limit": [int, 1000],  # or ncons if that is more
             "Minor iterations limit": [int, 500],  # or 3*ncons if that is more
+            "Proximal iterations limit": [int, 200],  # for solving the proximal point problem
             "Major step limit": [float, 2.0],
             "Superbasics limit": [int, None],  # (n1 + 1, n1 = number of nonlinear variables)
             "Derivative level": [int, 3],  # (NOT ALLOWED IN snOptA)
@@ -224,7 +226,10 @@ class SNOPT(Optimizer):
             if raiseError:
                 raise Error("There was an error importing the compiled snopt module")
 
-        self.set_options = []
+        # any default options modified by pySNOPT goes here
+        self.set_options = [
+            ["Proximal iterations limit", 10000],  # very large # to solve proximal point problem to optimality
+        ]
         Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
         # SNOPT need Jacobians in csc format
@@ -663,10 +668,7 @@ class SNOPT(Optimizer):
         # Set Options from the local options dictionary
         # ---------------------------------------------
         inform = np.array([-1], np.intc)
-        for item in self.set_options:
-            name = item[0]
-            value = item[1]
-
+        for name, value in self.set_options:
             if name == "iPrint" or name == "iSumm":
                 continue
 
@@ -701,8 +703,6 @@ class SNOPT(Optimizer):
     def _on_setOption(self, name, value):
         """
         Set Optimizer Option Value (Optimizer Specific Routine)
-
-        Documentation last updated:  May. 07, 2008 - Ruben E. Perez
         """
 
         self.set_options.append([name, value])
@@ -710,8 +710,6 @@ class SNOPT(Optimizer):
     def _on_getOption(self, name):
         """
         Get Optimizer Option Value (Optimizer Specific Routine)
-
-        Documentation last updated:  May. 07, 2008 - Ruben E. Perez
         """
 
         pass
@@ -723,8 +721,6 @@ class SNOPT(Optimizer):
         Keyword arguments:
         -----------------
         id -> STRING: Option Name
-
-        Documentation last updated:  May. 07, 2008 - Ruben E. Perez
         """
 
         #
@@ -741,8 +737,6 @@ class SNOPT(Optimizer):
     def _on_flushFiles(self):
         """
         Flush the Output Files (Optimizer Specific Routine)
-
-        Documentation last updated:  August. 09, 2009 - Ruben E. Perez
         """
 
         #
