@@ -2,7 +2,7 @@
 
 Citation
 ========
-If you use pyOptSparse in your research, please cite the following paper:
+If you use pyOptSparse, please cite the following paper:
 
     Wu et al., (2020). pyOptSparse: A Python framework for large-scale constrained nonlinear optimization of sparse systems. Journal of Open Source Software, 5(54), 2564, https://doi.org/10.21105/joss.02564
 
