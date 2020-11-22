@@ -23,6 +23,24 @@ The current version of SNOPT being tested is v7.7.5, although v7.7.1 is also exp
 
 Options
 -------
+The default values come directly from SNOPT, which is why they are not displayed in the table below.
+Please refer to the user manual for those options.
+Note that there are two key differences:
+
+- The SNOPT option ``Proximal iterations limit`` has its default value changed to 10000, in order to fully solve the proximal point problem to optimality
+- The option ``Save major iteration variables`` is unique to the Python wrapper, and takes a list of values which can be saved at each iteration to the History file.
+  Possible values are
+
+  - ``step``
+  - ``merit``
+  - ``feasibility``
+  - ``optimality``
+  - ``penalty``
+  - ``Hessian``
+  - ``slack``
+  - ``lambda``
+  - ``condZHZ``
+
 .. optimizertable:: pyoptsparse.pySNOPT.pySNOPT.SNOPT
    :type: options
    :nodefvalues:
