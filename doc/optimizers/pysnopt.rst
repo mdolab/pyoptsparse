@@ -25,6 +25,7 @@ Options
 -------
 .. optimizertable:: pyoptsparse.pySNOPT.pySNOPT.SNOPT
    :type: options
+   :nodefvalues:
 
 
 Informs
