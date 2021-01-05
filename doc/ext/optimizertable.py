@@ -21,6 +21,7 @@ class OptimizerTable(Table):
         "type": directives.uri,
         "header": str,
         "widths": directives.positive_int_list,
+        "nodefvalues": directives.flag,
     }
 
     def get_options_informs(self, cls):
@@ -37,6 +38,8 @@ class OptimizerTable(Table):
         else:
             if self.options["type"] == "options":
                 self.header = ["Option name", "Type", "Default value"]
+                if self.options["nodefvalues"]:
+                    self.header = self.header[:-1]
             elif self.options["type"] == "informs":
                 self.header = ["Code", "Description"]
 
@@ -49,12 +52,16 @@ class OptimizerTable(Table):
         else:
             if self.options["type"] == "options":
                 self.col_widths = [20, 10, 30]
+                if self.options["nodefvalues"]:
+                    self.col_widths = self.col_widths[:-1]
             elif self.options["type"] == "informs":
                 self.col_widths = [5, 55]
 
     def run(self):
         module_path, member_name = self.arguments[0].rsplit(".", 1)
         class_name = getattr(import_module(module_path), member_name)
+        # set options
+        self.options["nodefvalues"] = "nodefvalues" in self.options
         # set the self.defOpts and self.informs attribute
         self.get_options_informs(class_name)
         # set header option
@@ -90,13 +97,15 @@ class OptimizerTable(Table):
                         trow += add_col(value.__name__)
                     # this is the default value
                     else:
-                        if isinstance(value, (float, int)):
-                            limit = 5
-                            if abs(value) > 10 ** limit or (abs(value) < 10 ** (-limit) and abs(value) > 0):
-                                value = "{:.3E}".format(value)
-                            else:
-                                value = "{}".format(value)
-                        trow += add_col(str(value))
+                        # if we want to show the default values
+                        if not self.options["nodefvalues"]:
+                            if isinstance(value, (float, int)):
+                                limit = 5
+                                if abs(value) > 10 ** limit or (abs(value) < 10 ** (-limit) and abs(value) > 0):
+                                    value = "{:.3E}".format(value)
+                                else:
+                                    value = "{}".format(value)
+                            trow += add_col(str(value))
                 rows.append(trow)
         # informs
         elif self.options["type"] == "informs":
