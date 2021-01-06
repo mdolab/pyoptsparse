@@ -32,7 +32,7 @@ from ..pyOpt_error import Error
 
 
 class NOMAD(Optimizer):
-    def __init__(self, raiseError=True, *args, **kwargs):
+    def __init__(self, raiseError=True, options={}):
         name = "NOMAD"
         category = "MADS Optimizer"
         self.defOpts = {
@@ -49,7 +49,7 @@ class NOMAD(Optimizer):
             if raiseError:
                 raise Error("There was an error importing the compiled nomad module")
 
-        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
+        super().__init__(name, category=category, defOptions=self.defOpts, informs=self.informs, options=options)
 
     def __call__(
         self, optProb, sens=None, sensStep=None, sensMode=None, storeHistory=None, hotStart=None, storeSens=True

@@ -38,7 +38,7 @@ class IPOPT(Optimizer):
     IPOPT Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, raiseError=True, *args, **kwargs):
+    def __init__(self, raiseError=True, options={}):
         """
         IPOPT Optimizer Class Initialization
         """
@@ -358,7 +358,7 @@ class IPOPT(Optimizer):
                 raise Error("There was an error importing the compiled IPOPT module")
 
         self.set_options = []
-        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
+        super().__init__(name, category=category, defOptions=self.defOpts, informs=self.informs, options=options)
 
         # IPOPT needs Jacobians in coo format
         self.jacType = "coo"

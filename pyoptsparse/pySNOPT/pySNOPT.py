@@ -37,7 +37,7 @@ class SNOPT(Optimizer):
     SNOPT Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, raiseError=True, *args, **kwargs):
+    def __init__(self, raiseError=True, options={}):
         """
         SNOPT Optimizer Class Initialization
         """
@@ -230,7 +230,7 @@ class SNOPT(Optimizer):
         self.set_options = [
             ["Proximal iterations limit", 10000],  # very large # to solve proximal point problem to optimality
         ]
-        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
+        super().__init__(name, category=category, defOptions=self.defOpts, informs=self.informs, options=options)
 
         # SNOPT need Jacobians in csc format
         self.jacType = "csc"

@@ -35,7 +35,7 @@ class PSQP(Optimizer):
     PSQP Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, raiseError=True, *args, **kwargs):
+    def __init__(self, raiseError=True, options={}):
         name = "PSQP"
         category = "Local Optimizer"
         self.defOpts = {
@@ -65,13 +65,12 @@ class PSQP(Optimizer):
             -8: "Interpolation error in line search",
             -10: "Optimization failed",
         }
-        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
         if psqp is None:
             if raiseError:
                 raise Error("There was an error importing the compiled psqp module")
 
-        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
+        super().__init__(name, category=category, defOptions=self.defOpts, informs=self.informs, options=options)
 
         # PSQP needs Jacobians in dense format
         self.jacType = "dense2d"

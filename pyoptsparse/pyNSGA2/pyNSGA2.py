@@ -34,7 +34,7 @@ class NSGA2(Optimizer):
     NSGA2 Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, raiseError=True, *args, **kwargs):
+    def __init__(self, raiseError=True, options={}):
 
         name = "NSGA-II"
         category = "Global Optimizer"
@@ -52,7 +52,7 @@ class NSGA2(Optimizer):
             "xinit": [int, 0],  # Use Initial Solution Flag (0 - random population, 1 - use given solution)
         }
         self.informs = {}
-        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
+        super().__init__(name, category=category, defOptions=self.defOpts, informs=self.informs, options=options)
 
         if nsga2 is None:
             if raiseError:
