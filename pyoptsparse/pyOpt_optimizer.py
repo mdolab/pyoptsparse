@@ -14,6 +14,7 @@ from .pyOpt_optimization import INFINITY
 from .pyOpt_utils import convertToDense, convertToCOO, extractRows, mapToCSC, scaleRows, IDATA
 from collections import OrderedDict
 import datetime
+from baseclasses import BaseSolver
 from .pyOpt_MPI import MPI
 
 eps = np.finfo(np.float64).eps
@@ -21,8 +22,8 @@ eps = np.finfo(np.float64).eps
 # =============================================================================
 # Optimizer Class
 # =============================================================================
-class Optimizer(object):
-    def __init__(self, name=None, category=None, defOptions=None, informs=None, **kwargs):
+class Optimizer(BaseSolver):
+    def __init__(self, name=None, category=None, defOptions=None, informs=None, options={}):
         """
         This is the base optimizer class that all optimizers inherit from.
         We define common methods here to avoid code duplication.
@@ -38,21 +39,9 @@ class Optimizer(object):
         informs : dict
             Dictionary of the inform codes
         """
-        self.name = name
-        self.category = category
-        self.options = {}
-        self.options["defaults"] = defOptions
-        self.informs = informs
+        super().__init__(name, category=category, def_options=defOptions, options=options, informs=informs)
         self.callCounter = 0
         self.sens = None
-        # Initialize Options
-        for key in defOptions:
-            self.options[key] = defOptions[key]
-
-        koptions = kwargs.pop("options", {})
-        for key in koptions:
-            self.setOption(key, koptions[key])
-
         self.optProb = None
         # Default options:
         self.appendLinearConstraints = False
@@ -153,10 +142,7 @@ class Optimizer(object):
                 if os.path.exists(hotStart):
                     self.hotStart = History(hotStart, temp=False, flag="r")
                 else:
-                    pyOptSparseWarning(
-                        "Hot start file does not exist. \
-                    Performing a regular start"
-                    )
+                    pyOptSparseWarning("Hot start file does not exist. Performing a regular start")
 
         self.storeHistory = False
         if storeHistory:
@@ -779,10 +765,6 @@ class Optimizer(object):
         after optimization finishes.
         """
         options = copy.deepcopy(self.options)
-        options.pop("defaults")  # remove the default list
-        # we retrieve only the second item which is the actual value
-        for key, val in options.items():
-            options[key] = val[1]
 
         from .__init__ import __version__  # importing the pyoptsparse version
 
@@ -816,20 +798,9 @@ class Optimizer(object):
             Variable value to set.
         """
 
-        if name in self.options["defaults"]:
-            if type(value) == self.options["defaults"][name][0]:
-                self.options[name] = [type(value), value]
-            else:
-                raise Error(
-                    "Value type for option {} was incorrect. It was expecting type '{}' but received type '{}'".format(
-                        name, self.options["defaults"][name][0], type(value)
-                    )
-                )
-        else:
-            raise Error("Received an unknown option: %s" % repr(name))
-
-        # Now call the optimizer specific routine
+        # Call the optimizer specific routine
         self._on_setOption(name, value)
+        return super().setOption(name, value)
 
     def _on_getOption(self, name):
         """
@@ -852,13 +823,10 @@ class Optimizer(object):
             value of option for 'name'
         """
 
-        if name in self.options["defaults"]:
-            return self.options[name][1]
-        else:
-            raise Error("Received an unknown option: %s." % repr(name))
-
-        # Now call the optimizer specific routine
+        # Call the optimizer specific routine
         self._on_getOption(name)
+
+        return super().getOption(name)
 
     def _on_getInform(self, info):
         """

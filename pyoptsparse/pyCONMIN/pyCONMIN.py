@@ -40,7 +40,7 @@ class CONMIN(Optimizer):
         name = "CONMIN"
         category = "Local Optimizer"
         self.defOpts = {
-            "ITMAX": [int, 1e4],  # Maximum Number of Iterations
+            "ITMAX": [int, int(1e4)],  # Maximum Number of Iterations
             "DELFUN": [float, 1e-6],  # Objective Relative Tolerance
             "DABFUN": [float, 1e-6],  # Objective Absolute Tolerance
             "ITRM": [int, 5],
@@ -264,5 +264,5 @@ class CONMIN(Optimizer):
     def _on_setOption(self, name, value):
         pass
 
-    def _on_getOption(self, name, value):
+    def _on_getOption(self, name):
         pass

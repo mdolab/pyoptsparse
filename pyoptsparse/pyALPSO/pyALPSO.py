@@ -226,7 +226,7 @@ class ALPSO(Optimizer):
             else:
                 raise ValueError("parallel_type must be either '' or 'EXT'.")
 
-    def _on_getOption(self, name, value):
+    def _on_getOption(self, name):
         pass
 
     def _communicateSolution(self, sol):

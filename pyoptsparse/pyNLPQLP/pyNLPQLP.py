@@ -280,5 +280,5 @@ class NLPQLP(Optimizer):
     def _on_setOption(self, name, value):
         pass
 
-    def _on_getOption(self, name, value):
+    def _on_getOption(self, name):
         pass

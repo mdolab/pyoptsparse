@@ -129,7 +129,7 @@ class IPOPT(Optimizer):
             # to monotone mode. Other options are: 'kkt-error', and
             # 'never-monotone-mode' which disables globalization
             "adaptive_mu_globalization": [str, "obj-constr-filter"],
-            "adaptive_mu_kkterror_red_iters": [float, 4],
+            "adaptive_mu_kkterror_red_iters": [int, 4],
             "adaptive_mu_kkterror_red_fact": [float, 0.9999],
             "filter_margin_fact": [float, 1e-05],
             "filter_max_margin": [float, 1.0],
@@ -221,7 +221,7 @@ class IPOPT(Optimizer):
             "warm_start_slack_bound_frac": [float, 0.001],
             "warm_start_mult_bound_push": [float, 0.001],
             "warm_start_mult_init_max": [float, 1e06],
-            "warm_start_entire_iterate": [float, "no"],
+            "warm_start_entire_iterate": [str, "no"],
             # Linear Solver.
             "linear_solver": [str, "mumps"],
             "linear_system_scaling": [str, "none"],  # Had been "mc19", but not always available.
@@ -539,18 +539,17 @@ class IPOPT(Optimizer):
         # ---------------------------------------------
 
         for key in self.options:
-            if key != "defaults":
-                name = key
-                value = self.getOption(key)
+            name = key
+            value = self.getOption(key)
 
-                if isinstance(value, str):
-                    nlp.str_option(name, value)
-                elif isinstance(value, float):
-                    nlp.num_option(name, value)
-                elif isinstance(value, int):
-                    nlp.int_option(name, value)
-                else:
-                    print("invalid option type", type(value))
+            if isinstance(value, str):
+                nlp.str_option(name, value)
+            elif isinstance(value, float):
+                nlp.num_option(name, value)
+            elif isinstance(value, int):
+                nlp.int_option(name, value)
+            else:
+                print("invalid option type", type(value))
 
     def _on_setOption(self, name, value):
         """

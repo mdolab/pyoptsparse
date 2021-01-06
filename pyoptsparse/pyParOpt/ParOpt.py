@@ -47,6 +47,9 @@ class ParOpt(Optimizer):
         # Create and fill-in the dictionary of default option values
         self.defOpts = {}
         options = _ParOpt.getOptionsInfo()
+        # Manually override the options with missing default values
+        options["ip_checkpoint_file"].default = "default.out"
+        options["problem_name"].default = "problem"
         for option_name in options:
             # Get the type and default value of the named argument
             _type = None
