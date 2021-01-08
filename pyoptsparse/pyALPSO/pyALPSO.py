@@ -81,7 +81,7 @@ class ALPSO(Optimizer):
                 str,
                 "ALPSO.out",
             ],  # We could probably remove fileout flag if filename or fileinstance is given
-            "seed": [float, 0],  # Random Number Seed (0 - Auto-Seed based on time clock)
+            "seed": [int, 0],  # Random Number Seed (0 - Auto-Seed based on time clock)
             "HoodSize": [int, 40],  # Number of Neighbours of Each Particle
             "HoodModel": [
                 str,
@@ -95,9 +95,7 @@ class ALPSO(Optimizer):
             "parallelType": [str, ""],  # Type of parallelization ('' or 'EXT')
         }
         self.informs = {}
-        super().__init__(
-            self, "ALPSO", category=category, defOptions=self.defOpts, informs=self.informs, options=options
-        )
+        super().__init__("ALPSO", category=category, defOptions=self.defOpts, informs=self.informs, options=options)
 
     def __call__(self, optProb, storeHistory=None, **kwargs):
         """
@@ -173,9 +171,6 @@ class ALPSO(Optimizer):
 
             if opt("fileout") not in [0, 1, 2, 3]:
                 raise Error("Incorrect fileout Setting")
-
-            if opt("seed") == 0:
-                self.setOption("seed", time.time())
 
             # Run ALPSO
             t0 = time.time()

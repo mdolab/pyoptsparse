@@ -43,12 +43,12 @@ class NSGA2(Optimizer):
             "maxGen": [int, 1000],
             "pCross_real": [float, 0.6],
             "pMut_real": [float, 0.2],
-            "eta_c": [float, 10],
-            "eta_m": [float, 20],
+            "eta_c": [float, 10.0],
+            "eta_m": [float, 20.0],
             "pCross_bin": [float, 0.0],
             "pMut_bin": [float, 0.0],
             "PrintOut": [int, 1],  # Flag to Turn On Output to filename (0 - , 1 - , 2 - )
-            "seed": [float, 0],  # Random Number Seed (0 - Auto-Seed based on time clock)
+            "seed": [int, 0],  # Random Number Seed (0 - Auto-Seed based on time clock)
             "xinit": [int, 0],  # Use Initial Solution Flag (0 - random population, 1 - use given solution)
         }
         self.informs = {}
