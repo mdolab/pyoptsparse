@@ -23,7 +23,7 @@ eps = np.finfo(np.float64).eps
 # Optimizer Class
 # =============================================================================
 class Optimizer(BaseSolver):
-    def __init__(self, name=None, category=None, defOptions=None, informs=None, options={}):
+    def __init__(self, name=None, category=None, defOptions=None, informs=None, options={}, checkDefaultOptions=True):
         """
         This is the base optimizer class that all optimizers inherit from.
         We define common methods here to avoid code duplication.
@@ -39,7 +39,14 @@ class Optimizer(BaseSolver):
         informs : dict
             Dictionary of the inform codes
         """
-        super().__init__(name, category=category, def_options=defOptions, options=options, informs=informs)
+        super().__init__(
+            name,
+            category=category,
+            def_options=defOptions,
+            options=options,
+            informs=informs,
+            checkDefaultOptions=checkDefaultOptions,
+        )
         self.callCounter = 0
         self.sens = None
         self.optProb = None
@@ -798,9 +805,9 @@ class Optimizer(BaseSolver):
             Variable value to set.
         """
 
-        # Call the optimizer specific routine
+        super().setOption(name, value)
+        # Now call the optimizer specific routine
         self._on_setOption(name, value)
-        return super().setOption(name, value)
 
     def _on_getOption(self, name):
         """
