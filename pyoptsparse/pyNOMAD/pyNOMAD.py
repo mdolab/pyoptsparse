@@ -49,7 +49,7 @@ class NOMAD(Optimizer):
             if raiseError:
                 raise Error("There was an error importing the compiled nomad module")
 
-        super().__init__(name, category=category, defOptions=self.defOpts, informs=self.informs, options=options)
+        super().__init__(name, category=category, defaultOptions=self.defOpts, informs=self.informs, options=options)
 
     def __call__(
         self, optProb, sens=None, sensStep=None, sensMode=None, storeHistory=None, hotStart=None, storeSens=True

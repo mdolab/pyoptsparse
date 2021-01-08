@@ -55,7 +55,7 @@ class CONMIN(Optimizer):
                 raise Error("There was an error importing the compiled conmin module")
 
         self.set_options = []
-        super().__init__(name, category=category, defOptions=self.defOpts, informs=self.informs, options=options)
+        super().__init__(name, category=category, defaultOptions=self.defOpts, informs=self.informs, options=options)
 
         # CONMIN needs Jacobians in dense format
         self.jacType = "dense2d"

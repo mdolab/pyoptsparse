@@ -68,7 +68,7 @@ class ParOpt(Optimizer):
 
         self.set_options = {}
         self.informs = {}
-        super().__init__(name, category=category, defOptions=self.defOpts, informs=self.informs, options=options)
+        super().__init__(name, category=category, defaultOptions=self.defOpts, informs=self.informs, options=options)
 
         # ParOpt requires a dense Jacobian format
         self.jacType = "dense2d"

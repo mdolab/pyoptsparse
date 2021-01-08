@@ -237,7 +237,7 @@ class SNOPT(Optimizer):
         super().__init__(
             name,
             category=category,
-            defOptions=self.defOpts,
+            defaultOptions=self.defOpts,
             informs=self.informs,
             options=options,
             checkDefaultOptions=False,

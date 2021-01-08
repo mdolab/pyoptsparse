@@ -95,7 +95,7 @@ class ALPSO(Optimizer):
             "parallelType": [str, ""],  # Type of parallelization ('' or 'EXT')
         }
         self.informs = {}
-        super().__init__("ALPSO", category=category, defOptions=self.defOpts, informs=self.informs, options=options)
+        super().__init__("ALPSO", category=category, defaultOptions=self.defOpts, informs=self.informs, options=options)
 
     def __call__(self, optProb, storeHistory=None, **kwargs):
         """
