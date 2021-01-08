@@ -276,27 +276,6 @@ class IPOPT(Optimizer):
             else:
                 print("invalid option type", type(value))
 
-    def _on_setOption(self, name, value):
-        """
-        Set Optimizer Option Value (Optimizer Specific Routine)
-        """
-
-        pass
-
-    def _on_getOption(self, name):
-        """
-        Routine to be implemented by optimizer
-        """
-
-        pass
-
-    def _on_getInform(self, info):
-        """
-        Routine to be implemented by optimizer
-        """
-
-        pass
-
 
 # ==============================================================================
 # IPOPT Optimizer Test

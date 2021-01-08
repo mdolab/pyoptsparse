@@ -800,7 +800,7 @@ class Optimizer(BaseSolver):
         """
         Set Optimizer Option Value (Optimizer Specific Routine)
         """
-        raise Error("This optimizer has not implemented _on_setOption")
+        pass
 
     def setOption(self, name, value=None):
         """
@@ -823,7 +823,7 @@ class Optimizer(BaseSolver):
         """
         Routine to be implemented by optimizer
         """
-        raise Error("This optimizer has not implemented _on_getOption")
+        pass
 
     def getOption(self, name):
         """
@@ -849,7 +849,7 @@ class Optimizer(BaseSolver):
         """
         Routine to be implemented by optimizer
         """
-        raise Error("This optimizer has not implemented _on_getInform")
+        return self.informs[info]
 
     def getInform(self, infocode=None):
         """

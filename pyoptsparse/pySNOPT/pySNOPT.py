@@ -594,11 +594,11 @@ class SNOPT(Optimizer):
                 continue
 
             if isinstance(value, str):
-                if name == "problem type":
+                if name == "Problem Type":
                     snopt.snset(value, iPrint, iSumm, inform, cw, iw, rw)
-                elif name == "print file":
+                elif name == "Print file":
                     snopt.snset(name + " " + "%d" % iPrint, iPrint, iSumm, inform, cw, iw, rw)
-                elif name == "summary file":
+                elif name == "Summary file":
                     snopt.snset(name + " " + "%d" % iSumm, iPrint, iSumm, inform, cw, iw, rw)
                 else:
                     snopt.snset(name + " " + value, iPrint, iSumm, inform, cw, iw, rw)
@@ -611,30 +611,21 @@ class SNOPT(Optimizer):
 
         return
 
-    def _on_setOption(self, name, value):
-        """
-        Set Optimizer Option Value (Optimizer Specific Routine)
-        """
-
-        pass
-
-    def _on_getOption(self, name):
-        """
-        Get Optimizer Option Value (Optimizer Specific Routine)
-        """
-
-        pass
-
     def _on_getInform(self, infocode):
         """
         Get Optimizer Result Information (Optimizer Specific Routine)
 
-        Keyword arguments:
-        -----------------
-        id -> STRING: Option Name
+        Parameters
+        ----------
+        infocode: int
+            The info code
+
+        Returns
+        -------
+        inform_text : str
+            The inform text
         """
 
-        #
         mjr_code = (infocode[0] / 10) * 10
         # mnr_code = infocode[0] - 10*mjr_code
         try:
