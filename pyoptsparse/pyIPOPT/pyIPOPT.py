@@ -358,7 +358,7 @@ class IPOPT(Optimizer):
                 raise Error("There was an error importing the compiled IPOPT module")
 
         self.set_options = []
-        super().__init__(name, category=category, defaultOptions=self.defOpts, informs=self.informs, options=options)
+        super().__init__(name, category, defaultOptions=self.defOpts, informs=self.informs, options=options)
 
         # IPOPT needs Jacobians in coo format
         self.jacType = "coo"

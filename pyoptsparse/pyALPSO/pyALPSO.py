@@ -32,7 +32,7 @@ class ALPSO(Optimizer):
     - pll_type -> STR: ALPSO Parallel Implementation (None, SPM- Static, DPM- Dynamic, POA-Parallel Analysis), *Default* = None
     """
 
-    def __init__(self, options={}):
+    def __init__(self, raiseError=True, options={}):
 
         from . import alpso
 
@@ -95,7 +95,7 @@ class ALPSO(Optimizer):
             "parallelType": [str, ""],  # Type of parallelization ('' or 'EXT')
         }
         self.informs = {}
-        super().__init__("ALPSO", category=category, defaultOptions=self.defOpts, informs=self.informs, options=options)
+        super().__init__("ALPSO", category, defaultOptions=self.defOpts, informs=self.informs, options=options)
 
     def __call__(self, optProb, storeHistory=None, **kwargs):
         """

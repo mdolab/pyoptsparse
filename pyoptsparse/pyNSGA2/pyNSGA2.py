@@ -52,7 +52,7 @@ class NSGA2(Optimizer):
             "xinit": [int, 0],  # Use Initial Solution Flag (0 - random population, 1 - use given solution)
         }
         self.informs = {}
-        super().__init__(name, category=category, defaultOptions=self.defOpts, informs=self.informs, options=options)
+        super().__init__(name, category, defaultOptions=self.defOpts, informs=self.informs, options=options)
 
         if nsga2 is None:
             if raiseError:
