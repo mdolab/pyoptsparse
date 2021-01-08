@@ -220,8 +220,8 @@ class ALPSO(Optimizer):
                 except ImportError:
                     raise ImportError("pyALPSO: ALPSO EXT shared library failed to import.")
 
-            else:
-                raise ValueError("parallel_type must be either '' or 'EXT'.")
+            elif value != "":
+                raise ValueError("parallelType must be either '' or 'EXT'.")
 
     def _on_getOption(self, name):
         pass
