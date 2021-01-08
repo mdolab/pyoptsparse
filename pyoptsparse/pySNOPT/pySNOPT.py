@@ -612,6 +612,20 @@ class SNOPT(Optimizer):
 
         return
 
+    def _on_setOption(self, name, value):
+        """
+        Set Optimizer Option Value (Optimizer Specific Routine)
+        """
+
+        pass
+
+    def _on_getOption(self, name):
+        """
+        Get Optimizer Option Value (Optimizer Specific Routine)
+        """
+
+        pass
+
     def _on_getInform(self, infocode):
         """
         Get Optimizer Result Information (Optimizer Specific Routine)
