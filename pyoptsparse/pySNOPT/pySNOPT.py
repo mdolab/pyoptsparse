@@ -163,10 +163,6 @@ class SNOPT(Optimizer):
         # SNOPT specific Jacobian map
         self._snopt_jac_map_csr_to_csc = None
 
-        # Check if we have numpy version 1.13.1. This version broke the callback in snopt.
-        if np.__version__ == "1.13.1":
-            raise Error("SNOPT is not compatible with numpy 1.13.1. Please use a different numpy version")
-
     def __call__(
         self,
         optProb,
