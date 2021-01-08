@@ -50,6 +50,7 @@ class SNOPT(Optimizer):
             "iSumm": [int, 19],  # Summary File Output Unit (override internally in snopt?)
             "Print file": [str, "SNOPT_print.out"],  # Print File Name (specified by subroutine snInit)
             "Summary file": [str, "SNOPT_summary.out"],  # Summary File Name (specified by subroutine snInit)
+            "Problem Type": [str, ["Minimize", "Maximize", "Feasible point"]],
             "Start": [str, ["Cold", "Warm"]],  # used in call to snkerc, the option "Cold Start" etc are NOT allowed
             "Derivative level": [int, 3],
             "Proximal iterations limit": [int, 10000],  # very large # to solve proximal point problem to optimality
@@ -64,8 +65,6 @@ class SNOPT(Optimizer):
                 "iPrint",
                 "iSumm",
                 "Start",
-                "Print file",
-                "Summary file",
             }
         )
         # this is purely within pySNOPT, nothing to do with SNOPT itself
@@ -595,11 +594,11 @@ class SNOPT(Optimizer):
                 continue
 
             if isinstance(value, str):
-                if name == "Problem Type":
+                if name == "problem type":
                     snopt.snset(value, iPrint, iSumm, inform, cw, iw, rw)
-                elif name == "Print file":
+                elif name == "print file":
                     snopt.snset(name + " " + "%d" % iPrint, iPrint, iSumm, inform, cw, iw, rw)
-                elif name == "Summary file":
+                elif name == "summary file":
                     snopt.snset(name + " " + "%d" % iSumm, iPrint, iSumm, inform, cw, iw, rw)
                 else:
                     snopt.snset(name + " " + value, iPrint, iSumm, inform, cw, iw, rw)

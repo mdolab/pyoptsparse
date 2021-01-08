@@ -23,7 +23,16 @@ eps = np.finfo(np.float64).eps
 # Optimizer Class
 # =============================================================================
 class Optimizer(BaseSolver):
-    def __init__(self, name, category, defaultOptions={}, informs={}, options={}, checkDefaultOptions=True):
+    def __init__(
+        self,
+        name,
+        category,
+        defaultOptions={},
+        informs={},
+        options={},
+        checkDefaultOptions=True,
+        caseSensitiveOptions=True,
+    ):
         """
         This is the base optimizer class that all optimizers inherit from.
         We define common methods here to avoid code duplication.
@@ -46,6 +55,7 @@ class Optimizer(BaseSolver):
             options=options,
             informs=informs,
             checkDefaultOptions=checkDefaultOptions,
+            caseSensitiveOptions=caseSensitiveOptions,
         )
         self.callCounter = 0
         self.sens = None
