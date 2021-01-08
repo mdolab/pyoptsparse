@@ -28,6 +28,7 @@ import numpy as np
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
 from ..pyOpt_utils import ICOL, IDATA, IROW, extractRows, mapToCSC, scaleRows
+from baseclasses.utils import CaseInsensitiveDict
 
 # =============================================================================
 # SNOPT Optimizer Class
@@ -45,13 +46,21 @@ class SNOPT(Optimizer):
         name = "SNOPT"
         category = "Local Optimizer"
         self.defOpts = {
+            "iPrint": [int, 18],  # Print File Output Unit (override internally in snopt?)
+            "iSumm": [int, 19],  # Summary File Output Unit (override internally in snopt?)
+            "Print file": [str, "SNOPT_print.out"],  # Print File Name (specified by subroutine snInit)
+            "Summary file": [str, "SNOPT_summary.out"],  # Summary File Name (specified by subroutine snInit)
+            "Start": [str, "Cold"],  # has precedence over argument start, ('Warm': alternative to a cold start)
+            "Derivative level": [int, 3],  # (NOT ALLOWED IN snOptA)
+            "Save major iteration variables": [
+                list,
+                ["step", "merit", "feasibility", "optimality", "penalty"],
+            ],  # 'Hessian', 'slack', 'lambda' and 'condZHZ' are also supported
+        }
+        {
             # SNOPT Printing Options
             "Major print level": [int, 1],  # Majors Print (1 - line major iteration log)
             "Minor print level": [int, 1],  # Minors Print (1 - line minor iteration log)
-            "Print file": [str, "SNOPT_print.out"],  # Print File Name (specified by subroutine snInit)
-            "iPrint": [int, 18],  # Print File Output Unit (override internally in snopt?)
-            "Summary file": [str, "SNOPT_summary.out"],  # Summary File Name (specified by subroutine snInit)
-            "iSumm": [int, 19],  # Summary File Output Unit (override internally in snopt?)
             "Print frequency": [int, 100],  # Minors Log Frequency on Print File
             "Summary frequency": [int, 100],  # Minors Log Frequency on Summary File
             "Solution": [str, "Yes"],  # Print Solution on the Print File
@@ -85,14 +94,12 @@ class SNOPT(Optimizer):
             "Elastic weight": [float, 1.0e4],  # (used only during elastic mode)
             "Iterations limit": [int, 10000],  # (or 20*ncons if that is more)
             "Partial price": [int, 1],  # (10 for large LPs)
-            "Start": [str, "Cold"],  # has precedence over argument start, ('Warm': alternative to a cold start)
             # SNOPT SQP method Options
             "Major iterations limit": [int, 1000],  # or ncons if that is more
             "Minor iterations limit": [int, 500],  # or 3*ncons if that is more
             "Proximal iterations limit": [int, 200],  # for solving the proximal point problem
             "Major step limit": [float, 2.0],
             "Superbasics limit": [int, None],  # (n1 + 1, n1 = number of nonlinear variables)
-            "Derivative level": [int, 3],  # (NOT ALLOWED IN snOptA)
             "Derivative option": [int, 1],  # (ONLY FOR snOptA)
             "Derivative linesearch": [type(None), None],
             "Nonderivative linesearch": [type(None), None],
@@ -143,11 +150,6 @@ class SNOPT(Optimizer):
             # SNOPT Miscellaneous Options
             "Debug level": [int, 1],  # (0 - Normal, 1 - for developers)
             "Timing level": [int, 3],  # (3 - print cpu times)
-            # pySNOPT Options
-            "Save major iteration variables": [
-                list,
-                ["step", "merit", "feasibility", "optimality", "penalty"],
-            ],  # 'Hessian', 'slack', 'lambda' and 'condZHZ' are also supported
         }
         self.informs = {
             0: "finished successfully",
@@ -227,10 +229,19 @@ class SNOPT(Optimizer):
                 raise Error("There was an error importing the compiled snopt module")
 
         # any default options modified by pySNOPT goes here
-        self.set_options = [
-            ["Proximal iterations limit", 10000],  # very large # to solve proximal point problem to optimality
-        ]
-        super().__init__(name, category=category, defOptions=self.defOpts, informs=self.informs, options=options)
+        self.set_options = CaseInsensitiveDict(
+            {
+                "Proximal iterations limit": 10000,  # very large # to solve proximal point problem to optimality
+            }
+        )
+        super().__init__(
+            name,
+            category=category,
+            defOptions=self.defOpts,
+            informs=self.informs,
+            options=options,
+            checkDefaultOptions=False,
+        )
 
         # SNOPT need Jacobians in csc format
         self.jacType = "csc"
@@ -390,6 +401,7 @@ class SNOPT(Optimizer):
                 ncon = 1
             else:
                 ncon = len(indices)
+            print(self.options)
 
             # Initialize the Print and Summary files
             # --------------------------------------
@@ -414,8 +426,8 @@ class SNOPT(Optimizer):
             leniw = 500 + 100 * (ncon + nvar)
             lenrw = 500 + 200 * (ncon + nvar)
 
-            self.options["Total integer workspace"][1] = leniw
-            self.options["Total real workspace"][1] = lenrw
+            self.setOption("Total integer workspace", leniw)
+            self.setOption("Total real workspace", lenrw)
 
             cw = np.empty((lencw, 8), "c")
             iw = np.zeros(leniw, np.intc)
@@ -454,7 +466,7 @@ class SNOPT(Optimizer):
                 self._set_snopt_options(iPrint, iSumm, cw, iw, rw)
 
             # Setup argument list values
-            start = np.array(self.options["Start"][1])
+            start = np.array(self.getOption("Start"))
             ObjAdd = np.array([0.0], np.float)
             ProbNm = np.array(self.optProb.name, "c")
             cdummy = -1111111  # this is a magic variable defined in SNOPT for undefined strings
@@ -510,9 +522,9 @@ class SNOPT(Optimizer):
                 self.hist.close()
 
             if iPrint != 0 and iPrint != 6:
-                snopt.closeunit(self.options["iPrint"][1])
+                snopt.closeunit(self.getOption("iPrint"))
             if iSumm != 0 and iSumm != 6:
-                snopt.closeunit(self.options["iSumm"][1])
+                snopt.closeunit(self.getOption("iSumm"))
 
             # Store Results
             inform = np.asscalar(inform)
@@ -668,26 +680,26 @@ class SNOPT(Optimizer):
         # Set Options from the local options dictionary
         # ---------------------------------------------
         inform = np.array([-1], np.intc)
-        for name, value in self.set_options:
-            if name == "iPrint" or name == "iSumm":
+        for name, value in self.set_options.items():
+            if name == "iprint" or name == "isumm":
                 continue
 
             if isinstance(value, str):
-                if name == "Start":
+                if name == "start":
                     if value == "Cold":
                         snopt.snset("Cold start", iPrint, iSumm, inform, cw, iw, rw)
                     elif value == "Warm":
                         snopt.snset("Warm start", iPrint, iSumm, inform, cw, iw, rw)
-                elif name == "Problem Type":
+                elif name == "problem type":
                     if value == "Minimize":
                         snopt.snset("Minimize", iPrint, iSumm, inform, cw, iw, rw)
                     elif value == "Maximize":
                         snopt.snset("Maximize", iPrint, iSumm, inform, cw, iw, rw)
                     elif value == "Feasible point":
                         snopt.snset("Feasible point", iPrint, iSumm, inform, cw, iw, rw)
-                elif name == "Print file":
+                elif name == "print file":
                     snopt.snset(name + " " + "%d" % iPrint, iPrint, iSumm, inform, cw, iw, rw)
-                elif name == "Summary file":
+                elif name == "summary file":
                     snopt.snset(name + " " + "%d" % iSumm, iPrint, iSumm, inform, cw, iw, rw)
                 else:
                     snopt.snset(name + " " + value, iPrint, iSumm, inform, cw, iw, rw)
@@ -705,7 +717,7 @@ class SNOPT(Optimizer):
         Set Optimizer Option Value (Optimizer Specific Routine)
         """
 
-        self.set_options.append([name, value])
+        self.set_options[name] = value
 
     def _on_getOption(self, name):
         """
@@ -740,8 +752,8 @@ class SNOPT(Optimizer):
         """
 
         #
-        iPrint = self.options["iPrint"][1]
-        iSumm = self.options["iSumm"][1]
+        iPrint = self.getOption("iPrint")
+        iSumm = self.getOption("iSumm")
         if iPrint != 0:
             snopt.pyflush(iPrint)
 
