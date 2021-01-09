@@ -68,7 +68,7 @@ if __name__ == "__main__":
             "sqlitedict>=1.6",
             "numpy>=1.16",
             "scipy>1.2",
-            "mdolab-baseclasses>=1.3",
+            "mdolab-baseclasses>=1.3.1",
         ],
         platforms=["Linux"],
         classifiers=[
