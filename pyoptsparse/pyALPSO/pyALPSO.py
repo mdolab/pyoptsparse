@@ -92,7 +92,7 @@ class ALPSO(Optimizer):
                 1,
             ],  # Selfless Neighbourhood Model (0 - Include Particle i in NH i, 1 - Don't Include Particle i)
             "Scaling": [int, 1],  # Design Variables Scaling Flag (0 - no scaling, 1 - scaling between [-1, 1])
-            "parallelType": [str, ""],  # Type of parallelization ('' or 'EXT')
+            "parallelType": [str, ["", "EXT"]],  # Type of parallelization ('' or 'EXT')
         }
         self.informs = {}
         super().__init__("ALPSO", category, defaultOptions=self.defOpts, informs=self.informs, options=options)
@@ -219,12 +219,6 @@ class ALPSO(Optimizer):
                     self.alpso = alpso_ext
                 except ImportError:
                     raise ImportError("pyALPSO: ALPSO EXT shared library failed to import.")
-
-            elif value != "":
-                raise ValueError("parallelType must be either '' or 'EXT'.")
-
-    def _on_getOption(self, name):
-        pass
 
     def _communicateSolution(self, sol):
         if sol is not None:

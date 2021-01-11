@@ -310,7 +310,6 @@ class SNOPT(Optimizer):
                 ncon = 1
             else:
                 ncon = len(indices)
-            print(self.options)
 
             # Initialize the Print and Summary files
             # --------------------------------------
