@@ -1,13 +1,12 @@
-
-Past Applications
-=================
+pyOptSparse in published works
+==============================
 pyOptSparse has been used extensively in the field of engineering design optimization.
 The following is a non-exhaustive list of works that have used pyOptSparse.
 The citations are organized by the optimization framework for which pyOptSparse is used within.
 
 MACH-Aero
 ---------
-`MACH-Aero <https://github.com/mdolab/MACH-Aero>`_ is an open-source aerodynamic shape optimization framework developed by the MDO Lab at the University of Michigan.
+`MACH-Aero <https://github.com/mdolab/MACH-Aero>`__ is an open-source aerodynamic shape optimization framework developed by the MDO Lab at the University of Michigan.
 Since the vast majority of publications from the MDO Lab uses the MACH framework (and as a result pyOptSparse), only a few select publications from the lab are listed below.
 The rest are works in conjunction with collaborators.
 
