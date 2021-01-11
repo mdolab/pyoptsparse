@@ -78,6 +78,10 @@ Here we explain a basic setup using MUMPS as the linear solver, together with ME
 
 Options
 -------
+Please refer to the `IPOPT website <https://coin-or.github.io/Ipopt/OPTIONS.html>`__ for complete listing of options.
+The following are the options which are set by default within pyOptSparse.
+All other options take the default value with IPOPT unless specified by the user.
+
 .. optimizertable:: pyoptsparse.pyIPOPT.pyIPOPT.IPOPT
    :type: options
 

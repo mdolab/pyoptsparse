@@ -36,7 +36,7 @@ class NLPQLP(Optimizer):
     NLPQL Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, raiseError=True, *args, **kwargs):
+    def __init__(self, raiseError=True, options={}):
         name = "NLPQLP"
         category = "Local Optimizer"
         self.defOpts = {
@@ -87,7 +87,7 @@ class NLPQLP(Optimizer):
             if raiseError:
                 raise Error("There was an error importing the compiled nlpqlp module")
 
-        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
+        super().__init__(name, category, defaultOptions=self.defOpts, informs=self.informs, options=options)
         # NLPQLP needs Jacobians in dense format
         self.jacType = "dense2d"
 
@@ -276,9 +276,3 @@ class NLPQLP(Optimizer):
         sol = self._communicateSolution(sol)
 
         return sol
-
-    def _on_setOption(self, name, value):
-        pass
-
-    def _on_getOption(self, name, value):
-        pass

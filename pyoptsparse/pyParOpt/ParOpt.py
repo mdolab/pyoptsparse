@@ -37,7 +37,7 @@ class ParOpt(Optimizer):
     capability to handle this type of design problem.
     """
 
-    def __init__(self, raiseError=True, *args, **kwargs):
+    def __init__(self, raiseError=True, options={}):
         name = "ParOpt"
         category = "Local Optimizer"
         if _ParOpt is None:
@@ -46,26 +46,29 @@ class ParOpt(Optimizer):
 
         # Create and fill-in the dictionary of default option values
         self.defOpts = {}
-        options = _ParOpt.getOptionsInfo()
-        for option_name in options:
+        paropt_default_options = _ParOpt.getOptionsInfo()
+        # Manually override the options with missing default values
+        paropt_default_options["ip_checkpoint_file"].default = "default.out"
+        paropt_default_options["problem_name"].default = "problem"
+        for option_name in paropt_default_options:
             # Get the type and default value of the named argument
             _type = None
-            if options[option_name].option_type == "bool":
+            if paropt_default_options[option_name].option_type == "bool":
                 _type = bool
-            elif options[option_name].option_type == "int":
+            elif paropt_default_options[option_name].option_type == "int":
                 _type = int
-            elif options[option_name].option_type == "float":
+            elif paropt_default_options[option_name].option_type == "float":
                 _type = float
             else:
                 _type = str
-            default_value = options[option_name].default
+            default_value = paropt_default_options[option_name].default
 
             # Set the entry into the dictionary
             self.defOpts[option_name] = [_type, default_value]
 
         self.set_options = {}
         self.informs = {}
-        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
+        super().__init__(name, category, defaultOptions=self.defOpts, informs=self.informs, options=options)
 
         # ParOpt requires a dense Jacobian format
         self.jacType = "dense2d"
