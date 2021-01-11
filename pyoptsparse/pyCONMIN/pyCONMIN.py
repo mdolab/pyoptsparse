@@ -36,11 +36,11 @@ class CONMIN(Optimizer):
     CONMIN Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, raiseError=True, *args, **kwargs):
+    def __init__(self, raiseError=True, options={}):
         name = "CONMIN"
         category = "Local Optimizer"
         self.defOpts = {
-            "ITMAX": [int, 1e4],  # Maximum Number of Iterations
+            "ITMAX": [int, int(1e4)],  # Maximum Number of Iterations
             "DELFUN": [float, 1e-6],  # Objective Relative Tolerance
             "DABFUN": [float, 1e-6],  # Objective Absolute Tolerance
             "ITRM": [int, 5],
@@ -55,7 +55,7 @@ class CONMIN(Optimizer):
                 raise Error("There was an error importing the compiled conmin module")
 
         self.set_options = []
-        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
+        super().__init__(name, category, defaultOptions=self.defOpts, informs=self.informs, options=options)
 
         # CONMIN needs Jacobians in dense format
         self.jacType = "dense2d"
@@ -260,9 +260,3 @@ class CONMIN(Optimizer):
         sol = self._communicateSolution(sol)
 
         return sol
-
-    def _on_setOption(self, name, value):
-        pass
-
-    def _on_getOption(self, name, value):
-        pass
