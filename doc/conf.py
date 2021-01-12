@@ -1,5 +1,4 @@
 from sphinx_mdolab_theme.config import *
-import urllib.request
 
 # -- Path setup --------------------------------------------------------------
 
