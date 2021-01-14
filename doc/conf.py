@@ -21,7 +21,10 @@ project = "pyOptSparse"
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions.extend(["numpydoc", "ext.optimizertable"])
+extensions.extend(["numpydoc", "ext.optimizertable", "sphinxcontrib.bibtex"])
 
 # mock import for autodoc
 autodoc_mock_imports = ["baseclasses"]
+
+# bibtex
+bibtex_bibfiles = ["pyoptsparse.bib"]

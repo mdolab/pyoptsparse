@@ -15,7 +15,7 @@ An example output from OptView is shown below.
 
 ![Example](doc/OptView.png)
 
-## Optimizer Support
+## Optimizer support
 pyOptSparse provides Python interfaces for a number of optimizers.
 ALPSO, CONMIN, IPOPT, NLPQLP, NSGA2, PSQP, SLSQP, ParOpt and SNOPT are currently tested and supported.
 NOMAD interface is also provided, but it is not tested nor supported.
@@ -24,6 +24,12 @@ We do not provide the source code for SNOPT and NLPQLP, due to their restrictive
 Please contact the authors of the respective optimizers if you wish to obtain them.
 Furthermore, ParOpt and IPOPT are available as a open source package but must be installed separately.
 Please see the documentation page of each optimizer for purchase and installation instructions.
+
+## Integration into other frameworks
+pyOptSparse can be used in the following optimization frameworks:
+- [MACH-Aero](https://github.com/mdolab/MACH-Aero)
+- [OpenMDAO](https://openmdao.org) and by extension [OpenAeroStruct](https://github.com/mdolab/openaerostruct)
+- [SUAVE](https://suave.stanford.edu)
 
 ## Documentation
 Please see the [documentation](https://mdolab-pyoptsparse.readthedocs-hosted.com/) for installation details and API documentation.
@@ -34,6 +40,7 @@ To run the tests, simply type `testflo .` in the root directory.
 
 ## Citation
 If you use pyOptSparse, please see [this page](https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/citation.html) for citation information.
+A list of works that have used pyOptSparse can be found [here](https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/citation.html#applications)
 
 ## License
 pyOptSparse is licensed under the GNU Lesser General Public License.
