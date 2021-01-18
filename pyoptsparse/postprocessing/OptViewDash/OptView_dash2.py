@@ -7,7 +7,7 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-import plotly.graph_objs as go
+from plotly import graph_objs as go
 from plotly import subplots
 import numpy as np
 import argparse
@@ -339,7 +339,7 @@ def addVarTraces(var, trace, dataType, names, groupType):
         *NOTE* If the xvars group only has one scalar quantity, the corresponding name will only be xvars with no _INDEX
 
     trace: list
-        List containing the traces to be displayed on the plotly figure. 
+        List containing the traces to be displayed on the plotly figure.
 
     datatType : list of str
         Contains dataType str values selected by user (i.e scale, major, delta, bounds)
@@ -459,11 +459,11 @@ def addMaxMinTraces(var, trace, dataType, histList):
     Parameters
     ----------
     var : str
-        The name of the variable group name to add min/max traces for.
+        Tpythe name of the variable group name to add min/max traces for.
             EX: xvars
-    
+
     trace: list
-        List containing the traces to be displayed on the plotly figure. 
+        List containing the traces to be displayed on the plotly figure.
 
     datatType : list of str
         Contains dataType str values selected by user (i.e scale, major, delta, bounds)
@@ -617,7 +617,7 @@ def update_opt_history(n, max):
     try:
         # If AutoRefresh is on and the data has not yet loaded, this line will throw an error
         histList = [History(fileName) for fileName in histListArgs]
-    except:
+    except Exception:
         print("History file data is not processed yet")
         return {}
     else:
@@ -789,7 +789,7 @@ def update_dvar_child(dvarGroup, options):
     try:
         # If AutoRefresh is on and the data has not yet loaded, this line will throw an error
         histList = [History(fileName) for fileName in histListArgs]
-    except:
+    except Exception:
         print("History file data is not processed yet")
         return []
     else:
@@ -849,7 +849,7 @@ def update_func_child(funcGroup, options):
     try:
         # If AutoRefresh is on and the data has not yet loaded, this line will throw an error
         histList = [History(fileName) for fileName in histListArgs]
-    except:
+    except Exception:
         print("History file data is not processed yet")
         return []
     else:
@@ -898,19 +898,19 @@ def update_opt_child(optGroup, options):
     -------
     dictionary
         List of dictionaries containing the options for the 'Optimization Variable' dropdown.
-
     If multiple history files are being used - Formatted as: OPT/DV/FUNC-GROUPNAME_HIST-FILE-LABEL-INDEX_VAR-INDEX
-            EX: xvars_A_0 -> This would be the first variable in the xvars group from file A
-        One history file:
-            EX: xvars_0 -> This would be the first variable in the xvars group
-         *NOTE* If the xvars group only has one scalar quantity, the corresponding name will only be xvars with no _INDEX
-            EX: Because 'obj' holds a scalar quantity, it will be displayed as simply 'obj' in the Variable dropdown.
+
+    EX: xvars_A_0 -> This would be the first variable in the xvars group from file A
+    One history file:
+        EX: xvars_0 -> This would be the first variable in the xvars group
+        *NOTE* If the xvars group only has one scalar quantity, the corresponding name will only be xvars with no _INDEX
+        EX: Because 'obj' holds a scalar quantity, it will be displayed as simply 'obj' in the Variable dropdown.
     """
     # Re-reads in history list data and passes to History API
     try:
         # If AutoRefresh is on and the data has not yet loaded, this line will throw an error
         histList = [History(fileName) for fileName in histListArgs]
-    except:
+    except Exception:
         print("History file data is not processed yet")
         return []
     else:
@@ -966,7 +966,7 @@ def update_dvar_childAutoPopulate(dvarGroup, options, dvarChild):
     try:
         # If AutoRefresh is on and the data has not yet loaded, this line will throw an error
         histList = [History(fileName) for fileName in histListArgs]
-    except:
+    except Exception:
         print("History file data is not processed yet")
         return []
     else:
@@ -1029,7 +1029,7 @@ def update_func_childAutoPopulate(funcGroup, options, funcChild):
     try:
         # If AutoRefresh is on and the data has not yet loaded, this line will throw an error
         histList = [History(fileName) for fileName in histListArgs]
-    except:
+    except Exception:
         print("History file data is not processed yet")
         return []
     else:
@@ -1092,7 +1092,7 @@ def update_opt_childAutoPopulate(optGroup, options, optChild):
     try:
         # If AutoRefresh is on and the data has not yet loaded, this line will throw an error
         histList = [History(fileName) for fileName in histListArgs]
-    except:
+    except Exception:
         print("History file data is not processed yet")
         return []
     else:
