@@ -334,9 +334,6 @@ class SNOPT(Optimizer):
             leniw = 500 + 100 * (ncon + nvar)
             lenrw = 500 + 200 * (ncon + nvar)
 
-            self.setOption("Total integer workspace", leniw)
-            self.setOption("Total real workspace", lenrw)
-
             cw = np.empty((lencw, 8), "c")
             iw = np.zeros(leniw, np.intc)
             rw = np.zeros(lenrw, np.float)
