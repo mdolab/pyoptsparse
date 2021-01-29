@@ -54,7 +54,7 @@ class SNOPT(Optimizer):
             "Start": [str, ["Cold", "Warm"]],  # used in call to snkerc, the option "Cold Start" etc are NOT allowed
             "Derivative level": [int, 3],
             "Proximal iterations limit": [int, 10000],  # very large # to solve proximal point problem to optimality
-            "Total character workspace": [int, 500],  # lencw: 500
+            "Total character workspace": [int, None],  # lencw: 500
             "Total integer workspace": [int, None],  # leniw: 500 + 100 * (ncon + nvar)
             "Total real workspace": [int, None],  # lenrw: 500 + 200 * (ncon + nvar)
             "Save major iteration variables": [
@@ -331,14 +331,23 @@ class SNOPT(Optimizer):
                     raise Error("Failed to properly open %s, ierror = %3d" % (SummFile, ierror))
 
             # Calculate the length of the work arrays
-            # --------------------------------------
+            # ---------------------------------------
             nvar = self.optProb.ndvs
             lencw = self.getOption("Total character workspace")
             leniw = self.getOption("Total integer workspace")
             lenrw = self.getOption("Total real workspace")
 
+            # Set a flag to avoid overwriting user-specified lengths
+            if lencw is None and leniw is None and lenrw is None:
+                defaultLengths = True
+            else:
+                defaultLengths = False
+
             # Set defaults
             minWorkArrayLength = 500
+            if lencw is None:
+                lencw = minWorkArrayLength
+                self.setOption("Total character workspace", lencw)
             if leniw is None:
                 leniw = minWorkArrayLength + 100 * (ncon + nvar)
                 self.setOption("Total integer workspace", leniw)
@@ -362,9 +371,11 @@ class SNOPT(Optimizer):
             # Set the options into the SNOPT instance
             self._set_snopt_options(iPrint, iSumm, cw, iw, rw)
 
+            # Esimate workspace storage requirement
             mincw, miniw, minrw, cw = snopt.snmemb(iExit, ncon, nvar, neA, neGcon, nnCon, nnJac, nnObj, cw, iw, rw)
 
-            if (minrw > lenrw) or (miniw > leniw) or (mincw > lencw):
+            # Overwrite lengths if defaults were too small and initialize SNOPT again
+            if defaultLengths and (minrw > lenrw or miniw > leniw or mincw > lencw):
                 if mincw > lencw:
                     lencw = mincw
                     self.setOption("Total character workspace", lencw)
