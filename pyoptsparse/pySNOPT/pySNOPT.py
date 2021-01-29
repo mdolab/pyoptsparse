@@ -55,8 +55,8 @@ class SNOPT(Optimizer):
             "Derivative level": [int, 3],
             "Proximal iterations limit": [int, 10000],  # very large # to solve proximal point problem to optimality
             "Total character workspace": [int, 500],  # lencw: 500
-            "Total integer workspace": [int, None],  # leniw: 500 + 100 * (m+n)
-            "Total real workspace": [int, None],  # lenrw: 500 + 200 * (m+n)
+            "Total integer workspace": [int, None],  # leniw: 500 + 100 * (ncon + nvar)
+            "Total real workspace": [int, None],  # lenrw: 500 + 200 * (ncon + nvar)
             "Save major iteration variables": [
                 list,
                 ["step", "merit", "feasibility", "optimality", "penalty"],
@@ -338,11 +338,12 @@ class SNOPT(Optimizer):
             lenrw = self.getOption("Total real workspace")
 
             # Set defaults
+            minWorkArrayLength = 500
             if leniw is None:
-                leniw = 500 + 100 * (ncon + nvar)
+                leniw = minWorkArrayLength + 100 * (ncon + nvar)
                 self.setOption("Total integer workspace", leniw)
             if lenrw is None:
-                lenrw = 500 + 200 * (ncon + nvar)
+                lenrw = minWorkArrayLength + 200 * (ncon + nvar)
                 self.setOption("Total real workspace", lenrw)
 
             cw = np.empty((lencw, 8), "c")
