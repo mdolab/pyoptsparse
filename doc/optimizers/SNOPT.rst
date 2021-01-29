@@ -40,6 +40,9 @@ The following are the options set in Python for the wrapper.
   - ``lambda``
   - ``condZHZ``
 - The option ``Start`` corresponds to the value directly passed to the SNOPT kernel, and will be overwritten if another option, e.g. ``Cold start`` is supplied.
+- The default values for ``Total integer workspace`` and ``Total real workspace`` are computed internally based on the number of design variables and constraints.
+- If SNOPT determines that ``Total character workspace``, ``Total integer workspace``, or ``Total real workspace`` are too small, the Python wrapper will overwrite these values with estimates for the required workspace lengths from SNOPT and initialize the optimizer for a second time.
+  SNOPT might still exit with ``80``, but this should automate the storage allocation for most cases.
 
 .. optimizertable:: pyoptsparse.pySNOPT.pySNOPT.SNOPT
    :type: options
