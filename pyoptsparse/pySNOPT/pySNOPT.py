@@ -458,7 +458,7 @@ class SNOPT(Optimizer):
                 snopt.closeunit(self.getOption("iSumm"))
 
             # Store Results
-            inform = np.asscalar(inform)
+            inform = inform.item()
             sol_inform = {}
             sol_inform["value"] = inform
             sol_inform["text"] = self.informs[inform]

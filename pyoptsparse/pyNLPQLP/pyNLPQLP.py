@@ -260,7 +260,7 @@ class NLPQLP(Optimizer):
                 self.hist.close()
 
             # Store Results
-            inform = np.asscalar(ifail)
+            inform = ifail.item()
             sol_inform = {}
             sol_inform["value"] = inform
             sol_inform["text"] = self.informs[inform]

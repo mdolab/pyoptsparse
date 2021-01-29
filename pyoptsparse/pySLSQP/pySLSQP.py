@@ -257,7 +257,7 @@ class SLSQP(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
-            inform = np.asscalar(mode)
+            inform = mode.item()
             sol_inform = {}
             sol_inform["value"] = inform
             sol_inform["text"] = self.informs[inform]
