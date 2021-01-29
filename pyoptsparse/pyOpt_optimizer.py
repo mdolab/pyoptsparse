@@ -82,6 +82,9 @@ class Optimizer(BaseSolver):
         # Store the Jacobian conversion maps
         self._jac_map_csr_to_csc = None
 
+        # Initialize metadata
+        self.metadata = {}
+
     def _clearTimings(self):
         """Clear timings and call counters"""
         self.userObjTime = 0.0
