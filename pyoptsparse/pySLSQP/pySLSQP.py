@@ -44,7 +44,7 @@ class SLSQP(Optimizer):
             "ACC": [float, 1e-6],  # Convergence Accurancy
             "MAXIT": [int, 500],  # Maximum Iterations
             "IPRINT": [int, 1],  # Output Level (<0 - None, 0 - Screen, 1 - File)
-            "IOUT": [int, 6],  # Output Unit Number
+            "IOUT": [int, 60],  # Output Unit Number
             "IFILE": [str, "SLSQP.out"],  # Output File Name
         }
         self.informs = {
