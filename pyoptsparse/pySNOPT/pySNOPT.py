@@ -371,7 +371,7 @@ class SNOPT(Optimizer):
             # Set the options into the SNOPT instance
             self._set_snopt_options(iPrint, iSumm, cw, iw, rw)
 
-            # Esimate workspace storage requirement
+            # Estimate workspace storage requirement
             mincw, miniw, minrw, cw = snopt.snmemb(iExit, ncon, nvar, neA, neGcon, nnCon, nnJac, nnObj, cw, iw, rw)
 
             # Overwrite lengths if defaults were too small and initialize SNOPT again
