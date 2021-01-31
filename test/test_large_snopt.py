@@ -9,7 +9,6 @@ Only testing with SNOPT, which supports sparse formats.
 import unittest
 import numpy as np
 from numpy.testing import assert_allclose
-from numpy import arange
 import scipy
 
 from pyoptsparse import Optimization, SNOPT
@@ -67,8 +66,8 @@ class TestLarge(unittest.TestCase):
 
         # Design Variables
         optProb.addVar("x", lower=-100, upper=150, value=0)
-        optProb.addVarGroup("y", self.N, lower=-10 - arange(self.N), upper=arange(self.N), value=0)
-        optProb.addVarGroup("z", 2 * self.N, upper=arange(2 * self.N), lower=-100 - arange(2 * self.N), value=0)
+        optProb.addVarGroup("y", self.N, lower=-10 - np.arange(self.N), upper=np.arange(self.N), value=0)
+        optProb.addVarGroup("z", 2 * self.N, upper=np.arange(2 * self.N), lower=-100 - np.arange(2 * self.N), value=0)
 
         # Constraints
         optProb.addCon("con1", upper=100, wrt=["x"])
@@ -82,7 +81,7 @@ class TestLarge(unittest.TestCase):
         optProb.addConGroup(
             "lincon",
             self.N,
-            lower=2 - 3 * arange(self.N),
+            lower=2 - 3 * np.arange(self.N),
             linear=True,
             wrt=["x", "y"],
             jac={"x": xJac, "y": yJac},

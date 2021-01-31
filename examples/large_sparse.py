@@ -2,7 +2,6 @@
 # http://trac.openopt.org/openopt/browser/PythonPackages/FuncDesigner/FuncDesigner/examples/nlpSparse.py
 
 import numpy as np
-from numpy import arange
 from scipy import sparse
 import argparse
 from pyoptsparse import Optimization, OPT
@@ -58,8 +57,8 @@ def large_sparse(optimizer="SNOPT", optOptions=None):
 
     # Design Variables
     optProb.addVar("x", lower=-100, upper=150, value=0)
-    optProb.addVarGroup("y", N, lower=-10 - arange(N), upper=arange(N), value=0)
-    optProb.addVarGroup("z", 2 * N, upper=arange(2 * N), lower=-100 - arange(2 * N), value=0)
+    optProb.addVarGroup("y", N, lower=-10 - np.arange(N), upper=np.arange(N), value=0)
+    optProb.addVarGroup("z", 2 * N, upper=np.arange(2 * N), lower=-100 - np.arange(2 * N), value=0)
     # Constraints
     optProb.addCon("con1", upper=100, wrt=["x"])
     optProb.addCon("con2", upper=100)
@@ -67,7 +66,7 @@ def large_sparse(optimizer="SNOPT", optOptions=None):
     optProb.addConGroup(
         "lincon",
         N,
-        lower=2 - 3 * arange(N),
+        lower=2 - 3 * np.arange(N),
         linear=True,
         wrt=["x", "y"],
         jac={"x": np.ones((N, 1)), "y": sparse.spdiags(np.ones(N), 0, N, N)},
