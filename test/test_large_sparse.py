@@ -105,5 +105,72 @@ class TestLargeSparse(unittest.TestCase):
         self.optimize("snopt", tol=1e-5, optOptions=optOptions)
 
 
+N = 500
+
+
+class TestSNOPTWorkspace(unittest.TestCase):
+    """
+    The Jacobian is represented in dense format to test the workspace lengths in SNOPT.
+    """
+
+    def optimize(self, optName, optOptions={}, storeHistory=False):
+        # Optimization Object
+        optProb = Optimization("large and dense", objfunc)
+
+        # Design Variables
+        optProb.addVar("x", lower=-100, upper=150, value=0)
+        optProb.addVarGroup("y", N, lower=-10 - arange(N), upper=arange(N), value=0)
+        optProb.addVarGroup("z", 2 * N, upper=arange(2 * N), lower=-100 - arange(2 * N), value=0)
+
+        # Constraints
+        optProb.addCon("con1", upper=100, wrt=["x"])
+        optProb.addCon("con2", upper=100)
+        optProb.addCon("con3", lower=4, wrt=["x", "z"])
+        optProb.addConGroup(
+            "lincon",
+            N,
+            lower=2 - 3 * arange(N),
+            linear=True,
+            wrt=["x", "y"],
+            jac={"x": np.ones((N, 1)), "y": np.eye(N)},
+        )
+        optProb.addObj("obj")
+
+        # Optimizer
+        try:
+            opt = OPT(optName, options=optOptions)
+        except Error:
+            raise unittest.SkipTest("Optimizer not available:", optName)
+
+        sol = opt(optProb, sens=sens)
+
+        return sol
+
+    def test_default(self):
+        test_name = "SNOPT_workspace_default"
+        optOptions = {
+            "Print file": "{}.out".format(test_name),
+            "Summary file": "{}_summary.out".format(test_name),
+        }
+        sol = self.optimize("snopt", optOptions=optOptions)
+
+        # Check that overwriting the workspace lengths works
+        tol = 1e-5
+        assert_allclose(sol.objectives["obj"].value, 10.0, atol=tol, rtol=tol)
+        assert_allclose(sol.variables["x"][0].value, 2.0, atol=tol, rtol=tol)
+
+    def test_user(self):
+        test_name = "SNOPT_workspace_user"
+        optOptions = {
+            "Print file": "{}.out".format(test_name),
+            "Summary file": "{}_summary.out".format(test_name),
+            "Total real workspace": 401300,  # 500 + 200 * (503 + 1501)
+        }
+        sol = self.optimize("snopt", optOptions=optOptions)
+
+        # Check that the workspace is too small without overwriting the lengths
+        self.assertEqual(sol.optInform["value"], 84)
+
+
 if __name__ == "__main__":
     unittest.main()
