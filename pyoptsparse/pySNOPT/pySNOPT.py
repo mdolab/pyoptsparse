@@ -54,6 +54,9 @@ class SNOPT(Optimizer):
             "Start": [str, ["Cold", "Warm"]],  # used in call to snkerc, the option "Cold Start" etc are NOT allowed
             "Derivative level": [int, 3],
             "Proximal iterations limit": [int, 10000],  # very large # to solve proximal point problem to optimality
+            "Total character workspace": [int, None],  # lencw: 500
+            "Total integer workspace": [int, None],  # leniw: 500 + 100 * (ncon + nvar)
+            "Total real workspace": [int, None],  # lenrw: 500 + 200 * (ncon + nvar)
             "Save major iteration variables": [
                 list,
                 ["step", "merit", "feasibility", "optimality", "penalty"],
@@ -328,14 +331,28 @@ class SNOPT(Optimizer):
                     raise Error("Failed to properly open %s, ierror = %3d" % (SummFile, ierror))
 
             # Calculate the length of the work arrays
-            # --------------------------------------
+            # ---------------------------------------
             nvar = self.optProb.ndvs
-            lencw = 500
-            leniw = 500 + 100 * (ncon + nvar)
-            lenrw = 500 + 200 * (ncon + nvar)
+            lencw = self.getOption("Total character workspace")
+            leniw = self.getOption("Total integer workspace")
+            lenrw = self.getOption("Total real workspace")
 
-            self.setOption("Total integer workspace", leniw)
-            self.setOption("Total real workspace", lenrw)
+            # Set flags to avoid overwriting user-specified lengths
+            checkLencw = lencw is None
+            checkLeniw = leniw is None
+            checkLenrw = lenrw is None
+
+            # Set defaults
+            minWorkArrayLength = 500
+            if lencw is None:
+                lencw = minWorkArrayLength
+                self.setOption("Total character workspace", lencw)
+            if leniw is None:
+                leniw = minWorkArrayLength + 100 * (ncon + nvar)
+                self.setOption("Total integer workspace", leniw)
+            if lenrw is None:
+                lenrw = minWorkArrayLength + 200 * (ncon + nvar)
+                self.setOption("Total real workspace", lenrw)
 
             cw = np.empty((lencw, 8), "c")
             iw = np.zeros(leniw, np.intc)
@@ -353,20 +370,32 @@ class SNOPT(Optimizer):
             # Set the options into the SNOPT instance
             self._set_snopt_options(iPrint, iSumm, cw, iw, rw)
 
+            # Estimate workspace storage requirement
             mincw, miniw, minrw, cw = snopt.snmemb(iExit, ncon, nvar, neA, neGcon, nnCon, nnJac, nnObj, cw, iw, rw)
 
-            if (minrw > lenrw) or (miniw > leniw) or (mincw > lencw):
-                if mincw > lencw:
-                    lencw = mincw
-                    cw = np.array((lencw, 8), "c")
-                    cw[:] = " "
-                if miniw > leniw:
-                    leniw = miniw
-                    iw = np.zeros(leniw, np.intc)
-                if minrw > lenrw:
-                    lenrw = minrw
-                    rw = np.zeros(lenrw, np.float)
+            # This flag is set to True if any of the lengths are overwritten
+            lengthsChanged = False
 
+            # Overwrite lengths if the defaults are too small
+            if checkLencw and mincw > lencw:
+                lencw = mincw
+                self.setOption("Total character workspace", lencw)
+                cw = np.array((lencw, 8), "c")
+                cw[:] = " "
+                lengthsChanged = True
+            if checkLeniw and miniw > leniw:
+                leniw = miniw
+                self.setOption("Total integer workspace", leniw)
+                iw = np.zeros(leniw, np.intc)
+                lengthsChanged = True
+            if checkLenrw and minrw > lenrw:
+                lenrw = minrw
+                self.setOption("Total real workspace", lenrw)
+                rw = np.zeros(lenrw, np.float)
+                lengthsChanged = True
+
+            # Initialize SNOPT again if any of the lengths were overwritten
+            if lengthsChanged:
                 snopt.sninit(iPrint, iSumm, cw, iw, rw)
 
                 # snInit resets all the options to the defaults.
@@ -435,7 +464,7 @@ class SNOPT(Optimizer):
                 snopt.closeunit(self.getOption("iSumm"))
 
             # Store Results
-            inform = np.asscalar(inform)
+            inform = inform.item()
             sol_inform = {}
             sol_inform["value"] = inform
             sol_inform["text"] = self.informs[inform]

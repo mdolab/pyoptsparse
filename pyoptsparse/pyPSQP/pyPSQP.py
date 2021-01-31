@@ -260,7 +260,7 @@ class PSQP(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
-            inform = np.asscalar(iterm)
+            inform = iterm.item()
             if inform < 0 and inform not in self.informs:
                 inform = -10
             sol_inform = {}
