@@ -110,20 +110,15 @@ class TestLarge(unittest.TestCase):
         }
         self.optimize(tol=1e-5, optOptions=optOptions)
 
-    def test_default(self):
+    def test_dense_default(self):
         test_name = "SNOPT_workspace_default"
         optOptions = {
             "Print file": "{}.out".format(test_name),
             "Summary file": "{}_summary.out".format(test_name),
         }
-        sol = self.optimize(sparse=False, optOptions=optOptions)
+        self.optimize(tol=1e-5, sparse=False, optOptions=optOptions)
 
-        # Check that overwriting the workspace lengths works
-        tol = 1e-5
-        assert_allclose(sol.objectives["obj"].value, 10.0, atol=tol, rtol=tol)
-        assert_allclose(sol.variables["x"][0].value, 2.0, atol=tol, rtol=tol)
-
-    def test_user(self):
+    def test_dense_user(self):
         test_name = "SNOPT_workspace_user"
         optOptions = {
             "Print file": "{}.out".format(test_name),
