@@ -45,7 +45,7 @@ The following are the options set in Python for the wrapper.
   They are computed based on recommendations in the SNOPT manual.
 - If SNOPT determines that the default values for ``Total character workspace``, ``Total integer workspace``, or ``Total real workspace`` are too small, the Python wrapper will overwrite the defaults with estimates for the required workspace lengths from SNOPT and initialize the optimizer for a second time.
   SNOPT might still exit with ``82``, ``83``, or ``84``, but this should automate the storage allocation for most cases.
-  If the user specifies integer values for any of the workspace options, the Python wrapper will not overwrite any of the values.
+  User-specified values are not overwritten.
 
 .. optimizertable:: pyoptsparse.pySNOPT.pySNOPT.SNOPT
    :type: options

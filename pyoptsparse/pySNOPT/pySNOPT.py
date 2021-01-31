@@ -337,11 +337,10 @@ class SNOPT(Optimizer):
             leniw = self.getOption("Total integer workspace")
             lenrw = self.getOption("Total real workspace")
 
-            # Set a flag to avoid overwriting user-specified lengths
-            if lencw is None and leniw is None and lenrw is None:
-                defaultLengths = True
-            else:
-                defaultLengths = False
+            # Set flags to avoid overwriting user-specified lengths
+            checkLencw = lencw is None
+            checkLeniw = leniw is None
+            checkLenrw = lenrw is None
 
             # Set defaults
             minWorkArrayLength = 500
@@ -374,22 +373,29 @@ class SNOPT(Optimizer):
             # Estimate workspace storage requirement
             mincw, miniw, minrw, cw = snopt.snmemb(iExit, ncon, nvar, neA, neGcon, nnCon, nnJac, nnObj, cw, iw, rw)
 
-            # Overwrite lengths if defaults were too small and initialize SNOPT again
-            if defaultLengths and (minrw > lenrw or miniw > leniw or mincw > lencw):
-                if mincw > lencw:
-                    lencw = mincw
-                    self.setOption("Total character workspace", lencw)
-                    cw = np.array((lencw, 8), "c")
-                    cw[:] = " "
-                if miniw > leniw:
-                    leniw = miniw
-                    self.setOption("Total integer workspace", leniw)
-                    iw = np.zeros(leniw, np.intc)
-                if minrw > lenrw:
-                    lenrw = minrw
-                    self.setOption("Total real workspace", lenrw)
-                    rw = np.zeros(lenrw, np.float)
+            # This flag is set to True if any of the lengths are overwritten
+            lengthsChanged = False
 
+            # Overwrite lengths if the defaults are too small
+            if checkLencw and mincw > lencw:
+                lencw = mincw
+                self.setOption("Total character workspace", lencw)
+                cw = np.array((lencw, 8), "c")
+                cw[:] = " "
+                lengthsChanged = True
+            if checkLeniw and miniw > leniw:
+                leniw = miniw
+                self.setOption("Total integer workspace", leniw)
+                iw = np.zeros(leniw, np.intc)
+                lengthsChanged = True
+            if checkLenrw and minrw > lenrw:
+                lenrw = minrw
+                self.setOption("Total real workspace", lenrw)
+                rw = np.zeros(lenrw, np.float)
+                lengthsChanged = True
+
+            # Initialize SNOPT again if any of the lengths were overwritten
+            if lengthsChanged:
                 snopt.sninit(iPrint, iSumm, cw, iw, rw)
 
                 # snInit resets all the options to the defaults.
