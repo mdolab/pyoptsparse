@@ -1,7 +1,11 @@
 .Select-multi-value-wrapper {
     max-height: 100px;
     overflow: auto;
-    max-width: 400px;
+    max-width: 800px;
+}
+
+.Select-control {
+    max-width: 800px;
 }
 
 .js-plotly-plot,
