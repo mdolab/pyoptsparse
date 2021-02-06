@@ -36,7 +36,7 @@ class SLSQP(Optimizer):
     SLSQP Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, raiseError=True, *args, **kwargs):
+    def __init__(self, raiseError=True, options={}):
         name = "SLSQP"
         category = "Local Optimizer"
         self.defOpts = {
@@ -44,7 +44,7 @@ class SLSQP(Optimizer):
             "ACC": [float, 1e-6],  # Convergence Accurancy
             "MAXIT": [int, 500],  # Maximum Iterations
             "IPRINT": [int, 1],  # Output Level (<0 - None, 0 - Screen, 1 - File)
-            "IOUT": [int, 6],  # Output Unit Number
+            "IOUT": [int, 60],  # Output Unit Number
             "IFILE": [str, "SLSQP.out"],  # Output File Name
         }
         self.informs = {
@@ -65,7 +65,7 @@ class SLSQP(Optimizer):
                 raise Error("There was an error importing the compiled slsqp module")
 
         self.set_options = []
-        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
+        super().__init__(name, category, defaultOptions=self.defOpts, informs=self.informs, options=options)
 
         # SLSQP needs Jacobians in dense format
         self.jacType = "dense2d"
@@ -120,7 +120,7 @@ class SLSQP(Optimizer):
         storeSens : bool
             Flag sepcifying if sensitivities are to be stored in hist.
             This is necessay for hot-starting only.
-            """
+        """
 
         self.callCounter = 0
         self.storeSens = storeSens
@@ -257,7 +257,7 @@ class SLSQP(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
-            inform = np.asscalar(mode)
+            inform = mode.item()
             sol_inform = {}
             sol_inform["value"] = inform
             sol_inform["text"] = self.informs[inform]
@@ -273,9 +273,3 @@ class SLSQP(Optimizer):
         sol = self._communicateSolution(sol)
 
         return sol
-
-    def _on_setOption(self, name, value):
-        pass
-
-    def _on_getOption(self, name, value):
-        pass

@@ -1,4 +1,4 @@
-"""Test solution of problem HS15 from the Hock & Schittkowski collection"""
+"""Test solution of Rosenbrock problem"""
 
 import unittest
 import numpy as np
@@ -7,33 +7,34 @@ from pyoptsparse import Optimization, OPT, History
 from pyoptsparse.pyOpt_error import Error
 
 
-class TestHS15(unittest.TestCase):
+class TestRosenbrock(unittest.TestCase):
 
-    ## Solve test problem HS15 from the Hock & Schittkowski collection.
+    ## Solve unconstrained Rosenbrock problem.
+    #  This problem is scalable w.r.t. design variables number.
+    #  We select a problem with 4 design variables, but the
+    #  location and value of the minimum do not change with DV
+    #  dimensionality
     #
-    #  min   100 (x2 - x1^2)^2 + (1 - x1)^2
-    #  s.t.  x1 x2 >= 1
-    #        x1 + x2^2 >= 0
-    #        x1 <= 0.5
     #
-    #  The standard start point (-2, 1) usually converges to the standard
-    #  minimum at (0.5, 2.0), with final objective = 306.5.
-    #  Sometimes the solver converges to another local minimum
-    #  at (-0.79212, -1.26243), with final objective = 360.4.
+    #  min   100 * (x[i + 1] - x[i] ** 2) ** 2 + (1 - x[i]) ** 2
+    #
+    #  The minimum is located at x=(1,....,1) where x
+    #  is an arbitrarily sized vector depending on the number N
+    #  of design variables.
+    #  At the optimum, the function is f(x) = 0.
+    #  We select a random initial point for our test.
     ##
 
     def objfunc(self, xdict):
         self.nf += 1
         x = xdict["xvars"]
+
         funcs = {}
-        funcs["obj"] = [100 * (x[1] - x[0] ** 2) ** 2 + (1 - x[0]) ** 2]
-        conval = np.zeros(2, "D")
-        conval[0] = x[0] * x[1]
-        conval[1] = x[0] + x[1] ** 2
-        funcs["con"] = conval
-        # extra keys
-        funcs["extra1"] = 0.0
-        funcs["extra2"] = 1.0
+        funcs["obj"] = 0
+
+        for i in range(len(x) - 1):
+            funcs["obj"] += 100 * (x[i + 1] - x[i] ** 2) ** 2 + (1 - x[i]) ** 2
+
         fail = False
         return funcs, fail
 
@@ -41,10 +42,14 @@ class TestHS15(unittest.TestCase):
         self.ng += 1
         x = xdict["xvars"]
         funcsSens = {}
-        funcsSens["obj"] = {
-            "xvars": [2 * 100 * (x[1] - x[0] ** 2) * (-2 * x[0]) - 2 * (1 - x[0]), 2 * 100 * (x[1] - x[0] ** 2)]
-        }
-        funcsSens["con"] = {"xvars": [[x[1], x[0]], [1, 2 * x[1]]]}
+        grads = np.zeros(len(x))
+
+        for i in range(len(x) - 1):
+            grads[i] += 2 * (200 * x[i] ** 3 - 200 * x[i] * x[i + 1] + x[i] - 1)
+            grads[i + 1] += 200 * (x[i + 1] - x[i] ** 2)
+
+        funcsSens["obj"] = {"xvars": grads}
+
         fail = False
         return funcsSens, fail
 
@@ -52,18 +57,16 @@ class TestHS15(unittest.TestCase):
         self.nf = 0  # number of function evaluations
         self.ng = 0  # number of gradient evaluations
         # Optimization Object
-        optProb = Optimization("HS15 Constraint Problem", self.objfunc)
 
-        # Design Variables
-        lower = [-5.0, -5.0]
-        upper = [0.5, 5.0]
-        value = [-2, 1.0]
-        optProb.addVarGroup("xvars", 2, lower=lower, upper=upper, value=value)
+        optProb = Optimization("Rosenbrock Problem", self.objfunc)
 
-        # Constraints
-        lower = [1.0, 0.0]
-        upper = [None, None]
-        optProb.addConGroup("con", 2, lower=lower, upper=upper)
+        n = 4  # Number of design variables
+        np.random.seed(10)
+        value = np.random.normal(size=n)
+
+        lower = np.ones(n) * -50
+        upper = np.ones(n) * 50
+        optProb.addVarGroup("xvars", n, lower=lower, upper=upper, value=value)
 
         # Objective
         optProb.addObj("obj")
@@ -80,7 +83,7 @@ class TestHS15(unittest.TestCase):
         # Solution
         if storeHistory is not None:
             if storeHistory is True:
-                self.histFileName = "%s_hs015_Hist.hst" % (optName.lower())
+                self.histFileName = "%s_Rsbrk_Hist.hst" % (optName.lower())
             elif isinstance(storeHistory, str):
                 self.histFileName = storeHistory
         else:
@@ -92,22 +95,17 @@ class TestHS15(unittest.TestCase):
         print(sol)
 
         # Check Solution
-        self.fStar1 = 306.5
-        self.fStar2 = 360.379767
+        self.fStar1 = 0.0
 
-        self.xStar1 = (0.5, 2.0)
-        self.xStar2 = (-0.79212322, -1.26242985)
+        self.xStar1 = np.ones(n)
 
         dv = sol.getDVs()
-        sol_xvars = [sol.variables["xvars"][i].value for i in range(2)]
+        sol_xvars = [sol.variables["xvars"][i].value for i in range(n)]
+
         assert_allclose(sol_xvars, dv["xvars"], atol=tol, rtol=tol)
-        # we check either optimum via try/except
-        try:
-            assert_allclose(sol.objectives["obj"].value, self.fStar1, atol=tol, rtol=tol)
-            assert_allclose(dv["xvars"], self.xStar1, atol=tol, rtol=tol)
-        except AssertionError:
-            assert_allclose(sol.objectives["obj"].value, self.fStar2, atol=tol, rtol=tol)
-            assert_allclose(dv["xvars"], self.xStar2, atol=tol, rtol=tol)
+
+        assert_allclose(sol.objectives["obj"].value, self.fStar1, atol=tol, rtol=tol)
+        assert_allclose(dv["xvars"], self.xStar1, atol=tol, rtol=tol)
 
     def check_hist_file(self, optimizer, tol):
         """
@@ -124,20 +122,17 @@ class TestHS15(unittest.TestCase):
 
         # Info checks
         self.assertEqual(hist.getDVNames(), ["xvars"])
-        self.assertEqual(hist.getConNames(), ["con"])
         self.assertEqual(hist.getObjNames(), ["obj"])
         dvInfo = hist.getDVInfo()
         self.assertEqual(len(dvInfo), 1)
         self.assertEqual(dvInfo["xvars"], hist.getDVInfo(key="xvars"))
         conInfo = hist.getConInfo()
-        self.assertEqual(len(conInfo), 1)
-        self.assertEqual(conInfo["con"], hist.getConInfo(key="con"))
+        self.assertEqual(len(conInfo), 0)
         objInfo = hist.getObjInfo()
         self.assertEqual(len(objInfo), 1)
         self.assertEqual(objInfo["obj"], hist.getObjInfo(key="obj"))
         for key in ["lower", "upper", "scale"]:
             self.assertIn(key, dvInfo["xvars"])
-            self.assertIn(key, conInfo["con"])
         self.assertIn("scale", objInfo["obj"])
 
         # callCounter checks
@@ -145,18 +140,10 @@ class TestHS15(unittest.TestCase):
         last = hist.read("last")  # 'last' key should be present
         self.assertIn(last, callCounters)
 
-        # iterKeys checks
+        # iterKey checks
         iterKeys = hist.getIterKeys()
         for key in ["xuser", "fail", "isMajor"]:
             self.assertIn(key, iterKeys)
-
-        # extraFuncsNames checks
-        extraFuncsNames = hist.getExtraFuncsNames()
-        for key in ["extra1", "extra2"]:
-            self.assertIn(key, extraFuncsNames)
-
-        # getValues checks
-        val = hist.getValues()
 
         # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
         if optimizer in ["SNOPT", "SLSQP", "PSQP"]:
@@ -173,6 +160,7 @@ class TestHS15(unittest.TestCase):
         In this process, it will check various combinations of storeHistory and hotStart filenames.
         It will also call `check_hist_file` after the first optimization.
         """
+
         self.optimize(optName, tol, storeHistory=True, optOptions=optOptions)
         self.assertGreater(self.nf, 0)
         self.assertGreater(self.ng, 0)
@@ -201,54 +189,54 @@ class TestHS15(unittest.TestCase):
         self.assertEqual(self.ng, 0)
 
     def test_snopt(self):
-        test_name = "hs015_SNOPT"
+        test_name = "Rsbrk_SNOPT"
         store_vars = ["step", "merit", "feasibility", "optimality", "penalty", "Hessian", "condZHZ", "slack", "lambda"]
         optOptions = {
             "Save major iteration variables": store_vars,
             "Print file": "{}.out".format(test_name),
             "Summary file": "{}_summary.out".format(test_name),
         }
-        self.optimize_with_hotstart("SNOPT", 1e-12, optOptions=optOptions)
+        self.optimize_with_hotstart("SNOPT", 1e-8, optOptions=optOptions)
 
         hist = History(self.histFileName, flag="r")
         data = hist.getValues(callCounters=["last"])
         keys = hist.getIterKeys()
         self.assertIn("isMajor", keys)
-        self.assertEqual(7, data["nMajor"])
+        self.assertEqual(36, data["nMajor"])
         for var in store_vars:
             self.assertIn(var, data.keys())
-        self.assertEqual(data["Hessian"].shape, (1, 2, 2))
+        self.assertEqual(data["Hessian"].shape, (1, 4, 4))
         self.assertEqual(data["feasibility"].shape, (1, 1))
-        self.assertEqual(data["slack"].shape, (1, 2))
-        self.assertEqual(data["lambda"].shape, (1, 2))
+        self.assertEqual(data["slack"].shape, (1, 1))
+        self.assertEqual(data["lambda"].shape, (1, 1))
 
     def test_slsqp(self):
-        optOptions = {"IFILE": "hs015_SLSQP.out"}
-        self.optimize_with_hotstart("SLSQP", 1e-8, optOptions=optOptions)
+        optOptions = {"ACC": 1e-10, "IFILE": "Rsbrk_SLSQP.out"}
+        self.optimize_with_hotstart("SLSQP", 1e-6, optOptions=optOptions)
 
     def test_nlpqlp(self):
-        optOptions = {"iFile": "hs015_NLPQLP.out"}
-        self.optimize_with_hotstart("NLPQLP", 1e-12, optOptions=optOptions)
+        optOptions = {"accuracy": 1e-10, "iFile": "Rsbrk_NLPQLP.out"}
+        self.optimize_with_hotstart("NLPQLP", 1e-6, optOptions=optOptions)
 
     def test_ipopt(self):
-        optOptions = {"output_file": "hs015_IPOPT.out"}
-        self.optimize_with_hotstart("IPOPT", 1e-4, optOptions=optOptions)
+        optOptions = {"output_file": "Rsbrk_IPOPT.out"}
+        self.optimize_with_hotstart("IPOPT", 1e-6, optOptions=optOptions)
 
     def test_paropt(self):
-        optOptions = {"output_file": "hs015_ParOpt.out"}
-        self.optimize_with_hotstart("ParOpt", 1e-6, optOptions=optOptions)
+        optOptions = {"output_file": "Rsbrk_ParOpt.out"}
+        self.optimize_with_hotstart("ParOpt", 1e-8, optOptions=optOptions)
 
     def test_conmin(self):
         optOptions = {
             "DELFUN": 1e-10,
             "DABFUN": 1e-10,
-            "IFILE": "hs015_CONMIN.out",
+            "IFILE": "Rsbrk_CONMIN.out",
         }
-        self.optimize_with_hotstart("CONMIN", 1e-10, optOptions=optOptions)
+        self.optimize_with_hotstart("CONMIN", 1e-9, optOptions=optOptions)
 
     def test_psqp(self):
-        optOptions = {"IFILE": "hs015_PSQP.out"}
-        self.optimize_with_hotstart("PSQP", 1e-12, optOptions=optOptions)
+        optOptions = {"IFILE": "Rsbrk_PSQP.out"}
+        self.optimize_with_hotstart("PSQP", 1e-8, optOptions=optOptions)
 
 
 if __name__ == "__main__":

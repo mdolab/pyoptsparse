@@ -35,7 +35,7 @@ class PSQP(Optimizer):
     PSQP Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, raiseError=True, *args, **kwargs):
+    def __init__(self, raiseError=True, options={}):
         name = "PSQP"
         category = "Local Optimizer"
         self.defOpts = {
@@ -61,14 +61,16 @@ class PSQP(Optimizer):
             12: "Maximum number of function evaluations exceeded",
             13: "Maximum number of gradient evaluations exceeded",
             -6: "Termination criterion not satisfied, but obtained point is acceptable",
+            -7: "Positive directional derivative in line search",
+            -8: "Interpolation error in line search",
+            -10: "Optimization failed",
         }
-        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
 
         if psqp is None:
             if raiseError:
                 raise Error("There was an error importing the compiled psqp module")
 
-        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
+        super().__init__(name, category, defaultOptions=self.defOpts, informs=self.informs, options=options)
 
         # PSQP needs Jacobians in dense format
         self.jacType = "dense2d"
@@ -123,7 +125,7 @@ class PSQP(Optimizer):
         storeSens : bool
             Flag sepcifying if sensitivities are to be stored in hist.
             This is necessay for hot-starting only.
-            """
+        """
 
         self.callCounter = 0
         self.storeSens = storeSens
@@ -155,10 +157,13 @@ class PSQP(Optimizer):
         # Set the number of nonlinear constraints snopt *thinks* we have:
         if self.unconstrained:
             ncon = 0
-            cf = [0.0]
-            cl = []
-            cu = []
-            ic = []
+            cf = np.zeros(1)
+            cl = np.zeros(1)
+            cu = np.zeros(1)
+            ic = np.zeros(1)
+            # as done for SLSQP, we need this dummy constraint to make the code work
+            optProb.dummyConstraint = True
+
         else:
             indices, blc, buc, fact = self.optProb.getOrdering(["ne", "le", "ni", "li"], oneSided=oneSided)
             ncon = len(indices)
@@ -255,7 +260,9 @@ class PSQP(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
-            inform = np.asscalar(iterm)
+            inform = iterm.item()
+            if inform < 0 and inform not in self.informs:
+                inform = -10
             sol_inform = {}
             sol_inform["value"] = inform
             sol_inform["text"] = self.informs[inform]
@@ -276,9 +283,3 @@ class PSQP(Optimizer):
         sol = self._communicateSolution(sol)
 
         return sol
-
-    def _on_setOption(self, name, value):
-        pass
-
-    def _on_getOption(self, name):
-        pass

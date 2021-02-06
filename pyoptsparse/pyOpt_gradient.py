@@ -98,7 +98,7 @@ class Gradient(object):
 
         fail : bool
             Flag for failure. It currently always returns False
-            """
+        """
 
         # Since this is *very* dumb loop over all the design
         # variables, it is easier to just loop over the x values as an

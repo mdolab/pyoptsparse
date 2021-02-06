@@ -253,10 +253,10 @@ class OVBaseClass(object):
                 self.iter_type[:] = 1.0
 
     def SaveDBData(self, db, data_all, data_major, OpenMDAO, data_str):
-        """ Method to save the information within the database corresponding
-            to a certain key to the relevant dictionaries within the Display
-            object. This method is called twice, once for the design variables
-            and the other for the outputs. """
+        """Method to save the information within the database corresponding
+        to a certain key to the relevant dictionaries within the Display
+        object. This method is called twice, once for the design variables
+        and the other for the outputs."""
 
         # Loop over each optimization iteration
         for i, iter_type in enumerate(self.iter_type):
@@ -297,8 +297,8 @@ class OVBaseClass(object):
                         data_major[new_key].append(data)
 
     def SaveOpenMDAOData(self, db):
-        """ Examine the OpenMDAO dict and save tags if the variables are
-            objectives (o), constraints (c), or design variables (dv). """
+        """Examine the OpenMDAO dict and save tags if the variables are
+        objectives (o), constraints (c), or design variables (dv)."""
 
         # Loop over each key in the metadata db
         for tag in db:

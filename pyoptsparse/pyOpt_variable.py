@@ -38,6 +38,7 @@ class Variable(object):
             self.lower = lower
             self.upper = upper
             self.scale = scale
+            self.offset = offset
         elif self.type == "d":
             if choices is None:
                 raise Error("A discrete variable requires to input an array of choices.")
