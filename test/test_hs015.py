@@ -7,6 +7,14 @@ from numpy.testing import assert_allclose
 from pyoptsparse import Optimization, OPT, History
 from pyoptsparse.pyOpt_error import Error
 
+try:
+    import plotly  # noqa
+    import dash  # noqa
+
+    has_optview_dash = True
+except ImportError:
+    has_optview_dash = False
+
 
 class TestHS15(unittest.TestCase):
 
@@ -251,14 +259,7 @@ class TestHS15(unittest.TestCase):
         optOptions = {"IFILE": "hs015_PSQP.out"}
         self.optimize_with_hotstart("PSQP", 1e-12, optOptions=optOptions)
 
-    def test_optview(self):
-        hstName = "hs015_optview.hst"
-        optOptions = {"IFILE": "hs015_SLSQP_optview.out"}
-        self.optimize("SLSQP", 1, optOptions=optOptions, storeHistory=hstName)
-        # we only run this for 2 seconds, and make sure no other errors are thrown
-        with self.assertRaises(subprocess.TimeoutExpired):
-            subprocess.run(f"optview {hstName}", shell=True, timeout=2)
-
+    @unittest.skipUnless(has_optview_dash)
     def test_optview_dash(self):
         hstName = "hs015_optview_dash.hst"
         optOptions = {"IFILE": "hs015_SLSQP_optview_dash.out"}
