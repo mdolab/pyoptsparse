@@ -259,7 +259,7 @@ class TestHS15(unittest.TestCase):
         optOptions = {"IFILE": "hs015_PSQP.out"}
         self.optimize_with_hotstart("PSQP", 1e-12, optOptions=optOptions)
 
-    @unittest.skipUnless(has_optview_dash)
+    @unittest.skipUnless(has_optview_dash, "dash not installed")
     def test_optview_dash(self):
         hstName = "hs015_optview_dash.hst"
         optOptions = {"IFILE": "hs015_SLSQP_optview_dash.out"}
