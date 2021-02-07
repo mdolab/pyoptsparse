@@ -59,7 +59,7 @@ class Display(OVBaseClass):
         try:
             icon_dir = os.path.dirname(os.path.abspath(__file__))
             icon_name = "OptViewIcon.gif"
-            icon_dir_full = os.path.join(icon_dir, icon_name)
+            icon_dir_full = os.path.join(icon_dir, "assets", icon_name)
             img = Tk.PhotoImage(file=icon_dir_full)
             self.root.tk.call("wm", "iconphoto", self.root._w, img)
         except:  # bare except because error is not in standard Python
