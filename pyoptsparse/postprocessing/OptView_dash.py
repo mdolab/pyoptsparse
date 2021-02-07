@@ -1312,6 +1312,10 @@ def update_plot(dvarGroup, funcGroup, optGroup, dvarChild, funcChild, optChild, 
         return {}
 
 
+def main():
+    app.run_server(debug=True)
+
+
 # Run if file is used directly, and not imported
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    main()

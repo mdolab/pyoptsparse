@@ -14,18 +14,9 @@ John Jasa 2015-2019
 import os
 import argparse
 import shelve
-
 import sys
-
-major_python_version = sys.version_info[0]
-
-if major_python_version == 2:
-    import tkFont
-    import Tkinter as Tk
-else:
-    import tkinter as Tk
-    from tkinter import font as tkFont
-
+import tkinter as Tk
+from tkinter import font as tkFont
 import re
 import warnings
 
@@ -47,7 +38,6 @@ except:
     pass
 import numpy as np
 from sqlitedict import SqliteDict
-import traceback
 from .OptView_baseclass import OVBaseClass
 
 
