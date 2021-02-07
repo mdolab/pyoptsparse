@@ -43,7 +43,7 @@ colors = ["#636EFA", "#EF553B", "#00CC96", "#AB63FA", "#FFA15A", "#19D3F3", "#FF
 # ====================================================================================
 
 app = dash.Dash(__name__)
-# Override expceptions for when elements are defined without initial input
+# Override exceptions for when elements are defined without initial input
 app.config.suppress_callback_exceptions = True
 
 app.layout = html.Div(
@@ -284,7 +284,7 @@ def getValues(name, dataType, hist):
     name : str
         The value of interest, can be the name of any DV, objective or constraint that a user selects
 
-    datatType : list of str
+    dataType : list of str
         Contains dataType str values selected by user (i.e scale, major, delta)
 
     hist: History object
@@ -294,7 +294,7 @@ def getValues(name, dataType, hist):
     -------
     data dictionary
         Contains the iteration data for the value requested. It returns a data dictionary with the key
-        as the 'name'requested and the value a numpy array where with the first dimension equal to the
+        as the 'name' requested and the value a numpy array where with the first dimension equal to the
         number of iterations requested (depending on if major is in dataType or not).
 
     Example
@@ -341,7 +341,7 @@ def addVarTraces(var, trace, dataType, names, groupType):
     trace: list
         List containing the traces to be displayed on the plotly figure.
 
-    datatType : list of str
+    dataType : list of str
         Contains dataType str values selected by user (i.e scale, major, delta, bounds)
 
     names: list of str
@@ -385,7 +385,7 @@ def addVarTraces(var, trace, dataType, names, groupType):
         else:
             varName = var[::-1].replace(reversedIndexVar + "_", "", 1)[::-1]
 
-    # Set hist as the appropraite History object for the var
+    # Set hist as the appropriate History object for the var
     hist = histList[ord(indexHist) % 65]
     # Dictionary with DV or Func group info for the var, with keys 'scale', 'lower', 'upper',
     # where each key corresponds to a numpy array of size # variables, with each index's value corresponding to that indexed variable in the group
@@ -459,13 +459,13 @@ def addMaxMinTraces(var, trace, dataType, histList):
     Parameters
     ----------
     var : str
-        Tpythe name of the variable group name to add min/max traces for.
+        The name of the variable group to add min/max traces for.
             EX: xvars
 
     trace: list
         List containing the traces to be displayed on the plotly figure.
 
-    datatType : list of str
+    dataType : list of str
         Contains dataType str values selected by user (i.e scale, major, delta, bounds)
 
     histList: list of str
@@ -523,7 +523,7 @@ def update_refresh_intervals(dataType):
 
     Parameters
     ----------
-    datatType : list of str
+    dataType : list of str
         Contains dataType str values selected by user (i.e scale, major, delta, bounds)
 
     Returns
@@ -567,7 +567,7 @@ def update_refresh_input(dataType):
 
     Parameters
     ----------
-     datatType : list of str
+     dataType : list of str
         Contains dataType str values selected by user (i.e scale, major, delta, bounds)
 
     Returns
@@ -597,11 +597,11 @@ def update_opt_history(n, max):
     ----------
      n: int
         The current number of intervals ran.
-        Not explicitely used in this function, but kept as an input dependency so this function is called on interval.
+        Not explicitly used in this function, but kept as an input dependency so this function is called on interval.
 
     max: int
         The max number of intervals the interval-component runs on.
-        Not explicitely used in this function, but kept as an input dependency so that if auto refresh is not on,
+        Not explicitly used in this function, but kept as an input dependency so that if auto refresh is not on,
         this function is called once when the max_intervals is set/updated as 0.
 
     Returns
@@ -768,14 +768,14 @@ def update_dvar_child(dvarGroup, options):
        The selected DV groups from the 'Design Group' dropdown.
 
     options: list of str
-        The 'Design Group' dropdown options. This is not explicetly used in this function, but is supplied
-        as an input dependecy so that this callback is triggered to reupdate when 'refresh' is turned on. When
+        The 'Design Group' dropdown options. This is not explicitly used in this function, but is supplied
+        as an input dependency so that this callback is triggered to re-update when 'refresh' is turned on. When
         'refresh' is on, once the dvarGroup options finally loads, the dvarChild's options will be update.
 
     Returns
     -------
     dictionary
-       List of dictinoaries containing the options for the 'Design Variable' dropdown.
+       List of dictionaries containing the options for the 'Design Variable' dropdown.
 
     If multiple history files are being used - Formatted as: OPT/DV/FUNC-GROUPNAME_HIST-FILE-LABEL-INDEX_VAR-INDEX
             EX: xvars_A_0 -> This would be the first variable in the xvars group from file A
@@ -829,8 +829,8 @@ def update_func_child(funcGroup, options):
        The selected DV groups from the 'Function Group' dropdown.
 
     options: list of str
-        The 'Function Group' dropdown options. This is not explicetly used in this function, but is supplied
-        as an input dependecy so that this callback is triggered to reupdate when 'refresh' is turned on. When
+        The 'Function Group' dropdown options. This is not explicitly used in this function, but is supplied
+        as an input dependency so that this callback is triggered to re-update when 'refresh' is turned on. When
         'refresh' is on, once the funcGroup options finally loads, the funcChild's options will be update.
 
     Returns
@@ -890,8 +890,8 @@ def update_opt_child(optGroup, options):
        The selected Optimization groups from the 'Optimization Group' dropdown.
 
     options: list of str
-        The 'Optimization Group' dropdown options. This is not explicetly used in this function, but is supplied
-        as an input dependecy so that this callback is triggered to reupdate when 'refresh' is turned on. When
+        The 'Optimization Group' dropdown options. This is not explicitly used in this function, but is supplied
+        as an input dependency so that this callback is triggered to re-update when 'refresh' is turned on. When
         'refresh' is on, once the optGroup options finally loads, the optChild's options will be update.
 
     Returns
@@ -949,8 +949,8 @@ def update_dvar_childAutoPopulate(dvarGroup, options, dvarChild):
        The selected Design groups from the 'Design Group' dropdown.
 
     options: list of str
-        The 'Design Group' dropdown options. This is not explicitely used in this function, but is supplied
-        as an input dependecy so that this callback is triggered to reupdate when 'refresh' is turned on. When
+        The 'Design Group' dropdown options. This is not explicitly used in this function, but is supplied
+        as an input dependency so that this callback is triggered to re-update when 'refresh' is turned on. When
         'refresh' is on, once the dvarGroup options finally loads, the dvarChild's options will be update.
 
     dvarChild: list of str
@@ -981,7 +981,7 @@ def update_dvar_childAutoPopulate(dvarGroup, options, dvarChild):
                     hist = histList[ord(indexHist) % 65]
                     vName = var[::-1].replace(indexHist + "_", "", 1)[::-1]
                 varValues = hist.getValues(names=vName, major=False)
-                # This checks if a specfic group already has variables selected and shouldnt be autopopulated
+                # This checks if a specific group already has variables selected and shouldn't be autopopulated
                 varAlreadyExists = False
                 for varName in dvarChild:
                     if var in varName:
@@ -1012,8 +1012,8 @@ def update_func_childAutoPopulate(funcGroup, options, funcChild):
        The selected Design groups from the 'Design Group' dropdown.
 
     options: list of str
-        The 'Function Group' dropdown options. This is not explicitely used in this function, but is supplied
-        as an input dependecy so that this callback is triggered to reupdate when 'refresh' is turned on. When
+        The 'Function Group' dropdown options. This is not explicitly used in this function, but is supplied
+        as an input dependency so that this callback is triggered to re-update when 'refresh' is turned on. When
         'refresh' is on, once the Function options finally loads, the Function's options will be updated.
 
     funcChild: list of str
@@ -1044,7 +1044,7 @@ def update_func_childAutoPopulate(funcGroup, options, funcChild):
                     hist = histList[ord(indexHist) % 65]
                     vName = var[::-1].replace(indexHist + "_", "", 1)[::-1]
                 varValues = hist.getValues(names=vName, major=False)
-                # This checks if a specfic group already has variables selected and shouldnt be autopopulated
+                # This checks if a specific group already has variables selected and shouldn't be autopopulated
                 varAlreadyExists = False
                 for varName in funcChild:
                     if var in varName:
@@ -1075,8 +1075,8 @@ def update_opt_childAutoPopulate(optGroup, options, optChild):
        The selected Design groups from the 'Optimization Group' dropdown.
 
     options: list of str
-        The 'Optimization Group' dropdown options. This is not explicitely used in this function, but is supplied
-        as an input dependecy so that this callback is triggered to reupdate when 'refresh' is turned on. When
+        The 'Optimization Group' dropdown options. This is not explicitly used in this function, but is supplied
+        as an input dependency so that this callback is triggered to re-update when 'refresh' is turned on. When
         'refresh' is on, once the Optimization options finally loads, the Optimization's options will be updated.
 
     optChild: list of str
@@ -1107,7 +1107,7 @@ def update_opt_childAutoPopulate(optGroup, options, optChild):
                     hist = histList[ord(indexHist) % 65]
                     vName = var[::-1].replace(indexHist + "_", "", 1)[::-1]
                 varValues = hist.getValues(names=vName, major=False)
-                # This checks if a specfic group already has variables selected and shouldnt be autopopulated
+                # This checks if a specific group already has variables selected and shouldn't be autopopulated
                 varAlreadyExists = False
                 for varName in optChild:
                     if var in varName:
@@ -1141,7 +1141,7 @@ def update_plot(dvarGroup, funcGroup, optGroup, dvarChild, funcChild, optChild, 
     """
      This will update the plot figure accordingly in the layout if the
     design groups, function groups, design variables, function variables, plot type, or data type values are changed.
-    If auto refresh is selected, it will also update the plot every time hidden-div's values are changed, which occurs on interval.
+    If auto refresh is selected, it will also update the plot every time hidden-dv's values are changed, which occurs on interval.
 
     Parameters
     ----------
@@ -1149,7 +1149,7 @@ def update_plot(dvarGroup, funcGroup, optGroup, dvarChild, funcChild, optChild, 
        The selected design variable groups from the DV Group dropdown.
 
     funcGroup: list of str
-        The selected function groups (or objective) from the Funtion Group dropdown.
+        The selected function groups (or objective) from the Function Group dropdown.
 
     optGroup: list of str
         The selected optimization groups from the Optimization Group dropdown.
@@ -1166,7 +1166,7 @@ def update_plot(dvarGroup, funcGroup, optGroup, dvarChild, funcChild, optChild, 
     plotType: str
         The selected plot type. (Options are currently 'Stacked' or 'Shared')
 
-    datatType : list of str
+    dataType : list of str
         Contains dataType str values selected by user (i.e scale, major, delta, bounds)
 
     hiddenDiv: Object with the dcc.Interval component information
