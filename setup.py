@@ -75,7 +75,6 @@ if __name__ == "__main__":
                 "dash",
                 "plotly",
                 "matplotlib",
-                "tkinter",
             ],
         },
         package_data={"pyoptsparse": ["postprocessing/assets/*"]},
