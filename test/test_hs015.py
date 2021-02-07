@@ -1,6 +1,7 @@
 """Test solution of problem HS15 from the Hock & Schittkowski collection"""
 
 import unittest
+import subprocess
 import numpy as np
 from numpy.testing import assert_allclose
 from pyoptsparse import Optimization, OPT, History
@@ -249,6 +250,22 @@ class TestHS15(unittest.TestCase):
     def test_psqp(self):
         optOptions = {"IFILE": "hs015_PSQP.out"}
         self.optimize_with_hotstart("PSQP", 1e-12, optOptions=optOptions)
+
+    def test_optview(self):
+        hstName = "hs015_optview.hst"
+        optOptions = {"IFILE": "hs015_SLSQP_optview.out"}
+        self.optimize("SLSQP", 1, optOptions=optOptions, storeHistory=hstName)
+        # we only run this for 2 seconds, and make sure no other errors are thrown
+        with self.assertRaises(subprocess.TimeoutExpired):
+            subprocess.run(f"optview {hstName}", shell=True, timeout=2)
+
+    def test_optview_dash(self):
+        hstName = "hs015_optview_dash.hst"
+        optOptions = {"IFILE": "hs015_SLSQP_optview_dash.out"}
+        self.optimize("SLSQP", 1, optOptions=optOptions, storeHistory=hstName)
+        # we only run this for 2 seconds, and make sure no other errors are thrown
+        with self.assertRaises(subprocess.TimeoutExpired):
+            subprocess.run(f"optview_dash {hstName}", shell=True, timeout=2)
 
 
 if __name__ == "__main__":
