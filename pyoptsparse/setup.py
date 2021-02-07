@@ -15,7 +15,7 @@ def configuration(parent_package="", top_path=None):
     config.add_subpackage("pySLSQP")
     config.add_subpackage("pyCONMIN")
     config.add_subpackage("pyNLPQLP")
-    # config.add_subpackage("pyNSGA2")
+    config.add_subpackage("pyNSGA2")
     config.add_subpackage("pyPSQP")
     config.add_subpackage("pyALPSO")
     # config.add_subpackage('pyNOMAD')
