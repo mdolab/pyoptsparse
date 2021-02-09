@@ -14,18 +14,9 @@ John Jasa 2015-2019
 import os
 import argparse
 import shelve
-
 import sys
-
-major_python_version = sys.version_info[0]
-
-if major_python_version == 2:
-    import tkFont
-    import Tkinter as Tk
-else:
-    import tkinter as Tk
-    from tkinter import font as tkFont
-
+import tkinter as Tk
+from tkinter import font as tkFont
 import re
 import warnings
 
@@ -47,7 +38,6 @@ except:
     pass
 import numpy as np
 from sqlitedict import SqliteDict
-import traceback
 from .OptView_baseclass import OVBaseClass
 
 
@@ -69,7 +59,7 @@ class Display(OVBaseClass):
         try:
             icon_dir = os.path.dirname(os.path.abspath(__file__))
             icon_name = "OptViewIcon.gif"
-            icon_dir_full = os.path.join(icon_dir, icon_name)
+            icon_dir_full = os.path.join(icon_dir, "assets", icon_name)
             img = Tk.PhotoImage(file=icon_dir_full)
             self.root.tk.call("wm", "iconphoto", self.root._w, img)
         except:  # bare except because error is not in standard Python

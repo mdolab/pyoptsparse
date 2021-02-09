@@ -8,7 +8,7 @@ try:
     import numpy.distutils.core
     from numpy.distutils.core import setup
 except ImportError:
-    raise ImportError("pyOptSparse requires numpy version 1.0 or later")
+    raise ImportError("pyOptSparse requires numpy")
 
 # HACK to make bdist_wheel command usable when using numpy.distutils.core.setup
 try:
@@ -70,6 +70,14 @@ if __name__ == "__main__":
             "scipy>1.2",
             "mdolab-baseclasses>=1.3.1",
         ],
+        extras_require={
+            "optview": [
+                "dash",
+                "plotly",
+                "matplotlib",
+            ],
+        },
+        package_data={"pyoptsparse": ["postprocessing/assets/*"]},
         platforms=["Linux"],
         classifiers=[
             "Development Status :: 5 - Production/Stable",
@@ -85,5 +93,10 @@ if __name__ == "__main__":
             "Topic :: Education",
         ],
         configuration=configuration,
-        entry_points={"gui_scripts": ["optview = pyoptsparse.postprocessing.OptView:main"]},
+        entry_points={
+            "gui_scripts": [
+                "optview = pyoptsparse.postprocessing.OptView:main",
+                "optview_dash = pyoptsparse.postprocessing.OptView_dash:main",
+            ]
+        },
     )

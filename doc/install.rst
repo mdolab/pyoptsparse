@@ -18,6 +18,7 @@ Simply comment out the corresponding lines in ``pyoptsparse/pyoptsparse/setup.py
 The corresponding lines in ``pyoptsparse/__init__.py`` must be commented out as well.
 
 Python dependencies are automatically handled by ``pip``, so they do not need to be installed separately.
+The only exception is ``numpy``, which is required as part of the build process and therefore must be present before installing.
 
 .. note::
   * In Linux, the python header files (python-dev) are also required.
@@ -45,6 +46,16 @@ It is also possible to install pyOptSparse by calling ``python setup.py install`
   To use them, please follow the instructions on specific optimizer pages.
   
 For those who intend to use pyOptSparse with IPOPT, OpenMDAO developers provide a `bash script <https://github.com/OpenMDAO/build_pyoptsparse>`_ that simplifies the installation of the optimizer with different linear solvers.
+
+.. _install_optview:
+
+Installing OptView
+------------------
+OptView and OptView-Dash have separate dependencies that must be installed.
+To install pyOptSparse including those dependencies, run::
+
+    pip install .[optview]
+
 
 Testing
 -------

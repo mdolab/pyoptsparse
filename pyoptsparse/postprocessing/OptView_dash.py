@@ -1,593 +1,1321 @@
-#!/usr/bin/python
+# This dash version of OptView makes use of the new API
+# to read in the history file, rather than using the
+# OptView baseclass. This should be more maintainable
+# for adding new features or displaying new information with OptView.
+
+# !/usr/bin/python
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-import plotly.graph_objs as go
-from plotly import tools
+from plotly import graph_objs as go
+from plotly import subplots
 import numpy as np
 import argparse
-from sqlitedict import SqliteDict
-import shelve
 import sys
+from pyoptsparse import History
+import json
 
-from OptView_baseclass import OVBaseClass
-
-
+# Read in the history files given by user
 major_python_version = sys.version_info[0]
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "histFile", nargs="*", type=str, default="opt_hist.hst", help="Specify the history file to be plotted"
 )
-
 args = parser.parse_args()
-histList = args.histFile
 
+# List of strings (the history file names)
+histListArgs = args.histFile
 
-class ReadOptHist(OVBaseClass):
-    """
-    Container for display parameters, properties, and objects.
-    This includes a canvas for MPL plots and a bottom area with widgets.
-    """
+# Create list of associated labels (A, B, C, etc) for each history file if there are more than one
+index = ord("A")
+fileLabels = ["" for file in histListArgs]
+if len(fileLabels) > 1:
+    for i in range(len(fileLabels)):
+        fileLabels[i] = chr(index)
+        index = (index + 1 - 65) % 26 + 65
 
-    def __init__(self, histList):
+# Color scheme for graphing traces
+colors = ["#636EFA", "#EF553B", "#00CC96", "#AB63FA", "#FFA15A", "#19D3F3", "#FF6692", "#B6E880", "#FF97FF", "#FECB52"]
 
-        # Initialize lists, dicts, and save inputs from user
-        self.arr_active = 0
-        self.plots = []
-        self.annotate = None
-        self.histList = histList
-        self.bounds = {}
-        self.scaling = {}
-        self.color_bounds = [0.0, 0.0]
 
-        # Actually setup and run the GUI
-        self.OptimizationHistory()
+# ====================================================================================
+#  Defining dash app & layout
+# ====================================================================================
 
-    def OptimizationHistory(self):
-        """
-        Reads in database history file and stores contents.
-        Function information is stored as a dict in func_data,
-        variable information is stored as a dict in var_data,
-        and bounds information is stored as a dict in bounds.
-        """
-
-        # Initialize dictionaries for design variables and unknowns.
-        # The data is saved redundantly in dicts for all iterations and then
-        # for major iterations as well.
-        self.func_data_all = {}
-        self.func_data_major = {}
-        self.var_data_all = {}
-        self.var_data_major = {}
-        db = {}
-        self.num_iter = 0
-
-        # Loop over each history file name provided by the user.
-        for histIndex, histFileName in enumerate(self.histList):
-
-            # If they only have one history file, we don't change the keys' names
-            if len(self.histList) == 1:
-                histIndex = ""
-            else:  # If multiple history files, append letters to the keys,
-                # such that 'key' becomes 'key_A', 'key_B', etc
-                histIndex = "_" + chr(histIndex + ord("A"))
-            self.histIndex = histIndex
-
-            try:  # This is the classic method of storing history files
-                db = shelve.open(histFileName, "r")
-                OpenMDAO = False
-            except:  # Bare except because error is not in standard Python. # noqa: E722
-                # If the db has the 'iterations' tag, it's an OpenMDAO db.
-                db = SqliteDict(histFileName, "iterations")
-                OpenMDAO = True
-
-                # Need to do this since in py3 db.keys() is a generator object
-                keys = [i for i in db.keys()]
-
-                # If it has no 'iterations' tag, it's a pyOptSparse db.
-                if keys == []:
-                    OpenMDAO = False
-                    db = SqliteDict(histFileName)
-
-            # Specific instructions for OpenMDAO databases
-            if OpenMDAO:
-
-                # Get the number of iterations by looking at the largest number
-                # in the split string names for each entry in the db
-                if major_python_version == 3:
-                    for string in db.keys():
-                        string = string.split("|")
-                else:
-                    string = db.keys()[-1].split("|")
-
-                nkey = int(string[-1])
-                self.solver_name = string[0]
-
-                # Initalize a list detailing if the iterations are major or minor
-                self.iter_type = np.zeros(nkey)
-
-                # Get the keys of the database where derivatives were evaluated.
-                # These correspond to major iterations, while no derivative
-                # info is calculated for gradient-free linesearches.
-                deriv_keys = SqliteDict(histFileName, "derivs").keys()
-                self.deriv_keys = [int(key.split("|")[-1]) for key in deriv_keys]
-
-                # Save information from the history file for the funcs.
-                self.DetermineMajorIterations(db, OpenMDAO=OpenMDAO)
-
-                # Save information from the history file for the unknowns.
-                self.SaveDBData(db, self.func_data_all, self.func_data_major, OpenMDAO=OpenMDAO, data_str="Unknowns")
-
-                # Save information from the history file for the design variables.
-                self.SaveDBData(db, self.var_data_all, self.var_data_major, OpenMDAO=OpenMDAO, data_str="Parameters")
-
-                # Add labels to OpenMDAO variables.
-                # Corresponds to constraints, design variables, and objective.
-                try:
-                    db = SqliteDict(histFileName, "metadata")
-                    self.SaveOpenMDAOData(db)
-
-                except KeyError:  # Skip metadata info if not included in OpenMDAO hist file
-                    pass
-
-            else:
-
-                # Get the number of iterations
-                nkey = int(db["last"]) + 1
-                self.nkey = nkey
-
-                # Initalize a list detailing if the iterations are major or minor
-                self.iter_type = np.zeros(nkey)
-
-                # Check to see if there is bounds information in the db file.
-                # If so, add them to self.bounds to plot later.
-                try:
-                    info_dict = db["varInfo"].copy()
-                    info_dict.update(db["conInfo"])
-                    # Got to be a little tricky here since we're modifying
-                    # info_dict; if we simply loop over it with the generator
-                    # from Python3, it will contain the new keys and then the
-                    # names will be mangled incorrectly.
-                    bounds_dict = {}
-                    scaling_dict = {}
-                    for key in info_dict.keys():
-                        bounds_dict[key + histIndex] = {
-                            "lower": info_dict[key]["lower"],
-                            "upper": info_dict[key]["upper"],
-                        }
-                        scaling_dict[key + histIndex] = info_dict[key]["scale"]
-                    self.bounds.update(bounds_dict)
-                    self.scaling.update(scaling_dict)
-                except KeyError:
-                    pass
-
-                # Check to see if there is proper saved info about iter type
-                if "iu0" in db["0"].keys():
-                    if db[db["last"]]["iu0"] > 0:
-                        self.storedIters = True
-                    else:
-                        self.storedIters = False
-                else:
-                    self.storedIters = False
-
-                # Save information from the history file for the funcs.
-                self.DetermineMajorIterations(db, OpenMDAO=OpenMDAO)
-
-                # Save information from the history file for the funcs.
-                self.SaveDBData(db, self.func_data_all, self.func_data_major, OpenMDAO=OpenMDAO, data_str="funcs")
-
-                # Save information from the history file for the design variables.
-                self.SaveDBData(db, self.var_data_all, self.var_data_major, OpenMDAO=OpenMDAO, data_str="xuser")
-
-        # Set the initial dictionaries to reference all iterations.
-        # Later this can be set to reference only the major iterations.
-        self.func_data = self.func_data_all
-        self.var_data = self.var_data_all
-
-        # Find the maximum length of any variable in the dictionaries and
-        # save this as the number of iterations.
-        for data_dict in [self.func_data, self.var_data]:
-            for key in data_dict.keys():
-                length = len(data_dict[key])
-                if length > self.num_iter:
-                    self.num_iter = length
-
-    def DetermineMajorIterations(self, db, OpenMDAO):
-
-        if not OpenMDAO:
-            # Loop over each optimization iteration
-            for i, iter_type in enumerate(self.iter_type):
-
-                # If this is an OpenMDAO file, the keys are of the format
-                # 'rank0:SNOPT|1', etc
-                key = "%d" % i
-
-                # Only actual optimization iterations have 'funcs' in them.
-                # pyOptSparse saves info for two iterations for every
-                # actual major iteration. In particular, one has funcs
-                # and the next has funcsSens, but they're both part of the
-                # same major iteration.
-                if any("funcs" == s for s in db[key].keys()):
-
-                    # If this iteration has 'funcs' within it, but it's not
-                    # flagged as major, then it's a minor iteration.
-                    if i == 0:
-                        self.iter_type[i] = 1
-                    else:
-                        self.iter_type[i] = 2
-
-                    if not self.storedIters:  # Otherwise, use a spotty heuristic to see if the
-                        # iteration is major or not. NOTE: this is often
-                        # inaccurate, especially if the optimization used
-                        # gradient-enhanced line searches.
-                        try:
-                            keyp1 = "%d" % (i + 1)
-                            db[keyp1]["funcsSens"]
-                            self.iter_type[i] = 1  # for 'major' iterations
-                        except KeyError:
-                            self.iter_type[i] = 2  # for 'minor' iterations
-
-                else:
-                    self.iter_type[i] = 0  # this is not a real iteration,
-                    # just the sensitivity evaluation
-
-            # Loop over each optimization iteration
-            for i, iter_type in enumerate(self.iter_type):
-
-                if iter_type == 0:
-                    continue
-
-                key = "%d" % i
-
-        else:  # this is if it's OpenMDAO
-            for i, iter_type in enumerate(self.iter_type):
-                key = "{}|{}".format(self.solver_name, i + 1)  # OpenMDAO uses 1-indexing
-                if i in self.deriv_keys:
-                    self.iter_type[i] = 1.0
-
-            # If no derivative info is saved, we don't know which iterations are major.
-            # Treat all iterations as major.
-            if len(self.deriv_keys) < 1:
-                self.iter_type[:] = 1.0
-
-    def SaveDBData(self, db, data_all, data_major, OpenMDAO, data_str):
-        """Method to save the information within the database corresponding
-        to a certain key to the relevant dictionaries within the Display
-        object. This method is called twice, once for the design variables
-        and the other for the outputs."""
-
-        # Loop over each optimization iteration
-        for i, iter_type in enumerate(self.iter_type):
-
-            # If this is an OpenMDAO file, the keys are of the format
-            # 'rank0:SNOPT|1', etc
-            if OpenMDAO:
-                key = "{}|{}".format(self.solver_name, i + 1)  # OpenMDAO uses 1-indexing
-            else:  # Otherwise the keys are simply a number
-                key = "%d" % i
-
-            # Do this for both major and minor iterations
-            if self.iter_type[i]:
-
-                # Get just the info in the dict for this iteration
-                iter_data = db[key][data_str]
-
-                # Loop through each key within this iteration
-                for key in sorted(iter_data):
-
-                    # Format a new_key string where we append a modifier
-                    # if we have multiple history files
-                    new_key = key + "{}".format(self.histIndex)
-
-                    # If this key is not in the data dictionaries, add it
-                    if new_key not in data_all:
-                        data_all[new_key] = []
-                        data_major[new_key] = []
-
-                    # Process the data from the key. Convert it to a numpy
-                    # array, keep only the real part, squeeze any 1-dim
-                    # axes out of it, then flatten it.
-                    data = np.squeeze(np.array(iter_data[key]).real).flatten()
-
-                    # Append the data to the entries within the dictionaries.
-                    data_all[new_key].append(data)
-                    if self.iter_type[i] == 1:
-                        data_major[new_key].append(data)
-
-    def SaveOpenMDAOData(self, db):
-        """Examine the OpenMDAO dict and save tags if the variables are
-        objectives (o), constraints (c), or design variables (dv)."""
-
-        # Loop over each key in the metadata db
-        for tag in db:
-
-            # Only look at variables and unknowns
-            if tag in ["Unknowns", "Parameters"]:
-                for old_item in db[tag]:
-
-                    # We'll rename each item, so we need to get the old item
-                    # name and modify it
-                    item = old_item + "{}".format(self.histIndex)
-
-                    # Here we just have an open parenthesis, and then we will
-                    # add o, c, or dv. Note that we could add multiple flags
-                    # to a single item. That's why we have a sort of convoluted
-                    # process of adding the tags.
-                    new_key = item + " ("
-                    flag_list = []
-
-                    # Check each flag and see if they have the relevant entries
-                    # within the dict; if so, tag them.
-                    for flag in db[tag][old_item]:
-                        if "is_objective" in flag:
-                            flag_list.append("o")
-                        if "is_desvar" in flag:
-                            flag_list.append("dv")
-                        if "is_constraint" in flag:
-                            flag_list.append("c")
-
-                    # Create the new_key based on the flags for each variable
-                    for flag in flag_list:
-                        if flag == flag_list[-1]:
-                            new_key += flag + ")"
-                        else:
-                            new_key += flag + ", "
-
-                    # If there are actually flags to add, pop out the old items
-                    # in the dict and re-add them with the new name.
-                    if flag_list:
-                        try:
-                            if "dv" in flag_list:
-                                self.var_data_all[new_key] = self.func_data_all.pop(item)
-                                self.var_data_major[new_key] = self.func_data_major.pop(item)
-
-                            else:
-                                self.func_data_all[new_key] = self.func_data_all.pop(item)
-                                self.func_data_major[new_key] = self.func_data_major.pop(item)
-
-                        except KeyError:
-                            pass
-
-    def refresh_history(self):
-        """
-        Refresh opt_his data if the history file has been updated.
-        """
-        # old_funcs = []
-        # for key in self.func_data:
-        #     old_funcs.append(key)
-        # old_vars = []
-        # for key in self.var_data:
-        #     old_vars.append(key)
-
-        self.OptimizationHistory()
-
-        # new_funcs = []
-        # for key in self.func_data:
-        #     new_funcs.append(key)
-        # new_vars = []
-        # for key in self.var_data:
-        #     new_vars.append(key)
-        #
-        # if not (old_funcs == new_funcs and old_vars == new_vars):
-        #     self.var_search('dummy')
-
-
-Opt = ReadOptHist(histList)
 app = dash.Dash(__name__)
+# Override exceptions for when elements are defined without initial input
+app.config.suppress_callback_exceptions = True
+
 app.layout = html.Div(
-    [
-        html.Div(
-            className="banner",
+    children=[
+        html.Nav(
             children=[
-                # Change App Name here
-                html.Div(
-                    className="container scalable",
-                    children=[
-                        # Change App Name here
-                        html.H2(html.A("MACH Dashboard", style={"text-decoration": "none", "color": "inherit"})),
-                    ],
+                html.Img(
+                    src=app.get_asset_url("/logo.png"), style={"height": "4rem", "width": "13rem", "margin": "0.2rem"}
                 ),
+                html.Div(["OptView"], style={"fontWeight": "550", "fontSize": "3.0rem", "color": "#193D72"}),
             ],
+            style={"display": "flex", "backgroundColor": "#EEEEEE"},
         ),
         html.Div(
-            id="body",
-            className="container scalable",
-            children=[
+            [
                 html.Div(
-                    className="row",
-                    children=[
+                    [
                         html.Div(
-                            className="ten columns",
-                            style={
-                                "min-width": "24.5%",
-                                "height": "calc(100vh - 120px)",
-                                "margin-top": "5px",
-                                # Remove possibility to select the text for better UX
-                                "user-select": "none",
-                                "-moz-user-select": "none",
-                                "-webkit-user-select": "none",
-                                "-ms-user-select": "none",
-                            },
-                            children=[
+                            [
                                 html.Div(
                                     [
-                                        dcc.Dropdown(
-                                            id="dvar",
-                                            options=[{"label": i, "value": i} for i in Opt.var_data_all.keys()],
-                                            multi=True,
-                                            placeholder="Choose design group",
+                                        html.Div(
+                                            ["History Files"],
+                                            style={"color": "#193D72", "fontWeight": "normal", "fontSize": "15px"},
+                                        ),
+                                        html.Ul(
+                                            [
+                                                html.Li(
+                                                    [fileLabels[i] + " " + histListArgs[i]], style={"fontSize": "12px"}
+                                                )
+                                                for i in range(len(histListArgs))
+                                            ]
                                         ),
                                     ],
-                                    style={"width": "50%", "display": "inline-block"},
                                 ),
                                 html.Div(
                                     [
+                                        html.Div(
+                                            ["Design Groups"],
+                                            className="dvarGroup",
+                                            style={"color": "#193D72", "fontWeight": "normal", "fontSize": "1.5rem"},
+                                        ),
                                         dcc.Dropdown(
-                                            id="func",
-                                            options=[{"label": i, "value": i} for i in Opt.func_data_all.keys()],
+                                            id="dvarGroup",
+                                            placeholder="Select design group(s)...",
                                             multi=True,
-                                            placeholder="Choose func group",
+                                            style={"color": "#676464", "fontSize": "1.2rem"},
                                         ),
                                     ],
-                                    style={"width": "50%", "display": "inline-block"},
                                 ),
                                 html.Div(
-                                    [dcc.Dropdown(id="dvar-child", multi=True, placeholder="Choose design var")],
-                                    style={"width": "50%", "display": "inline-block"},
+                                    [
+                                        html.Div(
+                                            ["Design Variables"],
+                                            style={"color": "#193D72", "fontWeight": "normal", "fontSize": "1.5rem"},
+                                        ),
+                                        dcc.Dropdown(
+                                            id="dvarChild",
+                                            placeholder="Select design var(s)...",
+                                            multi=True,
+                                            style={"color": "#676464", "fontSize": "1.2rem"},
+                                        ),
+                                    ],
                                 ),
-                                html.Div(
-                                    dcc.Dropdown(id="func-child", multi=True, placeholder="Choose func var"),
-                                    style={"width": "50%", "display": "inline-block"},
-                                ),
-                                html.Div(
-                                    dcc.RadioItems(
-                                        id="axis_scale",
-                                        options=[
-                                            {"label": "linear", "value": "linear"},
-                                            {"label": "log", "value": "log"},
-                                        ],
-                                        value="linear",
-                                        labelStyle={"display": "inline-block"},
-                                    ),
-                                    style={"width": "50%", "display": "inline-block"},
-                                ),
-                                html.Div(
-                                    dcc.RadioItems(
-                                        id="scale_type",
-                                        options=[
-                                            {"label": "shared axes", "value": "shared"},
-                                            {"label": "multiple axes", "value": "multi"},
-                                        ],
-                                        value="shared",
-                                        labelStyle={"display": "inline-block"},
-                                    ),
-                                    style={"width": "50%", "display": "inline-block"},
-                                ),
-                                dcc.Graph(id="2Dscatter"),
-                                dcc.Interval(
-                                    id="interval-component", interval=1 * 1000, n_intervals=0  # in milliseconds
-                                ),
-                                html.Div(id="hidden-div", style={"display": "none"}),
                             ],
+                            style={"marginRight": "1.0rem", "width": "20.0rem"},
+                        ),
+                        html.Div(
+                            [
+                                html.Div(
+                                    [
+                                        html.Div(
+                                            ["Function Groups"],
+                                            style={"color": "#193D72", "fontWeight": "normal", "fontSize": "1.5rem"},
+                                        ),
+                                        dcc.Dropdown(
+                                            id="funcGroup",
+                                            placeholder="Select function group(s)...",
+                                            multi=True,
+                                            style={"color": "#676464", "fontSize": "1.2rem"},
+                                        ),
+                                    ],
+                                ),
+                                html.Div(
+                                    [
+                                        html.Div(
+                                            ["Function Variables"],
+                                            style={"color": "#193D72", "fontWeight": "normal", "fontSize": "1.5rem"},
+                                        ),
+                                        dcc.Dropdown(
+                                            id="funcChild",
+                                            placeholder="Select function var(s)...",
+                                            multi=True,
+                                            style={"color": "#676464", "fontSize": "1.2rem"},
+                                        ),
+                                    ],
+                                ),
+                            ],
+                            style={"marginRight": "3.0rem", "width": "20.0rem"},
+                        ),
+                        html.Div(
+                            [
+                                html.Div(
+                                    [
+                                        html.Div(
+                                            ["Optimization Groups"],
+                                            style={"color": "#193D72", "fontWeight": "normal", "fontSize": "1.5rem"},
+                                        ),
+                                        dcc.Dropdown(
+                                            id="optGroup",
+                                            placeholder="Select optimization group(s)...",
+                                            multi=True,
+                                            style={"color": "#676464", "fontSize": "1.2rem"},
+                                        ),
+                                    ],
+                                ),
+                                html.Div(
+                                    [
+                                        html.Div(
+                                            ["Optimization Variables"],
+                                            style={"color": "#193D72", "fontWeight": "normal", "fontSize": "1.5rem"},
+                                        ),
+                                        dcc.Dropdown(
+                                            id="optChild",
+                                            placeholder="Select optimization var(s)...",
+                                            multi=True,
+                                            style={"color": "#676464", "fontSize": "1.2rem"},
+                                        ),
+                                    ],
+                                ),
+                            ],
+                            style={"marginRight": "3.0rem", "width": "20.0rem"},
+                        ),
+                        html.Div(
+                            [
+                                html.Div(
+                                    ["Graph"], style={"color": "#193D72", "fontWeight": "normal", "fontSize": "1.5rem"}
+                                ),
+                                dcc.RadioItems(
+                                    id="plot-type",
+                                    options=[
+                                        {"label": "Stacked", "value": "stacked"},
+                                        {"label": "Shared", "value": "shared"},
+                                    ],
+                                    value="shared",
+                                    style={"color": "#676464", "fontSize": "1.2rem"},
+                                ),
+                            ],
+                            style={"width": "30x", "marginRight": "2%"},
+                        ),
+                        html.Div(
+                            [
+                                html.Div(
+                                    ["Additional"],
+                                    style={"color": "#193D72", "fontWeight": "normal", "fontSize": "1.5rem"},
+                                ),
+                                dcc.Checklist(
+                                    id="data-type",
+                                    options=[
+                                        {"label": "Show Bounds", "value": "bounds"},
+                                        {"label": "Show Major Iterations", "value": "major"},
+                                        {"label": "Log Scale", "value": "log"},
+                                        {"label": "Apply Scaling Factor", "value": "scale"},
+                                        {"label": "Show Min/Max of Group(s)", "value": "minMax"},
+                                        {"label": "Show Absolute Delta", "value": "delta"},
+                                        {"label": "Auto-Refresh (Toggle on to enter Rate)", "value": "refresh"},
+                                    ],
+                                    style={"color": "#676464", "fontSize": "1.2rem"},
+                                    value=["major"],
+                                ),
+                                dcc.Input(
+                                    id="refresh-rate",
+                                    type="number",
+                                    placeholder="Refresh Rate (s)",
+                                    style={"fontSize": "1.2rem", "marginLeft": "2rem"},
+                                ),
+                                # dcc.Input(
+                                #     id='figure-export-width',
+                                #     type='number',
+                                #     placeholder='Enter PX Width',
+                                #     style={"fontSize":"1.2rem"}
+                                # ),
+                                # dcc.Input(
+                                #     id='figure-export-height',
+                                #     type='number',
+                                #     placeholder='Enter PX Height',
+                                #     style={"fontSize":"1.2rem"}
+                                # )
+                            ],
+                        ),
+                    ],
+                    style={"display": "flex", "flexDirection": "column", "padding": "0.5rem"},
+                ),
+                html.Div(
+                    [
+                        dcc.Graph(
+                            id="plot",
+                            config={
+                                "scrollZoom": True,
+                                "showTips": True,
+                                "toImageButtonOptions": {
+                                    "format": "png",
+                                    "filename": "custom_image",
+                                    "height": 500,
+                                    "width": 700,
+                                    "scale": 10,
+                                },
+                            },
                         )
                     ],
-                )
+                    style={"width": "100%"},
+                ),
+                dcc.Interval(
+                    id="interval-component",
+                    interval=1 * 1000,
+                    n_intervals=0,  # in milliseconds
+                    # max_intervals=5
+                ),
+                html.Div(id="hidden-div", style={"display": "none"}),
             ],
+            style={"display": "flex"},
         ),
-    ]
-)
-
-external_css = [
-    # Normalize the CSS
-    "https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css",
-    # Fonts
-    "https://fonts.googleapis.com/css?family=Open+Sans|Roboto",
-    "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css",
-]
-
-for css in external_css:
-    app.css.append_css({"external_url": css})
-
-app.config.supress_callback_exceptions = True
-
-
-@app.callback(
-    dash.dependencies.Output("2Dscatter", "figure"),
-    [
-        dash.dependencies.Input("dvar-child", "value"),
-        dash.dependencies.Input("func-child", "value"),
-        dash.dependencies.Input("axis_scale", "value"),
-        dash.dependencies.Input("scale_type", "value"),
-        dash.dependencies.Input("hidden-div", "value"),
     ],
 )
-def update_2d_scatter(dvar, func, axisscale, type, n):
-    trace = []
-    i = 0
-    if dvar:
-        for var in dvar:
-            index = var.split("_")[-1]
-            varname = var[::-1].replace(index + "_", "", 1)[::-1]
-            trace.append(
-                go.Scatter(
-                    x=range(Opt.num_iter),
-                    y=[data[int(index)] for data in Opt.var_data[varname]],
-                    name=var,
-                    mode="lines+markers",
-                )
-            )
-            i += 1
 
-    if func:
-        for var in func:
-            index = var.split("_")[-1]
-            varname = var[::-1].replace(index + "_", "", 1)[::-1]
-            trace.append(
-                go.Scatter(
-                    x=range(Opt.num_iter),
-                    y=[data[int(index)] for data in Opt.func_data_all[varname]],
-                    name=var,
-                    mode="lines+markers",
-                )
-            )
-            i += 1
+# ====================================================================================
+#  Helper functions for Dash Callback Functions found further down
+# ====================================================================================
 
-    fig = {}
-    fig["layout"] = {}
-    if dvar or func:
-        if type == "multi":
-            fig = tools.make_subplots(rows=i, cols=1)
-            for k in range(i):
-                fig.append_trace(trace[k], k + 1, 1)
+
+def getValues(name, dataType, hist):
+    """
+    Uses user input and returns a data dictionary with values for the requested value of interest, by calling the getValues() method
+    from pyOpt_history.py, adjusting the requested values using the dataType specifications from the user.
+
+    Parameters
+    ----------
+    name : str
+        The value of interest, can be the name of any DV, objective or constraint that a user selects
+
+    dataType : list of str
+        Contains dataType str values selected by user (i.e scale, major, delta)
+
+    hist: History object
+        This is created with the history file for the given value of interest using pyOpt-history.py
+
+    Returns
+    -------
+    data dictionary
+        Contains the iteration data for the value requested. It returns a data dictionary with the key
+        as the 'name' requested and the value a numpy array where with the first dimension equal to the
+        number of iterations requested (depending on if major is in dataType or not).
+
+    Example
+    _______
+    getValues(name="xvars", dataType=[['major']], hist):
+        where the xvars group contains 3 variables and 5 major iterations, would return an array with the first dimension
+        being 5, the number of iterations, and the second dimension being 3, where there are 3 values for the 3 variables per iteration.
+    """
+
+    if dataType:
+        values = hist.getValues(names=name, major=("major" in dataType), scale=("scale" in dataType))
+        if "delta" in dataType:
+            tempValues = values[name].copy()
+            for i in list(range(len(values[name]))):
+                for j in list(range(len(values[name][i]))):
+                    if i != 0:
+                        values[name][i][j] = abs(values[name][i][j] - tempValues[i - 1][j])
+                    else:
+                        values[name][i][j] = 0
+
+    else:
+        values = hist.getValues(names=name, major=False)
+    return values
+
+
+def addVarTraces(var, trace, dataType, names, groupType):
+    """
+    Adds traces to the plotly figure trace[] list for the passed in variable, based on specified user input including data tpye
+    and plot type. Also adds upper and lower bounds traces if specified by user in dataType.
+
+    If 'bounds' is in dataType, three traces are added: the var's trace, and the upper and lower bound traces for the var.
+    If not, one trace is added, being the passed in var's trace.
+
+    Parameters
+    ----------
+    var : str
+        The name of the variable to add a trace for
+        If multiple history files are being used - Formatted as: OPT/DV/FUNC-GROUPNAME_HIST-FILE-LABEL-INDEX_VAR-INDEX
+            EX: xvars_A_0 -> This would be the first variable in the xvars group from file A
+        One history file:
+            EX: EX: xvars_0 -> This would be the first variable in the xvars group
+        *NOTE* If the xvars group only has one scalar quantity, the corresponding name will only be xvars with no _INDEX
+
+    trace: list
+        List containing the traces to be displayed on the plotly figure.
+
+    dataType : list of str
+        Contains dataType str values selected by user (i.e scale, major, delta, bounds)
+
+    names: list of str
+        List of either the function, optimization, or   DV group names that have been selected by the user.
+
+    groupType: str
+        'dvar', 'func', or 'opt' depending which group the specified var is in
+
+    Returns
+    -------
+    Nothing
+    """
+    # A list of the History objects for each history file argument
+    histList = [History(fileName) for fileName in histListArgs]
+    var = str(var)
+    # Initializing History object associated with the passed in var
+    hist = histList[0]
+    # Variable index (EX: var=xvars_0 -> indexVar=0)
+    indexVar = 0
+    # History file index (EX: var=xvars_A_0 -> indexHist=A)
+    indexHist = "A"
+
+    # # Group name for the passed in variable (EX: var=xvars_A_0 -> varGroupName=xvars_A)
+    # varGroupName = var
+    # Variable key name that is used in history file (removed _INDEX or _indexHist) (EX: var=xvars_0/xvars_A_0  -> varName=xvars)
+    varName = var
+
+    # Set varName, indexHist, and varGroup name accordingly based on # of history files and # of variables in var's group
+    if var in names:
+        # If the var is in the names list, then it does not have an _INDEX appointed and must be apart of a group with one qty
+        if len(histList) > 1:
+            indexHist = var.split("_")[-1]
+            varName = var[::-1].replace(indexHist + "_", "", 1)[::-1]
+    else:
+        indexVar = var.split("_")[-1]
+        reversedIndexVar = indexVar[::-1]
+        # varGroupName = var[::-1].replace(indexVar + "_", "", 1)[::-1]
+        if len(histList) > 1:
+            indexHist = var.split("_")[-2]
+            varName = var[::-1].replace(reversedIndexVar + "_" + indexHist + "_", "", 1)[::-1]
         else:
-            fig["data"] = trace
+            varName = var[::-1].replace(reversedIndexVar + "_", "", 1)[::-1]
 
-    fig["layout"].update(
-        xaxis={
-            "title": {
-                "text": "iterations",
-                "font": {"family": "Courier New, monospace", "size": 24, "color": "#7f7f7f"},
-            },
-            "type": axisscale,
-        },
-        yaxis={
-            "title": {"text": "Data", "font": {"family": "Courier New, monospace", "size": 24, "color": "#7f7f7f"}},
-            "type": axisscale,
-        },
-        height=900,
-        showlegend=True,
+    # Set hist as the appropriate History object for the var
+    hist = histList[ord(indexHist) % 65]
+    # Dictionary with DV or Func group info for the var, with keys 'scale', 'lower', 'upper',
+    # where each key corresponds to a numpy array of size # variables, with each index's value corresponding to that indexed variable in the group
+    info = hist.getDVInfo() if groupType == "dvar" else hist.getConInfo()
+    # Needed trace data based on var and dataType needed
+    data = getValues(name=varName, dataType=dataType, hist=hist)
+
+    # Add trace for var to trace[] list
+    trace.append(
+        go.Scatter(
+            x=list(range(len(data[varName]))),
+            y=[data.real[int(indexVar)] for data in data[varName]],
+            name=var,
+            marker_color=colors[(len(trace) - 1) % len(colors)],
+            mode="lines+markers",
+            marker={"size": 3},
+            line={"width": 1},
+        )
+    )
+    # Add upper & lower bounds traces if 'bounds' was selected
+    if dataType and "bounds" in dataType and varName != "obj" and groupType != "opt":
+        # Create lower + upper bounds array to plot, and scale if scaling is needed. If no 'lower' or 'upper' information, leave trace blank
+        if "scale" in dataType:
+            # HACK/TODO: Used np.print_1d to convert all ['scale'] values to a 1d array ('scale' gives a scalar qty for groups with only one variable)
+            scaleData = np.atleast_1d(info[varName]["scale"])
+            # HACK/TODO: ['scale'] array should be the size of the variables in a group but some seem to
+            # be one constant, so this checks if it should be made as an array of the size of the vars
+            if var not in names and len(scaleData) == 1:
+                scaleData = [info[varName]["scale"]] * len(data[varName])
+            scaleFactor = np.atleast_1d(info[varName]["scale"])[int(indexVar)].real
+            lowerB = (
+                [info[varName]["lower"][int(indexVar)] * scaleFactor] * len(data[varName])
+                if info[varName]["lower"][0]
+                else []
+            )
+            upperB = (
+                [info[varName]["upper"][int(indexVar)] * scaleFactor] * len(data[varName])
+                if info[varName]["upper"][0]
+                else []
+            )
+        else:
+            lowerB = [info[varName]["lower"][int(indexVar)]] * len(data[varName])
+            upperB = [info[varName]["upper"][int(indexVar)]] * len(data[varName])
+        # Add lower + upper bound traces to trace list
+        trace.append(
+            go.Scatter(
+                x=list(range(len(data[varName]))),
+                y=lowerB,
+                name=var + "_LB",
+                marker_color=colors[(len(trace) - 2) % len(colors)],
+                mode="lines",
+                line={"dash": "dash", "width": 2},
+            )
+        )
+        trace.append(
+            go.Scatter(
+                x=list(range(len(data[varName]))),
+                y=upperB,
+                name=var + "_UB",
+                marker_color=colors[(len(trace) - 3) % len(colors)],
+                mode="lines",
+                line={"dash": "dash", "width": 2},
+            )
+        )
+
+
+def addMaxMinTraces(var, trace, dataType, histList):
+    """
+    Adds min and max to the plotly figure trace[] list for the passed in variable group.
+
+    Parameters
+    ----------
+    var : str
+        The name of the variable group to add min/max traces for.
+            EX: xvars
+
+    trace: list
+        List containing the traces to be displayed on the plotly figure.
+
+    dataType : list of str
+        Contains dataType str values selected by user (i.e scale, major, delta, bounds)
+
+    histList: list of str
+        List of str file names to be turned into history objects.
+
+    Returns
+    -------
+    Nothing
+    """
+    var = str(var)
+    # Variable key name that is used in history file (removed _INDEX or _indexHist) (EX: var=xvars_0/xvars_A_0  -> varName=xvars)
+    varName = var
+    hist = histList[0]
+    if len(histList) > 1:
+        indexHist = var.split("_")[-1]
+        hist = histList[ord(indexHist) % 65]
+        varName = var[::-1].replace(indexHist + "_", "", 1)[::-1]
+    data = getValues(name=varName, dataType=dataType, hist=hist)
+    # Append minMax traces
+    # if(dataType and 'minMax' in dataType):
+    trace.append(
+        go.Scatter(
+            x=list(range(len(data[varName]))),
+            y=[max(arr.real) for arr in data[varName]],
+            name=var + "_max",
+            mode="lines+markers",
+            marker={"size": 3},
+            line={"width": 1},
+        )
+    )
+    trace.append(
+        go.Scatter(
+            x=list(range(len(data[varName]))),
+            y=[min(arr.real) for arr in data[varName]],
+            name=var + "_min",
+            mode="lines+markers",
+            marker={"size": 3},
+            line={"width": 1},
+        )
     )
 
-    return fig
 
-
-@app.callback(dash.dependencies.Output("dvar-child", "options"), [dash.dependencies.Input("dvar", "value")])
-def update_dvar_child(dvar):
-    strlist = []
-    if dvar:
-        for var in dvar:
-            num = len(Opt.var_data[var][0])
-            strlist += [var + "_" + str(i) for i in range(num)]
-    return [{"label": i, "value": i} for i in strlist]
-
-
-@app.callback(dash.dependencies.Output("func-child", "options"), [dash.dependencies.Input("func", "value")])
-def update_func_child(func):
-    strlist = []
-    if func:
-        for var in func:
-            num = len(Opt.func_data_all[var][0])
-            strlist += [var + "_" + str(i) for i in range(num)]
-
-    return [{"label": i, "value": i} for i in strlist]
+# ====================================================================================
+#  Dash Callback Functions (Triggered by front-end interface input changes)
+# ====================================================================================
 
 
 @app.callback(
-    dash.dependencies.Output("hidden-div", "value"), [dash.dependencies.Input("interval-component", "n_intervals")]
+    dash.dependencies.Output("interval-component", "max_intervals"), [dash.dependencies.Input("data-type", "value")]
 )
-def update_opt_history(n):
-    Opt.refresh_history()
-    return n
+def update_refresh_intervals(dataType):
+    """
+    This determines if the interval component should run infinitely based on if the autorefresh
+    setting is turned on.
+
+    Parameters
+    ----------
+    dataType : list of str
+        Contains dataType str values selected by user (i.e scale, major, delta, bounds)
+
+    Returns
+    -------
+    int
+        -1 if there should be an infinite amount of intervals, 0 if it should not autorefresh
+    """
+    if dataType and "refresh" in dataType:
+        return -1
+    else:
+        return 0
 
 
+@app.callback(
+    dash.dependencies.Output("interval-component", "interval"), [dash.dependencies.Input("refresh-rate", "value")]
+)
+def update_refresh_rate(rate):
+    """
+    This determines the rate that interval component  should run at in ms based on user input.
+
+    Parameters
+    ----------
+    rate: int
+        The rate inputted by the user in seconds.
+
+    Returns
+    -------
+    int
+        The rate in ms for the interval component to run at.
+    """
+    if rate:
+        return rate * 1000
+    else:
+        return 10000
+
+
+@app.callback(dash.dependencies.Output("refresh-rate", "disabled"), [dash.dependencies.Input("data-type", "value")])
+def update_refresh_input(dataType):
+    """
+    This prevents the user from inputting the refresh rate if the auto refresh feature is not turned on.
+
+    Parameters
+    ----------
+     dataType : list of str
+        Contains dataType str values selected by user (i.e scale, major, delta, bounds)
+
+    Returns
+    -------
+    bool
+        True to disable the input box, False to disable it
+    """
+    if dataType and "refresh" in dataType:
+        return False
+    else:
+        return True
+
+
+@app.callback(
+    dash.dependencies.Output("hidden-div", "children"),
+    [
+        dash.dependencies.Input("interval-component", "n_intervals"),
+        dash.dependencies.Input("interval-component", "max_intervals"),
+    ],
+)
+def update_opt_history(n, max):
+    """
+    This saves the updated function and design group names in an object in the hidden-div, that updates
+    based on the interval-component's number of intervals that runs on interval
+
+    Parameters
+    ----------
+     n: int
+        The current number of intervals ran.
+        Not explicitly used in this function, but kept as an input dependency so this function is called on interval.
+
+    max: int
+        The max number of intervals the interval-component runs on.
+        Not explicitly used in this function, but kept as an input dependency so that if auto refresh is not on,
+        this function is called once when the max_intervals is set/updated as 0.
+
+    Returns
+    -------
+    dictionary
+        Saves a dictionary of the 'dvNames' and 'funcNames' for the groups as the history file refreshes. If autorefresh is not
+        on, this will be called once.
+
+        If multiple history files are being used - Formatted as: DV/FUNC-GROUPNAME_HIST-FILE-LABEL-INDEX
+          EX: xvars_A -> This would be the the design group 'xvars' from the file indexed A
+    """
+    # Re-reads in history list data and passes to History API
+    try:
+        # If AutoRefresh is on and the data has not yet loaded, this line will throw an error
+        histList = [History(fileName) for fileName in histListArgs]
+    except Exception:
+        print("History file data is not processed yet")
+        return {}
+    else:
+        # Re-Saving names for drop down menus
+        index = ord("A")
+        dvNames = []
+        funcNames = []
+        optNames = []
+        if len(histList) > 1:
+            for hist in histList:
+                dvNames += [name + "_" + chr(index) for name in hist.getDVNames()]
+                conNames = [name + "_" + chr(index) for name in hist.getConNames()]
+                objNames = [name + "_" + chr(index) for name in hist.getObjNames()]
+                funcNames += conNames + objNames
+                optNames = list(
+                    set(histList[0].getIterKeys()).difference({"xuser", "funcs", "fail", "nMajor", "nMinor", "isMajor"})
+                )
+                optNames = [name + "_" + chr(index) for name in optNames]
+                index = (index + 1 - 65) % 26 + 65
+        else:
+            hist = histList[0]
+            dvNames = hist.getDVNames()
+            conNames = hist.getConNames()
+            objNames = hist.getObjNames()
+            funcNames = conNames + objNames
+            optNames = list(
+                set(histList[0].getIterKeys()).difference({"xuser", "funcs", "fail", "nMajor", "nMinor", "isMajor"})
+            )
+
+        historyInfo = {
+            "dvNames": dvNames,
+            "funcNames": funcNames,
+            "optNames": optNames
+            # 'values' : [hist.getValues(major=False, scale=False) for hist in histList],
+            # 'valuesMajor' : [hist.getValues(major=True) for hist in histList],
+            # 'valuesScale' : [hist.getValues(scale=True, major=False) for hist in histList],
+            # 'valuesScaleMajor' : [hist.getValues(scale=True, major=True) for hist in histList],
+        }
+
+        # Parses object into JSON format to return to the hidden-div.
+        # Returns all needed history object info to div
+        # obj info, con info, dv info, getValues with: major=true, major=false, major=true+scale=true, major=false+scale=true
+        # print(len(historyInfo['values']))
+        return json.dumps(historyInfo)
+
+
+@app.callback(dash.dependencies.Output("funcGroup", "options"), [dash.dependencies.Input("hidden-div", "children")])
+def update_funcGroupOptions(historyInfo):
+    """
+    This populates the 'Function Group' dropdown based on the info from the dictionary saved in the
+    'hidden-div' component.
+
+    Parameters
+    ----------
+    historyInfo: dictionary
+        This is a dictionary with the keys 'dvNames', 'funcNames', and 'optNames' holding a list each of the group names for the Group dropdowns.
+
+    Returns
+    -------
+    list of dictionaries
+        List of dictionaries containing the options for the 'Function Group' dropdown.
+
+        If multiple history files are being used - Formatted as: OPT/DV/FUNC-GROUPNAME_HIST-FILE-LABEL-INDEX
+          EX: twist_B -> This would be the the design group 'xvars' from the file indexed B
+    """
+    if historyInfo:
+        # If historyInfo isn't null, then it is ready to be parsed to update the function group dropdown options
+        historyInfo = json.loads(historyInfo)
+        options = [{"label": i, "value": i} for i in historyInfo["funcNames"]]
+        return options
+    else:
+        # If historyInfo is null, keep the options as empty
+        return []
+
+
+@app.callback(dash.dependencies.Output("dvarGroup", "options"), [dash.dependencies.Input("hidden-div", "children")])
+def update_dvarGroupOptions(historyInfo):
+    """
+    This populates the 'Design Group' dropdown based on the info from the dictionary saved in the
+    'hidden-div' component.
+
+    Parameters
+    ----------
+    historyInfo: dictionary
+        This is a dictionary with the keys 'dvNames', 'funcNames', and 'optNames' holding a list each of the group names for the Group dropdowns.
+
+    Returns
+    -------
+    list of dictionaries
+        List of dictionaries containing the options for the 'Design Group' dropdown.
+
+    If multiple history files are being used - Formatted as: OPT/DV/FUNC-GROUPNAME_HIST-FILE-LABEL-INDEX
+          EX: twist_B -> This would be the the design group 'xvars' from the file indexed B
+    """
+    if historyInfo:
+        # If historyInfo isn't null, then it is ready to be parsed to update the function group dropdown options
+        historyInfo = json.loads(historyInfo)
+        options = [{"label": i, "value": i} for i in historyInfo["dvNames"]]
+        return options
+    else:
+        # If historyInfo is null, keep the options as empty
+        return []
+
+
+@app.callback(dash.dependencies.Output("optGroup", "options"), [dash.dependencies.Input("hidden-div", "children")])
+def update_optGroupOptions(historyInfo):
+    """
+    This populates the 'Optimization Group' dropdown based on the info from the dictionary saved in the
+    'hidden-div' component.
+
+    Parameters
+    ----------
+    historyInfo: dictionary
+        This is a dictionary with the keys 'dvNames', 'funcNames', and 'optNames' holding a list each of the group names for the Group dropdowns.
+
+    Returns
+    -------
+    list of dictionaries
+        List of dictionaries containing the options for the 'Optimization Group' dropdown.
+
+    If multiple history files are being used - Formatted as: OPT/DV/FUNC-GROUPNAME_HIST-FILE-LABEL-INDEX
+          EX: twist_B -> This would be the the design group 'xvars' from the file indexed B
+    """
+    if historyInfo:
+        # If historyInfo isn't null, then it is ready to be parsed to update the function group dropdown options
+        historyInfo = json.loads(historyInfo)
+        options = [{"label": i, "value": i} for i in historyInfo["optNames"]]
+        return options
+    else:
+        # If historyInfo is null, keep the options as empty
+        return []
+
+
+@app.callback(
+    dash.dependencies.Output("dvarChild", "options"),
+    [
+        dash.dependencies.Input("dvarGroup", "value"),
+        dash.dependencies.Input("dvarGroup", "options"),
+    ],
+)
+def update_dvar_child(dvarGroup, options):
+    """
+    This populates the 'Design Variable' dropdown based on the design groups from the 'Design Group' selected.
+
+    Parameters
+    ----------
+    dvarGroup: list of str
+       The selected DV groups from the 'Design Group' dropdown.
+
+    options: list of str
+        The 'Design Group' dropdown options. This is not explicitly used in this function, but is supplied
+        as an input dependency so that this callback is triggered to re-update when 'refresh' is turned on. When
+        'refresh' is on, once the dvarGroup options finally loads, the dvarChild's options will be update.
+
+    Returns
+    -------
+    dictionary
+       List of dictionaries containing the options for the 'Design Variable' dropdown.
+
+    If multiple history files are being used - Formatted as: OPT/DV/FUNC-GROUPNAME_HIST-FILE-LABEL-INDEX_VAR-INDEX
+            EX: xvars_A_0 -> This would be the first variable in the xvars group from file A
+        One history file:
+            EX: xvars_0 -> This would be the first variable in the xvars group
+         *NOTE* If the xvars group only has one scalar quantity, the corresponding name will only be xvars with no _INDEX
+            EX: If xvars only holds a scalar qty, its variable name will be simply 'xvars'
+
+    """
+    # Re-reads in history list data and passes to History API.
+    try:
+        # If AutoRefresh is on and the data has not yet loaded, this line will throw an error
+        histList = [History(fileName) for fileName in histListArgs]
+    except Exception:
+        print("History file data is not processed yet")
+        return []
+    else:
+        strlist = []
+        if dvarGroup:
+            for var in dvarGroup:
+                var = str(var)
+                varName = var
+                hist = histList[0]
+                if len(histList) > 1:
+                    indexHist = var.split("_")[-1]
+                    hist = histList[ord(indexHist) % 65]
+                    varName = var[::-1].replace(indexHist + "_", "", 1)[::-1]
+                varValues = hist.getValues(names=varName, major=False)
+                num = len(varValues[varName][0])
+                if num == 1:
+                    strlist += [var]
+                else:
+                    strlist += [var + "_" + str(i) for i in range(num)]
+        return [{"label": i, "value": i} for i in strlist]
+
+
+@app.callback(
+    dash.dependencies.Output("funcChild", "options"),
+    [
+        dash.dependencies.Input("funcGroup", "value"),
+        dash.dependencies.Input("funcGroup", "options"),
+    ],
+)
+def update_func_child(funcGroup, options):
+    """
+    This populates the 'Function Variable' dropdown based on the design groups from the 'Function Group' selected.
+
+    Parameters
+    ----------
+    dvarGroup: list of str
+       The selected DV groups from the 'Function Group' dropdown.
+
+    options: list of str
+        The 'Function Group' dropdown options. This is not explicitly used in this function, but is supplied
+        as an input dependency so that this callback is triggered to re-update when 'refresh' is turned on. When
+        'refresh' is on, once the funcGroup options finally loads, the funcChild's options will be update.
+
+    Returns
+    -------
+    dictionary
+        List of dictionaries containing the options for the 'Function Variable' dropdown.
+
+    If multiple history files are being used - Formatted as: OPT/DV/FUNC-GROUPNAME_HIST-FILE-LABEL-INDEX_VAR-INDEX
+            EX: xvars_A_0 -> This would be the first variable in the xvars group from file A
+        One history file:
+            EX: xvars_0 -> This would be the first variable in the xvars group
+         *NOTE* If the xvars group only has one scalar quantity, the corresponding name will only be xvars with no _INDEX
+            EX: Because 'obj' holds a scalar quantity, it will be displayed as simply 'obj' in the Variable dropdown.
+    """
+    # Re-reads in history list data and passes to History API
+    try:
+        # If AutoRefresh is on and the data has not yet loaded, this line will throw an error
+        histList = [History(fileName) for fileName in histListArgs]
+    except Exception:
+        print("History file data is not processed yet")
+        return []
+    else:
+        strlist = []
+        if funcGroup:
+            for var in funcGroup:
+                var = str(var)
+                hist = histList[0]
+                varName = var
+                if len(histList) > 1:
+                    indexHist = var.split("_")[-1]
+                    hist = histList[ord(indexHist) % 65]
+                    varName = var[::-1].replace(indexHist + "_", "", 1)[::-1]
+                varValues = hist.getValues(names=varName, major=False)
+                num = len(varValues[varName][0])
+                if num == 1:
+                    strlist += [var]
+                else:
+                    strlist += [var + "_" + str(i) for i in range(num)]
+
+        return [{"label": i, "value": i} for i in strlist]
+
+
+@app.callback(
+    dash.dependencies.Output("optChild", "options"),
+    [
+        dash.dependencies.Input("optGroup", "value"),
+        dash.dependencies.Input("optGroup", "options"),
+    ],
+)
+def update_opt_child(optGroup, options):
+    """
+    This populates the 'Optimization Variable' dropdown based on the design groups from the 'Optimization Group' selected.
+
+    Parameters
+    ----------
+    optGroup: list of str
+       The selected Optimization groups from the 'Optimization Group' dropdown.
+
+    options: list of str
+        The 'Optimization Group' dropdown options. This is not explicitly used in this function, but is supplied
+        as an input dependency so that this callback is triggered to re-update when 'refresh' is turned on. When
+        'refresh' is on, once the optGroup options finally loads, the optChild's options will be update.
+
+    Returns
+    -------
+    dictionary
+        List of dictionaries containing the options for the 'Optimization Variable' dropdown.
+    If multiple history files are being used - Formatted as: OPT/DV/FUNC-GROUPNAME_HIST-FILE-LABEL-INDEX_VAR-INDEX
+
+    EX: xvars_A_0 -> This would be the first variable in the xvars group from file A
+    One history file:
+        EX: xvars_0 -> This would be the first variable in the xvars group
+        *NOTE* If the xvars group only has one scalar quantity, the corresponding name will only be xvars with no _INDEX
+        EX: Because 'obj' holds a scalar quantity, it will be displayed as simply 'obj' in the Variable dropdown.
+    """
+    # Re-reads in history list data and passes to History API
+    try:
+        # If AutoRefresh is on and the data has not yet loaded, this line will throw an error
+        histList = [History(fileName) for fileName in histListArgs]
+    except Exception:
+        print("History file data is not processed yet")
+        return []
+    else:
+        strlist = []
+        if optGroup:
+            for var in optGroup:
+                var = str(var)
+                hist = histList[0]
+                varName = var
+                if len(histList) > 1:
+                    indexHist = var.split("_")[-1]
+                    hist = histList[ord(indexHist) % 65]
+                    varName = var[::-1].replace(indexHist + "_", "", 1)[::-1]
+                varValues = hist.getValues(names=varName, major=False)
+                num = len(varValues[varName][0])
+                if num == 1:
+                    strlist += [var]
+                else:
+                    strlist += [var + "_" + str(i) for i in range(num)]
+
+        return [{"label": i, "value": i} for i in strlist]
+
+
+@app.callback(
+    dash.dependencies.Output("dvarChild", "value"),
+    [dash.dependencies.Input("dvarGroup", "value"), dash.dependencies.Input("dvarChild", "options")],
+    [dash.dependencies.State("dvarChild", "value")],
+)
+def update_dvar_childAutoPopulate(dvarGroup, options, dvarChild):
+    """
+    This autopopulates the 'Design Variable' dropdown if the 'Design Group' selected has 10 or less values.
+
+    Parameters
+    ----------
+    dvarGroup: list of str
+       The selected Design groups from the 'Design Group' dropdown.
+
+    options: list of str
+        The 'Design Group' dropdown options. This is not explicitly used in this function, but is supplied
+        as an input dependency so that this callback is triggered to re-update when 'refresh' is turned on. When
+        'refresh' is on, once the dvarGroup options finally loads, the dvarChild's options will be update.
+
+    dvarChild: list of str
+        This is the current state of the selected options from the 'Design Variable' dropdown. This is used
+        to check which design groups have already been selected and should not be re auto populated.
+
+    Returns
+    -------
+    list of str
+        List of the 'Design Variable' values to be auto selected.
+    """
+    # Re-reads in history list data and passes to History API
+    try:
+        # If AutoRefresh is on and the data has not yet loaded, this line will throw an error
+        histList = [History(fileName) for fileName in histListArgs]
+    except Exception:
+        print("History file data is not processed yet")
+        return []
+    else:
+        strlist = []
+        if dvarGroup:
+            for var in dvarGroup:
+                var = str(var)
+                vName = var
+                hist = histList[0]
+                if len(histList) > 1:
+                    indexHist = var.split("_")[-1]
+                    hist = histList[ord(indexHist) % 65]
+                    vName = var[::-1].replace(indexHist + "_", "", 1)[::-1]
+                varValues = hist.getValues(names=vName, major=False)
+                # This checks if a specific group already has variables selected and shouldn't be autopopulated
+                varAlreadyExists = False
+                for varName in dvarChild:
+                    if var in varName:
+                        strlist += [varName]
+                        varAlreadyExists = True
+                if not varAlreadyExists:
+                    if len(varValues[vName][0]) < 11:
+                        num = len(varValues[vName][0])
+                        if num == 1:
+                            strlist += [var]
+                        else:
+                            strlist += [var + "_" + str(i) for i in range(num)]
+        return [i for i in strlist]
+
+
+@app.callback(
+    dash.dependencies.Output("funcChild", "value"),
+    [dash.dependencies.Input("funcGroup", "value"), dash.dependencies.Input("funcChild", "options")],
+    [dash.dependencies.State("funcChild", "value")],
+)
+def update_func_childAutoPopulate(funcGroup, options, funcChild):
+    """
+    This autopopulates the 'Function Variable' dropdown if the 'Function Group' selected has 10 or less values.
+
+    Parameters
+    ----------
+    funcGroup: list of str
+       The selected Design groups from the 'Design Group' dropdown.
+
+    options: list of str
+        The 'Function Group' dropdown options. This is not explicitly used in this function, but is supplied
+        as an input dependency so that this callback is triggered to re-update when 'refresh' is turned on. When
+        'refresh' is on, once the Function options finally loads, the Function's options will be updated.
+
+    funcChild: list of str
+        This is the current state of the selected options from the 'Function Variable' dropdown. This is used
+        to check which design groups have already been selected and should not be re auto populated.
+
+    Returns
+    -------
+    list of str
+        List of the 'Function Variable' values to be auto selected.
+    """
+    # Re-reads in history list data and passes to History API
+    try:
+        # If AutoRefresh is on and the data has not yet loaded, this line will throw an error
+        histList = [History(fileName) for fileName in histListArgs]
+    except Exception:
+        print("History file data is not processed yet")
+        return []
+    else:
+        strlist = []
+        if funcGroup:
+            for var in funcGroup:
+                var = str(var)
+                vName = var
+                hist = histList[0]
+                if len(histList) > 1:
+                    indexHist = var.split("_")[-1]
+                    hist = histList[ord(indexHist) % 65]
+                    vName = var[::-1].replace(indexHist + "_", "", 1)[::-1]
+                varValues = hist.getValues(names=vName, major=False)
+                # This checks if a specific group already has variables selected and shouldn't be autopopulated
+                varAlreadyExists = False
+                for varName in funcChild:
+                    if var in varName:
+                        strlist += [varName]
+                        varAlreadyExists = True
+                if not varAlreadyExists:
+                    if len(varValues[vName][0]) < 11:
+                        num = len(varValues[vName][0])
+                        if num == 1:
+                            strlist += [var]
+                        else:
+                            strlist += [var + "_" + str(i) for i in range(num)]
+        return [i for i in strlist]
+
+
+@app.callback(
+    dash.dependencies.Output("optChild", "value"),
+    [dash.dependencies.Input("optGroup", "value"), dash.dependencies.Input("optChild", "options")],
+    [dash.dependencies.State("optChild", "value")],
+)
+def update_opt_childAutoPopulate(optGroup, options, optChild):
+    """
+    This autopopulates the 'Function Variable' dropdown if the 'Optimization Group' selected has 10 or less values.
+
+    Parameters
+    ----------
+    optGroup: list of str
+       The selected Design groups from the 'Optimization Group' dropdown.
+
+    options: list of str
+        The 'Optimization Group' dropdown options. This is not explicitly used in this function, but is supplied
+        as an input dependency so that this callback is triggered to re-update when 'refresh' is turned on. When
+        'refresh' is on, once the Optimization options finally loads, the Optimization's options will be updated.
+
+    optChild: list of str
+        This is the current state of the selected options from the 'Optimization Variable' dropdown. This is used
+        to check which optimization groups have already been selected and should not be re auto populated.
+
+    Returns
+    -------
+    list of str
+        List of the 'Optimization Variable' values to be auto selected.
+    """
+    # Re-reads in history list data and passes to History API
+    try:
+        # If AutoRefresh is on and the data has not yet loaded, this line will throw an error
+        histList = [History(fileName) for fileName in histListArgs]
+    except Exception:
+        print("History file data is not processed yet")
+        return []
+    else:
+        strlist = []
+        if optGroup:
+            for var in optGroup:
+                var = str(var)
+                vName = var
+                hist = histList[0]
+                if len(histList) > 1:
+                    indexHist = var.split("_")[-1]
+                    hist = histList[ord(indexHist) % 65]
+                    vName = var[::-1].replace(indexHist + "_", "", 1)[::-1]
+                varValues = hist.getValues(names=vName, major=False)
+                # This checks if a specific group already has variables selected and shouldn't be autopopulated
+                varAlreadyExists = False
+                for varName in optChild:
+                    if var in varName:
+                        strlist += [varName]
+                        varAlreadyExists = True
+                if not varAlreadyExists:
+                    if len(varValues[vName][0]) < 11:
+                        num = len(varValues[vName][0])
+                        if num == 1:
+                            strlist += [var]
+                        else:
+                            strlist += [var + "_" + str(i) for i in range(num)]
+        return [i for i in strlist]
+
+
+@app.callback(
+    dash.dependencies.Output("plot", "figure"),
+    [
+        dash.dependencies.Input("dvarGroup", "value"),
+        dash.dependencies.Input("funcGroup", "value"),
+        dash.dependencies.Input("optGroup", "value"),
+        dash.dependencies.Input("dvarChild", "value"),
+        dash.dependencies.Input("funcChild", "value"),
+        dash.dependencies.Input("optChild", "value"),
+        dash.dependencies.Input("plot-type", "value"),
+        dash.dependencies.Input("data-type", "value"),
+        dash.dependencies.Input("hidden-div", "children"),
+    ],
+)
+def update_plot(dvarGroup, funcGroup, optGroup, dvarChild, funcChild, optChild, plotType, dataType, hiddenDiv):
+    """
+     This will update the plot figure accordingly in the layout if the
+    design groups, function groups, design variables, function variables, plot type, or data type values are changed.
+    If auto refresh is selected, it will also update the plot every time hidden-dv's values are changed, which occurs on interval.
+
+    Parameters
+    ----------
+    dvarGroup : list of str
+       The selected design variable groups from the DV Group dropdown.
+
+    funcGroup: list of str
+        The selected function groups (or objective) from the Function Group dropdown.
+
+    optGroup: list of str
+        The selected optimization groups from the Optimization Group dropdown.
+
+    dvarChild: list of str
+        The selected design variables from the Design Variable dropdown.
+
+    funcChild: list of str
+        The selected function variables (or objective) from the Function Variable dropdown.
+
+    optChild: list of str
+        The selected optimization variable from the Optimization Variable dropdown.
+
+    plotType: str
+        The selected plot type. (Options are currently 'Stacked' or 'Shared')
+
+    dataType : list of str
+        Contains dataType str values selected by user (i.e scale, major, delta, bounds)
+
+    hiddenDiv: Object with the dcc.Interval component information
+       This allows the plot to be updated once, or on interval if 'refresh' is selected.
+
+    Returns
+    -------
+    plotly figure {} object
+        The updated figure object based on new input values.
+    """
+    # HiddenDiv is updated once the interval component runs, so this checks if it has been updated yet and
+    # the information is ready to be loaded.
+    if hiddenDiv:
+        # A list of the History objects for each history file argument
+        histList = [History(fileName) for fileName in histListArgs]
+        # List of traces to be plotted on fig
+        trace = []
+        fig = {}
+        fig["layout"] = {}
+        # List of all func groups + DV groups selected names -> used for stacked plots axis
+        varsNames = []
+
+        # Create subplots in 'fig' if stacked plot type is chosen with 1 subplot per group selected
+        if plotType == "stacked":
+            # Determine # of plots
+            numRows = 0
+            if not dvarGroup and not funcGroup and not optGroup:
+                numRows = 1
+            if funcGroup:
+                numRows += len(funcGroup)
+            if dvarGroup:
+                numRows += len(dvarGroup)
+            if optGroup:
+                numRows += len(optGroup)
+            # Determine all variable group names selected for stacked plot axis'
+            varsNames = []
+            dvarGroup = dvarGroup if dvarGroup else []
+            funcGroup = funcGroup if funcGroup else []
+            optGroup = optGroup if optGroup else []
+            varsNames = dvarGroup + funcGroup + optGroup
+            fig = subplots.make_subplots(
+                rows=numRows, subplot_titles=varsNames, vertical_spacing=0.15, x_title="Iterations"
+            )
+            for i in fig["layout"]["annotations"]:
+                i["font"] = dict(size=12)
+            fig.update_yaxes(type=("log" if (dataType and ("log" in dataType)) else "linear"))
+
+        # Add overall min + max traces for each DV group
+        if dataType and "minMax" in dataType and dvarGroup:
+            for var in dvarGroup:
+                addMaxMinTraces(var, trace, dataType, histList)
+                # Add min & max traces to current var's subplot if 'stacked' plot type
+                if plotType == "stacked":
+                    fig.append_trace(trace[len(trace) - 1], varsNames.index(var) + 1, 1)
+                    fig.append_trace(trace[len(trace) - 2], varsNames.index(var) + 1, 1)
+
+        # Add traces for each DV selected, including lower + upper bound traces if 'bounds' is selected
+        if dvarChild:
+            for var in dvarChild:
+                groupType = "dvar"
+                indexVar = var.split("_")[-1]
+                varGroupName = var if var in dvarGroup else var[::-1].replace(indexVar + "_", "", 1)[::-1]
+                addVarTraces(var, trace, dataType, dvarGroup, groupType)
+                # Add traces to current var's subplot if 'stacked' plot type
+                if plotType == "stacked":
+                    if dataType and "bounds" in dataType:
+                        # If bounds was selected, addVarTraces added three traces (var's trace, var's upper bound trace, var's lower bound trace)
+                        fig.append_trace(trace[len(trace) - 3], varsNames.index(varGroupName) + 1, 1)
+                        fig.append_trace(trace[len(trace) - 2], varsNames.index(varGroupName) + 1, 1)
+                        fig.append_trace(trace[len(trace) - 1], varsNames.index(varGroupName) + 1, 1)
+                    else:
+                        fig.append_trace(trace[len(trace) - 1], varsNames.index(varGroupName) + 1, 1)
+
+        # Add overall min + max traces for each function group
+        if dataType and "minMax" in dataType and funcGroup:
+            for var in funcGroup:
+                addMaxMinTraces(var, trace, dataType, histList)
+                # Add min & max traces to current var's subplot if 'stacked' plot type
+                if plotType == "stacked":
+                    fig.append_trace(trace[len(trace) - 1], varsNames.index(var) + 1, 1)
+                    fig.append_trace(trace[len(trace) - 2], varsNames.index(var) + 1, 1)
+
+        # Add traces for each func selected, including lower + upper bound traces if 'bounds' is selected
+        if funcChild:
+            for var in funcChild:
+                groupType = "func"
+                indexVar = var.split("_")[-1]
+                varGroupName = var if var in funcGroup else var[::-1].replace(indexVar + "_", "", 1)[::-1]
+                addVarTraces(var, trace, dataType, funcGroup, groupType)
+                if plotType == "stacked":
+                    if dataType and "bounds" in dataType:
+                        fig.append_trace(trace[len(trace) - 3], varsNames.index(varGroupName) + 1, 1)
+                        fig.append_trace(trace[len(trace) - 2], varsNames.index(varGroupName) + 1, 1)
+                        fig.append_trace(trace[len(trace) - 1], varsNames.index(varGroupName) + 1, 1)
+                    else:
+                        fig.append_trace(trace[len(trace) - 1], varsNames.index(varGroupName) + 1, 1)
+
+        # Add overall min + max traces for each optimization group
+        if dataType and "minMax" in dataType and optGroup:
+            for var in optGroup:
+                addMaxMinTraces(var, trace, dataType, histList)
+                # Add min & max traces to current var's subplot if 'stacked' plot type
+                if plotType == "stacked":
+                    fig.append_trace(trace[len(trace) - 1], varsNames.index(var) + 1, 1)
+                    fig.append_trace(trace[len(trace) - 2], varsNames.index(var) + 1, 1)
+
+        # Add traces for each func selected, no bounds for opt group
+        if optChild:
+            for var in optChild:
+                groupType = "opt"
+                indexVar = var.split("_")[-1]
+                varGroupName = var if var in optGroup else var[::-1].replace(indexVar + "_", "", 1)[::-1]
+                addVarTraces(var, trace, dataType, optGroup, groupType)
+                if plotType == "stacked":
+                    fig.append_trace(trace[len(trace) - 1], varsNames.index(varGroupName) + 1, 1)
+
+        # For 'shared' plotType, set fig's 'data' key as the trace[] list, containing all the traces based on the input
+        if plotType == "shared":
+            fig["data"] = trace
+
+        # Layout styling
+        fig["layout"].update(
+            # autosize = True,
+            xaxis={
+                "title": {
+                    "text": "Iterations" if (plotType == "shared") else None,
+                    "font": {"family": "Arial, Helvetica, sans-serif"},
+                },
+            },
+            yaxis={
+                "title": {
+                    "text": None,
+                },
+                "type": "log" if (dataType and ("log" in dataType)) else "linear",
+            },
+            showlegend=True,
+            font={"size": 12},
+        )
+
+        return fig
+
+    else:
+        return {}
+
+
+def main():
+    app.run_server(debug=True)
+
+
+# Run if file is used directly, and not imported
 if __name__ == "__main__":
-    app.run_server(debug=True, port=50002, host="0.0.0.0")
+    main()
