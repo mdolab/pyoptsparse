@@ -16,6 +16,6 @@ extends:
   parameters:
     REPO_NAME: pyoptsparse
     #PRE_BUILD: pre_build.sh
-    BUILD_REAL: build.sh
-    TEST_REAL: test.sh
+    BUILD_REAL: .github/build.sh
+    TEST_REAL: .github/test.sh
     IMAGE: auto
