@@ -6,4 +6,4 @@ set -e
 #    cp -r $HOME/SNOPT/* pyoptsparse/pySNOPT/source
 #fi
 # install
-pip install .[optview]
+pip install -e .[optview]
