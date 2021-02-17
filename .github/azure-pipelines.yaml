@@ -15,5 +15,4 @@ extends:
   template: azure/azure_template.yaml@azure_template
   parameters:
     REPO_NAME: pyoptsparse
-    #PRE_BUILD: pre_build.sh
     IMAGE: auto
