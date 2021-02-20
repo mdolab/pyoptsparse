@@ -1,3 +1,4 @@
+set -e
 # back up proprietary solvers
 if [[ $IMAGE == "private" ]]; then
     cp -r pyoptsparse/pySNOPT/source $HOME/SNOPT
