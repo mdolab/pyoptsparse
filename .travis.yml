@@ -5,7 +5,7 @@ import:
 
 env:
   global:
-    - DOCKER_WORKING_DIR=/home/mdolabuser/packages/$REPO_NAME # pyOptSparse is under packages, so this should overwrite what's set in travis-env.yml
+    - DOCKER_WORKING_DIR=/home/mdolabuser/repos/$REPO_NAME
     - SNOPT_DIR=$DOCKER_WORKING_DIR/$REPO_NAME/pySNOPT/source
     - NLPQLP_DIR=$DOCKER_WORKING_DIR/$REPO_NAME/pyNLPQLP/source
     - AUTO_DOCKER_REPO=true # this will automatically set DOCKER_REPO depending on where the build originates

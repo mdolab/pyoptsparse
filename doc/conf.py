@@ -24,7 +24,7 @@ project = "pyOptSparse"
 extensions.extend(["numpydoc", "ext.optimizertable", "sphinxcontrib.bibtex"])
 
 # mock import for autodoc
-autodoc_mock_imports = ["baseclasses"]
+autodoc_mock_imports = ["baseclasses", "scipy", "numpy", "sqlitedict"]
 
 # bibtex
 bibtex_bibfiles = ["pyoptsparse.bib"]
