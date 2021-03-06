@@ -1,5 +1,6 @@
-![pyOptSparse Logo](doc/_static/pyOptSparse_logo.svg)
-<h2 align="center">pyOptSparse - PYthon OPTimization (Sparse) Framework</h2>
+<center>
+    <img src="doc/_static/pyOptSparse_logo.svg" width="400" />
+</center>
 
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/release/python-370/)
 [![Build Status](https://travis-ci.com/mdolab/pyoptsparse.svg?branch=master)](https://travis-ci.com/mdolab/pyoptsparse)
