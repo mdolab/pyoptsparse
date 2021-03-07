@@ -26,5 +26,9 @@ extensions.extend(["numpydoc", "ext.optimizertable", "sphinxcontrib.bibtex"])
 # mock import for autodoc
 autodoc_mock_imports = ["baseclasses", "scipy", "numpy", "sqlitedict"]
 
+# logo
+html_logo = "_static/pyOptSparse_logo.svg"
+html_theme_options["logo_only"] = True
+
 # bibtex
 bibtex_bibfiles = ["pyoptsparse.bib"]
