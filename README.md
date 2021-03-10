@@ -3,7 +3,6 @@
 </h2>
 
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/release/python-370/)
-[![Build Status](https://travis-ci.com/mdolab/pyoptsparse.svg?branch=master)](https://travis-ci.com/mdolab/pyoptsparse)
 [![Build Status](https://dev.azure.com/mdolab/Public/_apis/build/status/mdolab.pyoptsparse?branchName=master)](https://dev.azure.com/mdolab/Public/_build/latest?definitionId=29&branchName=master)
 [![Coverage Status](https://coveralls.io/repos/github/mdolab/pyoptsparse/badge.svg?branch=master)](https://coveralls.io/github/mdolab/pyoptsparse?branch=master)
 [![Documentation Status](https://readthedocs.com/projects/mdolab-pyoptsparse/badge/?version=latest)](https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/?badge=latest)
