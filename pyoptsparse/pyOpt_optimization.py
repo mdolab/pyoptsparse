@@ -34,7 +34,7 @@ INFINITY = 1e20
 # Optimization Class
 # =============================================================================
 class Optimization(object):
-    def __init__(self, name, objFun, comm=None):
+    def __init__(self, name, objFun, sens=None, comm=None):
         """
         The main purpose of this class is to describe the structure and
         potentially, sparsity pattern of an optimization problem.
@@ -47,6 +47,9 @@ class Optimization(object):
         objFun : Python function handle
             Function handle used to evaluate the objective function.
 
+        sens : str or python Function.
+            Specifiy method to compute sensitivities.
+
         comm : MPI intra communication
             The communicator this problem will be solved on. This is
             required for both analysis when the objective is computed in
@@ -55,6 +58,7 @@ class Optimization(object):
         """
         self.name = name
         self.objFun = objFun
+        self.sens = sens
         if comm is None:
             self.comm = MPI.COMM_WORLD
         else:
