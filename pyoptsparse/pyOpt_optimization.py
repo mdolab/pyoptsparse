@@ -1,25 +1,10 @@
 #!/usr/bin/env python
-"""
-pyOptSparse_optimization
-
-Holds the Python Design Optimization Class
-
-The main purpose, of this class is to describe the structure and
-potentially, sparsity pattern of an optimization problem.
-"""
-
 # =============================================================================
 # Standard Python modules
 # =============================================================================
 import copy
 import os
 from collections import OrderedDict
-
-try:
-    from six import iteritems, iterkeys, next
-except ImportError:
-    raise ImportError("Could not import 'six'. To install, use\n pip install six")
-
 from sqlitedict import SqliteDict
 
 # =============================================================================
@@ -49,28 +34,25 @@ INFINITY = 1e20
 # Optimization Class
 # =============================================================================
 class Optimization(object):
-    """
-    Create a description of an optimization problem.
-
-    Parameters
-    ----------
-    name : str
-        Name given to optimization problem. This is name is currently
-        not used for anything, but may be in the future.
-
-    objFun : python function
-        Python function handle of function used to evaluate the objective
-        function.
-
-    comm : MPI intra communication
-        The communicator this problem will be solved on. This is
-        required for both analysis when the objective is computed in
-        parallel as well as to use the internal parallel gradient
-        computations. Defaults to MPI.COMM_WORLD if not given.
-        """
-
     def __init__(self, name, objFun, comm=None):
+        """
+        The main purpose of this class is to describe the structure and
+        potentially, sparsity pattern of an optimization problem.
 
+        Parameters
+        ----------
+        name : str
+            Name given to optimization problem.
+
+        objFun : Python function handle
+            Function handle used to evaluate the objective function.
+
+        comm : MPI intra communication
+            The communicator this problem will be solved on. This is
+            required for both analysis when the objective is computed in
+            parallel as well as to use the internal parallel gradient
+            computations. Defaults to MPI.COMM_WORLD if not given.
+        """
         self.name = name
         self.objFun = objFun
         if comm is None:
@@ -96,7 +78,7 @@ class Optimization(object):
         self.dummyConstraint = False
         self.objectiveIdx = {}
 
-        # Store the jacobian conversion maps
+        # Store the Jacobian conversion maps
         self._jac_map_coo_to_csr = None
 
     def addVar(self, name, *args, **kwargs):
@@ -124,7 +106,7 @@ class Optimization(object):
         validName : str
             A valid variable name. May be the same as varName it that
             was, in fact, a valid name.
-            """
+        """
         if varName not in self.variables:
             return varName
         else:
@@ -152,7 +134,7 @@ class Optimization(object):
         validName : str
             A valid constraint name. May be the same as conName it that
             was, in fact, a valid name.
-            """
+        """
         if conName not in self.constraints:
             return conName
         else:
@@ -252,9 +234,10 @@ class Optimization(object):
             pass
         else:
             raise Error(
-                "The length of the 'value' argument to "
-                "addVarGroup is %d, but the number of "
-                "variables in nVars is %d." % (len(value), nVars)
+                (
+                    "The length of the 'value' argument to addVarGroup is {}, "
+                    + "but the number of variables in nVars is {}."
+                ).format(len(value), nVars)
             )
 
         if lower is None:
@@ -265,9 +248,10 @@ class Optimization(object):
             lower = np.atleast_1d(lower).real
         else:
             raise Error(
-                "The 'lower' argument to addVarGroup is "
-                "invalid. It must be None, a scalar, or a "
-                "list/array or length nVars=%d." % (nVars)
+                (
+                    "The 'lower' argument to addVarGroup is invalid. "
+                    + "It must be None, a scalar, or a list/array or length nVars={}.".format(nVars)
+                )
             )
 
         if upper is None:
@@ -278,9 +262,10 @@ class Optimization(object):
             upper = np.atleast_1d(upper).real
         else:
             raise Error(
-                "The 'upper' argument to addVarGroup is "
-                "invalid. It must be None, a scalar, or a "
-                "list/array or length nVars=%d." % (nVars)
+                (
+                    "The 'upper' argument to addVarGroup is invalid. "
+                    + "It must be None, a scalar, or a list/array or length nVars={}.".format(nVars)
+                )
             )
 
         # ------ Process the scale argument
@@ -294,9 +279,10 @@ class Optimization(object):
                 pass
             else:
                 raise Error(
-                    "The length of the 'scale' argument to "
-                    "addVarGroup is %d, but the number of "
-                    "variables in nVars is %d." % (len(scale), nVars)
+                    (
+                        "The length of the 'scale' argument to addVarGroup is {}, "
+                        + "but the number of variables in nVars is {}."
+                    ).format(len(scale), nVars)
                 )
 
         # ------ Process the offset argument
@@ -310,9 +296,10 @@ class Optimization(object):
                 pass
             else:
                 raise Error(
-                    "The length of the 'offset' argument to "
-                    "addVarGroup is %d, but the number of "
-                    "variables in nVars is %d." % (len(offset), nVars)
+                    (
+                        "The length of the 'offset' argument to addVarGroup is {}, "
+                        + "but the number of variables is {}."
+                    ).format(len(offset), nVars)
                 )
 
         # Determine if scalar i.e. it was called from addVar():
@@ -358,7 +345,7 @@ class Optimization(object):
         ----------
         name : str
            Name of variable or variable group to remove
-           """
+        """
         try:
             self.variables.pop(name)
         except KeyError:
@@ -459,23 +446,23 @@ class Optimization(object):
             Flag to specify if this constraint is linear. If the
             constraint is linear, both the 'wrt' and 'jac' keyword
             arguments must be given to specify the constant portion of
-            the constraint jacobian.
+            the constraint Jacobian.
 
         wrt : iterable (list, set, OrderedDict, array etc)
             'wrt' stand for stands for 'With Respect To'. This
-            specifies for what dvs have non-zero jacobian values
+            specifies for what dvs have non-zero Jacobian values
             for this set of constraints. The order is not important.
 
         jac : dictionary
             For linear and sparse non-linear constraints, the constraint
-            jacobian must be passed in. The structure is jac dictionary
+            Jacobian must be passed in. The structure is jac dictionary
             is as follows:
 
             {'dvName1':<matrix1>, 'dvName2', <matrix1>, ...}
 
-            They keys of the jacobian must correspond to the dvGroups
+            They keys of the Jacobian must correspond to the dvGroups
             given in the wrt keyword argument. The dimensions of each
-            "chunk" of the constraint jacobian must be consistent. For
+            "chunk" of the constraint Jacobian must be consistent. For
             example, <matrix1> must have a shape of (nCon, nDvs) where
             nDVs is the total number of design variables in
             dvName1. <matrix1> may be a dense numpy array or it may be
@@ -500,9 +487,8 @@ class Optimization(object):
             imperative that entries that will at some point have
             non-zero entries have non-zero entries in jac
             argument. That is, we do not let the sparsity structure of
-            the jacobian change throughout the optimization. This
+            the Jacobian change throughout the optimization. This
             stipulation is automatically checked internally.
-
         """
 
         if name in self.constraints:
@@ -602,7 +588,7 @@ class Optimization(object):
 
     def printSparsity(self, verticalPrint=False):
         """
-        This function prints an (ascii) visualization of the jacobian
+        This function prints an (ASCII) visualization of the Jacobian
         sparsity structure. This helps the user visualize what
         pyOptSparse has been given and helps ensure it is what the
         user expected. It is highly recommended this function be
@@ -621,7 +607,6 @@ class Optimization(object):
         This function is **collective** on the optProb comm. It is
         therefore necessary to call this function on **all**
         processors of the optProb comm.
-
         """
         self.finalizeDesignVariables()
         self.finalizeConstraints()
@@ -835,7 +820,7 @@ class Optimization(object):
         2. Determine the final scaling array for the design variables
 
         3. Determine if it is possible to return a complete dense
-           jacobian. Most of this time, we should be using the dictionary-
+           Jacobian. Most of this time, we should be using the dictionary-
            based return
         """
 
@@ -893,7 +878,7 @@ class Optimization(object):
             self.objectiveIdx[objKey] = idx
 
         # ---------------------------------------------
-        # Step 4. Final jacobian for linear constraints
+        # Step 4. Final Jacobian for linear constraints
         # ---------------------------------------------
         for iCon in self.constraints:
             con = self.constraints[iCon]
@@ -936,7 +921,7 @@ class Optimization(object):
            Flag to split equality constraints into two inequality
            constraints. Some optimizers (CONMIN for example) can't do
            equality constraints explicitly.
-           """
+        """
 
         # Now for the fun part determine what *actual* order the
         # constraints need to be in: We recognize the following
@@ -1029,8 +1014,6 @@ class Optimization(object):
 
     def processXtoDict(self, x):
         """
-        **This function should not need to be called by the user**
-
         Take the flattened array of variables in 'x' and return a
         dictionary of variables keyed on the name of each variable.
 
@@ -1038,6 +1021,10 @@ class Optimization(object):
         ----------
         x : array
             Flattened array from optimizer
+
+        Warnings
+        --------
+        This function should not need to be called by the user
         """
         xg = OrderedDict()
         imax = 0
@@ -1059,8 +1046,6 @@ class Optimization(object):
 
     def processXtoVec(self, x):
         """
-        **This function should not need to be called by the user**
-
         Take the dictionary form of x and convert back to flattened
         array.
 
@@ -1073,8 +1058,11 @@ class Optimization(object):
         -------
         x_array : array
             Flattened array of variables
-        """
 
+        Warnings
+        --------
+        This function should not need to be called by the user
+        """
         x_array = np.zeros(self.ndvs)
         imax = 0
         for dvGroup in self.variables:
@@ -1096,8 +1084,6 @@ class Optimization(object):
 
     def processObjtoVec(self, funcs, scaled=True):
         """
-        **This function should not need to be called by the user**
-
         This is currently just a stub-function. It is here since it
         the future we may have to deal with multiple objectives so
         this function will deal with that
@@ -1110,7 +1096,11 @@ class Optimization(object):
         -------
         obj : float or array
             Processed objective(s).
-            """
+
+        Warnings
+        --------
+        This function should not need to be called by the user
+        """
         fobj = []
         for objKey in self.objectives.keys():
             if objKey in funcs:
@@ -1164,8 +1154,6 @@ class Optimization(object):
 
     def processContoVec(self, fcon_in, scaled=True, dtype="d", natural=False):
         """
-        **This function should not need to be called by the user**
-
         Parameters
         ----------
         fcon_in : dict
@@ -1186,6 +1174,10 @@ class Optimization(object):
             Flag to specify if the data should be returned in the
             natural ordering. This is only used when computing
             gradient automatically with FD/CS.
+
+        Warnings
+        --------
+        This function should not need to be called by the user
         """
 
         if self.dummyConstraint:
@@ -1206,8 +1198,9 @@ class Optimization(object):
                     fcon[..., con.rs : con.re] = c
                 else:
                     raise Error(
-                        "%d constraint values were returned in "
-                        "%s, but expected %d." % (len(fcon_in[iCon]), iCon, self.constraints[iCon].ncon)
+                        "{} constraint values were returned in {}, but expected {}.".format(
+                            len(fcon_in[iCon]), iCon, self.constraints[iCon].ncon
+                        )
                     )
 
                 # Store constraint values for printing later
@@ -1215,7 +1208,7 @@ class Optimization(object):
             else:
                 raise Error("No constraint values were found for the constraint '%s'." % iCon)
 
-        # Perform scaling on the original jacobian:
+        # Perform scaling on the original Jacobian:
         if scaled:
             fcon = self._mapContoOpt(fcon)
 
@@ -1231,8 +1224,6 @@ class Optimization(object):
 
     def processContoDict(self, fcon_in, scaled=True, dtype="d", natural=False, multipliers=False):
         """
-        **This function should not need to be called by the user**
-
         Parameters
         ----------
         fcon_in : array
@@ -1258,7 +1249,11 @@ class Optimization(object):
             Flag that indicates whether this deprocessing is for the
             multipliers or the constraint values. In the case of multipliers,
             no constraint offset should be applied.
-            """
+
+        Warnings
+        --------
+        This function should not need to be called by the user
+        """
 
         if self.dummyConstraint:
             return {"dummy": 0}
@@ -1314,7 +1309,7 @@ class Optimization(object):
         fcon : dict
             Dictionary of the constraints. The linear constraints are
             to be added to this dictionary.
-            """
+        """
 
         # This is actually pretty easy; it's just a matvec with the
         # proper linearJacobian entry we've already computed
@@ -1324,8 +1319,6 @@ class Optimization(object):
 
     def processObjectiveGradient(self, funcsSens):
         """
-        **This function should not need to be called by the user**
-
         This generic function is used to assemble the objective
         gradient(s)
 
@@ -1334,6 +1327,10 @@ class Optimization(object):
         funcsSens : dict
             Dictionary of all function gradients. Just extract the
             objective(s) we need here.
+
+        Warnings
+        --------
+        This function should not need to be called by the user
         """
 
         dvGroups = set(self.variables.keys())
@@ -1341,57 +1338,29 @@ class Optimization(object):
         nobj = len(self.objectives)
         gobj = np.zeros((nobj, self.ndvs))
 
-        cond = False
-        # this version is required for python 3 compatibility
-        cond = isinstance(next(iterkeys(funcsSens)), str)
-
-        if cond:
-            iObj = 0
-            for objKey in self.objectives.keys():
-                if objKey in funcsSens:
-                    for dvGroup in funcsSens[objKey]:
-                        if dvGroup in dvGroups:
-                            # Now check that the array is the correct length:
-                            ss = self.dvOffset[dvGroup]
-                            tmp = np.array(funcsSens[objKey][dvGroup]).squeeze()
-                            if tmp.size == ss[1] - ss[0]:
-                                # Everything checks out so set:
-                                gobj[iObj, ss[0] : ss[1]] = tmp
-                            else:
-                                raise Error(
-                                    "The shape of the objective derivative "
-                                    "for dvGroup '%s' is the incorrect "
-                                    "length. Expecting a shape of %s but "
-                                    "received a shape of %s."
-                                    % (dvGroup, (ss[1] - ss[0],), funcsSens[objKey][dvGroup].shape)
-                                )
-                        else:
-                            raise Error("The dvGroup key '%s' is not valid" % dvGroup)
-                else:
-                    raise Error("The key for the objective gradient, '%s', was not found." % objKey)
-                iObj += 1
-        else:  # Then it must be a tuple; assume flat dict
-            for (objKey, dvGroup), _ in iteritems(funcsSens):
-                if objKey in self.objectives.keys():
-                    try:
-                        iObj = self.objectiveIdx[objKey]
-                    except KeyError:
-                        raise Error("The key for the objective gradient, '%s', was not found." % objKey)
-                    try:
+        iObj = 0
+        for objKey in self.objectives.keys():
+            if objKey in funcsSens:
+                for dvGroup in funcsSens[objKey]:
+                    if dvGroup in dvGroups:
+                        # Now check that the array is the correct length:
                         ss = self.dvOffset[dvGroup]
-                    except KeyError:
-                        raise Error("The dvGroup key '%s' is not valid" % dvGroup)
-                    tmp = np.array(funcsSens[objKey, dvGroup]).squeeze()
-                    if tmp.size == ss[1] - ss[0]:
-                        # Everything checks out so set:
-                        gobj[iObj, ss[0] : ss[1]] = tmp
+                        tmp = np.array(funcsSens[objKey][dvGroup]).squeeze()
+                        if tmp.size == ss[1] - ss[0]:
+                            # Everything checks out so set:
+                            gobj[iObj, ss[0] : ss[1]] = tmp
+                        else:
+                            raise Error(
+                                (
+                                    "The shape of the objective derivative for dvGroup '{}' is the incorrect length. "
+                                    + "Expecting a shape of {} but received a shape of {}."
+                                ).format(dvGroup, (ss[1] - ss[0],), funcsSens[objKey][dvGroup].shape)
+                            )
                     else:
-                        raise Error(
-                            "The shape of the objective derivative "
-                            "for dvGroup '%s' is the incorrect "
-                            "length. Expecting a shape of %s but "
-                            "received a shape of %s." % (dvGroup, (ss[1] - ss[0],), funcsSens[objKey, dvGroup].shape)
-                        )
+                        raise Error("The dvGroup key '%s' is not valid" % dvGroup)
+            else:
+                raise Error("The key for the objective gradient, '%s', was not found." % objKey)
+            iObj += 1
 
         # Note that we looped over the keys in funcsSens[objKey]
         # and not the variable keys since a variable key not in
@@ -1408,10 +1377,8 @@ class Optimization(object):
 
     def processConstraintJacobian(self, gcon):
         """
-        **This function should not need to be called by the user**
-
         This generic function is used to assemble the entire
-        constraint jacobian. The order of the constraint jacobian is
+        constraint Jacobian. The order of the constraint Jacobian is
         in 'natural' ordering, that is the order the constraints have
         been added (mostly; since it can be different when constraints
         are added on different processors).
@@ -1419,9 +1386,9 @@ class Optimization(object):
         The input is gcon, which is dict or an array. The array format
         should only be used when the pyOpt_gradient class is used
         since this results in a dense (and correctly oriented)
-        jacobian. The user should NEVER return a dense jacobian since
+        Jacobian. The user should NEVER return a dense Jacobian since
         this extremely fickle and easy to break. The dict 'gcon' must
-        contain only the non-linear constraints jacobians; the linear
+        contain only the non-linear constraints Jacobians; the linear
         ones will be added automatically.
 
         Parameters
@@ -1433,10 +1400,14 @@ class Optimization(object):
         Returns
         -------
         gcon : dict with csr data
-            Return the jacobian in a sparse csr format.
+            Return the Jacobian in a sparse csr format.
             can be easily converted to csc, coo or dense format as
             required by individual optimizers
-            """
+
+        Warnings
+        --------
+        This function should not need to be called by the user
+        """
 
         # We don't have constraints at all! However we *may* have to
         # include a dummy constraint:
@@ -1471,59 +1442,52 @@ class Optimization(object):
                 ndvs = ss[1] - ss[0]
 
                 gotDerivative = False
-                try:  # Try using a nested dictionary return
+                try:
                     if dvGroup in gcon[iCon]:
                         tmp = convertToCOO(gcon[iCon][dvGroup])
                         gotDerivative = True
                 except KeyError:
-                    try:  # Using tuple dictornary return
-                        tmp = convertToCOO(gcon[iCon, dvGroup])
-                        gotDerivative = True
-                    except KeyError:
-                        raise Error(
-                            'The constraint jacobian entry for "{}" with respect to "{}"'
-                            ", as was defined in addConGroup(), was not found in"
-                            " constraint jacobian dictionary provided.".format(con.name, dvGroup)
-                        )
+                    raise Error(
+                        (
+                            "The constraint Jacobian entry for '{}' with respect to '{}', as was defined in addConGroup(), "
+                            + "was not found in constraint Jacobian dictionary provided."
+                        ).format(con.name, dvGroup)
+                    )
                 if not gotDerivative:
                     # All keys for this constraint must be returned
                     # since the user has explictly specified the wrt.
                     if not con.partialReturnOk:
                         raise Error(
-                            "Constraint '%s' was expecting a jacobain with "
-                            "respect to dvGroup '%s' as was supplied in "
-                            "addConGroup(). This was not found in the "
-                            "constraint jacobian dictionary" % (con.name, dvGroup)
+                            (
+                                "Constraint '{}' was expecting a jacobain with respect to dvGroup '{}' as was supplied in addConGroup(). "
+                                + "This was not found in the constraint Jacobian dictionary"
+                            ).format(con.name, dvGroup)
                         )
                     else:
                         # This key is not returned. Just use the
-                        # stored jacobian that contains zeros
+                        # stored Jacobian that contains zeros
                         tmp = con.jac[dvGroup]
 
-                # Now check that the jacobian is the correct shape
+                # Now check that the Jacobian is the correct shape
                 if not (tmp["shape"][0] == con.ncon and tmp["shape"][1] == ndvs):
                     raise Error(
-                        "The shape of the supplied constraint "
-                        "jacobian for constraint %s with respect to %s "
-                        "is incorrect. "
-                        "Expected an array of shape (%d, %d), but "
-                        "received an array of shape (%d, %d)."
-                        % (con.name, dvGroup, con.ncon, ndvs, tmp["shape"][0], tmp["shape"][1])
+                        (
+                            "The shape of the supplied constraint Jacobian for constraint {} with respect to {} is incorrect. "
+                            + "Expected an array of shape ({}, {}), but received an array of shape ({}, {})."
+                        ).format(con.name, dvGroup, con.ncon, ndvs, tmp["shape"][0], tmp["shape"][1])
                     )
 
                 # Now check that supplied coo matrix has same length
                 # of data array
                 if len(tmp["coo"][2]) != len(con.jac[dvGroup]["coo"][2]):
                     raise Error(
-                        "The number of nonzero elements for "
-                        "constraint group '%s' with respect to %s "
-                        "was not the correct size. The supplied "
-                        "jacobian has %d nonzero "
-                        "entries, but must contain %d nonzero "
-                        "entries." % (con.name, dvGroup, len(tmp["coo"][2]), len(con.jac[dvGroup]["coo"][2]))
+                        (
+                            "The number of nonzero elements for constraint group '{}' with respect to {} was not the correct size. "
+                            + "The supplied Jacobian has {} nonzero entries, but must contain {} nonzero entries."
+                        ).format(con.name, dvGroup, len(tmp["coo"][2]), len(con.jac[dvGroup]["coo"][2]))
                     )
 
-                # Include data from this jacobian chunk
+                # Include data from this Jacobian chunk
                 data.append(tmp["coo"][IDATA])
                 row.append(tmp["coo"][IROW] + ii)
                 col.append(tmp["coo"][ICOL] + ss[0])

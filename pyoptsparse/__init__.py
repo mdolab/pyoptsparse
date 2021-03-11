@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+__version__ = "2.4.1"
+
 from .pyOpt_history import History
 from .pyOpt_variable import Variable
 from .pyOpt_gradient import Gradient
@@ -13,14 +14,10 @@ from .pySNOPT.pySNOPT import SNOPT
 from .pyIPOPT.pyIPOPT import IPOPT
 from .pySLSQP.pySLSQP import SLSQP
 from .pyCONMIN.pyCONMIN import CONMIN
-from .pyFSQP.pyFSQP import FSQP
 from .pyPSQP.pyPSQP import PSQP
 from .pyNLPQLP.pyNLPQLP import NLPQLP
 from .pyNSGA2.pyNSGA2 import NSGA2
-from .pyNLPY_AUGLAG.pyNLPY_AUGLAG import NLPY_AUGLAG
 from .pyALPSO.pyALPSO import ALPSO
 from .pyParOpt.ParOpt import ParOpt
 
 # from .pyNOMAD.pyNOMAD import NOMAD
-
-__version__ = "2.1.0"

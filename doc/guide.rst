@@ -1,9 +1,7 @@
-.. _guide:
-
 Guide
 -----
 
-``pyOptSparse`` is designed to solve general, constrained nonlinear
+pyOptSparse is designed to solve general, constrained nonlinear
 optimization problems of the form:
 
 .. math::
@@ -17,11 +15,8 @@ where:
 :math:`f(x)` is a nonlinear function,
 and :math:`g(x)` is a set of :math:`m` nonlinear functions.
 
-Equality constraints are specified using the same upper and lower
-bounds for the constraint. i.e., :math:`g_{j,\text{L}} = g_{j,\text{U}}`.
-The ordering of the constraints is arbitrary; ``pyOptSparse``
-reorders the problem automatically depending on the requirements
-of each individual optimizer.
+Equality constraints are specified using the same upper and lower bounds for the constraint. i.e., :math:`g_{j,\text{L}} = g_{j,\text{U}}`.
+The ordering of the constraints is arbitrary; pyOptSparse reorders the problem automatically depending on the requirements of each individual optimizer.
 
 The optimization class is created using the following call::
 
@@ -33,8 +28,8 @@ The general template of the objective function is as follows:
 
   def obj_fun(xdict):
     funcs = {}
-    funcs['obj'] = function(x)
-    funcs['con_name'] = function(x)
+    funcs['obj_name'] = function(xdict)
+    funcs['con_name'] = function(xdict)
     fail = False # Or True if an analysis failed
 
     return funcs, fail
@@ -49,40 +44,35 @@ If the Optimization problem is unconstrained, ``funcs`` will contain only the ob
 
 Design Variables
 ++++++++++++++++
-
-The simplest way to add a single continuous variable with no bounds
-(side constraints) and initial value of 0.0 is::
+The simplest way to add a single continuous variable with no bounds (side constraints) and initial value of 0.0 is
+to simply call :meth:`addVar <pyoptsparse.pyOpt_optimization.Optimization.addVar>`::
 
    >>> optProb.addVar('var_name')
 
-This will result in a scalar variable included in the ``x`` dictionary
-call to ``obj_fun`` which can be accessed by doing::
+This will result in a scalar variable included in the ``x`` dictionary call to ``obj_fun`` which can be accessed by doing::
 
   >>> x['var_name']
 
-A more complex example will include lower bounds, upper bounds and a
-non-zero initial value::
+A more complex example will include lower bounds, upper bounds and a non-zero initial value::
 
   >>> optProb.addVar('var_name',lower=-10, upper=5, value=-2)
 
-The ``lower`` or ``upper`` keywords may be specified as ``None`` to
-signify there is no bound on the variable.
+The ``lower`` or ``upper`` keywords may be specified as ``None`` to signify there is no bound on the variable.
 
-Finally, an additional keyword argument ``scale`` can be specified
-which will perform an internal design variable scaling. The ``scale``
-keyword will result in the following::
+Finally, an additional keyword argument ``scale`` can be specified which will perform an internal design variable scaling.
+The ``scale`` keyword will result in the following:
 
-  x_optimizer = x_user * scale
+.. math::
 
-The purpose of the scale factor is ensure that design variables of
-widely different magnitudes can be used in the same optimization. Is
-it desirable to have the magnitude of all variables within an order of
-magnitude or two of each other.
+  x_\text{opt} = x_\text{user} \times \text{scale}
 
-The ``addVarGroup`` call is similar to ``addVar`` except that it adds
-a group of 1 or more variables. These variables are then returned as a
-numpy array within the x-dictionary. For example, to add 10 variables
-with no lower bound, and a scale factor of 0.1::
+The purpose of the scale factor is ensure that design variables of widely different magnitudes can be used in the same optimization.
+It is desirable to have the magnitude of all variables within an order of magnitude or two of each other.
+
+The :meth:`addVarGroup <pyoptsparse.pyOpt_optimization.Optimization.addVarGroup>` call is similar to 
+:meth:`addVar <pyoptsparse.pyOpt_optimization.Optimization.addVar>` except that it adds a group of 1 or more variables.
+These variables are then returned as a numpy array within the x-dictionary.
+For example, to add 10 variables with no lower bound, and a scale factor of 0.1::
 
   >>> optProb.addVarGroup('con_group', 10, upper=2.5, scale=0.1)
 
@@ -90,51 +80,44 @@ with no lower bound, and a scale factor of 0.1::
 Constraints
 +++++++++++
 
-The simplest way to add a single constraint with no bounds (i.e., not a
-very useful constraint!) is::
+The simplest way to add a single constraint with no bounds (i.e., not a very useful constraint!) is
+to use the function :meth:`addCon <pyoptsparse.pyOpt_optimization.Optimization.addCon>`::
 
   >>> optProb.addCon('not_a_real_constraint')
 
-To include bounds on the constraints, use the ``lower`` and ``upper``
-keyword arguments. If ``lower`` and ``upper`` are the same, it will be
-treated as an equality constraint::
+To include bounds on the constraints, use the ``lower`` and ``upper`` keyword arguments.
+If ``lower`` and ``upper`` are the same, it will be treated as an equality constraint::
 
   >>> optProb.addCon('inequality_constraint', upper=10)
-  >>> optProb.addCOn('equality_constraint', lower=5, upper=5)
+  >>> optProb.addCon('equality_constraint', lower=5, upper=5)
 
-Like design variables, it is often necessary to scale constraints such
-that all constraint values are approximately the same order of
-magnitude. This can be specified using the ``scale`` keyword::
+Like design variables, it is often necessary to scale constraints such that all constraint values are approximately the same order of magnitude.
+This can be specified using the ``scale`` keyword::
 
   >>> optProb.addCon('scaled_constraint', upper=10000, scale=1.0/10000)
 
-Even if the ``scale`` keyword is given, the ``lower`` and ``upper``
-bounds are given in their un-scaled form. Internally, ``pyOptSparse``
-will use the scaling factor to produce the following constraint::
+Even if the ``scale`` keyword is given, the ``lower`` and ``upper`` bounds are given in their un-scaled form.
+Internally, pyOptSparse will use the scaling factor to produce the following constraint:
 
-  con_optimizer = con_user * scale
+.. math::
 
-In the example above, the constraint values are divided by 10000,
-which results in a upper bound (that the optimizer sees) of 1.0.
+  \text{con}_\text{opt} = \text{con}_\text{user} \times \text{scale}
 
-Constraints may also be flagged as liner using the ``linear=True``
-keyword option. Some optimizers can perform special treatment on
-linear constraint, often ensuring that they are always satisfied
-exactly on every function call (SNOPT for example). Linear constraints
-also require the use of the ``wrt`` and ``jac`` keyword
-arguments. These are explained below.
+In the example above, the constraint values are divided by 10000, which results in a upper bound (that the optimizer sees) of 1.0.
 
-One of the major goals of ``pyOptSparse`` is to enable the use of
-sparse constraint Jacobians. (Hence the 'Sparse' in the name!).
-Manually computing sparsity structure of the constraint Jacobian is
-tedious at best and become even more complicated as optimization
-scripts are modified by adding or deleting design variables and/or
-constraints. ``pyOptSParse`` is designed to greatly facilitate the
-assembly of sparse constraint Jacobians, alleviating the user of thus
-burden. The idea is that instead of the user computing a dense matrix
-representing the constraint Jacobian, a ``dictionary of keys``
-approach is used which allows incrementally specifying parts of the
-constraint Jacobian. Consider the optimization problem given below::
+Constraints may also be flagged as linear using the ``linear=True`` keyword option.
+Some optimizers can perform special treatment on linear constraint, often ensuring that they are always satisfied
+exactly on every function call (SNOPT for example).
+Linear constraints also require the use of the ``wrt`` and ``jac`` keyword arguments.
+These are explained below.
+
+One of the major goals of pyOptSparse is to enable the use of sparse constraint Jacobians, hence the `Sparse` in the name!
+Manually computing sparsity structure of the constraint Jacobian is tedious at best and become even more complicated
+as optimization scripts are modified by adding or deleting design variables and/or constraints.
+pyOptSparse is designed to greatly facilitate the assembly of sparse constraint Jacobians, alleviating the user of this burden.
+The idea is that instead of the user computing a dense matrix representing the constraint Jacobian,
+a "dictionary of keys" approach is used which allows incrementally specifying parts of the constraint Jacobian.
+Consider the optimization problem given below::
 
               varA (3)   varB (1)   varC (3)
             +--------------------------------+
@@ -147,11 +130,10 @@ constraint Jacobian. Consider the optimization problem given below::
    conD (3) |          |          |     X    |
             +--------------------------------+
 
-The ``X``'s denote which parts of the Jacobian have non-zero
-values. ``pyOptSparse`` does not determine the sparsity structure of
-the Jacobian automatically, it must be specified by the user during
-calls to ``addCon`` and ``addConGroup``.  By way of example, the code
-that generates the  hypothetical optimization problem is as follows:
+The ``X``'s denote which parts of the Jacobian have non-zero values.
+pyOptSparse does not determine the sparsity structure of the Jacobian automatically,
+it must be specified by the user during calls to :meth:`addCon <pyoptsparse.pyOpt_optimization.Optimization.addCon>` and :meth:`addConGroup <pyoptsparse.pyOpt_optimization.Optimization.addConGroup>`.
+By way of example, the code that generates the  hypothetical optimization problem is as follows:
 
 .. code-block:: python
 
@@ -164,19 +146,21 @@ that generates the  hypothetical optimization problem is as follows:
   optProb.addConGroup('conC', 4, upper=0.0)
   optProb.addConGroup('conD', 3, upper=0.0, wrt=['varC'])
 
-Note that the order of the ``wrt`` (which stands for with-respect-to)
-is not significant. Furthermore, if the ``wrt`` argument is omitted
-altogether, ``pyOptSparse`` assumes that the constraint is dense.
+Note that the order of the ``wrt`` (which stands for with-respect-to) is not significant.
+Furthermore, if the ``wrt`` argument is omitted altogether, pyOptSparse assumes that the constraint is dense.
 
-Using the ``wrt`` keyword allows the user to determine the overall
-sparsity structure of the constraint Jacobian. However, we have
-currently assumed that each of the blocks with an ``X`` in is a dense
-sub-block. ``pyOptSparse`` allows each of the *sub-blocks* to itself
-be sparse. ``pyOptSparse`` requires that this sparsity structure to be
-specified when the constraint is added. This information is supplied
-through the ``jac`` keyword argument. Lets say, that the (conD, varC)
-block of the Jacobian is actually a sparse and linear. By way of
-example, the call instead may be as follows::
+To examine the sparsity pattern, pyOptSparse can generate the ASCII table shown above.
+To do so, use the following call after adding all the design variables, objectives and constraints::
+
+  >>> optProb.printSparsity()
+
+Using the ``wrt`` keyword allows the user to determine the overall sparsity structure of the constraint Jacobian.
+However, we have currently assumed that each of the blocks with an ``X`` in is a dense sub-block.
+pyOptSparse allows each of the *sub-blocks* to itself be sparse.
+pyOptSparse requires this sparsity structure to be specified when the constraint is added.
+This information is supplied through the ``jac`` keyword argument.
+Lets say, that the ``(conD, varC)`` block of the Jacobian is actually a sparse and linear.
+By way of example, the call instead may be as follows:
 
 .. code-block:: python
 
@@ -187,35 +171,50 @@ example, the call instead may be as follows::
 
   optProb.addConGroup('conD', 3, upper=0.0, wrt=['varC'], linear=True, jac={'varC':jac})
 
-We have created a linked list sparse matrix using
-``scipy.sparse``. Any scipy sparse matrix format can be accepted. We
-have then provided this constraint Jacobian using the ``jac=`` keyword
-argument. This argument is a dictionary, and the keys must match the
-design variable sets given in the ``wrt`` to keyword. Essentially what
-we have done is specified the which blocks of the constraint rows are
-non-zero, and provided the sparsity structure of ones that are sparse.
+We have created a linked list sparse matrix using ``scipy.sparse``.
+Any SciPy sparse matrix format can be accepted.
+We have then provided this constraint Jacobian using the ``jac`` keyword argument.
+This argument is a dictionary, and the keys must match the design variable sets given in the ``wrt`` to keyword.
+Essentially what we have done is specified the which blocks of the constraint rows are non-zero,
+and provided the sparsity structure of ones that are sparse.
 
-For linear constraints the values in ``jac`` are meaningful: They must
-be the actual linear constraint Jacobian values (which do not
-change). For non-linear constraints, on the sparsity structure
-(non-zero pattern) is significant. The values themselves will be
-determined by a call the sens() function.
+For linear constraints the values in ``jac`` are meaningful:
+they must be the actual linear constraint Jacobian values (which do not change).
+For non-linear constraints, only the sparsity structure (i.e. which entries are nonzero) is significant.
+The values themselves will be determined by a call to the ``sens()`` function.
 
-Also note, that the ``wrt`` and ``jac`` keyword arguments are only
-supported when user-supplied sensitivity is used. If one used the
-automatic gradient in ``pyOptSparse`` the constraint Jacobian will
-necessarily be dense.
+Also note, that the ``wrt`` and ``jac`` keyword arguments are only supported when user-supplied sensitivity is used.
+If automatic gradients from pyOptSparse are used, the constraint Jacobian will necessarily be dense.
+
+.. note::
+    Currently, only the optimizers SNOPT and IPOPT support sparse Jacobians.
 
 Objectives
 ++++++++++
 
-Each optimization will require at least one objective to be
-added. This is accomplished using a the call::
+Each optimization will require at least one objective to be added.
+This is accomplished using a the call to :meth:`addObj <pyoptsparse.pyOpt_optimization.Optimization.addObj>`::
 
-  optProb.addObj('obj')
+  optProb.addObj('obj_name')
 
-What this does is tell ``pyOptSparse`` that the key ``obj`` in the
-function returns will be taken as the objective. For optimizers that
-can do multi-objective optimization, (NSGA2 for example) multiple
-objectives can be added. Optimizers that can only handle one objective
-enforce that only a single objective is added to the optimization description.
+What this does is tell pyOptSparse that the key ``obj_name`` in the function returns will be taken as the objective.
+For optimizers that can do multi-objective optimization (e.g. NSGA2), multiple objectives can be added.
+Optimizers that can only handle one objective enforce that only a single objective is added to the optimization description.
+
+Optimizer Instantiation
++++++++++++++++++++++++
+There are two ways to instantiate the optimizer object.
+The first, and most explicit approach is to directly import the optimizer class, for example via::
+
+  from pyoptsparse import SLSQP
+  opt = SLSQP(...)
+
+However, in order to easily switch between different optimizers without having to import each class, a convenience function called
+:meth:`OPT <pyoptsparse.pyOpt_optimizer.OPT>` is provided.
+It accepts a string argument in addition to the usual options, and instantiates the optimizer object based on the string::
+
+  from pyoptsparse import OPT
+  opt = OPT("SLSQP", ...)
+
+Note that the name of the optimizer is case-insensitive, so ``slsqp`` can also be used.
+This makes it easy to for example choose the optimizer from the command-line, or more generally select the optimizer using strings without preemptively importing all classes.

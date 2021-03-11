@@ -36,11 +36,11 @@ class CONMIN(Optimizer):
     CONMIN Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, raiseError=True, options={}):
         name = "CONMIN"
         category = "Local Optimizer"
-        defOpts = {
-            "ITMAX": [int, 1e4],  # Maximum Number of Iterations
+        self.defOpts = {
+            "ITMAX": [int, int(1e4)],  # Maximum Number of Iterations
             "DELFUN": [float, 1e-6],  # Objective Relative Tolerance
             "DABFUN": [float, 1e-6],  # Objective Absolute Tolerance
             "ITRM": [int, 5],
@@ -49,17 +49,15 @@ class CONMIN(Optimizer):
             "IOUT": [int, 6],  # Output Unit Number
             "IFILE": [str, "CONMIN.out"],  # Output File Name
         }
-        informs = {}
+        self.informs = {}
         if conmin is None:
-            raise Error(
-                "There was an error importing the compiled \
-                        conmin module"
-            )
+            if raiseError:
+                raise Error("There was an error importing the compiled conmin module")
 
         self.set_options = []
-        Optimizer.__init__(self, name, category, defOpts, informs, *args, **kwargs)
+        super().__init__(name, category, defaultOptions=self.defOpts, informs=self.informs, options=options)
 
-        # CONMIN needs jacobians in dense format
+        # CONMIN needs Jacobians in dense format
         self.jacType = "dense2d"
 
     def __call__(
@@ -112,7 +110,7 @@ class CONMIN(Optimizer):
         storeSens : bool
             Flag sepcifying if sensitivities are to be stored in hist.
             This is necessay for hot-starting only.
-            """
+        """
 
         self.callCounter = 0
         self.storeSens = storeSens
@@ -123,10 +121,10 @@ class CONMIN(Optimizer):
             # least one constraint. So we will add one
             # automatically here:
             self.unconstrained = True
-            optProb.dummyConstraint = False
+            optProb.dummyConstraint = True
 
         # Save the optimization problem and finalize constraint
-        # jacobian, in general can only do on root proc
+        # Jacobian, in general can only do on root proc
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()
@@ -191,7 +189,12 @@ class CONMIN(Optimizer):
             nn3 = max(nn2, ndv)
             nn4 = max(nn2, ndv)
             nn5 = 2 * nn4
-            gg = np.zeros(ncn, np.float)
+
+            if ncn > 0:
+                gg = np.zeros(ncn, np.float)
+            else:
+                gg = np.array([0], np.float)
+
             if self.getOption("IPRINT") >= 0 and self.getOption("IPRINT") <= 4:
                 iprint = self.getOption("IPRINT")
             else:
@@ -257,9 +260,3 @@ class CONMIN(Optimizer):
         sol = self._communicateSolution(sol)
 
         return sol
-
-    def _on_setOption(self, name, value):
-        pass
-
-    def _on_getOption(self, name, value):
-        pass

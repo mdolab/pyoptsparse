@@ -8,3 +8,4 @@ build/*
 *.gz
 *.c
 *.cpp
+env

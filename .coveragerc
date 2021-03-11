@@ -14,7 +14,5 @@ omit =
     */postprocessing/*
     */test/*
     */setup.py
-    pyoptsparse/pyALPSO/alpso_ext.py
-    pyoptsparse/pyNOMAD/pyNOMAD.py
-    pyoptsparse/pyNLPY_AUGLAG/pyNLPY_AUGLAG.py
-    pyoptsparse/pyFSQP/pyFSQP.py
+    */pyALPSO/alpso_ext.py
+    */pyNOMAD/pyNOMAD.py

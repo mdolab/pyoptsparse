@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-"""
-pyOpt_gradient - A class that produce gradients using finite
-difference or complex step.
-"""
 # =============================================================================
 # External Python modules
 # =============================================================================
@@ -13,29 +9,29 @@ from .pyOpt_MPI import MPI
 # Gradient Class
 # =============================================================================
 class Gradient(object):
-    """
-    Gradient class for automatically computing gradients with finite
-    difference or complex step.
-
-    Parameters
-    ----------
-    optProb : Optimization instance
-        This is the complete description of the optimization problem.
-
-    sensType : str
-        'FD' for forward difference, 'CD' for central difference,
-        'FDR' for forward difference with relative step size,
-        'CDR' for central difference with relative step size,
-        and 'CS' for complex step
-
-    sensStep : number
-        Step size to use for differencing
-
-    sensMode : str
-        Flag to compute gradients in parallel.
-        """
-
     def __init__(self, optProb, sensType, sensStep=None, sensMode="", comm=None):
+        """
+        Gradient class for automatically computing gradients with finite
+        difference or complex step.
+
+        Parameters
+        ----------
+        optProb : Optimization instance
+            This is the complete description of the optimization problem.
+
+        sensType : str
+            - ``FD`` for forward difference
+            - ``CD`` for central difference
+            - ``FDR`` for forward difference with relative step size
+            - ``CDR`` for central difference with relative step size
+            - ``CS`` for complex step
+
+        sensStep : float
+            Step size to use for differencing
+
+        sensMode : str
+            Flag to compute gradients in parallel.
+        """
         self.optProb = optProb
         self.sensType = sensType
         if sensStep is None:
@@ -102,7 +98,7 @@ class Gradient(object):
 
         fail : bool
             Flag for failure. It currently always returns False
-            """
+        """
 
         # Since this is *very* dumb loop over all the design
         # variables, it is easier to just loop over the x values as an

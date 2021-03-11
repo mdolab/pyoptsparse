@@ -57,7 +57,13 @@ class TestOptProb(unittest.TestCase):
             dvName = "x{}".format(iDV)
             self.x0[dvName] = x0
             self.optProb.addVarGroup(
-                dvName, n, lower=lower, upper=upper, value=x0, scale=xScale[iDV], offset=offset[iDV],
+                dvName,
+                n,
+                lower=lower,
+                upper=upper,
+                value=x0,
+                scale=xScale[iDV],
+                offset=offset[iDV],
             )
 
         # Constraints
@@ -66,7 +72,11 @@ class TestOptProb(unittest.TestCase):
             lower = np.random.uniform(-5, 2, nc)
             upper = np.random.uniform(5, 6, nc)
             self.optProb.addConGroup(
-                "con_{}".format(iCon), nc, lower=lower, upper=upper, scale=conScale[iCon],
+                "con_{}".format(iCon),
+                nc,
+                lower=lower,
+                upper=upper,
+                scale=conScale[iCon],
             )
 
         # Objective
@@ -86,7 +96,13 @@ class TestOptProb(unittest.TestCase):
         We just test that setDV and getDV work, even with scaling
         """
         self.setup_optProb(
-            nObj=1, nDV=[4, 8], nCon=[2, 3], xScale=[4, 1], objScale=[0.3], conScale=[0.1, 8], offset=[3, 7],
+            nObj=1,
+            nDV=[4, 8],
+            nCon=[2, 3],
+            xScale=[4, 1],
+            objScale=[0.3],
+            conScale=[0.1, 8],
+            offset=[3, 7],
         )
         # test getDV first
         x0 = self.optProb.getDVs()
@@ -102,7 +118,13 @@ class TestOptProb(unittest.TestCase):
         Test that setDV works with a subset of VarGroups
         """
         self.setup_optProb(
-            nObj=1, nDV=[4, 8], nCon=[2, 3], xScale=[4, 1], objScale=[0.3], conScale=[0.1, 8], offset=[3, 7],
+            nObj=1,
+            nDV=[4, 8],
+            nCon=[2, 3],
+            xScale=[4, 1],
+            objScale=[0.3],
+            conScale=[0.1, 8],
+            offset=[3, 7],
         )
         oldDV = self.optProb.getDVs()
         # set values for only one VarGroup

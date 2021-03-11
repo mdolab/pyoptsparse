@@ -1,1 +1,3 @@
 numpydoc
+sphinx_mdolab_theme
+sphinxcontrib-bibtex

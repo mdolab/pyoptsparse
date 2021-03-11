@@ -32,14 +32,14 @@ class ALPSO(Optimizer):
     - pll_type -> STR: ALPSO Parallel Implementation (None, SPM- Static, DPM- Dynamic, POA-Parallel Analysis), *Default* = None
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, raiseError=True, options={}):
 
         from . import alpso
 
         self.alpso = alpso
 
         category = "Global Optimizer"
-        defOpts = {
+        self.defOpts = {
             "SwarmSize": [int, 40],  # Number of Particles (Depends on Problem dimensions)
             "maxOuterIter": [int, 200],  # Maximum Number of Outer Loop Iterations (Major Iterations)
             "maxInnerIter": [int, 6],  # Maximum Number of Inner Loop Iterations (Minor Iterations)
@@ -81,7 +81,7 @@ class ALPSO(Optimizer):
                 str,
                 "ALPSO.out",
             ],  # We could probably remove fileout flag if filename or fileinstance is given
-            "seed": [float, 0],  # Random Number Seed (0 - Auto-Seed based on time clock)
+            "seed": [int, 0],  # Random Number Seed (0 - Auto-Seed based on time clock)
             "HoodSize": [int, 40],  # Number of Neighbours of Each Particle
             "HoodModel": [
                 str,
@@ -92,10 +92,10 @@ class ALPSO(Optimizer):
                 1,
             ],  # Selfless Neighbourhood Model (0 - Include Particle i in NH i, 1 - Don't Include Particle i)
             "Scaling": [int, 1],  # Design Variables Scaling Flag (0 - no scaling, 1 - scaling between [-1, 1])
-            "parallelType": [str, ""],  # Type of parallelization ('' or 'EXT')
+            "parallelType": [str, ["", "EXT"]],  # Type of parallelization ('' or 'EXT')
         }
-        informs = {}
-        Optimizer.__init__(self, "ALPSO", category, defOpts, informs, *args, **kwargs)
+        self.informs = {}
+        super().__init__("ALPSO", category, defaultOptions=self.defOpts, informs=self.informs, options=options)
 
     def __call__(self, optProb, storeHistory=None, **kwargs):
         """
@@ -125,7 +125,7 @@ class ALPSO(Optimizer):
             return fobj, fcon
 
         # Save the optimization problem and finalize constraint
-        # jacobian, in general can only do on root proc
+        # Jacobian, in general can only do on root proc
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()
@@ -171,9 +171,6 @@ class ALPSO(Optimizer):
 
             if opt("fileout") not in [0, 1, 2, 3]:
                 raise Error("Incorrect fileout Setting")
-
-            if opt("seed") == 0:
-                self.setOption("seed", time.time())
 
             # Run ALPSO
             t0 = time.time()
@@ -222,12 +219,6 @@ class ALPSO(Optimizer):
                     self.alpso = alpso_ext
                 except ImportError:
                     raise ImportError("pyALPSO: ALPSO EXT shared library failed to import.")
-
-            else:
-                raise ValueError("parallel_type must be either '' or 'EXT'.")
-
-    def _on_getOption(self, name, value):
-        pass
 
     def _communicateSolution(self, sol):
         if sol is not None:

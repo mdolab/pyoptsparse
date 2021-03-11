@@ -37,14 +37,16 @@ class TerminateComp(object):
         return funcs, fail
 
     def sens(self, xdict, funcs):
-        """f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3
-        """
+        """f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3"""
         x = xdict["x"]
         y = xdict["y"]
-        funcsSens = {}
 
-        funcsSens["obj", "x"] = 2.0 * x - 6.0 + y
-        funcsSens["obj", "y"] = 2.0 * y + 8.0 + x
+        funcsSens = {
+            "obj": {
+                "x": 2.0 * x - 6.0 + y,
+                "y": 2.0 * y + 8.0 + x,
+            }
+        }
 
         if self.sens_count > self.max_sens:
             fail = 2
@@ -88,7 +90,7 @@ class TestUserTerminationStatus(unittest.TestCase):
         self.assertEqual(termcomp.obj_count, 3)
 
         # Exit code for user requested termination.
-        self.assertEqual(sol.optInform["value"][0], 71)
+        self.assertEqual(sol.optInform["value"], 71)
 
     def test_sens(self):
         termcomp = TerminateComp(max_sens=3)
@@ -117,7 +119,7 @@ class TestUserTerminationStatus(unittest.TestCase):
         self.assertEqual(termcomp.sens_count, 4)
 
         # Exit code for user requested termination.
-        self.assertEqual(sol.optInform["value"][0], 71)
+        self.assertEqual(sol.optInform["value"], 71)
 
 
 if __name__ == "__main__":

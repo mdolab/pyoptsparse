@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-"""
-pyOpt_optimizer
-
-Holds the Python Design Optimization Classes (base and inherited).
-"""
 # =============================================================================
 # Imports
 # =============================================================================
@@ -19,6 +14,7 @@ from .pyOpt_optimization import INFINITY
 from .pyOpt_utils import convertToDense, convertToCOO, extractRows, mapToCSC, scaleRows, IDATA
 from collections import OrderedDict
 import datetime
+from baseclasses import BaseSolver
 from .pyOpt_MPI import MPI
 
 eps = np.finfo(np.float64).eps
@@ -26,39 +22,43 @@ eps = np.finfo(np.float64).eps
 # =============================================================================
 # Optimizer Class
 # =============================================================================
-class Optimizer(object):
-    """
-    Base optimizer class
-
-    Parameters
-    ----------
-    name : str
-        Optimizer name
-    category : str
-        Typically local or global
-    defOptions : dictionary
-        A dictionary containing the default options
-    informs : dict
-        Dictionary of the inform codes
+class Optimizer(BaseSolver):
+    def __init__(
+        self,
+        name,
+        category,
+        defaultOptions={},
+        informs={},
+        options={},
+        checkDefaultOptions=True,
+        caseSensitiveOptions=True,
+    ):
         """
+        This is the base optimizer class that all optimizers inherit from.
+        We define common methods here to avoid code duplication.
 
-    def __init__(self, name=None, category=None, defOptions=None, informs=None, **kwargs):
-
-        self.name = name
-        self.category = category
-        self.options = {}
-        self.options["defaults"] = defOptions
-        self.informs = informs
+        Parameters
+        ----------
+        name : str
+            Optimizer name
+        category : str
+            Typically local or global
+        defaultOptions : dictionary
+            A dictionary containing the default options
+        informs : dict
+            Dictionary of the inform codes
+        """
+        super().__init__(
+            name,
+            category,
+            defaultOptions=defaultOptions,
+            options=options,
+            informs=informs,
+            checkDefaultOptions=checkDefaultOptions,
+            caseSensitiveOptions=caseSensitiveOptions,
+        )
         self.callCounter = 0
         self.sens = None
-        # Initialize Options
-        for key in defOptions:
-            self.options[key] = defOptions[key]
-
-        koptions = kwargs.pop("options", {})
-        for key in koptions:
-            self.setOption(key, koptions[key])
-
         self.optProb = None
         # Default options:
         self.appendLinearConstraints = False
@@ -75,12 +75,15 @@ class Optimizer(object):
         self.cache = {"x": None, "fobj": None, "fcon": None, "gobj": None, "gcon": None}
 
         # A second-level cache for optimizers that require callbacks
-        # for each constraint. (eg. PSQP, FSQP, etc)
+        # for each constraint. (eg. PSQP etc)
         self.storedData = {}
         self.storedData["x"] = None
 
-        # Store the jacobian conversion maps
+        # Store the Jacobian conversion maps
         self._jac_map_csr_to_csc = None
+
+        # Initialize metadata
+        self.metadata = {}
 
     def _clearTimings(self):
         """Clear timings and call counters"""
@@ -110,8 +113,10 @@ class Optimizer(object):
                 self.sens = None
             else:
                 raise Error(
-                    "'None' value given for sens. Must be one "
-                    " of 'FD', 'FDR', 'CD', 'CDR', 'CS' or a user supplied function."
+                    (
+                        "'None' value given for sens. "
+                        + "Must be one of 'FD', 'FDR', 'CD', 'CDR', 'CS' or a user supplied function."
+                    )
                 )
         elif hasattr(sens, "__call__"):
             # We have function handle for gradients! Excellent!
@@ -122,8 +127,7 @@ class Optimizer(object):
             self.sens = Gradient(self.optProb, sens.lower(), sensStep, sensMode, self.optProb.comm)
         else:
             raise Error(
-                "Unknown value given for sens. Must be None, 'FD', "
-                "'FDR', 'CD', 'CDR', 'CS' or a python function handle"
+                "Unknown value given for sens. Must be one of [None,'FD','FDR','CD','CDR','CS'] or a python function handle"
             )
 
     def _setHistory(self, storeHistory, hotStart):
@@ -158,10 +162,7 @@ class Optimizer(object):
                 if os.path.exists(hotStart):
                     self.hotStart = History(hotStart, temp=False, flag="r")
                 else:
-                    pyOptSparseWarning(
-                        "Hot start file does not exist. \
-                    Performing a regular start"
-                    )
+                    pyOptSparseWarning("Hot start file does not exist. Performing a regular start")
 
         self.storeHistory = False
         if storeHistory:
@@ -196,7 +197,7 @@ class Optimizer(object):
             This list contains at least one of 'fobj', 'fcon', 'gobj'
             or 'gcon'. This list tells this function which of the
             values is required on return
-            """
+        """
 
         # We are hot starting, we should be able to read the required
         # information out of the hot start file, process it and then
@@ -326,9 +327,10 @@ class Optimizer(object):
                     fail = args[1]
                 elif args is None:
                     raise Error(
-                        "No return values from user supplied "
-                        "objective function. The function must "
-                        'return "funcs" *OR* "funcs, fail"'
+                        (
+                            "No return values from user supplied objective function. "
+                            + "The function must return 'funcs' or 'funcs, fail'"
+                        )
                     )
                 else:
                     funcs = args
@@ -368,9 +370,10 @@ class Optimizer(object):
                     fail = args[1]
                 elif args is None:
                     raise Error(
-                        "No return values from user supplied "
-                        "objective function. The function must "
-                        'return "funcs" *OR* "funcs, fail"'
+                        (
+                            "No return values from user supplied objective function. "
+                            + "The function must return 'funcs' *OR* 'funcs, fail'"
+                        )
                     )
                 else:
                     funcs = args
@@ -421,9 +424,10 @@ class Optimizer(object):
                     fail = args[1]
                 elif args is None:
                     raise Error(
-                        "No return values from user supplied "
-                        "sensitivity function. The function must "
-                        'return "funcsSens" *OR* "funcsSens, fail"'
+                        (
+                            "No return values from user supplied sensitivity function. "
+                            + "The function must return 'funcsSens' or 'funcsSens, fail'"
+                        )
                     )
                 else:
                     funcsSens = args
@@ -475,9 +479,10 @@ class Optimizer(object):
                     fail = args[1]
                 elif args is None:
                     raise Error(
-                        "No return values from user supplied "
-                        "sensitivity function. The function must "
-                        'return "funcsSens" *OR* "funcsSens, fail"'
+                        (
+                            "No return values from user supplied sensitivity function. "
+                            + "The function must 'return 'funcsSens' or 'funcsSens, fail'"
+                        )
                     )
                 else:
                     funcsSens = args
@@ -525,10 +530,11 @@ class Optimizer(object):
 
             # Cycle through constraints adding the bounds
             for key in self.optProb.constraints.keys():
-                lower = self.optProb.constraints[key].lower
-                upper = self.optProb.constraints[key].upper
-                scale = self.optProb.constraints[key].scale
-                conInfo[key] = {"lower": lower, "upper": upper, "scale": scale}
+                if not self.optProb.constraints[key].linear:
+                    lower = self.optProb.constraints[key].lower
+                    upper = self.optProb.constraints[key].upper
+                    scale = self.optProb.constraints[key].scale
+                    conInfo[key] = {"lower": lower, "upper": upper, "scale": scale}
 
             # Cycle through variables and add the bounds
             for dvGroup in self.optProb.variables:
@@ -779,10 +785,6 @@ class Optimizer(object):
         after optimization finishes.
         """
         options = copy.deepcopy(self.options)
-        options.pop("defaults")  # remove the default list
-        # we retrieve only the second item which is the actual value
-        for key, val in options.items():
-            options[key] = val[1]
 
         from .__init__ import __version__  # importing the pyoptsparse version
 
@@ -801,7 +803,7 @@ class Optimizer(object):
         """
         Set Optimizer Option Value (Optimizer Specific Routine)
         """
-        raise Error("This optimizer has not implemented _on_setOption")
+        pass
 
     def setOption(self, name, value=None):
         """
@@ -814,19 +816,9 @@ class Optimizer(object):
             Name of the option to set
         value : varies
             Variable value to set.
-            """
+        """
 
-        if name in self.options["defaults"]:
-            if type(value) == self.options["defaults"][name][0]:
-                self.options[name] = [type(value), value]
-            else:
-                raise Error(
-                    "Value type for option %s was incorrect. It was "
-                    "expecting type '%s' by received type '%s'" % (name, self.options["defaults"][name][0], type(value))
-                )
-        else:
-            raise Error("Received an unknown option: %s" % repr(name))
-
+        super().setOption(name, value)
         # Now call the optimizer specific routine
         self._on_setOption(name, value)
 
@@ -834,7 +826,7 @@ class Optimizer(object):
         """
         Routine to be implemented by optimizer
         """
-        raise Error("This optimizer has not implemented _on_getOption")
+        pass
 
     def getOption(self, name):
         """
@@ -849,21 +841,18 @@ class Optimizer(object):
         -------
         value : varies
             value of option for 'name'
-            """
+        """
 
-        if name in self.options["defaults"]:
-            return self.options[name][1]
-        else:
-            raise Error("Received an unknown option: %s." % repr(name))
-
-        # Now call the optimizer specific routine
+        # Call the optimizer specific routine
         self._on_getOption(name)
+
+        return super().getOption(name)
 
     def _on_getInform(self, info):
         """
         Routine to be implemented by optimizer
         """
-        raise Error("This optimizer has not implemented _on_getInform")
+        return self.informs[info]
 
     def getInform(self, infocode=None):
         """
@@ -873,7 +862,7 @@ class Optimizer(object):
         ----------
         infocode : int
             Integer information code
-            """
+        """
 
         if infocode is None:
             return self.informs
@@ -905,18 +894,16 @@ def OPT(optName, *args, **kwargs):
     -------
     opt : pyOpt_optimizer inherited optimizer
        The desired optimizer
-       """
+    """
 
     optName = optName.lower()
-    optList = ["snopt", "ipopt", "slsqp", "fsqp", "nlpqlp", "conmin", "nsga2", "nlpy_auglag", "psqp", "alpso", "paropt"]
+    optList = ["snopt", "ipopt", "slsqp", "nlpqlp", "conmin", "nsga2", "psqp", "alpso", "paropt"]
     if optName == "snopt":
         from .pySNOPT.pySNOPT import SNOPT as opt
     elif optName == "ipopt":
         from .pyIPOPT.pyIPOPT import IPOPT as opt
     elif optName == "slsqp":
         from .pySLSQP.pySLSQP import SLSQP as opt
-    elif optName == "fsqp":
-        from .pyFSQP.pyFSQP import FSQP as opt
     elif optName == "nlpqlp":
         from .pyNLPQLP.pyNLPQLP import NLPQLP as opt
     elif optName == "psqp":
@@ -925,8 +912,6 @@ def OPT(optName, *args, **kwargs):
         from .pyCONMIN.pyCONMIN import CONMIN as opt
     elif optName == "nsga2":
         from .pyNSGA2.pyNSGA2 import NSGA2 as opt
-    elif optName == "nlpy_auglag":
-        from .pyNLPY_AUGLAG.pyNLPY_AUGLAG import NLPY_AUGLAG as opt
     elif optName == "alpso":
         from .pyALPSO.pyALPSO import ALPSO as opt
     # elif optName == 'nomad':

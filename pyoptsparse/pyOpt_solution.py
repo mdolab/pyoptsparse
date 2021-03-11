@@ -1,35 +1,26 @@
 #!/usr/bin/env python
-"""
-pyOpt_solution
-
-This class is used to describe the solution of an optimization
-problem. This class is inherits from Optimization which enables a
-solution to be used as an input to a subsequent optimization problem.
-"""
 import copy
 from .pyOpt_optimization import Optimization
 
 
 class Solution(Optimization):
-    """
-    Solution Class Initialization
-
-    Parameters
-    ----------
-    optProb : Optimization problem class
-        Optimization problem used to create solution
-
-    optTime : float
-        Time required for the optimziation
-
-    optEvals : int
-        The number of function evalution for the solution
-
-    optInform : int
-        The inform code from the optimization.
-        """
-
     def __init__(self, optProb, optTime, optInform):
+        """
+        This class is used to describe the solution of an optimization
+        problem. This class inherits from Optimization which enables a
+        solution to be used as an input to a subsequent optimization problem.
+
+        Parameters
+        ----------
+        optProb : Optimization problem class
+            Optimization problem used to create solution
+
+        optTime : float
+            Time required for the optimization
+
+        optInform : int
+            The inform code from the optimization.
+        """
 
         Optimization.__init__(self, optProb.name, None)
 
@@ -44,7 +35,6 @@ class Solution(Optimization):
         """
         Print Structured Solution
         """
-
         text0 = Optimization.__str__(self)
         text1 = ""
         lines = text0.split("\n")
