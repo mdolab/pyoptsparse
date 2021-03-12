@@ -1,22 +1,30 @@
 # --- Python 3.8 ---
 """
-OptView - A GUI designed to assist viewing optimization problems with
-pyOptSparse.  The app uses a MVC architecure to modularly handle
-data management, functional control, and visualization.
+Controller for the main view.  Interacts with the data models and
+handles all user input and response functionality.  Controller can
+only update the view based on user input.  If a view state is changed
+which requires a messagebox view, that view is created by the controller
+but managed seperately.
 """
 
 # ==============================================================================
 # Standard Python modules
 # ==============================================================================
-import sys
 
 # ==============================================================================
 # External Python modules
 # ==============================================================================
-from PyQt5 import QtWidgets
 
 # ==============================================================================
 # Extension modules
 # ==============================================================================
-from views.combo_box import ExtendedComboBox
-from views.mpl_canvas import MplCanvas
+
+
+class MainController:
+    """
+    Contains functionality for user input and software
+    response for the main view.
+    """
+
+    def __init__(self, view):
+        self.view = view
