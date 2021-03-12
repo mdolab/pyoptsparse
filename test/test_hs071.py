@@ -46,7 +46,7 @@ class TestHS71(unittest.TestCase):
         check_solution=True,
     ):
         # Optimization Object
-        optProb = Optimization("HS071 Constraint Problem", self.objfunc)
+        optProb = Optimization("HS071 Constraint Problem", self.objfunc, sens=self.sens)
 
         # Design Variables
         x0 = [1.0, 5.0, 5.0, 1.0]
@@ -71,7 +71,7 @@ class TestHS71(unittest.TestCase):
             outDV = optProb.getDVs()
             assert_allclose(setDV["xvars"], outDV["xvars"])
 
-        sol = opt(optProb, sens=self.sens, storeHistory=storeHistory)
+        sol = opt(optProb, storeHistory=storeHistory)
 
         # Check Solution
         if check_solution:

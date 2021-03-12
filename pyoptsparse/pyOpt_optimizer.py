@@ -98,6 +98,11 @@ class Optimizer(BaseSolver):
         Common function to setup sens function
         """
 
+        # If the sens parameter is None and the sens parameter in the
+        # optProb is not None, use the optProb setting
+        if sens is None and self.optProb.sens is not None:
+            sens = self.optProb.sens
+
         # If we have SNOPT set derivative level to 3...it will be
         # reset if necessary
         if self.name in ["SNOPT"]:
