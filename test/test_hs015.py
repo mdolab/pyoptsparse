@@ -103,10 +103,10 @@ class TestHS15(unittest.TestCase):
         assert_allclose(sol_xvars, dv["xvars"], atol=tol, rtol=tol)
         # we check either optimum via try/except
         try:
-            assert_allclose(sol.objectives["obj"].value, self.fStar1, atol=tol, rtol=tol)
+            assert_allclose(sol.fStar, self.fStar1, atol=tol, rtol=tol)
             assert_allclose(dv["xvars"], self.xStar1, atol=tol, rtol=tol)
         except AssertionError:
-            assert_allclose(sol.objectives["obj"].value, self.fStar2, atol=tol, rtol=tol)
+            assert_allclose(sol.fStar, self.fStar2, atol=tol, rtol=tol)
             assert_allclose(dv["xvars"], self.xStar2, atol=tol, rtol=tol)
 
     def check_hist_file(self, optimizer, tol):
