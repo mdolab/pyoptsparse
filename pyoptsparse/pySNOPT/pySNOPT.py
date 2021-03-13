@@ -16,6 +16,7 @@ except ImportError:
 import os
 import time
 import datetime
+import re
 
 # =============================================================================
 # External Python modules
@@ -150,6 +151,17 @@ class SNOPT(Optimizer):
             if raiseError:
                 raise Error("There was an error importing the compiled snopt module")
 
+        # extract SNOPT version
+        version_str = snopt.sntitle().decode("utf-8")
+        # The version_str is going to look like
+        # S N O P T  7.7.5    (Oct 2020)
+        # we search between "S N O P T" and "("
+        res = re.search("S N O P T(.*)\(", version_str)
+        if res is not None:
+            version = res.group(1).strip()
+        else:
+            version = None
+
         super().__init__(
             name,
             category,
@@ -157,6 +169,7 @@ class SNOPT(Optimizer):
             informs=self.informs,
             options=options,
             checkDefaultOptions=False,
+            version=version,
         )
 
         # SNOPT need Jacobians in csc format
