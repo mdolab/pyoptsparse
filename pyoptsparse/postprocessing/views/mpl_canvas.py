@@ -19,7 +19,7 @@ from PyQt5 import QtWidgets
 # Extension modules
 # ==============================================================================
 
-# --- Set matplotlib package settings ---
+# --- Set matplotlib backend settings to use Qt5 ---
 matplotlib.use("Qt5Agg")
 
 
@@ -50,6 +50,7 @@ class MplCanvas(FigureCanvasQTAgg):
 
         FigureCanvasQTAgg.setSizePolicy(self, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         FigureCanvasQTAgg.updateGeometry(self)
+
         self.plot()
 
     def plot(self, x_data=[], y_data=[]):

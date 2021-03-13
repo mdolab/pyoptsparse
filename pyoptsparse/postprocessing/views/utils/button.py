@@ -1,10 +1,7 @@
 # --- Python 3.8 ---
 """
-Controller for the main view.  Interacts with the data models and
-handles all user input and response functionality.  Controller can
-only update the view based on user input.  If a view state is changed
-which requires a messagebox view, that view is created by the controller
-but managed seperately.
+Inherits the PyQt5 push button class and implements a custom button
+format.
 """
 
 # ==============================================================================
@@ -14,18 +11,15 @@ but managed seperately.
 # ==============================================================================
 # External Python modules
 # ==============================================================================
+from PyQt5.QtWidgets import QPushButton
 
 # ==============================================================================
 # Extension modules
 # ==============================================================================
 
 
-class MainController:
-    """
-    Contains functionality for user input and software
-    response for the main view.
-    """
-
-    def __init__(self, view):
-        self.view = view
-        self.plot_canvas = None
+class Button(QPushButton):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.resize(150, 30)
+        # self.setStyleSheet("background-color: Grey; color: white;")
