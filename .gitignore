@@ -9,3 +9,4 @@ build/*
 *.c
 *.cpp
 env
+\.vscode
