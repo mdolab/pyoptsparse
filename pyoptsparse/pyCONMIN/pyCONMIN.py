@@ -59,14 +59,14 @@ class CONMIN(Optimizer):
     @staticmethod
     def _getDefaultOptions():
         defOpts = {
-            "ITMAX": [int, int(1e4)],  # Maximum Number of Iterations
-            "DELFUN": [float, 1e-6],  # Objective Relative Tolerance
-            "DABFUN": [float, 1e-6],  # Objective Absolute Tolerance
+            "ITMAX": [int, int(1e4)],
+            "DELFUN": [float, 1e-6],
+            "DABFUN": [float, 1e-6],
             "ITRM": [int, 5],
             "NFEASCT": [int, 20],
-            "IPRINT": [int, 4],  # Print Control (0 - None, 1 - Final, 2,3,4 - Debug)
-            "IOUT": [int, 6],  # Output Unit Number
-            "IFILE": [str, "CONMIN.out"],  # Output File Name
+            "IPRINT": [int, 4],
+            "IOUT": [int, 6],
+            "IFILE": [str, "CONMIN.out"],
         }
         return defOpts
 
