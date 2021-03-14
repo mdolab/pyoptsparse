@@ -1,0 +1,31 @@
+accuracy:
+  desc: Convergence accuracy
+accuracyQP:
+  desc: Convergence accuracy for QP
+stepMin:
+  desc: Minimum step length
+maxFun:
+  desc: Maximum Number of Function Calls During Line Search
+maxIt:
+  desc: Maximum Number of Iterations
+maxNM:
+  desc: Maximum stack size for non-monotone line search
+rho:
+  desc: Factor scaling identify for IFAIL=2
+iPrint:
+  desc: Output Level
+  0: None
+  1: Final
+  2: Major
+  3: Major/Minor
+  4: Full
+mode:
+  desc: Mode (0 - Normal Execution, 1 to 18 - See Manual)
+iOut:
+  desc: Output Unit Number
+lMerit:
+  desc: Merit Function Type (True - L2 Augmented Penalty, False - L1 Penalty)
+lQl:
+  desc: QP Subproblem Solver (True - Quasi-Newton, False - Cholesky)
+iFile:
+  desc: Output File Name
