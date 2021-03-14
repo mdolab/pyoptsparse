@@ -45,15 +45,9 @@ class IPOPT(Optimizer):
 
         name = "IPOPT"
         category = "Local Optimizer"
+        defOpts = self._getDefaultOptions()
 
-        self.defOpts = {
-            "print_level": [int, 0],
-            "output_file": [str, "IPOPT.out"],
-            "option_file_name": [str, "IPOPT_options.opt"],
-            "linear_solver": [str, "mumps"],
-        }
-
-        self.informs = {
+        informs = {
             0: "Solve Succeeded",
             1: "Solved To Acceptable Level",
             2: "Infeasible Problem Detected",
@@ -82,14 +76,24 @@ class IPOPT(Optimizer):
         super().__init__(
             name,
             category,
-            defaultOptions=self.defOpts,
-            informs=self.informs,
+            defaultOptions=defOpts,
+            informs=informs,
             options=options,
             checkDefaultOptions=False,
         )
 
         # IPOPT needs Jacobians in coo format
         self.jacType = "coo"
+
+    @staticmethod
+    def _getDefaultOptions():
+        defOpts = {
+            "print_level": [int, 0],
+            "output_file": [str, "IPOPT.out"],
+            "option_file_name": [str, "IPOPT_options.opt"],
+            "linear_solver": [str, "mumps"],
+        }
+        return defOpts
 
     def __call__(
         self, optProb, sens=None, sensStep=None, sensMode=None, storeHistory=None, hotStart=None, storeSens=True
