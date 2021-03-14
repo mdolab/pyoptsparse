@@ -1,0 +1,70 @@
+SwarmSize:
+  desc: Number of Particles (Depends on Problem dimensions)
+maxOuterIter:
+  desc: Maximum Number of Outer Loop Iterations (Major Iterations)
+maxInnerIter:
+  desc: Maximum Number of Inner Loop Iterations (Minor Iterations)
+minInnerIter:
+  desc: Minimum Number of Inner Loop Iterations (Dynamic Inner Iterations)
+dynInnerIter:
+  desc: Dynamic Number of Inner Iterations Flag
+stopCriteria:
+  desc: Stopping Criteria Flag (0 - maxIters, 1 - convergence)
+stopIters:
+  desc: Consecutive Number of Iterations for which the Stopping Criteria must be Satisfied
+etol:
+  desc: Absolute Tolerance for Equality constraints
+itol:
+  desc: Absolute Tolerance for Inequality constraints
+rtol:
+  desc: Relative Tolerance for Lagrange Multipliers
+atol:
+  desc: Absolute Tolerance for Lagrange Function
+dtol:
+  desc: Relative Tolerance in Distance of All Particles to Terminate (GCPSO)
+printOuterIters:
+  desc: Number of Iterations Before Print Outer Loop Information
+printInnerIters:
+  desc: Number of Iterations Before Print Inner Loop Information
+rinit:
+  desc: Initial Penalty Factor
+xinit:
+  desc: Initial Position Flag (0 - no position, 1 - position given)
+vinit:
+  desc: Initial Velocity of Particles in Normalized [-1, 1] Design Space
+vmax:
+  desc: Maximum Velocity of Particles in Normalized [-1, 1] Design Space
+c1:
+  desc: Cognitive Parameter
+c2:
+  desc: Social Parameter
+w1:
+  desc: Initial Inertia Weight
+w2:
+  desc: Final Inertia Weight
+ns:
+  desc: Number of Consecutive Successes in Finding New Best Position of Best Particle Before Search Radius will be Increased (GCPSO)
+nf:
+  desc: Number of Consecutive Failures in Finding New Best Position of Best Particle Before Search Radius will be Increased (GCPSO)
+dt:
+  desc: Time step
+vcrazy:
+  desc: Craziness Velocity (Added to Particle Velocity After Updating the Penalty Factors and Langangian Multipliers)
+fileout:
+  desc: Flag to Turn On Output to filename
+filename:
+  desc: We could probably remove fileout flag if filename or fileinstance is given
+seed:
+  desc: Random Number Seed (0 - Auto-Seed based on time clock)
+HoodSize:
+  desc: Number of Neighbours of Each Particle
+HoodModel:
+  desc: Neighbourhood Model (dl/slring - Double/Single Link Ring, wheel - Wheel, Spatial - based on spatial distance, sfrac - Spatial Fraction)
+HoodSelf:
+  desc: Selfless Neighbourhood Model (0 - Include Particle i in NH i, 1 - Don't Include Particle i)
+Scaling:
+  desc: Design Variables Scaling Flag (0 - no scaling, 1 - scaling between [-1, 1])
+parallelType:
+  desc: Type of parallelization
+  null: No parallel function evaluations
+  EXT: Use parallel function evaluations
