@@ -40,6 +40,17 @@ class NLPQLP(Optimizer):
         name = "NLPQLP"
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
+        informs = self._getInforms()
+        if nlpqlp is None:
+            if raiseError:
+                raise Error("There was an error importing the compiled nlpqlp module")
+
+        super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
+        # NLPQLP needs Jacobians in dense format
+        self.jacType = "dense2d"
+
+    @staticmethod
+    def _getInforms():
         informs = {
             -2: (
                 "Compute gradient values w.r.t. the variables stored in"
@@ -51,9 +62,9 @@ class NLPQLP(Optimizer):
                 + "the variables found in the first L columns of X, and store them in F and G."
             ),
             0: "The optimality conditions are satisfied.",
-            1: " The algorithm has been stopped after MAXIT iterations.",
-            2: " The algorithm computed an uphill search direction.",
-            3: " Underflow occurred when determining a new approximation matrix for the Hessian of the Lagrangian.",
+            1: "The algorithm has been stopped after MAXIT iterations.",
+            2: "The algorithm computed an uphill search direction.",
+            3: "Underflow occurred when determining a new approximation matrix for the Hessian of the Lagrangian.",
             4: "The line search could not be terminated successfully.",
             5: "Length of a working array is too short. More detailed error information is obtained with IPRINT>0",
             6: "There are false dimensions, for example M>MMAX, N>=NMAX, or MNN2<>M+N+N+2.",
@@ -68,13 +79,7 @@ class NLPQLP(Optimizer):
                 + " where IFQL denotes the index of an inconsistent constraint."
             ),
         }
-        if nlpqlp is None:
-            if raiseError:
-                raise Error("There was an error importing the compiled nlpqlp module")
-
-        super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
-        # NLPQLP needs Jacobians in dense format
-        self.jacType = "dense2d"
+        return informs
 
     @staticmethod
     def _getDefaultOptions():

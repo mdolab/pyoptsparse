@@ -9,11 +9,6 @@ Options
 .. optionstable:: pyoptsparse.pyALPSO.pyALPSO.ALPSO
    :filename: optimizers/ALPSO_options.yaml
 
-Informs
--------
-.. .. optionstable:: pyoptsparse.pyALPSO.pyALPSO.ALPSO
-   :type: informs
-
 API
 ---
 .. currentmodule:: pyoptsparse.pyALPSO.pyALPSO

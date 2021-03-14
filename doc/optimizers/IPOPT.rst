@@ -88,7 +88,7 @@ All other options take the default value with IPOPT unless specified by the user
 
 Informs
 -------
-.. .. optionstable:: pyoptsparse.pyIPOPT.pyIPOPT.IPOPT
+.. optionstable:: pyoptsparse.pyIPOPT.pyIPOPT.IPOPT
    :type: informs
 
 API

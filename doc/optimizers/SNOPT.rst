@@ -34,7 +34,7 @@ The following are a list of
 
 Informs
 -------
-.. .. optionstable:: pyoptsparse.pySNOPT.pySNOPT.SNOPT
+.. optionstable:: pyoptsparse.pySNOPT.pySNOPT.SNOPT
    :type: informs
 
 API

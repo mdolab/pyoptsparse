@@ -20,11 +20,6 @@ Options
    :filename: optimizers/NSGA2_options.yaml
 
 
-Informs
--------
-.. .. optionstable:: pyoptsparse.pyNSGA2.pyNSGA2.NSGA2
-   :type: informs
-
 API
 ---
 .. currentmodule:: pyoptsparse.pyNSGA2.pyNSGA2

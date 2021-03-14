@@ -18,7 +18,7 @@ Options
 
 Informs
 -------
-.. .. optionstable:: pyoptsparse.pySLSQP.pySLSQP.SLSQP
+.. optionstable:: pyoptsparse.pySLSQP.pySLSQP.SLSQP
    :type: informs
 
 API

@@ -23,7 +23,7 @@ Options
 
 Informs
 -------
-.. .. optionstable:: pyoptsparse.pyNLPQLP.pyNLPQLP.NLPQLP
+.. optionstable:: pyoptsparse.pyNLPQLP.pyNLPQLP.NLPQLP
    :type: informs
 
 API

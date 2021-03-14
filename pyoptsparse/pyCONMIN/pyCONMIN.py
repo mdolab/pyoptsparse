@@ -40,7 +40,7 @@ class CONMIN(Optimizer):
         name = "CONMIN"
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
-        informs = {}
+        informs = self._getInforms()
         if conmin is None:
             if raiseError:
                 raise Error("There was an error importing the compiled conmin module")
@@ -50,6 +50,11 @@ class CONMIN(Optimizer):
 
         # CONMIN needs Jacobians in dense format
         self.jacType = "dense2d"
+
+    @staticmethod
+    def _getInforms():
+        informs = {}
+        return informs
 
     @staticmethod
     def _getDefaultOptions():

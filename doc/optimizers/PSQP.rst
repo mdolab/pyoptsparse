@@ -13,7 +13,7 @@ Options
 
 Informs
 -------
-.. .. optionstable:: pyoptsparse.pyPSQP.pyPSQP.PSQP
+.. optionstable:: pyoptsparse.pyPSQP.pyPSQP.PSQP
    :type: informs
 
 API

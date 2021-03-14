@@ -46,7 +46,26 @@ class IPOPT(Optimizer):
         name = "IPOPT"
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
+        informs = self._getInforms()
 
+        if pyipoptcore is None:
+            if raiseError:
+                raise Error("There was an error importing the compiled IPOPT module")
+
+        super().__init__(
+            name,
+            category,
+            defaultOptions=defOpts,
+            informs=informs,
+            options=options,
+            checkDefaultOptions=False,
+        )
+
+        # IPOPT needs Jacobians in coo format
+        self.jacType = "coo"
+
+    @staticmethod
+    def _getInforms():
         informs = {
             0: "Solve Succeeded",
             1: "Solved To Acceptable Level",
@@ -68,22 +87,7 @@ class IPOPT(Optimizer):
             -102: "Insufficient Memory",
             -199: "Internal Error",
         }
-
-        if pyipoptcore is None:
-            if raiseError:
-                raise Error("There was an error importing the compiled IPOPT module")
-
-        super().__init__(
-            name,
-            category,
-            defaultOptions=defOpts,
-            informs=informs,
-            options=options,
-            checkDefaultOptions=False,
-        )
-
-        # IPOPT needs Jacobians in coo format
-        self.jacType = "coo"
+        return informs
 
     @staticmethod
     def _getDefaultOptions():

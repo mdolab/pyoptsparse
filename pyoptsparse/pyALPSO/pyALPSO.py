@@ -40,8 +40,13 @@ class ALPSO(Optimizer):
 
         category = "Global Optimizer"
         defOpts = self._getDefaultOptions()
-        informs = {}
+        informs = self._getInforms()
         super().__init__("ALPSO", category, defaultOptions=defOpts, informs=informs, options=options)
+
+    @staticmethod
+    def _getInforms():
+        informs = {}
+        return informs
 
     @staticmethod
     def _getDefaultOptions():

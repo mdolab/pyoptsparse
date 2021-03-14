@@ -39,12 +39,17 @@ class NSGA2(Optimizer):
         name = "NSGA-II"
         category = "Global Optimizer"
         defOpts = self._getDefaultOptions()
-        informs = {}
+        informs = self._getInforms()
         super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
 
         if nsga2 is None:
             if raiseError:
                 raise Error("There was an error importing the compiled nsga2 module")
+
+    @staticmethod
+    def _getInforms():
+        informs = {}
+        return informs
 
     @staticmethod
     def _getDefaultOptions():

@@ -9,10 +9,6 @@ Options
 .. optionstable:: pyoptsparse.pyCONMIN.pyCONMIN.CONMIN
    :filename: optimizers/CONMIN_options.yaml
 
-Informs
--------
-.. .. optionstable:: pyoptsparse.pyCONMIN.pyCONMIN.CONMIN
-   :type: informs
 
 API
 ---
