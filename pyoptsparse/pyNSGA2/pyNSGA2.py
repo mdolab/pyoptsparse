@@ -38,7 +38,17 @@ class NSGA2(Optimizer):
 
         name = "NSGA-II"
         category = "Global Optimizer"
-        self.defOpts = {
+        defOpts = self._getDefaultOptions()
+        informs = {}
+        super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
+
+        if nsga2 is None:
+            if raiseError:
+                raise Error("There was an error importing the compiled nsga2 module")
+
+    @staticmethod
+    def _getDefaultOptions():
+        defOpts = {
             "PopSize": [int, 100],
             "maxGen": [int, 1000],
             "pCross_real": [float, 0.6],
@@ -51,12 +61,7 @@ class NSGA2(Optimizer):
             "seed": [int, 0],  # Random Number Seed (0 - Auto-Seed based on time clock)
             "xinit": [int, 0],  # Use Initial Solution Flag (0 - random population, 1 - use given solution)
         }
-        self.informs = {}
-        super().__init__(name, category, defaultOptions=self.defOpts, informs=self.informs, options=options)
-
-        if nsga2 is None:
-            if raiseError:
-                raise Error("There was an error importing the compiled nsga2 module")
+        return defOpts
 
     def __call__(self, optProb, storeHistory=None, hotStart=None, **kwargs):
         """
