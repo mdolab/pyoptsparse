@@ -21,55 +21,94 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 # ==============================================================================
 from views.utils.combo_box import ExtendedComboBox
 from views.utils.button import Button
-from views.mpl_canvas import MplCanvas
+from views.plot_view import PlotView
 from controllers.main_controller import MainController
 
+QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
-class MainView(QtWidgets.QMainWindow):
+
+class MainView(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.left = 10
-        self.top = 10
-        self.width = 1000
-        self.height = 750
-        self.title = "OptView"
-        self.layout = QtWidgets.QGridLayout()
         self._controller = MainController(self)
         self._initUI()
 
     def _initUI(self):
-        # --- Set the window title and geometry ---
-        self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
-        # self.setStyleSheet("background-color: white; foreground-color: ;white")
+        self._center()  # centers the application in the middle of the screen
+        self.setWindowTitle("OptView")
 
-        # --- Add plot to the main view ---
-        self._controller.plot_canvas = sc = MplCanvas(self, width=10, height=5, dpi=100)
+        # --- Create top level layout ---
+        layout = QtWidgets.QVBoxLayout()
 
-        # --- Add matplotlib toolbar to the top of the view ---
-        toolbar = NavigationToolbar(sc, self)
-        toolbar.setMovable(False)
-        self.addToolBar(QtCore.Qt.TopToolBarArea, toolbar)
+        # --- Create plot view and add to layout ---
+        plot = PlotView(self)
+        layout.addWidget(plot)
 
+        # --- Create sublayout underneath the plot for buttons, forms, and options ---
+        sub_layout = QtWidgets.QHBoxLayout()
+        layout.addLayout(sub_layout)
+
+        # --- Create sublayout for right hand side buttons ---
+        button_layout = QtWidgets.QVBoxLayout()
+        sub_layout.addLayout(button_layout)
+
+        # --- Create layout for x-variables ---
+        x_layout = QtWidgets.QVBoxLayout()
+        sub_layout.addLayout(x_layout)
+
+        # --- Create layout for y-variables ---
+        y_layout = QtWidgets.QVBoxLayout()
+        sub_layout.addLayout(y_layout)
+
+        # --- Create layout for options ---
+        opt_layout = QtWidgets.QVBoxLayout()
+        sub_layout.addLayout(opt_layout)
+
+        # ==============================================================================
+        # Button Layout - Left hand column of Sub Layout
+        # ==============================================================================
         # --- Add "Add Files" button to the main view ---
         add_file_btn = Button("Add Files", self)
         add_file_btn.setToolTip("Add files to current application")
-        self.layout.addWidget(add_file_btn, 4, 0)
+        button_layout.addWidget(add_file_btn)
 
-        # # --- Add x-vars combobox ---
-        # x_cbox = ExtendedComboBox(self)
-        # x_cbox.setToolTip("Type to search for x-variables")
-        # x_cbox.resize(250, 30)
-        # x_cbox.move(col2, row1)
+        # ==============================================================================
+        # X Variable Layout - Left Center column of Sub Layout
+        # ==============================================================================
+        # --- Add x-vars combobox ---
+        x_cbox = ExtendedComboBox(self)
+        x_cbox.setToolTip("Type to search for x-variables")
+        x_cbox.resize(250, 30)
+        x_layout.addWidget(x_cbox)
 
-        # # --- Add x-vars combobox ---
-        # y_cbox = ExtendedComboBox(self)
-        # y_cbox.setToolTip("Type to search for y-variables")
-        # y_cbox.resize(250, 30)
-        # y_cbox.move(col3, row1)
+        # ==============================================================================
+        # Y Variable Layout - Right Center column of Sub Layout
+        # ==============================================================================
+        # --- Add y-vars combobox ---
+        y_cbox = ExtendedComboBox(self)
+        y_cbox.setToolTip("Type to search for y-variables")
+        y_cbox.resize(250, 30)
+        y_layout.addWidget(y_cbox)
+
+        # ==============================================================================
+        # Options Layout - Right hand column of Sub Layout
+        # ==============================================================================
+        # --- Add options checkboxes ---
+        stack_plot_opt = QtWidgets.QCheckBox("Stack plots")
+        opt_layout.addWidget(stack_plot_opt)
+        opt_layout.setAlignment(stack_plot_opt, QtCore.Qt.AlignCenter)
+
+        # --- Set the main layout ---
+        self.setLayout(layout)
 
         # --- Show the view ---
         self.show()
+
+    def _center(self):
+        qr = self.frameGeometry()
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
 
 
 if __name__ == "__main__":
