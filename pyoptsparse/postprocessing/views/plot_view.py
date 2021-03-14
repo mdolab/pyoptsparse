@@ -11,7 +11,7 @@ View class for the matplotlib plotting canvas
 # External Python modules
 # ==============================================================================
 import matplotlib
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 from PyQt5 import QtWidgets
 
@@ -45,31 +45,29 @@ class MplCanvas(FigureCanvasQTAgg):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
         super(MplCanvas, self).__init__(fig)
-
-        self.setParent(parent)
-
         FigureCanvasQTAgg.setSizePolicy(self, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         FigureCanvasQTAgg.updateGeometry(self)
+        self.setParent(parent)
 
-        self.plot()
 
-    def plot(self, x_data=[], y_data=[]):
-        """
-        Plot function for updating the Canvas
+class PlotView(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super(PlotView, self).__init__(parent)
 
-        Parameters
-        ----------
-        x_data : list, optional
-            List of x data to be plotted, by default []
-        y_data : list, optional
-            List of y data to be plotted, by default []
-        """
+        # Create three "plot" QPushButton widgets
 
-        self.axes.plot(x_data, y_data)
-        self.draw()
+        # Create a maptlotlib FigureCanvas object,
+        # which defines a single set of axes as its axes attribute
+        self.canvas = MplCanvas(self, width=10, height=5, dpi=100)
 
-    def clear(self):
-        """Clears the matplotlib canvas"""
+        # Create toolbar for the figure:
+        # * First argument: the canvas that the toolbar must control
+        # * Second argument: the toolbar's parent (self, the PlotterWidget)
+        toolbar = NavigationToolbar(self.canvas, self)
 
-        self.axes.cla()
-        self.draw()
+        # Define and apply widget layout
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(toolbar)
+        layout.addWidget(self.canvas)
+        self.setLayout(layout)
