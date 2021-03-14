@@ -1,0 +1,10 @@
+ACC: 
+  desc: Convergence Accurancy
+MAXIT: 
+  desc: Maximum Iterations
+IPRINT: 
+  desc: Output Level (<0 - None, 0 - Screen, 1 - File)
+IOUT: 
+  desc: Output Unit Number
+IFILE: 
+  desc: Output File Name

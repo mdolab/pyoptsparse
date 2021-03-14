@@ -39,15 +39,32 @@ class SLSQP(Optimizer):
     def __init__(self, raiseError=True, options={}):
         name = "SLSQP"
         category = "Local Optimizer"
-        self.defOpts = {
-            # SLSQP Options
-            "ACC": [float, 1e-6],  # Convergence Accurancy
-            "MAXIT": [int, 500],  # Maximum Iterations
-            "IPRINT": [int, 1],  # Output Level (<0 - None, 0 - Screen, 1 - File)
-            "IOUT": [int, 60],  # Output Unit Number
-            "IFILE": [str, "SLSQP.out"],  # Output File Name
+        defOpts = self._getDefaultOptions()
+        informs = self._getInforms()
+        if slsqp is None:
+            if raiseError:
+                raise Error("There was an error importing the compiled slsqp module")
+
+        self.set_options = []
+        super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
+
+        # SLSQP needs Jacobians in dense format
+        self.jacType = "dense2d"
+
+    @staticmethod
+    def _getDefaultOptions():
+        defOpts = {
+            "ACC": [float, 1e-6],
+            "MAXIT": [int, 500],
+            "IPRINT": [int, 1],
+            "IOUT": [int, 60],
+            "IFILE": [str, "SLSQP.out"],
         }
-        self.informs = {
+        return defOpts
+
+    @staticmethod
+    def _getInforms():
+        informs = {
             -1: "Gradient evaluation required (g & a)",
             0: "Optimization terminated successfully.",
             1: "Function evaluation required (f & c)",
@@ -60,15 +77,7 @@ class SLSQP(Optimizer):
             8: "Positive directional derivative for linesearch",
             9: "Iteration limit exceeded",
         }
-        if slsqp is None:
-            if raiseError:
-                raise Error("There was an error importing the compiled slsqp module")
-
-        self.set_options = []
-        super().__init__(name, category, defaultOptions=self.defOpts, informs=self.informs, options=options)
-
-        # SLSQP needs Jacobians in dense format
-        self.jacType = "dense2d"
+        return informs
 
     def __call__(
         self, optProb, sens=None, sensStep=None, sensMode=None, storeHistory=None, hotStart=None, storeSens=True
