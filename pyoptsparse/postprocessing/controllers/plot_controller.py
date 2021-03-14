@@ -16,8 +16,29 @@ Controller for all matplotlib canvas related input and response
 # ==============================================================================
 
 
-class MplController:
+class PlotController:
     """Handles all matplotlib input and updates the view accordingly."""
 
     def __init__(self, canvas):
         self.canvas = canvas
+
+    def plot(self, x_data=[], y_data=[]):
+        """
+        Plot function for updating the Canvas
+
+        Parameters
+        ----------
+        x_data : list, optional
+            List of x data to be plotted, by default []
+        y_data : list, optional
+            List of y data to be plotted, by default []
+        """
+
+        self.canvas.axes.plot(x_data, y_data)
+        self.draw()  # draw updates the plot
+
+    def clear(self):
+        """Clears the matplotlib canvas"""
+
+        self.canvas.axes.cla()
+        self.draw()  # draw updates the plot
