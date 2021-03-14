@@ -46,23 +46,7 @@ class SNOPT(Optimizer):
 
         name = "SNOPT"
         category = "Local Optimizer"
-        self.defOpts = {
-            "iPrint": [int, 18],  # Print File Output Unit (override internally in snopt?)
-            "iSumm": [int, 19],  # Summary File Output Unit (override internally in snopt?)
-            "Print file": [str, "SNOPT_print.out"],  # Print File Name (specified by subroutine snInit)
-            "Summary file": [str, "SNOPT_summary.out"],  # Summary File Name (specified by subroutine snInit)
-            "Problem Type": [str, ["Minimize", "Maximize", "Feasible point"]],
-            "Start": [str, ["Cold", "Warm"]],  # used in call to snkerc, the option "Cold Start" etc are NOT allowed
-            "Derivative level": [int, 3],
-            "Proximal iterations limit": [int, 10000],  # very large # to solve proximal point problem to optimality
-            "Total character workspace": [int, None],  # lencw: 500
-            "Total integer workspace": [int, None],  # leniw: 500 + 100 * (ncon + nvar)
-            "Total real workspace": [int, None],  # lenrw: 500 + 200 * (ncon + nvar)
-            "Save major iteration variables": [
-                list,
-                ["step", "merit", "feasibility", "optimality", "penalty"],
-            ],  # 'Hessian', 'slack', 'lambda' and 'condZHZ' are also supported
-        }
+        defOpts = self._getDefaultOptions()
         # these are SNOPT-related options that do not get set via snset
         self.specialOptions = CaseInsensitiveSet(
             {
@@ -74,7 +58,62 @@ class SNOPT(Optimizer):
         # this is purely within pySNOPT, nothing to do with SNOPT itself
         self.pythonOptions = CaseInsensitiveSet({"Save major iteration variables"})
 
-        self.informs = {
+        informs = self._getInforms()
+
+        if snopt is None:
+            if raiseError:
+                raise Error("There was an error importing the compiled snopt module")
+            else:
+                version = None
+        else:
+            # extract SNOPT version
+            version_str = snopt.sntitle().decode("utf-8")
+            # The version_str is going to look like
+            # S N O P T  7.7.5    (Oct 2020)
+            # we search between "S N O P T" and "("
+            res = re.search("S N O P T(.*)\(", version_str)
+            if res is not None:
+                version = res.group(1).strip()
+            else:
+                version = None
+
+        super().__init__(
+            name,
+            category,
+            defaultOptions=defOpts,
+            informs=informs,
+            options=options,
+            checkDefaultOptions=False,
+            version=version,
+        )
+
+        # SNOPT need Jacobians in csc format
+        self.jacType = "csc"
+
+        # SNOPT specific Jacobian map
+        self._snopt_jac_map_csr_to_csc = None
+
+    @staticmethod
+    def _getDefaultOptions():
+        defOpts = {
+            "iPrint": [int, 18],
+            "iSumm": [int, 19],
+            "Print file": [str, "SNOPT_print.out"],
+            "Summary file": [str, "SNOPT_summary.out"],
+            "Problem Type": [str, ["Minimize", "Maximize", "Feasible point"]],
+            "Start": [str, ["Cold", "Warm"]],
+            "Derivative level": [int, 3],
+            "Proximal iterations limit": [int, 10000],
+            "Total character workspace": [int, None],
+            "Total integer workspace": [int, None],
+            "Total real workspace": [int, None],
+            "Save major iteration variables": [list, ["step", "merit", "feasibility", "optimality", "penalty"]],
+        }
+        return defOpts
+
+    @staticmethod
+    def _getInforms():
+        informs = {
             0: "finished successfully",
             1: "optimality conditions satisfied",
             2: "feasible point found",
@@ -146,39 +185,7 @@ class SNOPT(Optimizer):
             141: "wrong no of basic variables",
             142: "error in basis package",
         }
-
-        if snopt is None:
-            if raiseError:
-                raise Error("There was an error importing the compiled snopt module")
-            else:
-                version = None
-        else:
-            # extract SNOPT version
-            version_str = snopt.sntitle().decode("utf-8")
-            # The version_str is going to look like
-            # S N O P T  7.7.5    (Oct 2020)
-            # we search between "S N O P T" and "("
-            res = re.search("S N O P T(.*)\(", version_str)
-            if res is not None:
-                version = res.group(1).strip()
-            else:
-                version = None
-
-        super().__init__(
-            name,
-            category,
-            defaultOptions=self.defOpts,
-            informs=self.informs,
-            options=options,
-            checkDefaultOptions=False,
-            version=version,
-        )
-
-        # SNOPT need Jacobians in csc format
-        self.jacType = "csc"
-
-        # SNOPT specific Jacobian map
-        self._snopt_jac_map_csr_to_csc = None
+        return informs
 
     def __call__(
         self,
