@@ -198,8 +198,7 @@ class ALPSO(Optimizer):
 
     def _on_setOption(self, name, value):
         if name == "parallelType":
-            value = value.upper()
-            if value == "EXT":
+            if isinstance(value, str) and value.upper() == "EXT":
                 try:
                     from . import alpso_ext
 
