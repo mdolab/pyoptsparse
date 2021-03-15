@@ -520,7 +520,6 @@ class SNOPT(Optimizer):
                 snopt.closeunit(self.getOption("iSumm"))
 
             # Store Results
-            inform = inform.item()
             sol_inform = {}
             sol_inform["value"] = inform
             sol_inform["text"] = self.informs[inform]
@@ -632,7 +631,7 @@ class SNOPT(Optimizer):
         return xPen
 
     # fmt: off
-    def _snstop(self, ktcond, mjrprtlvl, minimize, n, nncon, nnobj, ns, itn, nmajor, nminor, nswap, ninfe, sinfe, condzhz, iobj, scaleobj,
+    def _snstop(self, ktcond, mjrprtlvl, minimize, n, nncon, nnobj, ns, itn, nmajor, nminor, nswap, condzhz, iobj, scaleobj,
                 objadd, fobj, fmerit, penparm, step, primalinf, dualinf, maxvi, maxvirel, hs, locj, indj, jcol, scales, bl, bu, fx, fcon, gcon, gobj, ycon,
                 pi, rc, rg, x, cu, iu, ru, cw, iw, rw):
         # fmt: on
