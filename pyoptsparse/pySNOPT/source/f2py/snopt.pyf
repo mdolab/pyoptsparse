@@ -29,7 +29,7 @@ python module snoptc__user__routines
                 double precision intent(in) :: ru(lenru)
                 integer intent(in) :: lenru
         end subroutine userfg
-        subroutine snstop(iabort,ktcond,mjrprtlvl,minimize,m,maxs,n,nb,nncon0,nncon,nnobj0,nnobj,ns,itn,nmajor,nminor,nswap,ninfe,sinfe,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,nej,nlocj,locj,indj,jcol,negcon,scales,bl,bu,fx,fcon,gcon,gobj,ycon,pi,rc,rg,x,cu,lencu,iu,leniu,ru,lenru,cw,lencw,iw,leniw,rw,lenrw)
+        subroutine snstop(iabort,ktcond,mjrprtlvl,minimize,m,maxs,n,nb,nncon0,nncon,nnobj0,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,nej,nlocj,locj,indj,jcol,negcon,scales,bl,bu,fx,fcon,gcon,gobj,ycon,pi,rc,rg,x,cu,lencu,iu,leniu,ru,lenru,cw,lencw,iw,leniw,rw,lenrw) ! in test.f
             integer, intent(out) :: iabort
             logical dimension(2) :: ktcond
             integer :: mjrprtlvl
@@ -47,8 +47,6 @@ python module snoptc__user__routines
             integer :: nmajor
             integer :: nminor
             integer :: nswap
-            integer :: ninfe
-            double precision :: sinfe
             double precision :: condzhz
             integer :: iobj
             double precision :: scaleobj
@@ -93,7 +91,7 @@ python module snoptc__user__routines
             double precision dimension(lenrw) :: rw
             integer, optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
         end subroutine snstop
-        subroutine snlog(iabort,ktcond,mjrprtlvl,minimize,n,nb,nncon0,nnobj,ns,itn,nmajor,nminor,nswap,ninfe,sinfe,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,nej,nlocj,locj,indj,jcol,scales,bl,bu,fx,fcon,ycon,x,cu,lencu,iu,leniu,ru,lenru,cw,lencw,iw,leniw,rw,lenrw)
+        subroutine snlog(iabort,ktcond,mjrprtlvl,minimize,n,nb,nncon0,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,nej,nlocj,locj,indj,jcol,scales,bl,bu,fx,fcon,ycon,x,cu,lencu,iu,leniu,ru,lenru,cw,lencw,iw,leniw,rw,lenrw) ! in test.f
             integer :: iabort
             logical dimension(2) :: ktcond
             integer :: mjrprtlvl
@@ -107,8 +105,6 @@ python module snoptc__user__routines
             integer :: nmajor
             integer :: nminor
             integer :: nswap
-            integer :: ninfe
-            double precision :: sinfe
             double precision :: condzhz
             integer :: iobj
             double precision :: scaleobj
@@ -147,7 +143,7 @@ python module snoptc__user__routines
             double precision dimension(lenrw) :: rw
             integer, optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
         end subroutine snlog
-        subroutine snlog2(probtype,probtag,elastic,gotr,firstfeas,feasible,justphase1,m,mbs,nnh,ns,jsq,jbr,jsr,linesp,liness,itn,itqp,kprc,lvlobje,pivot,step,ninf,sinf,ninfe,sinfe,wtinf,nonopt,objprt,condzhz,djqprt,rgnorm,kbs,xbs,iw,leniw)
+        subroutine snlog2(probtype,probtag,elastic,gotr,firstfeas,feasible,justphase1,m,mbs,nnh,ns,jsq,jbr,jsr,linesp,liness,itn,itqp,kprc,lvlobje,pivot,step,ninf,sinf,ninfe,sinfe,wtinf,nonopt,objprt,condzhz,djqprt,rgnorm,kbs,xbs,iw,leniw) ! in test.f
             integer :: probtype
             character*20 :: probtag
             logical :: elastic
@@ -445,7 +441,7 @@ python module snopt ! in
             double precision dimension(lenrw) :: rw
             integer, optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
         end subroutine snkerc
-        subroutine snlog(iabort,ktcond,mjrprtlvl,minimize,n,nb,nncon0,nnobj,ns,itn,nmajor,nminor,nswap,ninfe,sinfe,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,nej,nlocj,locj,indj,jcol,scales,bl,bu,fx,fcon,ycon,x,cu,lencu,iu,leniu,ru,lenru,cw,lencw,iw,leniw,rw,lenrw)
+        subroutine snlog(iabort,ktcond,mjrprtlvl,minimize,n,nb,nncon0,nnobj,ns,itn,nmajor,nminor,nswap,condzhz,iobj,scaleobj,objadd,fobj,fmerit,penparm,step,primalinf,dualinf,maxvi,maxvirel,hs,nej,nlocj,locj,indj,jcol,scales,bl,bu,fx,fcon,ycon,x,cu,lencu,iu,leniu,ru,lenru,cw,lencw,iw,leniw,rw,lenrw) ! in test.f
             integer :: iabort
             logical dimension(2) :: ktcond
             integer :: mjrprtlvl
@@ -459,8 +455,6 @@ python module snopt ! in
             integer :: nmajor
             integer :: nminor
             integer :: nswap
-            integer :: ninfe
-            double precision :: sinfe
             double precision :: condzhz
             integer :: iobj
             double precision :: scaleobj
@@ -499,7 +493,7 @@ python module snopt ! in
             double precision dimension(lenrw) :: rw
             integer, optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
         end subroutine snlog
-        subroutine snlog2(probtype,probtag,elastic,gotr,firstfeas,feasible,justphase1,m,mbs,nnh,ns,jsq,jbr,jsr,linesp,liness,itn,itqp,kprc,lvlobje,pivot,step,ninf,sinf,ninfe,sinfe,wtinf,nonopt,objprt,condzhz,djqprt,rgnorm,kbs,xbs,iw,leniw)
+        subroutine snlog2(probtype,probtag,elastic,gotr,firstfeas,feasible,justphase1,m,mbs,nnh,ns,jsq,jbr,jsr,linesp,liness,itn,itqp,kprc,lvlobje,pivot,step,ninf,sinf,ninfe,sinfe,wtinf,nonopt,objprt,condzhz,djqprt,rgnorm,kbs,xbs,iw,leniw) ! in test.f
             integer :: probtype
             character*20 :: probtag
             logical :: elastic
