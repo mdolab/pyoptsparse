@@ -82,12 +82,13 @@ Please refer to the `IPOPT website <https://coin-or.github.io/Ipopt/OPTIONS.html
 The following are the options which are set by default within pyOptSparse.
 All other options take the default value with IPOPT unless specified by the user.
 
-.. optimizertable:: pyoptsparse.pyIPOPT.pyIPOPT.IPOPT
-   :type: options
+.. optionstable:: pyoptsparse.pyIPOPT.pyIPOPT.IPOPT
+   :filename: optimizers/IPOPT_options.yaml
+
 
 Informs
 -------
-.. optimizertable:: pyoptsparse.pyIPOPT.pyIPOPT.IPOPT
+.. optionstable:: pyoptsparse.pyIPOPT.pyIPOPT.IPOPT
    :type: informs
 
 API

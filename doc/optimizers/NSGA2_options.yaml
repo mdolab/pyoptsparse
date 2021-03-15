@@ -1,0 +1,22 @@
+PopSize:
+  desc: Population size
+maxGen:
+  desc: Maximum number of generations
+pCross_real:
+  desc: Probability of crossover of real variables
+pMut_real:
+  desc: Probability of mutation of real variables
+eta_c:
+  desc: Distribution index for crossover
+eta_m:
+  desc: Distribution index for mutation
+pCross_bin:
+  desc: Probability of crossover of binary variable
+pMut_bin:
+  desc: Probability of mutation of binary variables
+PrintOut:
+  desc: Flag to turn on output to filename
+seed:
+  desc: Random Number Seed (0 - Auto-Seed based on time clock)
+xinit:
+  desc: Use Initial Solution Flag (0 - random population, 1 - use given solution)

@@ -6,13 +6,8 @@ Augmented Lagrangian Particle Swarm Optimizer (ALPSO) is a PSO method that uses 
 
 Options
 -------
-.. optimizertable:: pyoptsparse.pyALPSO.pyALPSO.ALPSO
-   :type: options
-
-Informs
--------
-.. optimizertable:: pyoptsparse.pyALPSO.pyALPSO.ALPSO
-   :type: informs
+.. optionstable:: pyoptsparse.pyALPSO.pyALPSO.ALPSO
+   :filename: optimizers/ALPSO_options.yaml
 
 API
 ---
