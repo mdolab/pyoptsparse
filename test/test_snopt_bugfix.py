@@ -53,14 +53,16 @@ def objfunc_2con(xdict):
 
 
 def sens(xdict, funcs):
-    """f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3
-    """
+    """f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3"""
     x = xdict["x"]
     y = xdict["y"]
-    funcsSens = {}
 
-    funcsSens["obj", "x"] = 2.0 * x - 6.0 + y
-    funcsSens["obj", "y"] = 2.0 * y + 8.0 + x
+    funcsSens = {
+        "obj": {
+            "x": 2.0 * x - 6.0 + y,
+            "y": 2.0 * y + 8.0 + x,
+        }
+    }
 
     fail = False
     return funcsSens, fail

@@ -35,24 +35,42 @@ class PSQP(Optimizer):
     PSQP Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, raiseError=True, *args, **kwargs):
+    def __init__(self, raiseError=True, options={}):
         name = "PSQP"
         category = "Local Optimizer"
-        self.defOpts = {
-            "XMAX": [float, 1e16],  # Maximum Stepsize
-            "TOLX": [float, 1e-16],  # Variable Change Tolerance
-            "TOLC": [float, 1e-6],  # Constraint Violation Tolerance
-            "TOLG": [float, 1e-6],  # Lagrangian Gradient Tolerance
-            "RPF": [float, 1e-4],  # Penalty Coefficient
-            "MIT": [int, 1000],  # Maximum Number of Iterations
-            "MFV": [int, 2000],  # Maximum Number of Function Evaluations
-            "MET": [int, 2],  # Variable Metric Update (1 - BFGS, 2 - Hoshino)
-            "MEC": [int, 2],  # Negative Curvature Correction (1 - None, 2 - Powell's Correction)
-            "IPRINT": [int, 2],  # Output Level (0 - None, 1 - Final, 2 - Iter)
-            "IOUT": [int, 6],  # Output Unit Number
-            "IFILE": [str, "PSQP.out"],  # Output File Name
+        defOpts = self._getDefaultOptions()
+        informs = self._getInforms()
+
+        if psqp is None:
+            if raiseError:
+                raise Error("There was an error importing the compiled psqp module")
+
+        super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
+
+        # PSQP needs Jacobians in dense format
+        self.jacType = "dense2d"
+
+    @staticmethod
+    def _getDefaultOptions():
+        defOpts = {
+            "XMAX": [float, 1e16],
+            "TOLX": [float, 1e-16],
+            "TOLC": [float, 1e-6],
+            "TOLG": [float, 1e-6],
+            "RPF": [float, 1e-4],
+            "MIT": [int, 1000],
+            "MFV": [int, 2000],
+            "MET": [int, 2],
+            "MEC": [int, 2],
+            "IPRINT": [int, 2],
+            "IOUT": [int, 6],
+            "IFILE": [str, "PSQP.out"],
         }
-        self.informs = {
+        return defOpts
+
+    @staticmethod
+    def _getInforms():
+        informs = {
             1: "Change in design variable was less than or equal to tolerance",
             2: "Change in objective function was less than or equal to tolerance",
             3: "Objective function less than or equal to tolerance",
@@ -61,17 +79,11 @@ class PSQP(Optimizer):
             12: "Maximum number of function evaluations exceeded",
             13: "Maximum number of gradient evaluations exceeded",
             -6: "Termination criterion not satisfied, but obtained point is acceptable",
+            -7: "Positive directional derivative in line search",
+            -8: "Interpolation error in line search",
+            -10: "Optimization failed",
         }
-        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
-
-        if psqp is None:
-            if raiseError:
-                raise Error("There was an error importing the compiled psqp module")
-
-        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
-
-        # PSQP needs Jacobians in dense format
-        self.jacType = "dense2d"
+        return informs
 
     def __call__(
         self, optProb, sens=None, sensStep=None, sensMode=None, storeHistory=None, hotStart=None, storeSens=True
@@ -123,7 +135,7 @@ class PSQP(Optimizer):
         storeSens : bool
             Flag sepcifying if sensitivities are to be stored in hist.
             This is necessay for hot-starting only.
-            """
+        """
 
         self.callCounter = 0
         self.storeSens = storeSens
@@ -155,10 +167,13 @@ class PSQP(Optimizer):
         # Set the number of nonlinear constraints snopt *thinks* we have:
         if self.unconstrained:
             ncon = 0
-            cf = [0.0]
-            cl = []
-            cu = []
-            ic = []
+            cf = np.zeros(1)
+            cl = np.zeros(1)
+            cu = np.zeros(1)
+            ic = np.zeros(1)
+            # as done for SLSQP, we need this dummy constraint to make the code work
+            optProb.dummyConstraint = True
+
         else:
             indices, blc, buc, fact = self.optProb.getOrdering(["ne", "le", "ni", "li"], oneSided=oneSided)
             ncon = len(indices)
@@ -224,7 +239,7 @@ class PSQP(Optimizer):
                 return dg
 
             # Setup argument list values
-            iterm = 0
+            iterm = np.array(0, int)
             gmax = 0.0
             cmax = 0.0
             opt = self.getOption
@@ -255,9 +270,12 @@ class PSQP(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
+            inform = iterm.item()
+            if inform < 0 and inform not in self.informs:
+                inform = -10
             sol_inform = {}
-            # sol_inform['value'] = inform
-            # sol_inform['text'] = self.informs[inform[0]]
+            sol_inform["value"] = inform
+            sol_inform["text"] = self.informs[inform]
             if self.storeHistory:
                 self.metadata["endTime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 self.metadata["optTime"] = optTime
@@ -275,9 +293,3 @@ class PSQP(Optimizer):
         sol = self._communicateSolution(sol)
 
         return sol
-
-    def _on_setOption(self, name, value):
-        pass
-
-    def _on_getOption(self, name):
-        pass

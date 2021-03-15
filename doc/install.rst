@@ -7,16 +7,18 @@ Requirements
 ------------
 pyOptSparse has the following dependencies:
 
-* Python 2.7, 3.7 or 3.8, though other Python 3 versions will likely work
-* C/FORTRAN compiler (compatible with f2py)
+* Python 3.7 or 3.8, though other Python 3 versions will likely work
+* C and Fortran compilers.
+  We recommend ``gcc`` and ``gfortran`` which can be installed via the package manager for your operating system.
 
 Please make sure these are installed and available for use.
-In order to use NSGA2 and NOMAD, SWIG (v1.3+) is also required.
+In order to use NSGA2 and NOMAD, SWIG (v1.3+) is also required, which can be installed via the package manager.
 If those optimizers are not needed, then you do not need to install SWIG.
 Simply comment out the corresponding lines in ``pyoptsparse/pyoptsparse/setup.py`` so that they are not compiled.
 The corresponding lines in ``pyoptsparse/__init__.py`` must be commented out as well.
 
 Python dependencies are automatically handled by ``pip``, so they do not need to be installed separately.
+The only exception is ``numpy``, which is required as part of the build process and therefore must be present before installing.
 
 .. note::
   * In Linux, the python header files (python-dev) are also required.
@@ -42,6 +44,18 @@ It is also possible to install pyOptSparse by calling ``python setup.py install`
 .. note::
   Some optimizers are proprietary and their sources are not distributed with pyOptSparse.
   To use them, please follow the instructions on specific optimizer pages.
+  
+For those who intend to use pyOptSparse with IPOPT, OpenMDAO developers provide a `bash script <https://github.com/OpenMDAO/build_pyoptsparse>`_ that simplifies the installation of the optimizer with different linear solvers.
+
+.. _install_optview:
+
+Installing OptView
+------------------
+OptView and OptView-Dash have separate dependencies that must be installed.
+To install pyOptSparse including those dependencies, run::
+
+    pip install .[optview]
+
 
 Testing
 -------

@@ -14,6 +14,7 @@ from .pyOpt_optimization import INFINITY
 from .pyOpt_utils import convertToDense, convertToCOO, extractRows, mapToCSC, scaleRows, IDATA
 from collections import OrderedDict
 import datetime
+from baseclasses import BaseSolver
 from .pyOpt_MPI import MPI
 
 eps = np.finfo(np.float64).eps
@@ -21,8 +22,18 @@ eps = np.finfo(np.float64).eps
 # =============================================================================
 # Optimizer Class
 # =============================================================================
-class Optimizer(object):
-    def __init__(self, name=None, category=None, defOptions=None, informs=None, **kwargs):
+class Optimizer(BaseSolver):
+    def __init__(
+        self,
+        name,
+        category,
+        defaultOptions={},
+        informs={},
+        options={},
+        checkDefaultOptions=True,
+        caseSensitiveOptions=True,
+        version=None,
+    ):
         """
         This is the base optimizer class that all optimizers inherit from.
         We define common methods here to avoid code duplication.
@@ -33,27 +44,25 @@ class Optimizer(object):
             Optimizer name
         category : str
             Typically local or global
-        defOptions : dictionary
+        defaultOptions : dictionary
             A dictionary containing the default options
         informs : dict
             Dictionary of the inform codes
         """
-        self.name = name
-        self.category = category
-        self.options = {}
-        self.options["defaults"] = defOptions
-        self.informs = informs
+        super().__init__(
+            name,
+            category,
+            defaultOptions=defaultOptions,
+            options=options,
+            informs=informs,
+            checkDefaultOptions=checkDefaultOptions,
+            caseSensitiveOptions=caseSensitiveOptions,
+        )
         self.callCounter = 0
         self.sens = None
-        # Initialize Options
-        for key in defOptions:
-            self.options[key] = defOptions[key]
-
-        koptions = kwargs.pop("options", {})
-        for key in koptions:
-            self.setOption(key, koptions[key])
-
         self.optProb = None
+        self.version = version
+
         # Default options:
         self.appendLinearConstraints = False
         self.jacType = "dense"
@@ -76,6 +85,9 @@ class Optimizer(object):
         # Store the Jacobian conversion maps
         self._jac_map_csr_to_csc = None
 
+        # Initialize metadata
+        self.metadata = {}
+
     def _clearTimings(self):
         """Clear timings and call counters"""
         self.userObjTime = 0.0
@@ -88,6 +100,11 @@ class Optimizer(object):
         """
         Common function to setup sens function
         """
+
+        # If the sens parameter is None and the sens parameter in the
+        # optProb is not None, use the optProb setting
+        if sens is None and self.optProb.sens is not None:
+            sens = self.optProb.sens
 
         # If we have SNOPT set derivative level to 3...it will be
         # reset if necessary
@@ -153,10 +170,7 @@ class Optimizer(object):
                 if os.path.exists(hotStart):
                     self.hotStart = History(hotStart, temp=False, flag="r")
                 else:
-                    pyOptSparseWarning(
-                        "Hot start file does not exist. \
-                    Performing a regular start"
-                    )
+                    pyOptSparseWarning("Hot start file does not exist. Performing a regular start")
 
         self.storeHistory = False
         if storeHistory:
@@ -191,7 +205,7 @@ class Optimizer(object):
             This list contains at least one of 'fobj', 'fcon', 'gobj'
             or 'gcon'. This list tells this function which of the
             values is required on return
-            """
+        """
 
         # We are hot starting, we should be able to read the required
         # information out of the hot start file, process it and then
@@ -524,10 +538,11 @@ class Optimizer(object):
 
             # Cycle through constraints adding the bounds
             for key in self.optProb.constraints.keys():
-                lower = self.optProb.constraints[key].lower
-                upper = self.optProb.constraints[key].upper
-                scale = self.optProb.constraints[key].scale
-                conInfo[key] = {"lower": lower, "upper": upper, "scale": scale}
+                if not self.optProb.constraints[key].linear:
+                    lower = self.optProb.constraints[key].lower
+                    upper = self.optProb.constraints[key].upper
+                    scale = self.optProb.constraints[key].scale
+                    conInfo[key] = {"lower": lower, "upper": upper, "scale": scale}
 
             # Cycle through variables and add the bounds
             for dvGroup in self.optProb.variables:
@@ -778,10 +793,7 @@ class Optimizer(object):
         after optimization finishes.
         """
         options = copy.deepcopy(self.options)
-        options.pop("defaults")  # remove the default list
-        # we retrieve only the second item which is the actual value
-        for key, val in options.items():
-            options[key] = val[1]
+        # we remove entries which can't be stored properly in the history file
         if "snSTOP function handle" in options.keys():
             options.pop("snSTOP function handle")
 
@@ -792,6 +804,7 @@ class Optimizer(object):
         self.metadata = {
             "version": __version__,
             "optimizer": self.name,
+            "optVersion": self.version,
             "optName": self.optProb.name,
             "nprocs": MPI.COMM_WORLD.size,
             "optOptions": options,
@@ -802,7 +815,7 @@ class Optimizer(object):
         """
         Set Optimizer Option Value (Optimizer Specific Routine)
         """
-        raise Error("This optimizer has not implemented _on_setOption")
+        pass
 
     def setOption(self, name, value=None):
         """
@@ -815,20 +828,9 @@ class Optimizer(object):
             Name of the option to set
         value : varies
             Variable value to set.
-            """
+        """
 
-        if name in self.options["defaults"]:
-            if type(value) == self.options["defaults"][name][0]:
-                self.options[name] = [type(value), value]
-            else:
-                raise Error(
-                    "Value type for option {} was incorrect. It was expecting type '{}' by received type '{}'".format(
-                        name, self.options["defaults"][name][0], type(value)
-                    )
-                )
-        else:
-            raise Error("Received an unknown option: %s" % repr(name))
-
+        super().setOption(name, value)
         # Now call the optimizer specific routine
         self._on_setOption(name, value)
 
@@ -836,7 +838,7 @@ class Optimizer(object):
         """
         Routine to be implemented by optimizer
         """
-        raise Error("This optimizer has not implemented _on_getOption")
+        pass
 
     def getOption(self, name):
         """
@@ -851,21 +853,18 @@ class Optimizer(object):
         -------
         value : varies
             value of option for 'name'
-            """
+        """
 
-        if name in self.options["defaults"]:
-            return self.options[name][1]
-        else:
-            raise Error("Received an unknown option: %s." % repr(name))
-
-        # Now call the optimizer specific routine
+        # Call the optimizer specific routine
         self._on_getOption(name)
+
+        return super().getOption(name)
 
     def _on_getInform(self, info):
         """
         Routine to be implemented by optimizer
         """
-        raise Error("This optimizer has not implemented _on_getInform")
+        return self.informs[info]
 
     def getInform(self, infocode=None):
         """
@@ -875,7 +874,7 @@ class Optimizer(object):
         ----------
         infocode : int
             Integer information code
-            """
+        """
 
         if infocode is None:
             return self.informs
@@ -907,7 +906,7 @@ def OPT(optName, *args, **kwargs):
     -------
     opt : pyOpt_optimizer inherited optimizer
        The desired optimizer
-       """
+    """
 
     optName = optName.lower()
     optList = ["snopt", "ipopt", "slsqp", "nlpqlp", "conmin", "nsga2", "psqp", "alpso", "paropt"]

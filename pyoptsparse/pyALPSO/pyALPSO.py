@@ -32,70 +32,62 @@ class ALPSO(Optimizer):
     - pll_type -> STR: ALPSO Parallel Implementation (None, SPM- Static, DPM- Dynamic, POA-Parallel Analysis), *Default* = None
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, raiseError=True, options={}):
 
         from . import alpso
 
         self.alpso = alpso
 
         category = "Global Optimizer"
-        self.defOpts = {
-            "SwarmSize": [int, 40],  # Number of Particles (Depends on Problem dimensions)
-            "maxOuterIter": [int, 200],  # Maximum Number of Outer Loop Iterations (Major Iterations)
-            "maxInnerIter": [int, 6],  # Maximum Number of Inner Loop Iterations (Minor Iterations)
-            "minInnerIter": [int, 6],  # Minimum Number of Inner Loop Iterations (Dynamic Inner Iterations)
-            "dynInnerIter": [int, 0],  # Dynamic Number of Inner Iterations Flag
-            "stopCriteria": [int, 1],  # Stopping Criteria Flag (0 - maxIters, 1 - convergence)
-            "stopIters": [int, 5],  # Consecutive Number of Iterations for which the Stopping Criteria must be Satisfied
-            "etol": [float, 1e-3],  # Absolute Tolerance for Equality constraints
-            "itol": [float, 1e-3],  # Absolute Tolerance for Inequality constraints
-            # 'ltol':[float, 1e-2],            # Absolute Tolerance for Lagrange Multipliers
-            "rtol": [float, 1e-2],  # Relative Tolerance for Lagrange Multipliers
-            "atol": [float, 1e-2],  # Absolute Tolerance for Lagrange Function
-            "dtol": [float, 1e-1],  # Relative Tolerance in Distance of All Particles to Terminate (GCPSO)
-            "printOuterIters": [int, 0],  # Number of Iterations Before Print Outer Loop Information
-            "printInnerIters": [int, 0],  # Number of Iterations Before Print Inner Loop Information
-            "rinit": [float, 1.0],  # Initial Penalty Factor
-            "xinit": [int, 0],  # Initial Position Flag (0 - no position, 1 - position given)
-            "vinit": [float, 1.0],  # Initial Velocity of Particles in Normalized [-1, 1] Design Space
-            "vmax": [float, 2.0],  # Maximum Velocity of Particles in Normalized [-1, 1] Design Space
-            "c1": [float, 2.0],  # Cognitive Parameter
-            "c2": [float, 1.0],  # Social Parameter
-            "w1": [float, 0.99],  # Initial Inertia Weight
-            "w2": [float, 0.55],  # Final Inertia Weight
-            "ns": [
-                int,
-                15,
-            ],  # Number of Consecutive Successes in Finding New Best Position of Best Particle Before Search Radius will be Increased (GCPSO)
-            "nf": [
-                int,
-                5,
-            ],  # Number of Consecutive Failures in Finding New Best Position of Best Particle Before Search Radius will be Increased (GCPSO)
-            "dt": [float, 1.0],  # Time step
-            "vcrazy": [
-                float,
-                1e-4,
-            ],  # Craziness Velocity (Added to Particle Velocity After Updating the Penalty Factors and Langangian Multipliers)
-            "fileout": [int, 1],  # Flag to Turn On Output to filename
-            "filename": [
-                str,
-                "ALPSO.out",
-            ],  # We could probably remove fileout flag if filename or fileinstance is given
-            "seed": [float, 0],  # Random Number Seed (0 - Auto-Seed based on time clock)
-            "HoodSize": [int, 40],  # Number of Neighbours of Each Particle
-            "HoodModel": [
-                str,
-                "gbest",
-            ],  # Neighbourhood Model (dl/slring - Double/Single Link Ring, wheel - Wheel, Spatial - based on spatial distance, sfrac - Spatial Fraction)
-            "HoodSelf": [
-                int,
-                1,
-            ],  # Selfless Neighbourhood Model (0 - Include Particle i in NH i, 1 - Don't Include Particle i)
-            "Scaling": [int, 1],  # Design Variables Scaling Flag (0 - no scaling, 1 - scaling between [-1, 1])
-            "parallelType": [str, ""],  # Type of parallelization ('' or 'EXT')
+        defOpts = self._getDefaultOptions()
+        informs = self._getInforms()
+        super().__init__("ALPSO", category, defaultOptions=defOpts, informs=informs, options=options)
+
+    @staticmethod
+    def _getInforms():
+        informs = {}
+        return informs
+
+    @staticmethod
+    def _getDefaultOptions():
+        defOpts = {
+            "SwarmSize": [int, 40],
+            "maxOuterIter": [int, 200],
+            "maxInnerIter": [int, 6],
+            "minInnerIter": [int, 6],
+            "dynInnerIter": [int, 0],
+            "stopCriteria": [int, 1],
+            "stopIters": [int, 5],
+            "etol": [float, 1e-3],
+            "itol": [float, 1e-3],
+            # 'ltol':[float, 1e-2],
+            "rtol": [float, 1e-2],
+            "atol": [float, 1e-2],
+            "dtol": [float, 1e-1],
+            "printOuterIters": [int, 0],
+            "printInnerIters": [int, 0],
+            "rinit": [float, 1.0],
+            "xinit": [int, 0],
+            "vinit": [float, 1.0],
+            "vmax": [float, 2.0],
+            "c1": [float, 2.0],
+            "c2": [float, 1.0],
+            "w1": [float, 0.99],
+            "w2": [float, 0.55],
+            "ns": [int, 15],
+            "nf": [int, 5],
+            "dt": [float, 1.0],
+            "vcrazy": [float, 1e-4],
+            "fileout": [int, 1],
+            "filename": [str, "ALPSO.out"],
+            "seed": [int, 0],
+            "HoodSize": [int, 40],
+            "HoodModel": [str, "gbest"],
+            "HoodSelf": [int, 1],
+            "Scaling": [int, 1],
+            "parallelType": [str, [None, "EXT"]],
         }
-        self.informs = {}
-        Optimizer.__init__(self, "ALPSO", category, self.defOpts, self.informs, *args, **kwargs)
+        return defOpts
 
     def __call__(self, optProb, storeHistory=None, **kwargs):
         """
@@ -172,9 +164,6 @@ class ALPSO(Optimizer):
             if opt("fileout") not in [0, 1, 2, 3]:
                 raise Error("Incorrect fileout Setting")
 
-            if opt("seed") == 0:
-                self.setOption("seed", time.time())
-
             # Run ALPSO
             t0 = time.time()
             # fmt: off
@@ -214,20 +203,13 @@ class ALPSO(Optimizer):
 
     def _on_setOption(self, name, value):
         if name == "parallelType":
-            value = value.upper()
-            if value == "EXT":
+            if isinstance(value, str) and value.upper() == "EXT":
                 try:
                     from . import alpso_ext
 
                     self.alpso = alpso_ext
                 except ImportError:
                     raise ImportError("pyALPSO: ALPSO EXT shared library failed to import.")
-
-            else:
-                raise ValueError("parallel_type must be either '' or 'EXT'.")
-
-    def _on_getOption(self, name, value):
-        pass
 
     def _communicateSolution(self, sol):
         if sol is not None:

@@ -1,0 +1,64 @@
+iPrint:
+  desc: Print File Output Unit (override internally in snopt?)
+
+iSumm:
+  desc: Summary File Output Unit (override internally in snopt?)
+
+Print file:
+  desc: Print file name
+
+Summary file: 
+  desc: Summary file name
+
+Start:
+  desc: This value is directly passed to the SNOPT kernel, and will be overwritten if another option, e.g. ``Cold start`` is supplied, in accordance with SNOPT options precedence.
+  Cold: Cold start
+  Warm: Warm start
+
+Problem Type:
+  desc: >
+    This specifies the problem type for SNOPT.
+  Minimize: minimization problem.
+  Maximize: maximization problem.
+  Feasible point: compute a feasible point only.
+
+Derivative level:
+  desc: >
+    The SNOPT derivative level. Only "3" is tested, where all derivatives are provided to SNOPT.
+
+Proximal iterations limit:
+  desc: >
+    The iterations limit for solving the proximal point problem.
+    We set this by default to a very large value in order to fully solve the proximal point problem to optimality
+
+Total character workspace:
+  desc: >
+    The total character workspace length.
+    If ``None``, a default value of ``500`` is used, as recommended by SNOPT.
+    If SNOPT determines that the default value is too small, the Python wrapper will overwrite the defaults with estimates for the required workspace lengths from SNOPT and initialize the optimizer for a second time.
+    SNOPT might still exit with ``82``, ``83``, or ``84``, but this should automate the storage allocation for most cases.
+    User-specified values are not overwritten.
+
+Total integer workspace:
+  desc: >
+    The total integer workspace length.
+    If ``None``, a default value of ``500 + 100 * (ncon + nvar)`` is used, as recommended by SNOPT.
+    If SNOPT determines that the default value is too small, the Python wrapper will overwrite the defaults with estimates for the required workspace lengths from SNOPT and initialize the optimizer for a second time.
+    SNOPT might still exit with ``82``, ``83``, or ``84``, but this should automate the storage allocation for most cases.
+    User-specified values are not overwritten.
+    
+
+Total real workspace:
+  desc: >
+    The total real workspace length.
+    If ``None``, a default value of ``500 + 200 * (ncon + nvar)`` is used, as recommended by SNOPT.
+    If SNOPT determines that the default value is too small, the Python wrapper will overwrite the defaults with estimates for the required workspace lengths from SNOPT and initialize the optimizer for a second time.
+    SNOPT might still exit with ``82``, ``83``, or ``84``, but this should automate the storage allocation for most cases.
+    User-specified values are not overwritten.
+    
+
+Save major iteration variables:
+  desc: >
+    This option is unique to the Python wrapper, and takes a list of values which can be saved at each iteration to the History file.
+    This specifies the list of major iteration variables to be stored in the history file.
+    ``Hessian``, ``slack``, ``lambda`` and ``condZHZ`` are also supported.

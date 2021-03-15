@@ -1,0 +1,16 @@
+ITMAX:
+  desc: Maximum Number of Iterations
+DELFUN:
+  desc: Objective Relative Tolerance
+DABFUN:
+  desc: Objective Absolute Tolerance
+ITRM:
+  desc: None
+NFEASCT:
+  desc: None
+IPRINT:
+  desc: Print Control (0 - None, 1 - Final, 2,3,4 - Debug)
+IOUT:
+  desc: Output Unit Number
+IFILE:
+  desc: Output File Name

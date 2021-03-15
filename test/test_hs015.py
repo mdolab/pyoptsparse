@@ -31,6 +31,9 @@ class TestHS15(unittest.TestCase):
         conval[0] = x[0] * x[1]
         conval[1] = x[0] + x[1] ** 2
         funcs["con"] = conval
+        # extra keys
+        funcs["extra1"] = 0.0
+        funcs["extra2"] = 1.0
         fail = False
         return funcs, fail
 
@@ -114,9 +117,21 @@ class TestHS15(unittest.TestCase):
         # Metadata checks
         metadata = hist.getMetadata()
         self.assertEqual(metadata["optimizer"], optimizer)
-        metadata_def_keys = ["optName", "optOptions", "nprocs", "startTime", "endTime", "optTime", "version"]
+        metadata_def_keys = [
+            "optName",
+            "optOptions",
+            "nprocs",
+            "startTime",
+            "endTime",
+            "optTime",
+            "version",
+            "optVersion",
+        ]
         for key in metadata_def_keys:
             self.assertIn(key, metadata)
+            # we test that SNOPT version is stored correctly
+            if optimizer == "SNOPT" and key == "optVersion":
+                self.assertNotEqual(metadata[key], None)
         hist.getOptProb()
 
         # Info checks
@@ -142,10 +157,18 @@ class TestHS15(unittest.TestCase):
         last = hist.read("last")  # 'last' key should be present
         self.assertIn(last, callCounters)
 
-        # iterKey checks
+        # iterKeys checks
         iterKeys = hist.getIterKeys()
         for key in ["xuser", "fail", "isMajor"]:
             self.assertIn(key, iterKeys)
+
+        # extraFuncsNames checks
+        extraFuncsNames = hist.getExtraFuncsNames()
+        for key in ["extra1", "extra2"]:
+            self.assertIn(key, extraFuncsNames)
+
+        # getValues checks
+        val = hist.getValues()
 
         # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
         if optimizer in ["SNOPT", "SLSQP", "PSQP"]:
@@ -207,7 +230,7 @@ class TestHS15(unittest.TestCase):
         for var in store_vars:
             self.assertIn(var, data.keys())
         self.assertEqual(data["Hessian"].shape, (1, 2, 2))
-        self.assertEqual(data["feasibility"].shape, (1,))
+        self.assertEqual(data["feasibility"].shape, (1, 1))
         self.assertEqual(data["slack"].shape, (1, 2))
         self.assertEqual(data["lambda"].shape, (1, 2))
 

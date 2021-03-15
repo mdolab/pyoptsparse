@@ -34,29 +34,39 @@ class NSGA2(Optimizer):
     NSGA2 Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, raiseError=True, *args, **kwargs):
+    def __init__(self, raiseError=True, options={}):
 
         name = "NSGA-II"
         category = "Global Optimizer"
-        self.defOpts = {
-            "PopSize": [int, 100],
-            "maxGen": [int, 1000],
-            "pCross_real": [float, 0.6],
-            "pMut_real": [float, 0.2],
-            "eta_c": [float, 10],
-            "eta_m": [float, 20],
-            "pCross_bin": [float, 0.0],
-            "pMut_bin": [float, 0.0],
-            "PrintOut": [int, 1],  # Flag to Turn On Output to filename (0 - , 1 - , 2 - )
-            "seed": [float, 0],  # Random Number Seed (0 - Auto-Seed based on time clock)
-            "xinit": [int, 0],  # Use Initial Solution Flag (0 - random population, 1 - use given solution)
-        }
-        self.informs = {}
-        Optimizer.__init__(self, name, category, self.defOpts, self.informs, *args, **kwargs)
+        defOpts = self._getDefaultOptions()
+        informs = self._getInforms()
+        super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
 
         if nsga2 is None:
             if raiseError:
                 raise Error("There was an error importing the compiled nsga2 module")
+
+    @staticmethod
+    def _getInforms():
+        informs = {}
+        return informs
+
+    @staticmethod
+    def _getDefaultOptions():
+        defOpts = {
+            "PopSize": [int, 100],
+            "maxGen": [int, 1000],
+            "pCross_real": [float, 0.6],
+            "pMut_real": [float, 0.2],
+            "eta_c": [float, 10.0],
+            "eta_m": [float, 20.0],
+            "pCross_bin": [float, 0.0],
+            "pMut_bin": [float, 0.0],
+            "PrintOut": [int, 1],
+            "seed": [int, 0],
+            "xinit": [int, 0],
+        }
+        return defOpts
 
     def __call__(self, optProb, storeHistory=None, hotStart=None, **kwargs):
         """
@@ -87,7 +97,7 @@ class NSGA2(Optimizer):
         -----
         The kwargs are there such that the sens= argument can be
         supplied (but ignored here in nsga2)
-            """
+        """
 
         # ======================================================================
         # NSGA-II - Objective/Constraint Values Function
@@ -202,9 +212,3 @@ class NSGA2(Optimizer):
         sol = self._communicateSolution(sol)
 
         return sol
-
-    def _on_setOption(self, name, value):
-        pass
-
-    def _on_getOption(self, name, value):
-        pass

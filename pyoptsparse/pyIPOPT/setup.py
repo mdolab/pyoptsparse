@@ -32,7 +32,7 @@ def configuration(parent_package="", top_path=None):
     if os.path.exists("pyoptsparse/pyIPOPT/Ipopt"):
         IPOPT_DIR = os.path.join(top_path, "pyoptsparse/pyIPOPT/Ipopt/")
         IPOPT_LIB = os.path.join(top_path, "pyoptsparse/pyIPOPT/Ipopt/lib")
-        IPOPT_INC = os.path.join(IPOPT_DIR, "include/coin/")
+        IPOPT_INC = os.path.join(IPOPT_DIR, "include/coin-or/")
         add_ipopt = True
     elif os.getenv("IPOPT_INC") is not None and os.getenv("IPOPT_LIB") is not None:
         IPOPT_LIB = os.getenv("IPOPT_LIB")
@@ -41,7 +41,7 @@ def configuration(parent_package="", top_path=None):
     elif os.getenv("IPOPT_DIR") is not None:
         IPOPT_DIR = os.getenv("IPOPT_DIR")
         IPOPT_LIB = os.path.join(IPOPT_DIR, "lib")
-        IPOPT_INC = os.path.join(IPOPT_DIR, "include/coin/")
+        IPOPT_INC = os.path.join(IPOPT_DIR, "include/coin-or/")
         add_ipopt = True
 
     if add_ipopt:
@@ -51,7 +51,7 @@ def configuration(parent_package="", top_path=None):
             "pyipoptcore",
             FILES,
             library_dirs=[IPOPT_LIB],
-            libraries=["ipopt", "coinhsl", "dl", "m", "blas", "lapack"],
+            libraries=["ipopt", "coinmumps", "coinmetis", "dl", "m", "blas", "lapack"],
             extra_link_args=["-Wl,-rpath,%s -L%s" % (IPOPT_LIB, IPOPT_LIB)],
             include_dirs=[numpy_include, IPOPT_INC],
         )

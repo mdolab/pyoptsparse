@@ -1,0 +1,8 @@
+print_level:
+  desc: Printing level
+output_file:
+  desc: The name of the output file from IPOPT
+option_file_name:
+  desc: The name of the options file passed to IPOPT
+linear_solver:
+  desc: The linear solver used.

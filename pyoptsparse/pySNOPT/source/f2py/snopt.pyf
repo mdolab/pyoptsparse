@@ -352,6 +352,9 @@ python module snopt ! in
             double precision dimension(lenrw) :: rw
             integer optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
         end subroutine sngetr
+        subroutine sntitle(title) ! in :snopt:sn02lib.f
+            character*30, intent(out) :: title
+        end subroutine sntitle
         subroutine snoptc(start,m,n,ne,nname,nncon,nnobj,nnjac,iobj,objadd,prob,userfg,jcol,indj,locj,bl,bu,names,hs,x,pi,rc,inform,mincw,miniw,minrw,ns,ninf,sinf,obj,cu,lencu,iu,leniu,ru,lenru,cw,lencw,iw,leniw,rw,lenrw) ! in :snopt:snoptc.f
             use snoptc__user__routines
             character*(*) intent(inout) :: start

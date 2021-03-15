@@ -5,9 +5,6 @@
 import copy
 import os
 from collections import OrderedDict
-
-from six import iteritems, iterkeys, next
-
 from sqlitedict import SqliteDict
 
 # =============================================================================
@@ -37,7 +34,7 @@ INFINITY = 1e20
 # Optimization Class
 # =============================================================================
 class Optimization(object):
-    def __init__(self, name, objFun, comm=None):
+    def __init__(self, name, objFun, comm=None, sens=None):
         """
         The main purpose of this class is to describe the structure and
         potentially, sparsity pattern of an optimization problem.
@@ -55,9 +52,13 @@ class Optimization(object):
             required for both analysis when the objective is computed in
             parallel as well as to use the internal parallel gradient
             computations. Defaults to MPI.COMM_WORLD if not given.
+
+        sens : str or python Function.
+            Specifiy method to compute sensitivities.
         """
         self.name = name
         self.objFun = objFun
+        self.sens = sens
         if comm is None:
             self.comm = MPI.COMM_WORLD
         else:
@@ -109,7 +110,7 @@ class Optimization(object):
         validName : str
             A valid variable name. May be the same as varName it that
             was, in fact, a valid name.
-            """
+        """
         if varName not in self.variables:
             return varName
         else:
@@ -137,7 +138,7 @@ class Optimization(object):
         validName : str
             A valid constraint name. May be the same as conName it that
             was, in fact, a valid name.
-            """
+        """
         if conName not in self.constraints:
             return conName
         else:
@@ -348,7 +349,7 @@ class Optimization(object):
         ----------
         name : str
            Name of variable or variable group to remove
-           """
+        """
         try:
             self.variables.pop(name)
         except KeyError:
@@ -924,7 +925,7 @@ class Optimization(object):
            Flag to split equality constraints into two inequality
            constraints. Some optimizers (CONMIN for example) can't do
            equality constraints explicitly.
-           """
+        """
 
         # Now for the fun part determine what *actual* order the
         # constraints need to be in: We recognize the following
@@ -1312,7 +1313,7 @@ class Optimization(object):
         fcon : dict
             Dictionary of the constraints. The linear constraints are
             to be added to this dictionary.
-            """
+        """
 
         # This is actually pretty easy; it's just a matvec with the
         # proper linearJacobian entry we've already computed
@@ -1341,56 +1342,29 @@ class Optimization(object):
         nobj = len(self.objectives)
         gobj = np.zeros((nobj, self.ndvs))
 
-        cond = False
-        # this version is required for python 3 compatibility
-        cond = isinstance(next(iterkeys(funcsSens)), str)
-
-        if cond:
-            iObj = 0
-            for objKey in self.objectives.keys():
-                if objKey in funcsSens:
-                    for dvGroup in funcsSens[objKey]:
-                        if dvGroup in dvGroups:
-                            # Now check that the array is the correct length:
-                            ss = self.dvOffset[dvGroup]
-                            tmp = np.array(funcsSens[objKey][dvGroup]).squeeze()
-                            if tmp.size == ss[1] - ss[0]:
-                                # Everything checks out so set:
-                                gobj[iObj, ss[0] : ss[1]] = tmp
-                            else:
-                                raise Error(
-                                    (
-                                        "The shape of the objective derivative for dvGroup '{}' is the incorrect length. "
-                                        + "Expecting a shape of {} but received a shape of {}."
-                                    ).format(dvGroup, (ss[1] - ss[0],), funcsSens[objKey][dvGroup].shape)
-                                )
-                        else:
-                            raise Error("The dvGroup key '%s' is not valid" % dvGroup)
-                else:
-                    raise Error("The key for the objective gradient, '%s', was not found." % objKey)
-                iObj += 1
-        else:  # Then it must be a tuple; assume flat dict
-            for (objKey, dvGroup), _ in iteritems(funcsSens):
-                if objKey in self.objectives.keys():
-                    try:
-                        iObj = self.objectiveIdx[objKey]
-                    except KeyError:
-                        raise Error("The key for the objective gradient, '%s', was not found." % objKey)
-                    try:
+        iObj = 0
+        for objKey in self.objectives.keys():
+            if objKey in funcsSens:
+                for dvGroup in funcsSens[objKey]:
+                    if dvGroup in dvGroups:
+                        # Now check that the array is the correct length:
                         ss = self.dvOffset[dvGroup]
-                    except KeyError:
-                        raise Error("The dvGroup key '%s' is not valid" % dvGroup)
-                    tmp = np.array(funcsSens[objKey, dvGroup]).squeeze()
-                    if tmp.size == ss[1] - ss[0]:
-                        # Everything checks out so set:
-                        gobj[iObj, ss[0] : ss[1]] = tmp
+                        tmp = np.array(funcsSens[objKey][dvGroup]).squeeze()
+                        if tmp.size == ss[1] - ss[0]:
+                            # Everything checks out so set:
+                            gobj[iObj, ss[0] : ss[1]] = tmp
+                        else:
+                            raise Error(
+                                (
+                                    "The shape of the objective derivative for dvGroup '{}' is the incorrect length. "
+                                    + "Expecting a shape of {} but received a shape of {}."
+                                ).format(dvGroup, (ss[1] - ss[0],), funcsSens[objKey][dvGroup].shape)
+                            )
                     else:
-                        raise Error(
-                            (
-                                "The shape of the objective derivative for dvGroup '{}' is the incorrect length. "
-                                + "Expecting a shape of {} but received a shape of {}."
-                            ).format(dvGroup, (ss[1] - ss[0],), funcsSens[objKey, dvGroup].shape)
-                        )
+                        raise Error("The dvGroup key '%s' is not valid" % dvGroup)
+            else:
+                raise Error("The key for the objective gradient, '%s', was not found." % objKey)
+            iObj += 1
 
         # Note that we looped over the keys in funcsSens[objKey]
         # and not the variable keys since a variable key not in
@@ -1472,21 +1446,17 @@ class Optimization(object):
                 ndvs = ss[1] - ss[0]
 
                 gotDerivative = False
-                try:  # Try using a nested dictionary return
+                try:
                     if dvGroup in gcon[iCon]:
                         tmp = convertToCOO(gcon[iCon][dvGroup])
                         gotDerivative = True
                 except KeyError:
-                    try:  # Using tuple dictornary return
-                        tmp = convertToCOO(gcon[iCon, dvGroup])
-                        gotDerivative = True
-                    except KeyError:
-                        raise Error(
-                            (
-                                "The constraint Jacobian entry for '{}' with respect to '{}', as was defined in addConGroup(), "
-                                + "was not found in constraint Jacobian dictionary provided."
-                            ).format(con.name, dvGroup)
-                        )
+                    raise Error(
+                        (
+                            "The constraint Jacobian entry for '{}' with respect to '{}', as was defined in addConGroup(), "
+                            + "was not found in constraint Jacobian dictionary provided."
+                        ).format(con.name, dvGroup)
+                    )
                 if not gotDerivative:
                     # All keys for this constraint must be returned
                     # since the user has explictly specified the wrt.
