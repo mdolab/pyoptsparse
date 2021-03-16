@@ -32,6 +32,7 @@ class Optimizer(BaseSolver):
         options={},
         checkDefaultOptions=True,
         caseSensitiveOptions=True,
+        version=None,
     ):
         """
         This is the base optimizer class that all optimizers inherit from.
@@ -60,6 +61,8 @@ class Optimizer(BaseSolver):
         self.callCounter = 0
         self.sens = None
         self.optProb = None
+        self.version = version
+
         # Default options:
         self.appendLinearConstraints = False
         self.jacType = "dense"
@@ -798,6 +801,7 @@ class Optimizer(BaseSolver):
         self.metadata = {
             "version": __version__,
             "optimizer": self.name,
+            "optVersion": self.version,
             "optName": self.optProb.name,
             "nprocs": MPI.COMM_WORLD.size,
             "optOptions": options,

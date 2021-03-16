@@ -39,26 +39,36 @@ class CONMIN(Optimizer):
     def __init__(self, raiseError=True, options={}):
         name = "CONMIN"
         category = "Local Optimizer"
-        self.defOpts = {
-            "ITMAX": [int, int(1e4)],  # Maximum Number of Iterations
-            "DELFUN": [float, 1e-6],  # Objective Relative Tolerance
-            "DABFUN": [float, 1e-6],  # Objective Absolute Tolerance
-            "ITRM": [int, 5],
-            "NFEASCT": [int, 20],
-            "IPRINT": [int, 4],  # Print Control (0 - None, 1 - Final, 2,3,4 - Debug)
-            "IOUT": [int, 6],  # Output Unit Number
-            "IFILE": [str, "CONMIN.out"],  # Output File Name
-        }
-        self.informs = {}
+        defOpts = self._getDefaultOptions()
+        informs = self._getInforms()
         if conmin is None:
             if raiseError:
                 raise Error("There was an error importing the compiled conmin module")
 
         self.set_options = []
-        super().__init__(name, category, defaultOptions=self.defOpts, informs=self.informs, options=options)
+        super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
 
         # CONMIN needs Jacobians in dense format
         self.jacType = "dense2d"
+
+    @staticmethod
+    def _getInforms():
+        informs = {}
+        return informs
+
+    @staticmethod
+    def _getDefaultOptions():
+        defOpts = {
+            "ITMAX": [int, int(1e4)],
+            "DELFUN": [float, 1e-6],
+            "DABFUN": [float, 1e-6],
+            "ITRM": [int, 5],
+            "NFEASCT": [int, 20],
+            "IPRINT": [int, 4],
+            "IOUT": [int, 6],
+            "IFILE": [str, "CONMIN.out"],
+        }
+        return defOpts
 
     def __call__(
         self, optProb, sens=None, sensStep=None, sensMode=None, storeHistory=None, hotStart=None, storeSens=True

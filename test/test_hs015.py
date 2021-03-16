@@ -117,9 +117,21 @@ class TestHS15(unittest.TestCase):
         # Metadata checks
         metadata = hist.getMetadata()
         self.assertEqual(metadata["optimizer"], optimizer)
-        metadata_def_keys = ["optName", "optOptions", "nprocs", "startTime", "endTime", "optTime", "version"]
+        metadata_def_keys = [
+            "optName",
+            "optOptions",
+            "nprocs",
+            "startTime",
+            "endTime",
+            "optTime",
+            "version",
+            "optVersion",
+        ]
         for key in metadata_def_keys:
             self.assertIn(key, metadata)
+            # we test that SNOPT version is stored correctly
+            if optimizer == "SNOPT" and key == "optVersion":
+                self.assertNotEqual(metadata[key], None)
         hist.getOptProb()
 
         # Info checks

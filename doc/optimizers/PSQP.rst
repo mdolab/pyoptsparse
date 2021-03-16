@@ -7,12 +7,13 @@ with a BFGS variable metric update
 
 Options
 -------
-.. optimizertable:: pyoptsparse.pyPSQP.pyPSQP.PSQP
-   :type: options
+.. optionstable:: pyoptsparse.pyPSQP.pyPSQP.PSQP
+   :filename: optimizers/PSQP_options.yaml
+
 
 Informs
 -------
-.. optimizertable:: pyoptsparse.pyPSQP.pyPSQP.PSQP
+.. optionstable:: pyoptsparse.pyPSQP.pyPSQP.PSQP
    :type: informs
 
 API

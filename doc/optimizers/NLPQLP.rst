@@ -17,12 +17,13 @@ The latest version supported is v4.2.2.
 
 Options
 -------
-.. optimizertable:: pyoptsparse.pyNLPQLP.pyNLPQLP.NLPQLP
-   :type: options
+.. optionstable:: pyoptsparse.pyNLPQLP.pyNLPQLP.NLPQLP
+   :filename: optimizers/NLPQLP_options.yaml
+
 
 Informs
 -------
-.. optimizertable:: pyoptsparse.pyNLPQLP.pyNLPQLP.NLPQLP
+.. optionstable:: pyoptsparse.pyNLPQLP.pyNLPQLP.NLPQLP
    :type: informs
 
 API
