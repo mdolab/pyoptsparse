@@ -200,6 +200,11 @@ class TestHS15(unittest.TestCase):
         # we should have zero actual function/gradient evaluations
         self.assertEqual(self.nf, 0)
         self.assertEqual(self.ng, 0)
+        # another test with hotstart, this time with a non-existing history file
+        self.optimize(optName, tol, storeHistory=True, hotStart="notexisting.hst", optOptions=optOptions)
+        self.assertGreater(self.nf, 0)
+        self.assertGreater(self.ng, 0)
+        self.check_hist_file(optName, tol)
         # final test with hotstart, this time with a different storeHistory
         self.optimize(
             optName,
