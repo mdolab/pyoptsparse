@@ -177,7 +177,7 @@ class Optimizer(BaseSolver):
             self.hist = History(storeHistory, flag="n", optProb=self.optProb)
             self.storeHistory = True
 
-            if hotStart is not None:
+            if self.hotStart is not None:
                 for key in ["varInfo", "conInfo", "objInfo", "optProb"]:
                     val = self.hotStart.read(key)
                     if val is not None:
