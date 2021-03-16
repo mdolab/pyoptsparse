@@ -48,7 +48,7 @@ class TestHS15(unittest.TestCase):
         fail = False
         return funcsSens, fail
 
-    def optimize(self, optName, tol, optOptions={}, storeHistory=False, hotStart=None):
+    def optimize(self, optName, tol, optOptions={}, storeHistory=False, hotStart=None, x0=[-2, 1.0]):
         self.nf = 0  # number of function evaluations
         self.ng = 0  # number of gradient evaluations
         # Optimization Object
@@ -57,8 +57,7 @@ class TestHS15(unittest.TestCase):
         # Design Variables
         lower = [-5.0, -5.0]
         upper = [0.5, 5.0]
-        value = [-2, 1.0]
-        optProb.addVarGroup("xvars", 2, lower=lower, upper=upper, value=value)
+        optProb.addVarGroup("xvars", 2, lower=lower, upper=upper, value=x0)
 
         # Constraints
         lower = [1.0, 0.0]
@@ -185,7 +184,7 @@ class TestHS15(unittest.TestCase):
         In this process, it will check various combinations of storeHistory and hotStart filenames.
         It will also call `check_hist_file` after the first optimization.
         """
-        self.optimize(optName, tol, storeHistory=True, optOptions=optOptions)
+        self.optimize(optName, tol, storeHistory=True, optOptions=optOptions, x0=[0.0, 0.0])
         self.assertGreater(self.nf, 0)
         self.assertGreater(self.ng, 0)
         self.check_hist_file(optName, tol)

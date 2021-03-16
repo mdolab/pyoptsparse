@@ -456,6 +456,7 @@ class SNOPT(Optimizer):
 
             # Set history/hotstart
             self._setHistory(storeHistory, hotStart)
+            print(self.optProb.getDVs(skipFinalization=True))
 
             # The snopt c interface
             timeA = time.time()

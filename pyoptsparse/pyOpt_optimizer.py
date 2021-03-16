@@ -178,6 +178,10 @@ class Optimizer(BaseSolver):
             self.storeHistory = True
 
             if self.hotStart is not None:
+                # init_DV = self.hotStart.getValues(names=self.hotStart.getDVNames(), callCounters=[0])
+                # print("initDV", init_DV)
+                # self.optProb.setDVs(init_DV, skipFinalization=True)
+                # print("DV set")
                 for key in ["varInfo", "conInfo", "objInfo", "optProb"]:
                     val = self.hotStart.read(key)
                     if val is not None:
