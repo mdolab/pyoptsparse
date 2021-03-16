@@ -104,7 +104,7 @@ class TestRosenbrock(unittest.TestCase):
 
         assert_allclose(sol_xvars, dv["xvars"], atol=tol, rtol=tol)
 
-        assert_allclose(sol.objectives["obj"].value, self.fStar1, atol=tol, rtol=tol)
+        assert_allclose(sol.fStar, self.fStar1, atol=tol, rtol=tol)
         assert_allclose(dv["xvars"], self.xStar1, atol=tol, rtol=tol)
 
     def check_hist_file(self, optimizer, tol):
