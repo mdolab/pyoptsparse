@@ -745,7 +745,7 @@ class Optimizer(BaseSolver):
         sol.userSensCalls = self.userSensCalls
         sol.interfaceTime = self.interfaceTime - self.userSensTime - self.userObjTime
         sol.optCodeTime = sol.optTime - self.interfaceTime
-        sol.fStar = obj  # FIXME: this doesn't work, at least for SNOPT
+        sol.fStar = self.optProb._mapObjtoUser(obj)
         xuser = self.optProb._mapXtoUser(xopt)
         sol.xStar = self.optProb.processXtoDict(xuser)
 
