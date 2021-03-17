@@ -277,7 +277,6 @@ class SNOPT(Optimizer):
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
-        obj = self._assembleObjective()
 
         oneSided = False
         # Set the number of nonlinear constraints snopt *thinks* we have:
@@ -465,7 +464,6 @@ class SNOPT(Optimizer):
                                Acol, indA, locA, bl, bu, Names, hs, xs, pi, rc, inform,
                                mincw, miniw, minrw, nS, ninf, sinf, cu, iu, ru, cw, iw, rw)
             # fmt: on
-            print(obj)
             optTime = time.time() - timeA
 
             # Indicate solution finished
