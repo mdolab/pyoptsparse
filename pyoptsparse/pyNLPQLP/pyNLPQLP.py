@@ -170,7 +170,7 @@ class NLPQLP(Optimizer):
         xs = np.maximum(xs, blx)
         xs = np.minimum(xs, bux)
         nvar = len(xs)
-        ff = self._assembleObjective()
+        f = self._assembleObjective()
 
         oneSided = True
         # Set the number of nonlinear constraints snopt *thinks* we have:
@@ -229,7 +229,7 @@ class NLPQLP(Optimizer):
             # associated with them for the NP. We will do this
             # correctly even though num_procs is hard-coded to 1.
             xs = np.array(xs).T
-            f = np.array(ff)
+            f = np.array(f)
             g = np.zeros((mmax, num_procs))
 
             df = np.zeros(nmax)
@@ -275,7 +275,7 @@ class NLPQLP(Optimizer):
             sol_inform["text"] = self.informs[inform]
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff, xs)
+            sol = self._createSolution(optTime, sol_inform, f, xs)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
