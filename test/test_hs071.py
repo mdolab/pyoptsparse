@@ -78,7 +78,10 @@ class TestHS71(unittest.TestCase):
             self.fStar = 17.0140172
             self.xStar = (1.0, 4.743, 3.82115, 1.37941)
             self.lambdaStar = (0.55229366, -0.16146857)
-            assert_allclose(sol.fStar, self.fStar, atol=tol, rtol=tol)
+            if optName == "SNOPT" and opt.version != "7.7.7":
+                assert_allclose(sol.objectives["obj"].value, self.fStar, atol=tol, rtol=tol)
+            else:
+                assert_allclose(sol.fStar, self.fStar, atol=tol, rtol=tol)
             assert_allclose(sol.xStar["xvars"], self.xStar, atol=tol, rtol=tol)
 
             if hasattr(sol, "lambdaStar"):
