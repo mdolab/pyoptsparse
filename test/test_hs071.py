@@ -124,7 +124,7 @@ class TestHS71(unittest.TestCase):
         }
         histFileName = "{}.hst".format(test_name)
         self.optimize(
-            "snopt",
+            "SNOPT",
             1e-6,
             xScale=1.5,
             conScale=1.2,
@@ -137,7 +137,7 @@ class TestHS71(unittest.TestCase):
         first = hist.getValues(names="xvars", callCounters="last", scale=False)
         x_final = first["xvars"][0]
         self.optimize(
-            "snopt",
+            "SNOPT",
             1e-6,
             xScale=0.5,
             conScale=4.8,
@@ -219,10 +219,10 @@ class TestHS71(unittest.TestCase):
             "Print file": "{}.out".format(test_name),
             "Summary file": "{}_summary.out".format(test_name),
         }
-        sol = self.optimize("snopt", 1e-6, optOptions=optOptions)
+        sol = self.optimize("SNOPT", 1e-6, optOptions=optOptions)
         self.assertEqual(sol.optInform["value"], 1)
         optOptions["Major iterations limit"] = 1
-        sol = self.optimize("snopt", 1e-6, optOptions=optOptions, check_solution=False)
+        sol = self.optimize("SNOPT", 1e-6, optOptions=optOptions, check_solution=False)
         self.assertEqual(sol.optInform["value"], 32)
 
     def test_slsqp(self):
