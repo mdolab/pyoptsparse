@@ -98,7 +98,10 @@ class TestLarge(unittest.TestCase):
 
         # Check Solution
         if tol is not None:
-            assert_allclose(sol.objectives["obj"].value, 10.0, atol=tol, rtol=tol)
+            if opt.version != "7.7.7":
+                assert_allclose(sol.objectives["obj"].value, 10.0, atol=tol, rtol=tol)
+            else:
+                assert_allclose(sol.fStar, 10.0, atol=tol, rtol=tol)
             assert_allclose(sol.variables["x"][0].value, 2.0, atol=tol, rtol=tol)
         return sol
 
