@@ -148,7 +148,7 @@ class TestRosenbrock(unittest.TestCase):
             self.assertIn(key, iterKeys)
 
         # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
-        if optimizer in ["SNOPT", "SLSQP", "PSQP"]:
+        if optimizer in ["SNOPT", "PSQP"]:
             val = hist.getValues(callCounters=["0", "last"], stack=True)
             self.assertEqual(val["isMajor"].size, 2)
             self.assertTrue(val["isMajor"][0])  # the first callCounter must be a major iteration

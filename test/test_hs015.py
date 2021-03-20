@@ -176,7 +176,8 @@ class TestHS15(unittest.TestCase):
         val = hist.getValues()
 
         # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
-        if optimizer in ["SNOPT", "SLSQP", "PSQP"]:
+        if optimizer in ["SNOPT", "PSQP"]:
+            print(hist.read("last"))
             val = hist.getValues(callCounters=["0", "last"], stack=True)
             self.assertEqual(val["isMajor"].size, 2)
             self.assertTrue(val["isMajor"][0])  # the first callCounter must be a major iteration
@@ -206,6 +207,7 @@ class TestHS15(unittest.TestCase):
         self.assertEqual(self.nf, 0)
         self.assertEqual(self.ng, 0)
         # another test with hotstart, this time with a non-existing history file
+        # this will perform a cold start
         self.optimize(optName, tol, storeHistory=True, hotStart="notexisting.hst", optOptions=optOptions)
         self.assertGreater(self.nf, 0)
         self.assertGreater(self.ng, 0)
@@ -270,7 +272,7 @@ class TestHS15(unittest.TestCase):
 
     def test_psqp(self):
         optOptions = {"IFILE": "hs015_PSQP.out"}
-        self.optimize_with_hotstart("PSQP", 1e-12, optOptions=optOptions)
+        self.optimize_with_hotstart("PSQP", 5e-12, optOptions=optOptions)
 
 
 if __name__ == "__main__":
