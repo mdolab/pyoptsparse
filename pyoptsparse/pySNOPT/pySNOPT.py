@@ -273,7 +273,8 @@ class SNOPT(Optimizer):
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()
-
+        # Set history/hotstart
+        self._setHistory(storeHistory, hotStart)
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
@@ -452,10 +453,6 @@ class SNOPT(Optimizer):
             nS = np.array([0], np.intc)
             ninf = np.array([0], np.intc)
             sinf = np.array([0.0], np.float)
-
-            # Set history/hotstart
-            self._setHistory(storeHistory, hotStart)
-            print(self.optProb.getDVs(skipFinalization=True))
 
             # The snopt c interface
             timeA = time.time()

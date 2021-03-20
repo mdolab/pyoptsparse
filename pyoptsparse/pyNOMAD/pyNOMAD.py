@@ -67,6 +67,8 @@ class NOMAD(Optimizer):
         self.optProb = optProb
         self.optProb.finalizeDesignVariables()
         self.optProb.finalizeConstraints()
+        # Set history/hotstart
+        self._setHistory(storeHistory, hotStart)
         self._setInitialCacheValues()
         blx, bux, xs = self._assembleContinuousVariables()
         xs = np.maximum(xs, blx)
@@ -88,9 +90,6 @@ class NOMAD(Optimizer):
             self.optProb.offset = buc
 
         if self.optProb.comm.rank == 0:
-            # Set history/hotstart
-            self._setHistory(storeHistory, hotStart)
-
             # Define the objective function
             # --------------------------------------------------------------
             def objfun(o, x_tuple):
