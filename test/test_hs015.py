@@ -190,7 +190,7 @@ class TestHS15(unittest.TestCase):
         In this process, it will check various combinations of storeHistory and hotStart filenames.
         It will also call `check_hist_file` after the first optimization.
         """
-        self.optimize(optName, tol, storeHistory=True, optOptions=optOptions, x0=[0.0, 0.0])
+        self.optimize(optName, tol, storeHistory=True, optOptions=optOptions, x0=[-2.01, 1.01])
         self.assertGreater(self.nf, 0)
         self.assertGreater(self.ng, 0)
         self.check_hist_file(optName, tol)
