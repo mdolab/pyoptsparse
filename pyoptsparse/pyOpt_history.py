@@ -493,7 +493,7 @@ class History(object):
             return
         return copy.deepcopy(self.callCounters)
 
-    def getValues(self, names=None, callCounters=None, major=True, scale=False, stack=False):
+    def getValues(self, names=None, callCounters=None, major=True, scale=False, stack=False, allowSens=False):
         """
         Parses an existing history file and returns a data dictionary used to post-process optimization results, containing the requested optimization iteration history.
 
@@ -520,6 +520,10 @@ class History(object):
         stack : bool
             flag to specify whether the DV should be stacked into a single numpy array with
             the key `xuser`, or retain their separate DVGroups.
+
+        allowSens: bool
+            flag to specify whether gradient evaluation iterations are allowed.
+            If true, it is up to the user to ensure that the callCounters specified contain the information requested.
 
         Returns
         -------
@@ -630,7 +634,7 @@ class History(object):
         for i in callCounters:
             if self.pointExists(i):
                 val = self.read(i)
-                if "funcs" in val.keys():  # we have function evaluation
+                if "funcs" in val.keys() or allowSens:  # we have function evaluation
                     if ((major and val["isMajor"]) or not major) and not val["fail"]:
                         conDict, objDict, DVDict = self._processIterDict(val, scale=scale)
                         for name in names:
@@ -658,6 +662,7 @@ class History(object):
                     )
             elif user_specified_callCounter:
                 pyOptSparseWarning(("callCounter {} was not found and is skipped!").format(i))
+
         # reshape lists into numpy arrays
         for name in names:
             # we just stack along axis 0
