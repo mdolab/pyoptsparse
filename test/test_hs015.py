@@ -177,7 +177,6 @@ class TestHS15(unittest.TestCase):
 
         # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
         if optimizer in ["SNOPT", "PSQP"]:
-            print(hist.read("last"))
             val = hist.getValues(callCounters=["0", "last"], stack=True)
             self.assertEqual(val["isMajor"].size, 2)
             self.assertTrue(val["isMajor"][0])  # the first callCounter must be a major iteration
