@@ -10,7 +10,7 @@ Advanced Features
 .. ----------------------------
 
 Hot start
---------
+---------
 Hot start refers to the way optimizations are initialized.
 Suppose you run an optimization, and it was accidentally terminated prematurely, for example due to an iteration limit which was too low.
 If you restarted the optimization from the last iteration, you will likely incur a performance penalty, and end up taking far more steps than it would've taken if the original optimization was allowed to progress.
@@ -24,9 +24,12 @@ If at any point the requested design variables diverge from the history, then we
 For this process to work, the following must be true:
 
 -  The optimizer is deterministic.
-   Note that a stochastic optimizer is still deterministic even if it uses random numbers, as long as the initial seed is fixed.
+   Note that a stochastic optimizer can still be made deterministic even if it uses random numbers, as long as the random seed is fixed.
+   If the optimizer performs a random gradient check (e.g. SNOPT), it's best to disable these just in case.
 -  Optimizer settings that affect the path of the optimization must remain the same.
    It is perfectly fine to change for example settings related to print outs, but not those affecting the line search.
+-  The hot start file is itself cold started.
+   It is not possible to hot start from another hot start.
 
 To use the hot start feature, simply call the optimizer with the option ``hotStart = <hot start file>``.
 See the API documentation for each optimizer for more information.
