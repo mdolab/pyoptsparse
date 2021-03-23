@@ -65,8 +65,7 @@ class NOMAD(Optimizer):
 
         self.callCounter = 0
         self.optProb = optProb
-        self.optProb.finalizeDesignVariables()
-        self.optProb.finalizeConstraints()
+        self.optProb.finalize()
         self._setInitialCacheValues()
         blx, bux, xs = self._assembleContinuousVariables()
         xs = np.maximum(xs, blx)

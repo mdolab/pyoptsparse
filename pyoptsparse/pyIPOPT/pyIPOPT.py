@@ -165,8 +165,7 @@ class IPOPT(Optimizer):
         # Save the optimization problem and finalize constraint
         # Jacobian, in general can only do on root proc
         self.optProb = optProb
-        self.optProb.finalizeDesignVariables()
-        self.optProb.finalizeConstraints()
+        self.optProb.finalize()
         self._setInitialCacheValues()
         blx, bux, xs = self._assembleContinuousVariables()
         self._setSens(sens, sensStep, sensMode)

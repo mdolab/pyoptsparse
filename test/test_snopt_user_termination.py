@@ -69,7 +69,6 @@ class TestUserTerminationStatus(unittest.TestCase):
 
         optProb.addVarGroup("x", 1, type="c", lower=-50.0, upper=50.0, value=0.0)
         optProb.addVarGroup("y", 1, type="c", lower=-50.0, upper=50.0, value=0.0)
-        optProb.finalizeDesignVariables()
 
         optProb.addObj("obj")
 
@@ -98,7 +97,6 @@ class TestUserTerminationStatus(unittest.TestCase):
 
         optProb.addVarGroup("x", 1, type="c", lower=-50.0, upper=50.0, value=0.0)
         optProb.addVarGroup("y", 1, type="c", lower=-50.0, upper=50.0, value=0.0)
-        optProb.finalizeDesignVariables()
 
         optProb.addObj("obj")
 
