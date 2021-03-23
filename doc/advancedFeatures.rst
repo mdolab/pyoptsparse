@@ -28,11 +28,10 @@ For this process to work, the following must be true:
    If the optimizer performs a random gradient check (e.g. SNOPT), it's best to disable these just in case.
 -  Optimizer settings that affect the path of the optimization must remain the same.
    It is perfectly fine to change for example settings related to print outs, but not those affecting the line search.
--  The hot start file is itself cold started.
-   It is not possible to hot start from another hot start.
 
 To use the hot start feature, simply call the optimizer with the option ``hotStart = <hot start file>``.
 See the API documentation for each optimizer for more information.
+Because the hot start process will store all the previous "restarted" iterations in the new history file, it's possible to restart as many times as you like, each time using the previous history file.
 
 
 
