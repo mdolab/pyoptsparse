@@ -797,11 +797,11 @@ class Optimization(object):
         This is a helper function which will only finalize the optProb if it's not already finalized.
         """
         if not self.finalized:
-            self.finalizeDesignVariables()
-            self.finalizeConstraints()
+            self._finalizeDesignVariables()
+            self._finalizeConstraints()
             self.finalized = True
 
-    def finalizeDesignVariables(self):
+    def _finalizeDesignVariables(self):
         """
         Communicate design variables potentially from different
         processors and form the DVOffset dict. This routine should be
@@ -826,7 +826,7 @@ class Optimization(object):
             dvCounter += n
         self.ndvs = dvCounter
 
-    def finalizeConstraints(self):
+    def _finalizeConstraints(self):
         """
         There are several functions for this routine:
 
