@@ -804,8 +804,7 @@ class Optimization(object):
     def _finalizeDesignVariables(self):
         """
         Communicate design variables potentially from different
-        processors and form the DVOffset dict. This routine should be
-        called from the individual optimizers
+        processors and form the DVOffset dict.
 
         Warnings
         --------
