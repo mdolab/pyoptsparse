@@ -271,8 +271,7 @@ class SNOPT(Optimizer):
             optProb.dummyConstraint = True
 
         self.optProb = optProb
-        self.optProb.finalizeDesignVariables()
-        self.optProb.finalizeConstraints()
+        self.optProb.finalize()
 
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)

@@ -145,8 +145,7 @@ class SLSQP(Optimizer):
         # Save the optimization problem and finalize constraint
         # Jacobian, in general can only do on root proc
         self.optProb = optProb
-        self.optProb.finalizeDesignVariables()
-        self.optProb.finalizeConstraints()
+        self.optProb.finalize()
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
