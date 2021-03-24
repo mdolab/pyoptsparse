@@ -12,14 +12,14 @@ Advanced Features
 Hot start
 ---------
 Hot start refers to the way optimizations are initialized.
-Such start-up procedure is named in contrast to the regular optimization intialization, or "cold start", in which case pyOptSparse simply initializes an optimization job from scratch, using an arbitrary, user-defined set of initial design variables.
-There are several situations in which such cold optimization starts can be avoided by leveraging on the information from a previous optimization, with the aim to reduce the overall computational time.
+Such start-up procedure is named in contrast to the regular optimization initialization, or "cold start", in which case pyOptSparse simply initializes an optimization job from scratch, using initial design variables set by the user.
+There are several situations in which such cold starts can be avoided by leveraging on the information from a previous optimization, with the aim to reduce the overall computational time.
 Suppose you run an optimization that was accidentally terminated prematurely by, for example, an excessively-low iteration limit.
 If you restarted the optimization using the DVs from the last iteration (but losing all the accumulated history), you will start from a better initial point but will likely incur in a performance penalty.
 The overall optimization, now split between two jobs, will end up taking far more steps than it would've taken if the original optimization was allowed to progress.
-This is due to the fact that some of the optimizers wrapped in pyOptSparse need a few initial iterations build a (local) approximation of the design space.
-Because of this lack of information, the first few major steps of a cold-started optimization are in general more expensive than the later iterations in terms of function (and sensitivity) evaluations.
-In a sense, many optimizers the next iterate does not depend only on the current iterate, but effectively all the previous iterates as well!
+This is due to the fact that some of the optimizers wrapped in pyOptSparse need a few initial iterations to build a (local) approximation of the design space.
+Because of this lack of information, there is a start-up cost to a cold started optimization, where the optimizer has to spend time rebuilding the information.
+In a sense, for many optimizers the next iterate does not depend only on the current iterate, but effectively all the previous iterates as well!
 
 Hot starting optimizations is a way to address this issue.
 pyOptSparse has the ability to read in the previous optimization history file, and `replay` the entire history starting at the original design variables, feeding ``funcs`` to the optimizer each time.
