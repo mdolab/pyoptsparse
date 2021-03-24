@@ -139,6 +139,8 @@ class ParOpt(Optimizer):
         # Jacobian, in general can only do on root proc
         self.optProb = optProb
         self.optProb.finalize()
+        # Set history/hotstart
+        self._setHistory(storeHistory, hotStart)
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
@@ -160,8 +162,6 @@ class ParOpt(Optimizer):
             self.optProb.offset = buc
 
         if self.optProb.comm.rank == 0:
-            # Set history/hotstart
-            self._setHistory(storeHistory, hotStart)
 
             class Problem(_ParOpt.Problem):
                 def __init__(self, ptr, n, m, xs, blx, bux):

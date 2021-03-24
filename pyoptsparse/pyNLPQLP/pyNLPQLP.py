@@ -163,6 +163,8 @@ class NLPQLP(Optimizer):
         # Jacobian, in general can only do on root proc
         self.optProb = optProb
         self.optProb.finalize()
+        # Set history/hotstart/coldstart
+        self._setHistory(storeHistory, hotStart)
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
@@ -189,9 +191,6 @@ class NLPQLP(Optimizer):
             meq = len(tmp0)
 
         if self.optProb.comm.rank == 0:
-            # Set history/hotstart/coldstart
-            self._setHistory(storeHistory, hotStart)
-
             # =================================================================
             # NLPQL - Objective/Constraint Values Function (Real Valued)
             # =================================================================

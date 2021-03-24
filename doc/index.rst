@@ -26,6 +26,7 @@ To get started, please see the :ref:`install` and the :ref:`quickstart`.
    install
    quickstart
    guide
+   advancedFeatures
    postprocessing
    changes
    contribute

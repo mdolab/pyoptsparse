@@ -120,6 +120,8 @@ class ALPSO(Optimizer):
         # Jacobian, in general can only do on root proc
         self.optProb = optProb
         self.optProb.finalize()
+        # Set history/hotstart/coldstart
+        self._setHistory(storeHistory, None)
         self._setInitialCacheValues()
 
         if len(optProb.constraints) == 0:
@@ -147,8 +149,6 @@ class ALPSO(Optimizer):
             me = len(indices)
 
         if self.optProb.comm.rank == 0:
-            # Set history/hotstart/coldstart
-            self._setHistory(storeHistory, None)
 
             # Setup argument list values
             opt = self.getOption

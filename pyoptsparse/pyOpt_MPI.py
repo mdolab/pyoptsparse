@@ -32,6 +32,9 @@ class COMM(object):
     def recv(self, obj=None, source=0, tag=0, status=None):
         return obj
 
+    def Barrier(self):
+        return
+
 
 class myMPI(object):
     def __init__(self):
