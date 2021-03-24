@@ -81,6 +81,7 @@ class Optimization(object):
         self.linearJacobian = None
         self.dummyConstraint = False
         self.objectiveIdx = {}
+        self.finalized = False
 
         # Store the Jacobian conversion maps
         self._jac_map_coo_to_csr = None
@@ -219,7 +220,7 @@ class Optimization(object):
         author. The type, value, lower, upper and scale should be
         given for all variables even if the default value is used.
         """
-
+        self.finalized = False
         # Check that the nVars is > 0.
         if nVars < 1:
             raise Error(
@@ -350,6 +351,7 @@ class Optimization(object):
         name : str
            Name of variable or variable group to remove
         """
+        self.finalized = False
         try:
             self.variables.pop(name)
         except KeyError:
@@ -408,14 +410,13 @@ class Optimization(object):
         """
         Add Objective into Objectives Set
         """
-
+        self.finalized = False
         self.objectives[name] = Objective(name, *args, **kwargs)
 
     def addCon(self, name, *args, **kwargs):
         """
         Convenience function. See addConGroup() for more information
         """
-
         self.addConGroup(name, 1, *args, **kwargs)
 
     def addConGroup(self, name, nCon, lower=None, upper=None, scale=1.0, linear=False, wrt=None, jac=None):
@@ -494,7 +495,7 @@ class Optimization(object):
             the Jacobian change throughout the optimization. This
             stipulation is automatically checked internally.
         """
-
+        self.finalized = False
         if name in self.constraints:
             raise Error("The supplied name '%s' for a constraint group has already been used." % name)
 
@@ -513,8 +514,8 @@ class Optimization(object):
             would be used to call the user objective function.
         """
         if not skipFinalization:
-            self.finalizeDesignVariables()
-            self.finalizeConstraints()
+            self.finalize()
+
         outDVs = {}
         for dvGroup in self.variables:
             nvar = len(self.variables[dvGroup])
@@ -544,9 +545,7 @@ class Optimization(object):
             variable values for each variable group.
         """
         if not skipFinalization:
-            print("no skip")
-            self.finalizeDesignVariables()
-            self.finalizeConstraints()
+            self.finalize()
         x0 = self.getDVs(skipFinalization=skipFinalization)
         # overwrite subset of DVs with new values
         for dvGroup in inDVs:
@@ -615,8 +614,7 @@ class Optimization(object):
         therefore necessary to call this function on **all**
         processors of the optProb comm.
         """
-        self.finalizeDesignVariables()
-        self.finalizeConstraints()
+        self.finalize()
 
         if self.comm.rank != 0:
             return
@@ -796,11 +794,24 @@ class Optimization(object):
     #       optimizers need to be able to call them
     # =======================================================================
 
-    def finalizeDesignVariables(self):
+    def finalize(self):
+        """
+        This is a helper function which will only finalize the optProb if it's not already finalized.
+        """
+        if not self.finalized:
+            self._finalizeDesignVariables()
+            self._finalizeConstraints()
+            self.finalized = True
+
+    def _finalizeDesignVariables(self):
         """
         Communicate design variables potentially from different
-        processors and form the DVOffset dict. This routine should be
-        called from the individual optimizers
+        processors and form the DVOffset dict.
+
+        Warnings
+        --------
+        This should not be called directly. Instead, call self.finalize()
+        to ensure that both design variables and constraints are properly finalized.
         """
 
         # First thing we need is to determine the consistent set of
@@ -816,19 +827,20 @@ class Optimization(object):
             dvCounter += n
         self.ndvs = dvCounter
 
-    def finalizeConstraints(self):
+    def _finalizeConstraints(self):
         """
-        **This function should not need to be called by the user**
-
         There are several functions for this routine:
 
         1. Determine the number of constraints
-
         2. Determine the final scaling array for the design variables
-
         3. Determine if it is possible to return a complete dense
            Jacobian. Most of this time, we should be using the dictionary-
            based return
+
+        Warnings
+        --------
+        This should not be called directly. Instead, call self.finalize()
+        to ensure that both design variables and constraints are properly finalized.
         """
 
         # First thing we need is to determine the consistent set of

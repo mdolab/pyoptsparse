@@ -271,8 +271,7 @@ class SNOPT(Optimizer):
             optProb.dummyConstraint = True
 
         self.optProb = optProb
-        self.optProb.finalizeDesignVariables()
-        self.optProb.finalizeConstraints()
+        self.optProb.finalize()
         # Set history/hotstart
         self._setHistory(storeHistory, hotStart)
         self._setInitialCacheValues()

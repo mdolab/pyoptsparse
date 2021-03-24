@@ -124,8 +124,7 @@ class NSGA2(Optimizer):
         # Save the optimization problem and finalize constraint
         # Jacobian, in general can only do on root proc
         self.optProb = optProb
-        self.optProb.finalizeDesignVariables()
-        self.optProb.finalizeConstraints()
+        self.optProb.finalize()
         # Set history/hotstart
         self._setHistory(storeHistory, hotStart)
         self._setInitialCacheValues()

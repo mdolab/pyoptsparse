@@ -81,7 +81,6 @@ class TestSNOPTBug(unittest.TestCase):
         # Design Variables
         optProb.addVarGroup("x", 1, type="c", lower=-50.0, upper=50.0, value=0.0)
         optProb.addVarGroup("y", 1, type="c", lower=-50.0, upper=50.0, value=0.0)
-        optProb.finalizeDesignVariables()
 
         # Objective
         optProb.addObj("obj")
@@ -118,7 +117,6 @@ class TestSNOPTBug(unittest.TestCase):
         # Design Variables
         optProb.addVarGroup("x", 1, type="c", lower=-50.0, upper=50.0, value=0.0)
         optProb.addVarGroup("y", 1, type="c", lower=-50.0, upper=50.0, value=0.0)
-        optProb.finalizeDesignVariables()
 
         # Objective
         optProb.addObj("obj")
@@ -145,7 +143,6 @@ class TestSNOPTBug(unittest.TestCase):
         # Design Variables
         optProb.addVarGroup("x", 1, type="c", lower=-50.0, upper=50.0, value=0.0)
         optProb.addVarGroup("y", 1, type="c", lower=-50.0, upper=50.0, value=0.0)
-        optProb.finalizeDesignVariables()
 
         # Objective
         optProb.addObj("obj")
