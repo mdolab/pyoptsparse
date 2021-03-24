@@ -186,7 +186,7 @@ class Optimizer(BaseSolver):
                     init_DV = self.hotStart.getValues(
                         names=self.hotStart.getDVNames(), callCounters=[0], major=False, allowSens=True
                     )
-                    self.optProb.setDVs(init_DV, skipFinalization=True)
+                    self.optProb.setDVs(init_DV)
                     # we also save these metadata values
                     # into the new history file
                     for key in ["varInfo", "conInfo", "objInfo", "optProb"]:

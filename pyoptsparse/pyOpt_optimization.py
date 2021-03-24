@@ -502,7 +502,7 @@ class Optimization(object):
         # Simply add constraint object
         self.constraints[name] = Constraint(name, nCon, linear, wrt, jac, lower, upper, scale)
 
-    def getDVs(self, skipFinalization=False):
+    def getDVs(self):
         """
         Return a dictionary of the design variables. In most common
         usage, this function is not required.
@@ -513,8 +513,7 @@ class Optimization(object):
             The dictionary of variables. This is the same as 'x' that
             would be used to call the user objective function.
         """
-        if not skipFinalization:
-            self.finalize()
+        self.finalize()
 
         outDVs = {}
         for dvGroup in self.variables:
@@ -532,7 +531,7 @@ class Optimization(object):
         scaled_DV = self._mapXtoUser_Dict(outDVs)
         return scaled_DV
 
-    def setDVs(self, inDVs, skipFinalization=False):
+    def setDVs(self, inDVs):
         """
         Set one or more groups of design variables from a dictionary.
         In most common usage, this function is not required.
@@ -544,9 +543,8 @@ class Optimization(object):
             variable groups, and the values are the desired design
             variable values for each variable group.
         """
-        if not skipFinalization:
-            self.finalize()
-        x0 = self.getDVs(skipFinalization=skipFinalization)
+        self.finalize()
+        x0 = self.getDVs()
         # overwrite subset of DVs with new values
         for dvGroup in inDVs:
             x0[dvGroup] = inDVs[dvGroup]
