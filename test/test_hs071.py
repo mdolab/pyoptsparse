@@ -78,7 +78,10 @@ class TestHS71(unittest.TestCase):
             self.fStar = 17.0140172
             self.xStar = (1.0, 4.743, 3.82115, 1.37941)
             self.lambdaStar = (0.55229366, -0.16146857)
-            assert_allclose(sol.objectives["obj"].value, self.fStar, atol=tol, rtol=tol)
+            if optName == "SNOPT" and opt.version != "7.7.7":
+                assert_allclose(sol.objectives["obj"].value, self.fStar, atol=tol, rtol=tol)
+            else:
+                assert_allclose(sol.fStar, self.fStar, atol=tol, rtol=tol)
             assert_allclose(sol.xStar["xvars"], self.xStar, atol=tol, rtol=tol)
 
             if hasattr(sol, "lambdaStar"):
@@ -121,7 +124,7 @@ class TestHS71(unittest.TestCase):
         }
         histFileName = "{}.hst".format(test_name)
         self.optimize(
-            "snopt",
+            "SNOPT",
             1e-6,
             xScale=1.5,
             conScale=1.2,
@@ -134,7 +137,7 @@ class TestHS71(unittest.TestCase):
         first = hist.getValues(names="xvars", callCounters="last", scale=False)
         x_final = first["xvars"][0]
         self.optimize(
-            "snopt",
+            "SNOPT",
             1e-6,
             xScale=0.5,
             conScale=4.8,
@@ -216,10 +219,10 @@ class TestHS71(unittest.TestCase):
             "Print file": "{}.out".format(test_name),
             "Summary file": "{}_summary.out".format(test_name),
         }
-        sol = self.optimize("snopt", 1e-6, optOptions=optOptions)
+        sol = self.optimize("SNOPT", 1e-6, optOptions=optOptions)
         self.assertEqual(sol.optInform["value"], 1)
         optOptions["Major iterations limit"] = 1
-        sol = self.optimize("snopt", 1e-6, optOptions=optOptions, check_solution=False)
+        sol = self.optimize("SNOPT", 1e-6, optOptions=optOptions, check_solution=False)
         self.assertEqual(sol.optInform["value"], 32)
 
     def test_slsqp(self):

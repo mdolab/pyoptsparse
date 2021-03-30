@@ -5,6 +5,8 @@
 import os
 import time
 import copy
+import tempfile
+import shutil
 import numpy as np
 from .pyOpt_gradient import Gradient
 from .pyOpt_error import Error, pyOptSparseWarning
@@ -150,40 +152,50 @@ class Optimizer(BaseSolver):
         hotStart : str
             Filename for history file for hot start
         """
-        # By default no hot start
-        self.hotStart = None
+        # we have to wrap the whole function
+        # so it's parallel safe
+        if self.optProb.comm.rank == 0:
+            # By default no hot start
+            self.hotStart = None
 
-        # Determine if we want to do a hot start:
-        if hotStart is not None:
-            # Now, if if the hot start file and the history are
-            # the SAME, we don't allow that. We will create a copy
-            # of the hotStart file and use *that* instead.
-            import tempfile
-            import shutil
-
-            if storeHistory == hotStart:
-                if os.path.exists(hotStart):
-                    fname = tempfile.mktemp()
-                    shutil.copyfile(storeHistory, fname)
-                    self.hotStart = History(fname, temp=True, flag="r")
-            else:
-                if os.path.exists(hotStart):
-                    self.hotStart = History(hotStart, temp=False, flag="r")
-                else:
-                    pyOptSparseWarning("Hot start file does not exist. Performing a regular start")
-
-        self.storeHistory = False
-        if storeHistory:
-            self.hist = History(storeHistory, flag="n", optProb=self.optProb)
-            self.storeHistory = True
-
+            # Determine if we want to do a hot start:
             if hotStart is not None:
-                for key in ["varInfo", "conInfo", "objInfo", "optProb"]:
-                    val = self.hotStart.read(key)
-                    if val is not None:
-                        self.hist.writeData(key, val)
-                self._setMetadata()
-                self.hist.writeData("metadata", self.metadata)
+                # Now, if if the hot start file and the history are
+                # the SAME, we don't allow that. We will create a copy
+                # of the hotStart file and use *that* instead.
+                if storeHistory == hotStart:
+                    if os.path.exists(hotStart):
+                        fname = tempfile.mktemp()
+                        shutil.copyfile(storeHistory, fname)
+                        self.hotStart = History(fname, temp=True, flag="r")
+                else:
+                    if os.path.exists(hotStart):
+                        self.hotStart = History(hotStart, temp=False, flag="r")
+                    else:
+                        pyOptSparseWarning("Hot start file does not exist. Performing a regular start")
+
+            self.storeHistory = False
+            if storeHistory:
+                self.hist = History(storeHistory, flag="n", optProb=self.optProb)
+                self.storeHistory = True
+
+                if self.hotStart is not None:
+                    # we set the DVs to the _initial_ values of the hotstart history file
+                    # we need major=False here since not all optimizers support major iteration counting
+                    # even though in theory the first call counter should always be major
+                    init_DV = self.hotStart.getValues(
+                        names=self.hotStart.getDVNames(), callCounters=[0], major=False, allowSens=True
+                    )
+                    self.optProb.setDVs(init_DV)
+                    # we also save these metadata values
+                    # into the new history file
+                    for key in ["varInfo", "conInfo", "objInfo", "optProb"]:
+                        val = self.hotStart.read(key)
+                        if val is not None:
+                            self.hist.writeData(key, val)
+                    self._setMetadata()
+                    self.hist.writeData("metadata", self.metadata)
+        self.optProb.comm.Barrier()
 
     def _masterFunc(self, x, evaluate):
         """
@@ -748,7 +760,7 @@ class Optimizer(BaseSolver):
         sol.userSensCalls = self.userSensCalls
         sol.interfaceTime = self.interfaceTime - self.userSensTime - self.userObjTime
         sol.optCodeTime = sol.optTime - self.interfaceTime
-        sol.fStar = obj  # FIXME: this doesn't work, at least for SNOPT
+        sol.fStar = self.optProb._mapObjtoUser(obj)
         xuser = self.optProb._mapXtoUser(xopt)
         sol.xStar = self.optProb.processXtoDict(xuser)
 

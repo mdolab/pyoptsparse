@@ -137,11 +137,14 @@ class TestTP109(unittest.TestCase):
         sol = opt(optProb, sens="CS", storeHistory=storeHistory)
 
         # Check Solution
-        assert_allclose(sol.objectives["obj"].value, 0.536206927538e04, atol=tol, rtol=tol)
+        if optName == "SNOPT" and opt.version != "7.7.7":
+            assert_allclose(sol.objectives["obj"].value, 0.536206927538e04, atol=tol, rtol=tol)
+        else:
+            assert_allclose(sol.fStar, 0.536206927538e04, atol=tol, rtol=tol)
 
     def test_snopt(self):
         name = "tp109_snopt.hst"
-        self.optimize("snopt", 1e-7, storeHistory=name)
+        self.optimize("SNOPT", 1e-7, storeHistory=name)
         hist = History(name)
         self.assertNotIn("lin_con", hist.getConNames())
         self.assertNotIn("lin_con", hist.getConInfo())

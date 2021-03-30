@@ -136,8 +136,9 @@ class CONMIN(Optimizer):
         # Save the optimization problem and finalize constraint
         # Jacobian, in general can only do on root proc
         self.optProb = optProb
-        self.optProb.finalizeDesignVariables()
-        self.optProb.finalizeConstraints()
+        self.optProb.finalize()
+        # Set history/hotstart/coldstart
+        self._setHistory(storeHistory, hotStart)
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
@@ -160,9 +161,6 @@ class CONMIN(Optimizer):
             self.optProb.offset = buc
 
         if self.optProb.comm.rank == 0:
-            # Set history/hotstart/coldstart
-            self._setHistory(storeHistory, hotStart)
-
             # =================================================================
             # CONMIN - Objective/Constraint Values Function
             # =================================================================

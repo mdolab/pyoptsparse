@@ -162,15 +162,16 @@ class NLPQLP(Optimizer):
         # Save the optimization problem and finalize constraint
         # Jacobian, in general can only do on root proc
         self.optProb = optProb
-        self.optProb.finalizeDesignVariables()
-        self.optProb.finalizeConstraints()
+        self.optProb.finalize()
+        # Set history/hotstart/coldstart
+        self._setHistory(storeHistory, hotStart)
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
         xs = np.maximum(xs, blx)
         xs = np.minimum(xs, bux)
         nvar = len(xs)
-        ff = self._assembleObjective()
+        f = self._assembleObjective()
 
         oneSided = True
         # Set the number of nonlinear constraints snopt *thinks* we have:
@@ -190,9 +191,6 @@ class NLPQLP(Optimizer):
             meq = len(tmp0)
 
         if self.optProb.comm.rank == 0:
-            # Set history/hotstart/coldstart
-            self._setHistory(storeHistory, hotStart)
-
             # =================================================================
             # NLPQL - Objective/Constraint Values Function (Real Valued)
             # =================================================================
@@ -229,7 +227,7 @@ class NLPQLP(Optimizer):
             # associated with them for the NP. We will do this
             # correctly even though num_procs is hard-coded to 1.
             xs = np.array(xs).T
-            f = np.array(ff)
+            f = np.array(f)
             g = np.zeros((mmax, num_procs))
 
             df = np.zeros(nmax)
@@ -275,7 +273,7 @@ class NLPQLP(Optimizer):
             sol_inform["text"] = self.informs[inform]
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff, xs)
+            sol = self._createSolution(optTime, sol_inform, f, xs)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()

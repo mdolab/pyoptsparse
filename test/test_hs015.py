@@ -48,7 +48,7 @@ class TestHS15(unittest.TestCase):
         fail = False
         return funcsSens, fail
 
-    def optimize(self, optName, tol, optOptions={}, storeHistory=False, hotStart=None):
+    def optimize(self, optName, tol, optOptions={}, storeHistory=False, hotStart=None, x0=[-2, 1.0]):
         self.nf = 0  # number of function evaluations
         self.ng = 0  # number of gradient evaluations
         # Optimization Object
@@ -57,8 +57,7 @@ class TestHS15(unittest.TestCase):
         # Design Variables
         lower = [-5.0, -5.0]
         upper = [0.5, 5.0]
-        value = [-2, 1.0]
-        optProb.addVarGroup("xvars", 2, lower=lower, upper=upper, value=value)
+        optProb.addVarGroup("xvars", 2, lower=lower, upper=upper, value=x0)
 
         # Constraints
         lower = [1.0, 0.0]
@@ -103,10 +102,16 @@ class TestHS15(unittest.TestCase):
         assert_allclose(sol_xvars, dv["xvars"], atol=tol, rtol=tol)
         # we check either optimum via try/except
         try:
-            assert_allclose(sol.objectives["obj"].value, self.fStar1, atol=tol, rtol=tol)
+            if optName == "SNOPT" and opt.version != "7.7.7":
+                assert_allclose(sol.objectives["obj"].value, self.fStar1, atol=tol, rtol=tol)
+            else:
+                assert_allclose(sol.fStar, self.fStar1, atol=tol, rtol=tol)
             assert_allclose(dv["xvars"], self.xStar1, atol=tol, rtol=tol)
         except AssertionError:
-            assert_allclose(sol.objectives["obj"].value, self.fStar2, atol=tol, rtol=tol)
+            if optName == "SNOPT" and opt.version != "7.7.7":
+                assert_allclose(sol.objectives["obj"].value, self.fStar2, atol=tol, rtol=tol)
+            else:
+                assert_allclose(sol.fStar, self.fStar2, atol=tol, rtol=tol)
             assert_allclose(dv["xvars"], self.xStar2, atol=tol, rtol=tol)
 
     def check_hist_file(self, optimizer, tol):
@@ -171,7 +176,7 @@ class TestHS15(unittest.TestCase):
         val = hist.getValues()
 
         # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
-        if optimizer in ["SNOPT", "SLSQP", "PSQP"]:
+        if optimizer in ["SNOPT", "PSQP"]:
             val = hist.getValues(callCounters=["0", "last"], stack=True)
             self.assertEqual(val["isMajor"].size, 2)
             self.assertTrue(val["isMajor"][0])  # the first callCounter must be a major iteration
@@ -185,7 +190,7 @@ class TestHS15(unittest.TestCase):
         In this process, it will check various combinations of storeHistory and hotStart filenames.
         It will also call `check_hist_file` after the first optimization.
         """
-        self.optimize(optName, tol, storeHistory=True, optOptions=optOptions)
+        self.optimize(optName, tol, storeHistory=True, optOptions=optOptions, x0=[-2.001, 1.001])
         self.assertGreater(self.nf, 0)
         self.assertGreater(self.ng, 0)
         self.check_hist_file(optName, tol)
@@ -200,6 +205,12 @@ class TestHS15(unittest.TestCase):
         # we should have zero actual function/gradient evaluations
         self.assertEqual(self.nf, 0)
         self.assertEqual(self.ng, 0)
+        # another test with hotstart, this time with a non-existing history file
+        # this will perform a cold start
+        self.optimize(optName, tol, storeHistory=True, hotStart="notexisting.hst", optOptions=optOptions)
+        self.assertGreater(self.nf, 0)
+        self.assertGreater(self.ng, 0)
+        self.check_hist_file(optName, tol)
         # final test with hotstart, this time with a different storeHistory
         self.optimize(
             optName,
@@ -260,7 +271,7 @@ class TestHS15(unittest.TestCase):
 
     def test_psqp(self):
         optOptions = {"IFILE": "hs015_PSQP.out"}
-        self.optimize_with_hotstart("PSQP", 1e-12, optOptions=optOptions)
+        self.optimize_with_hotstart("PSQP", 5e-12, optOptions=optOptions)
 
 
 if __name__ == "__main__":

@@ -165,8 +165,9 @@ class IPOPT(Optimizer):
         # Save the optimization problem and finalize constraint
         # Jacobian, in general can only do on root proc
         self.optProb = optProb
-        self.optProb.finalizeDesignVariables()
-        self.optProb.finalizeConstraints()
+        self.optProb.finalize()
+        # Set history/hotstart
+        self._setHistory(storeHistory, hotStart)
         self._setInitialCacheValues()
         blx, bux, xs = self._assembleContinuousVariables()
         self._setSens(sens, sensStep, sensMode)
@@ -205,9 +206,6 @@ class IPOPT(Optimizer):
             # Now what we need for IPOPT is precisely the .row and
             # .col attributes of the fullJacobian array
             matStruct = (jac["coo"][IROW].copy().astype("int_"), jac["coo"][ICOL].copy().astype("int_"))
-
-            # Set history/hotstart
-            self._setHistory(storeHistory, hotStart)
 
             # Define the 4 call back functions that ipopt needs:
             def eval_f(x, user_data=None):

@@ -103,9 +103,11 @@ class TestRosenbrock(unittest.TestCase):
         sol_xvars = [sol.variables["xvars"][i].value for i in range(n)]
 
         assert_allclose(sol_xvars, dv["xvars"], atol=tol, rtol=tol)
-
-        assert_allclose(sol.objectives["obj"].value, self.fStar1, atol=tol, rtol=tol)
         assert_allclose(dv["xvars"], self.xStar1, atol=tol, rtol=tol)
+        if optName == "SNOPT" and opt.version != "7.7.7":
+            assert_allclose(sol.objectives["obj"].value, self.fStar1, atol=tol, rtol=tol)
+        else:
+            assert_allclose(sol.fStar, self.fStar1, atol=tol, rtol=tol)
 
     def check_hist_file(self, optimizer, tol):
         """
@@ -146,7 +148,7 @@ class TestRosenbrock(unittest.TestCase):
             self.assertIn(key, iterKeys)
 
         # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
-        if optimizer in ["SNOPT", "SLSQP", "PSQP"]:
+        if optimizer in ["SNOPT", "PSQP"]:
             val = hist.getValues(callCounters=["0", "last"], stack=True)
             self.assertEqual(val["isMajor"].size, 2)
             self.assertTrue(val["isMajor"][0])  # the first callCounter must be a major iteration

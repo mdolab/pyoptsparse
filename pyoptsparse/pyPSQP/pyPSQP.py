@@ -146,8 +146,9 @@ class PSQP(Optimizer):
 
         # Set optProb and finalize
         self.optProb = optProb
-        self.optProb.finalizeDesignVariables()
-        self.optProb.finalizeConstraints()
+        self.optProb.finalize()
+        # Set history/hotstart
+        self._setHistory(storeHistory, hotStart)
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
@@ -191,9 +192,6 @@ class PSQP(Optimizer):
             ic[0 : len(tmp0)] = 5
 
         if self.optProb.comm.rank == 0:
-            # Set history/hotstart
-            self._setHistory(storeHistory, hotStart)
-
             # ======================================================================
             # PSQP - Objective Values Function
             # ======================================================================

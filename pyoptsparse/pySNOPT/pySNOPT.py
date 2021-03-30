@@ -275,13 +275,12 @@ class SNOPT(Optimizer):
             optProb.dummyConstraint = True
 
         self.optProb = optProb
-        self.optProb.finalizeDesignVariables()
-        self.optProb.finalizeConstraints()
-
+        self.optProb.finalize()
+        # Set history/hotstart
+        self._setHistory(storeHistory, hotStart)
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
-        ff = self._assembleObjective()
 
         oneSided = False
         # Set the number of nonlinear constraints snopt *thinks* we have:
@@ -380,7 +379,7 @@ class SNOPT(Optimizer):
                 lenrw = minWorkArrayLength + 200 * (ncon + nvar)
                 self.setOption("Total real workspace", lenrw)
 
-            cw = np.empty((lencw, 8), "c")
+            cw = np.empty((lencw, 8), dtype="|S1")
             iw = np.zeros(leniw, np.intc)
             rw = np.zeros(lenrw, np.float)
             snopt.sninit(iPrint, iSumm, cw, iw, rw)
@@ -410,7 +409,7 @@ class SNOPT(Optimizer):
             if checkLencw and mincw > lencw:
                 lencw = mincw
                 self.setOption("Total character workspace", lencw)
-                cw = np.array((lencw, 8), "c")
+                cw = np.empty((lencw, 8), dtype="|S1")
                 cw[:] = " "
                 lengthsChanged = True
             if checkLeniw and miniw > leniw:
@@ -450,7 +449,7 @@ class SNOPT(Optimizer):
             bu = np.concatenate((bux, buc))
             leniu = 2
             lenru = 3
-            cu = np.array(["        "], "c")
+            cu = np.empty((1, 8), dtype="|S1")
             iu = np.zeros(leniu, np.intc)
             ru = np.zeros(lenru, np.float)
             hs = np.zeros(nvar + ncon, np.intc)
@@ -462,15 +461,13 @@ class SNOPT(Optimizer):
             miniw = np.array([0], np.intc)
             minrw = np.array([0], np.intc)
 
-            # Set history/hotstart
-            self._setHistory(storeHistory, hotStart)
             if restartDict is not None:
                 hs = restartDict["hs"]
                 xs = restartDict["xs"]
                 pi = restartDict["pi"]
             # The snopt c interface
             timeA = time.time()
-            hs, xs, pi, rc, inform, mincw, miniw, minrw, nS, ninf, sinf, ff = snopt.snkerc(
+            hs, xs, pi, rc, inform, mincw, miniw, minrw, nS, ninf, sinf, obj = snopt.snkerc(
                 start,
                 nnCon,
                 nnObj,
@@ -525,7 +522,7 @@ class SNOPT(Optimizer):
             sol_inform["text"] = self.informs[inform]
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff, xs[:nvar], multipliers=pi)
+            sol = self._createSolution(optTime, sol_inform, obj, xs[:nvar], multipliers=pi)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
