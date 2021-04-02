@@ -1651,10 +1651,7 @@ class Optimization(object):
         fmt = "    {0:>7d}  {1:{width}s}   {2:>14.6E}   {3:>14.6E}\n"
         for idx, name in enumerate(self.objectives):
             obj = self.objectives[name]
-            value = obj.value
-            if np.iscomplexobj(value):
-                value = value.real
-            text += fmt.format(idx, obj.name, value, obj.optimum, width=num_c)
+            text += fmt.format(idx, obj.name, obj.value, obj.optimum, width=num_c)
 
         # Find the longest name in the variables
         num_c = 0
@@ -1672,8 +1669,6 @@ class Optimization(object):
             for var in self.variables[varname]:
                 if var.type in ["c", "i"]:
                     value = var.value
-                    if np.iscomplexobj(value):
-                        value = value.real
                     lower = var.lower if var.lower is not None else -1.0e20
                     upper = var.upper if var.upper is not None else 1.0e20
                     status = ""
@@ -1734,8 +1729,6 @@ class Optimization(object):
                     lower = c.lower[j] if c.lower[j] is not None else -1.0e20
                     upper = c.upper[j] if c.upper[j] is not None else 1.0e20
                     value = c.value[j]
-                    if np.iscomplexobj(value):
-                        value = value.real
                     status = ""
                     typ = "e" if j in c.equalityConstraints["ind"] else "i"
                     if typ == "e":
