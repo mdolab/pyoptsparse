@@ -1137,7 +1137,7 @@ class Optimization(object):
                 except ValueError:
                     raise Error("The objective return value, '%s' must be a scalar!" % objKey)
                 # Store objective for printing later
-                self.objectives[objKey].value = f
+                self.objectives[objKey].value = np.real(f)
                 fobj.append(f)
             else:
                 raise Error("The key for the objective, '%s' was not found." % objKey)
@@ -1232,7 +1232,7 @@ class Optimization(object):
                     )
 
                 # Store constraint values for printing later
-                con.value = copy.copy(c)
+                con.value = np.real(copy.copy(c))
             else:
                 raise Error("No constraint values were found for the constraint '%s'." % iCon)
 
