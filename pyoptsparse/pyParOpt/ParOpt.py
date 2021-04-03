@@ -1,7 +1,11 @@
-import numpy as np
-import os
+# Standard Python modules
 import datetime
+import os
 
+# External modules
+import numpy as np
+
+# isort: off
 # Attempt to import mpi4py.
 # If PYOPTSPARSE_REQUIRE_MPI is set to a recognized positive value, attempt import
 # and raise exception on failure. If set to anything else, no import is attempted.
@@ -23,9 +27,11 @@ else:
         from mpi4py import MPI
     except ImportError:
         _ParOpt = None
+# isort: on
 
-from ..pyOpt_optimizer import Optimizer
+# Local modules
 from ..pyOpt_error import Error
+from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_utils import INFINITY
 
 

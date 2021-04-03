@@ -2,12 +2,17 @@
 pyALPSO - A pyOptSparse interface to ALPSO
 work with sparse optimization problems.
 """
+# Standard Python modules
 import time
 
+# External modules
 import numpy as np
 
-from ..pyOpt_optimizer import Optimizer
+# Local modules
 from ..pyOpt_error import Error
+from ..pyOpt_optimizer import Optimizer
+
+# isort: off
 
 
 class ALPSO(Optimizer):

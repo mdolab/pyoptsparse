@@ -1,18 +1,22 @@
 """
 pyPSQP - the pyPSQP wrapper
 """
+# Compiled module
 try:
-    from . import psqp
+    from . import psqp  # isort: skip
 except ImportError:
     psqp = None
+# Standard Python modules
+import datetime
 import os
 import time
-import datetime
 
+# External modules
 import numpy as np
 
-from ..pyOpt_optimizer import Optimizer
+# Local modules
 from ..pyOpt_error import Error
+from ..pyOpt_optimizer import Optimizer
 
 
 class PSQP(Optimizer):

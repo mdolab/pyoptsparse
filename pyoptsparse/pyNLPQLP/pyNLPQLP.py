@@ -1,18 +1,23 @@
-"""pyNLPQLP - A pyOptSparse wrapper for Schittkowski's NLPQLP
+"""
+pyNLPQLP - A pyOptSparse wrapper for Schittkowski's NLPQLP
 optimization algorithm.
 """
+# Compiled module
 try:
-    from . import nlpqlp
+    from . import nlpqlp  # isort: skip
 except ImportError:
     nlpqlp = None
+# Standard Python modules
+import datetime
 import os
 import time
-import datetime
 
+# External modules
 import numpy as np
 
-from ..pyOpt_optimizer import Optimizer
+# Local modules
 from ..pyOpt_error import Error
+from ..pyOpt_optimizer import Optimizer
 
 
 class NLPQLP(Optimizer):

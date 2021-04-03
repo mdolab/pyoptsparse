@@ -1,21 +1,24 @@
 """
 pyIPOPT - A python wrapper to the core IPOPT compiled module.
 """
-
+# Compiled module
 try:
-    from . import pyipoptcore
+    from . import pyipoptcore  # isort: skip
 except ImportError:
     pyipoptcore = None
 
+# Standard Python modules
 import copy
-import time
 import datetime
+import time
 
+# External modules
 import numpy as np
 
-from ..pyOpt_optimizer import Optimizer
+# Local modules
 from ..pyOpt_error import Error
-from ..pyOpt_utils import IROW, ICOL, convertToCOO, extractRows, scaleRows, INFINITY
+from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, scaleRows
 
 
 class IPOPT(Optimizer):

@@ -2,16 +2,20 @@
 pyNSGA2 - A variation of the pyNSGA2 wrapper specificially designed to
 work with sparse optimization problems.
 """
+# Compiled module
 try:
-    from . import nsga2
+    from . import nsga2  # isort: skip
 except ImportError:
     nsga2 = None
+# Standard Python modules
 import time
 
+# External modules
 import numpy as np
 
-from ..pyOpt_optimizer import Optimizer
+# Local modules
 from ..pyOpt_error import Error
+from ..pyOpt_optimizer import Optimizer
 
 
 class NSGA2(Optimizer):
