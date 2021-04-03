@@ -2,6 +2,7 @@
 from collections import OrderedDict
 import copy
 import os
+import warnings
 
 # External modules
 import numpy as np
@@ -785,6 +786,12 @@ class Optimization(object):
             self._finalizeConstraints()
             self.finalized = True
 
+    def finalizeDesignVariables(self):
+        warnings.warn(
+            "finalizeDesignVariables() is deprecated, use _finalizeDesignVariables() instead.", DeprecationWarning
+        )
+        self._finalizeDesignVariables()
+
     def _finalizeDesignVariables(self):
         """
         Communicate design variables potentially from different
@@ -808,6 +815,10 @@ class Optimization(object):
             self.dvOffset[dvGroup] = [dvCounter, dvCounter + n, self.variables[dvGroup][0].scalar]
             dvCounter += n
         self.ndvs = dvCounter
+
+    def finalizeConstraints(self):
+        warnings.warn("finalizeConstraints() is deprecated, use _finalizeConstraints() instead.", DeprecationWarning)
+        self._finalizeConstraints()
 
     def _finalizeConstraints(self):
         """
