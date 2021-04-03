@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import copy
 from .pyOpt_optimization import Optimization
 

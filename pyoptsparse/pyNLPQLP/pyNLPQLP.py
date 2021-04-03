@@ -1,4 +1,3 @@
-# /bin/env python
 """pyNLPQLP - A pyOptSparse wrapper for Schittkowski's NLPQLP
 optimization algorithm.
 """

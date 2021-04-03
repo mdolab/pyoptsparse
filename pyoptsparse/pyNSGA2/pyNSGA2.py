@@ -1,4 +1,3 @@
-# /bin/env python
 """
 pyNSGA2 - A variation of the pyNSGA2 wrapper specificially designed to
 work with sparse optimization problems.

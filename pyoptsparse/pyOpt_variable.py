@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from .pyOpt_error import Error
 
 INFINITY = 1e20

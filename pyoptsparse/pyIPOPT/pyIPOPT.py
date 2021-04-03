@@ -1,4 +1,3 @@
-# /bin/env python
 """
 pyIPOPT - A python wrapper to the core IPOPT compiled module.
 """

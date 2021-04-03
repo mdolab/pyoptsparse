@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Solves Schittkowski's TP109 constraint problem.
 

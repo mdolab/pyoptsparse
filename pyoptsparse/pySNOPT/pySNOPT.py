@@ -1,4 +1,3 @@
-# /bin/env python
 """
 pySNOPT - A variation of the pySNOPT wrapper specificially designed to
 work with sparse optimization problems.

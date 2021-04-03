@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 alpso - Python Version of the Augmented Lagrangian Particle Swarm Optimizer
 

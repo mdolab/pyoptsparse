@@ -1,4 +1,3 @@
-# /bin/env python
 """
 pyALPSO - A pyOptSparse interface to ALPSO
 work with sparse optimization problems.

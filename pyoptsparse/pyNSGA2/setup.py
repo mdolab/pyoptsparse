@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import os, sys
 
 from numpy.distutils.command import build_src

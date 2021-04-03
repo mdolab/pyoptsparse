@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from pyoptsparse import Optimization, SLSQP
 import argparse
 

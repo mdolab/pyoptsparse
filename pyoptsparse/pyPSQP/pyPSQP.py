@@ -1,4 +1,3 @@
-# /bin/env python
 """
 pyPSQP - the pyPSQP wrapper
 """

@@ -1,4 +1,3 @@
-# /bin/env python
 """
 pySLSQP - A variation of the pySLSQP wrapper specificially designed to
 work with sparse optimization problems.

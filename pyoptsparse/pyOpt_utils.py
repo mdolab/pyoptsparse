@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 pyOptSparse_utils holds a minimal set of sparse-matrix type routines for pyOptSparse.
 This is designed to replace the SciPy sparse matrix formats, which have no way to enforce a constant sparsity structure as required by the optimizers.

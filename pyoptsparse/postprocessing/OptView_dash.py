@@ -3,7 +3,6 @@
 # OptView baseclass. This should be more maintainable
 # for adding new features or displaying new information with OptView.
 
-# !/usr/bin/python
 import dash
 import dash_core_components as dcc
 import dash_html_components as html

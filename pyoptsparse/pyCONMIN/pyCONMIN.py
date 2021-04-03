@@ -1,4 +1,3 @@
-# /bin/env python
 """
 pyCONMIN - A variation of the pyCONMIN wrapper specificially designed to
 work with sparse optimization problems.
