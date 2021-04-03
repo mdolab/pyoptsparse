@@ -2,28 +2,15 @@ import sys
 import re
 import setuptools  # magic import to allow us to use entry_point
 
-# Check if we have numpy:
-try:
-    from numpy.distutils.misc_util import Configuration
-    import numpy.distutils.core
-    from numpy.distutils.core import setup
-except ImportError:
-    raise ImportError("pyOptSparse requires numpy")
+# numpy imports
+from numpy.distutils.misc_util import Configuration
+import numpy.distutils.core
+from numpy.distutils.core import setup
 
 # HACK to make bdist_wheel command usable when using numpy.distutils.core.setup
-try:
-    from wheel import bdist_wheel
-except ImportError:
-    if "bdist_wheel" in sys.argv:
-        print(
-            (
-                "\nThe bdist_wheel option requires the 'wheel' package to be installed.\n"
-                + "Install it using 'pip install wheel'."
-            )
-        )
-        sys.exit(-1)
-else:
-    numpy.distutils.core.numpy_cmdclass["bdist_wheel"] = bdist_wheel.bdist_wheel
+from wheel import bdist_wheel
+
+numpy.distutils.core.numpy_cmdclass["bdist_wheel"] = bdist_wheel.bdist_wheel
 
 
 if len(sys.argv) == 1:
