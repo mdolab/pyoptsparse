@@ -1,9 +1,8 @@
 from .pyOpt_error import Error
 
 INFINITY = 1e20
-# =============================================================================
-# Variable Class
-# =============================================================================
+
+
 class Variable(object):
     def __init__(self, name, type, value, lower, upper, scale, offset, scalar=False, choices=None):
         """

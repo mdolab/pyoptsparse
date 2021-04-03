@@ -1,20 +1,11 @@
-# =============================================================================
-# Standard Python modules
-# =============================================================================
 import copy
 import os
 from collections import OrderedDict
 from sqlitedict import SqliteDict
 
-# =============================================================================
-# External Python modules
-# =============================================================================
 import numpy as np
 from scipy.sparse import coo_matrix
 
-# =============================================================================
-# Extension modules
-# =============================================================================
 from .pyOpt_variable import Variable
 from .pyOpt_objective import Objective
 from .pyOpt_constraint import Constraint
@@ -23,15 +14,10 @@ from .pyOpt_MPI import MPI
 
 from .pyOpt_utils import IROW, ICOL, IDATA, convertToCSR, convertToCOO, mapToCSR, scaleRows, scaleColumns
 
-# =============================================================================
-# Misc Definitions
-# =============================================================================
+# constants
 INFINITY = 1e20
 
 
-# =============================================================================
-# Optimization Class
-# =============================================================================
 class Optimization(object):
     def __init__(self, name, objFun, comm=None, sens=None):
         """
@@ -1767,12 +1753,3 @@ class Optimization(object):
             if key in d.keys():
                 del d[key]
         return d
-
-
-# ==============================================================================
-# Optimization Test
-# ==============================================================================
-if __name__ == "__main__":
-
-    print("Testing Optimization...")
-    optprob = Optimization("Optimization Problem", {})

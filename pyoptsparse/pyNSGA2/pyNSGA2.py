@@ -2,32 +2,18 @@
 pyNSGA2 - A variation of the pyNSGA2 wrapper specificially designed to
 work with sparse optimization problems.
 """
-# =============================================================================
-# NSGA2 Library
-# =============================================================================
 try:
     from . import nsga2
 except ImportError:
     nsga2 = None
-# =============================================================================
-# Standard Python modules
-# =============================================================================
 import time
 
-# =============================================================================
-# External Python modules
-# =============================================================================
 import numpy as np
 
-# ===========================================================================
-# Extension modules
-# ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
 
-# =============================================================================
-# NSGA2 Optimizer Class
-# =============================================================================
+
 class NSGA2(Optimizer):
     """
     NSGA2 Optimizer Class - Inherited from Optimizer Abstract Class

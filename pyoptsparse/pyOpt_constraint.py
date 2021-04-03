@@ -1,16 +1,13 @@
-# =============================================================================
-# External Python modules
-# =============================================================================
 import copy
 import numpy as np
 from .pyOpt_error import Error, pyOptSparseWarning
 from .pyOpt_utils import convertToCOO
 
+# constants
 INFINITY = 1e20
 eps = np.finfo(np.float64).eps
-# =============================================================================
-# Constraint Class
-# =============================================================================
+
+
 class Constraint(object):
     def __init__(self, name, nCon, linear, wrt, jac, lower, upper, scale):
         """

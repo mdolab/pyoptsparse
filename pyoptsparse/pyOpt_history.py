@@ -1,6 +1,3 @@
-# =============================================================================
-# External Python modules
-# =============================================================================
 import os
 import copy
 import numpy as np
@@ -8,10 +5,10 @@ from .pyOpt_error import Error, pyOptSparseWarning
 from sqlitedict import SqliteDict
 from collections import OrderedDict
 
+# constants
 eps = np.finfo(np.float64).eps
-# =============================================================================
-# History Class
-# =============================================================================
+
+
 class History(object):
     def __init__(self, fileName, optProb=None, temp=False, flag="r"):
         """
@@ -679,12 +676,3 @@ class History(object):
                 os.remove(self.fileName)
         except:  # noqa: E722
             pass
-
-
-# ==============================================================================
-# Optimizer History Test
-# ==============================================================================
-if __name__ == "__main__":
-
-    # Test Optimizer History
-    print("Testing Optimizer History...")

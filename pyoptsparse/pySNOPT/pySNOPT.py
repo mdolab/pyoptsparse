@@ -2,37 +2,23 @@
 pySNOPT - A variation of the pySNOPT wrapper specificially designed to
 work with sparse optimization problems.
 """
-# =============================================================================
-# SNOPT Library
-# =============================================================================
 try:
     from . import snopt
 except ImportError:
     snopt = None
-# =============================================================================
-# Standard Python modules
-# =============================================================================
 import os
 import time
 import datetime
 import re
 
-# =============================================================================
-# External Python modules
-# =============================================================================
 import numpy as np
 
-# # ===========================================================================
-# # Extension modules
-# # ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
 from ..pyOpt_utils import ICOL, IDATA, IROW, extractRows, mapToCSC, scaleRows
 from baseclasses.utils import CaseInsensitiveSet
 
-# =============================================================================
-# SNOPT Optimizer Class
-# =============================================================================
+
 class SNOPT(Optimizer):
     """
     SNOPT Optimizer Class - Inherited from Optimizer Abstract Class

@@ -1,6 +1,3 @@
-# =============================================================================
-# Imports
-# =============================================================================
 import os
 import time
 import copy
@@ -18,11 +15,10 @@ import datetime
 from baseclasses import BaseSolver
 from .pyOpt_MPI import MPI
 
+# constants
 eps = np.finfo(np.float64).eps
 
-# =============================================================================
-# Optimizer Class
-# =============================================================================
+
 class Optimizer(BaseSolver):
     def __init__(
         self,
@@ -940,9 +936,8 @@ def OPT(optName, *args, **kwargs):
         from .pyParOpt.ParOpt import ParOpt as opt
     else:
         raise Error(
-            "The optimizer specified in 'optName' was \
-not recognized. The current list of supported optimizers is: %s"
-            % repr(optList)
+            "The optimizer specified in 'optName' was not recognized. "
+            + f"The current list of supported optimizers is: {optList}"
         )
 
     # Create the optimizer and return it

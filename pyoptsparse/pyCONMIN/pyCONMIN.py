@@ -2,34 +2,20 @@
 pyCONMIN - A variation of the pyCONMIN wrapper specificially designed to
 work with sparse optimization problems.
 """
-# =============================================================================
-# CONMIN Library
-# =============================================================================
 try:
     from . import conmin
 except ImportError:
     conmin = None
-# =============================================================================
-# Standard Python modules
-# =============================================================================
 import os
 import time
 import datetime
 
-# =============================================================================
-# External Python modules
-# =============================================================================
 import numpy as np
 
-# ===========================================================================
-# Extension modules
-# ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
 
-# =============================================================================
-# CONMIN Optimizer Class
-# =============================================================================
+
 class CONMIN(Optimizer):
     """
     CONMIN Optimizer Class - Inherited from Optimizer Abstract Class

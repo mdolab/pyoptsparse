@@ -1,37 +1,23 @@
 """
 pyIPOPT - A python wrapper to the core IPOPT compiled module.
 """
-# =============================================================================
-# IPOPT Library
-# =============================================================================
 
 try:
     from . import pyipoptcore
 except ImportError:
     pyipoptcore = None
 
-# =============================================================================
-# standard Python modules
-# =============================================================================
 import copy
 import time
 import datetime
 
-# =============================================================================
-# External Python modules
-# =============================================================================
 import numpy as np
 
-# =============================================================================
-# Extension modules
-# =============================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
 from ..pyOpt_utils import IROW, ICOL, convertToCOO, extractRows, scaleRows
 
-# =============================================================================
-# IPOPT Optimizer Class
-# =============================================================================
+
 class IPOPT(Optimizer):
     """
     IPOPT Optimizer Class - Inherited from Optimizer Abstract Class

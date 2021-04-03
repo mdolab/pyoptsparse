@@ -2,34 +2,20 @@
 pySLSQP - A variation of the pySLSQP wrapper specificially designed to
 work with sparse optimization problems.
 """
-# =============================================================================
-# SLSQP Library
-# =============================================================================
 try:
     from . import slsqp
 except ImportError:
     slsqp = None
-# =============================================================================
-# Standard Python modules
-# =============================================================================
 import os
 import time
 import datetime
 
-# =============================================================================
-# External Python modules
-# =============================================================================
 import numpy as np
 
-# ===========================================================================
-# Extension modules
-# ===========================================================================
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
 
-# =============================================================================
-# SLSQP Optimizer Class
-# =============================================================================
+
 class SLSQP(Optimizer):
     """
     SLSQP Optimizer Class - Inherited from Optimizer Abstract Class
