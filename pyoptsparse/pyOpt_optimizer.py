@@ -358,7 +358,12 @@ class Optimizer(BaseSolver):
 
                 self.userObjTime += time.time() - timeA
                 self.userObjCalls += 1
-                # User values stored is immediately
+
+                # Discard zero imaginary components in funcs
+                for key, val in funcs.items():
+                    funcs[key] = np.real(val)
+
+                # Store user values
                 self.cache["funcs"] = copy.deepcopy(funcs)
 
                 # Process constraints/objectives
@@ -401,7 +406,12 @@ class Optimizer(BaseSolver):
 
                 self.userObjTime += time.time() - timeA
                 self.userObjCalls += 1
-                # User values stored is immediately
+
+                # Discard zero imaginary components in funcs
+                for key, val in funcs.items():
+                    funcs[key] = np.real(val)
+
+                # Store user values
                 self.cache["funcs"] = copy.deepcopy(funcs)
 
                 # Process constraints/objectives
@@ -456,7 +466,7 @@ class Optimizer(BaseSolver):
                 self.userSensTime += time.time() - timeA
                 self.userSensCalls += 1
 
-                # User values are stored is immediately
+                # User values are stored immediately
                 self.cache["funcsSens"] = copy.deepcopy(funcsSens)
 
                 # Process objective gradient for optimizer
@@ -510,7 +520,8 @@ class Optimizer(BaseSolver):
 
                 self.userSensTime += time.time() - timeA
                 self.userSensCalls += 1
-                # User values stored is immediately
+
+                # User values are stored immediately
                 self.cache["funcsSens"] = copy.deepcopy(funcsSens)
 
                 # Process objective gradient for optimizer
