@@ -269,12 +269,3 @@ class IPOPT(Optimizer):
                 nlp.int_option(name, value)
             else:
                 print("invalid option type", type(value))
-
-
-# ==============================================================================
-# IPOPT Optimizer Test
-# ==============================================================================
-if __name__ == "__main__":
-
-    ipopt = IPOPT()
-    print(ipopt)

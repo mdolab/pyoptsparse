@@ -1,5 +1,5 @@
 import sys
-
+import re
 import setuptools  # magic import to allow us to use entry_point
 
 # Check if we have numpy:
@@ -50,9 +50,6 @@ def configuration(parent_package="", top_path=None):
 
 
 if __name__ == "__main__":
-
-    import re
-
     __version__ = re.findall(
         r"""__version__ = ["']+([0-9\.]*)["']+""",
         open("pyoptsparse/__init__.py").read(),
