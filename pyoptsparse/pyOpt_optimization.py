@@ -76,7 +76,8 @@ class Optimization(object):
         # constraints
         self.ndvs = None
         self.conScale = None
-        self.nCon = None
+        self.nCon = 0
+        self.nObj = 0
         self.invXScale = None
         self.xOffset = None
         self.linearJacobian = None
@@ -861,7 +862,6 @@ class Optimization(object):
         # ----------------------------------------------------
 
         # Determine number of constraints
-        self.nCon = 0
         for iCon in self.constraints:
             self.nCon += self.constraints[iCon].ncon
 
@@ -904,6 +904,7 @@ class Optimization(object):
         # --------------------------------------
         for idx, objKey in enumerate(self.objectives):
             self.objectiveIdx[objKey] = idx
+            self.nObj += 1
 
         # ---------------------------------------------
         # Step 4. Final Jacobian for linear constraints
@@ -1362,9 +1363,7 @@ class Optimization(object):
         """
 
         dvGroups = set(self.variables.keys())
-
-        nobj = len(self.objectives)
-        gobj = np.zeros((nobj, self.ndvs))
+        gobj = np.zeros((self.nObj, self.ndvs))
 
         iObj = 0
         for objKey in self.objectives.keys():
