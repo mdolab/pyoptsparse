@@ -6,12 +6,16 @@ https://github.com/PythonCharmers/OOSuite/blob/master/FuncDesigner/FuncDesigner/
 Only testing with SNOPT, which supports sparse formats.
 """
 
+# Standard Python modules
 import unittest
+
+# External modules
 import numpy as np
 from numpy.testing import assert_allclose
 import scipy
 
-from pyoptsparse import Optimization, SNOPT
+# First party modules
+from pyoptsparse import SNOPT, Optimization
 from pyoptsparse.pyOpt_error import Error
 
 

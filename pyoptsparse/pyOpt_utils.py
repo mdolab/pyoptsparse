@@ -7,8 +7,13 @@ We use a very simple dictionary format to represent the three most common forms 
     mat = {'csr':[rowp, colind, data], 'shape':[nrow, ncols]} # A csr matrix
     mat = {'csc':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
 """
-import numpy as np
+# Standard Python modules
 import warnings
+
+# External modules
+import numpy as np
+
+# Local modules
 from .pyOpt_error import Error
 
 # Define index mnemonics
@@ -221,7 +226,7 @@ def convertToCOO(mat):
     else:
         # Try to do it with a scipy sparse matrix:
         try:
-            from scipy import sparse
+            from scipy import sparse  # isort: skip
 
             if sparse.issparse(mat):
                 warnings.warn(

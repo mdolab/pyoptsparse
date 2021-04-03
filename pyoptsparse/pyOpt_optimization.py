@@ -1,18 +1,20 @@
+# Standard Python modules
+from collections import OrderedDict
 import copy
 import os
-from collections import OrderedDict
-from sqlitedict import SqliteDict
 
+# External modules
 import numpy as np
 from scipy.sparse import coo_matrix
+from sqlitedict import SqliteDict
 
-from .pyOpt_variable import Variable
-from .pyOpt_objective import Objective
+# Local modules
+from .pyOpt_MPI import MPI
 from .pyOpt_constraint import Constraint
 from .pyOpt_error import Error
-from .pyOpt_MPI import MPI
-
-from .pyOpt_utils import IROW, ICOL, IDATA, convertToCSR, convertToCOO, mapToCSR, scaleRows, scaleColumns
+from .pyOpt_objective import Objective
+from .pyOpt_utils import ICOL, IDATA, IROW, convertToCOO, convertToCSR, mapToCSR, scaleColumns, scaleRows
+from .pyOpt_variable import Variable
 
 # constants
 INFINITY = 1e20

@@ -1,3 +1,4 @@
+# Local modules
 from .pyOpt_error import Error
 
 INFINITY = 1e20

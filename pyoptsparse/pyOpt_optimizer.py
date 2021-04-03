@@ -1,19 +1,28 @@
-import os
-import time
-import copy
-import tempfile
-import shutil
-import numpy as np
-from .pyOpt_gradient import Gradient
-from .pyOpt_error import Error, pyOptSparseWarning
-from .pyOpt_history import History
-from .pyOpt_solution import Solution
-from .pyOpt_optimization import INFINITY
-from .pyOpt_utils import convertToDense, convertToCOO, extractRows, mapToCSC, scaleRows, IDATA
+# Standard Python modules
 from collections import OrderedDict
+import copy
 import datetime
+import os
+import shutil
+import tempfile
+import time
+
+# External modules
+import numpy as np
+
+# First party modules
 from baseclasses import BaseSolver
+
+# Local modules
 from .pyOpt_MPI import MPI
+from .pyOpt_error import Error, pyOptSparseWarning
+from .pyOpt_gradient import Gradient
+from .pyOpt_history import History
+from .pyOpt_optimization import INFINITY
+from .pyOpt_solution import Solution
+from .pyOpt_utils import IDATA, convertToCOO, convertToDense, extractRows, mapToCSC, scaleRows
+
+# isort: off
 
 # constants
 eps = np.finfo(np.float64).eps

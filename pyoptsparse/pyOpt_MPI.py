@@ -6,8 +6,11 @@ mpi4py. Only the method from the COMM object that are actually used in
 pyOptSparse are included here.
 """
 
+# Standard Python modules
 import os
 import warnings
+
+# isort: off
 
 
 class COMM(object):

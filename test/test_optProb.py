@@ -1,9 +1,14 @@
 """Test for optProb"""
 
+# Standard Python modules
 import unittest
+
+# External modules
 import numpy as np
 from numpy.testing import assert_allclose
-from pyoptsparse import Optimization, OPT
+
+# First party modules
+from pyoptsparse import OPT, Optimization
 
 tol = 1e-12
 

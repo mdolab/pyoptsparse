@@ -1,5 +1,10 @@
+# Standard Python modules
 import copy
+
+# External modules
 import numpy as np
+
+# Local modules
 from .pyOpt_error import Error, pyOptSparseWarning
 from .pyOpt_utils import convertToCOO
 

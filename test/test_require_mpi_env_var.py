@@ -1,9 +1,11 @@
+# Standard Python modules
 import importlib
 import inspect
-import unittest
 import os
 import sys
+import unittest
 
+# isort: off
 if sys.version_info[0] == 2:
     reload_func = reload  # noqa: F821
 else:

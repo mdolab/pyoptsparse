@@ -1,9 +1,14 @@
 """Test solution of Rosenbrock problem"""
 
+# Standard Python modules
 import unittest
+
+# External modules
 import numpy as np
 from numpy.testing import assert_allclose
-from pyoptsparse import Optimization, OPT, History
+
+# First party modules
+from pyoptsparse import OPT, History, Optimization
 from pyoptsparse.pyOpt_error import Error
 
 

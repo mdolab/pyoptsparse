@@ -1,9 +1,14 @@
-import os
-import copy
-import numpy as np
-from .pyOpt_error import Error, pyOptSparseWarning
-from sqlitedict import SqliteDict
+# Standard Python modules
 from collections import OrderedDict
+import copy
+import os
+
+# External modules
+import numpy as np
+from sqlitedict import SqliteDict
+
+# Local modules
+from .pyOpt_error import Error, pyOptSparseWarning
 
 # constants
 eps = np.finfo(np.float64).eps
@@ -214,7 +219,7 @@ class History(object):
         # remove objective and constraint keys
         self.extraFuncsNames = self.extraFuncsNames.difference(self.conNames).difference(self.objNames)
 
-        from .__init__ import __version__
+        from .__init__ import __version__  # isort: skip
 
         if self.metadata["version"] != __version__:
             pyOptSparseWarning(

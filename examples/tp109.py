@@ -26,9 +26,14 @@ Solves Schittkowski's TP109 constraint problem.
     x*1 = [0.674888100445e+03, 0.113417039470e+04, 0.133569060261e+00, -0.371152592466e+00, 0.252e+03, 0.252e+03, 0.201464535316e+03, 0.426660777226e+03, 0.368494083867e+03]
 """
 
-import numpy as np
+# Standard Python modules
 import argparse
-from pyoptsparse import Optimization, OPT
+
+# External modules
+import numpy as np
+
+# First party modules
+from pyoptsparse import OPT, Optimization
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--opt", help="optimizer", type=str, default="SLSQP")

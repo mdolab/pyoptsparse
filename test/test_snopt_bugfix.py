@@ -3,11 +3,15 @@
 # problem is a simple paraboloid. The minimum should be at (7.166667,
 # -7.833334), but with the bug, x and y stay at zero.
 
+# Standard Python modules
 import unittest
 
+# External modules
 import numpy as np
 from numpy.testing import assert_allclose
-from pyoptsparse import Optimization, SNOPT
+
+# First party modules
+from pyoptsparse import SNOPT, Optimization
 from pyoptsparse.pyOpt_error import Error
 
 
