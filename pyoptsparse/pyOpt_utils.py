@@ -27,24 +27,10 @@ ICOLP = 0
 IROWIND = 1
 
 IDATA = 2
-__all__ = [
-    "convertToCOO",
-    "convertToCSR",
-    "convertToCSC",
-    "convertToDense",
-    "mapToCSC",
-    "mapToCSR",
-    "scaleColumns",
-    "scaleRows",
-    "extractRows",
-    "IROW",
-    "ICOL",
-    "IROWP",
-    "ICOLIND",
-    "ICOLP",
-    "IROWIND",
-    "IDATA",
-]
+
+# Constants
+INFINITY = 1e20
+EPS = np.finfo(np.float64).eps
 
 
 def mapToCSR(mat):

@@ -20,12 +20,9 @@ from .pyOpt_gradient import Gradient
 from .pyOpt_history import History
 from .pyOpt_optimization import INFINITY
 from .pyOpt_solution import Solution
-from .pyOpt_utils import IDATA, convertToCOO, convertToDense, extractRows, mapToCSC, scaleRows
+from .pyOpt_utils import EPS, IDATA, convertToCOO, convertToDense, extractRows, mapToCSC, scaleRows
 
 # isort: off
-
-# constants
-eps = np.finfo(np.float64).eps
 
 
 class Optimizer(BaseSolver):
@@ -239,7 +236,7 @@ class Optimizer(BaseSolver):
 
                 # Validated x-point point to use:
                 xuser_vec = self.optProb._mapXtoUser(x)
-                if np.isclose(xuser_vec, xuser_ref, rtol=eps, atol=eps).all():
+                if np.isclose(xuser_vec, xuser_ref, rtol=EPS, atol=EPS).all():
 
                     # However, we may need a sens that *isn't* in the
                     # the dictionary:
@@ -343,7 +340,7 @@ class Optimizer(BaseSolver):
         returns = []
         # Start with fobj:
         if "fobj" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
                 timeA = time.time()
                 args = self.optProb.objFun(xuser)
                 if isinstance(args, tuple):
@@ -385,7 +382,7 @@ class Optimizer(BaseSolver):
             hist["funcs"] = self.cache["funcs"]
 
         if "fcon" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
                 timeA = time.time()
 
                 args = self.optProb.objFun(xuser)
@@ -428,7 +425,7 @@ class Optimizer(BaseSolver):
             hist["funcs"] = self.cache["funcs"]
 
         if "gobj" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recursively call
                 # the routine with ['fobj', and 'fcon']
@@ -483,7 +480,7 @@ class Optimizer(BaseSolver):
                 hist["funcsSens"] = self.cache["funcsSens"]
 
         if "gcon" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recursively call
                 # the routine with ['fobj', and 'fcon']

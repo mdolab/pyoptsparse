@@ -15,7 +15,7 @@ import numpy as np
 
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
-from ..pyOpt_utils import ICOL, IDATA, IROW, extractRows, mapToCSC, scaleRows
+from ..pyOpt_utils import ICOL, IDATA, IROW, extractRows, mapToCSC, scaleRows, INFINITY
 from baseclasses.utils import CaseInsensitiveSet
 
 
@@ -302,8 +302,8 @@ class SNOPT(Optimizer):
                 jac = extractRows(jac, indices)  # Does reordering
                 scaleRows(jac, fact)  # Perform logical scaling
             else:
-                blc = [-1e20]
-                buc = [1e20]
+                blc = [-INFINITY]
+                buc = [INFINITY]
 
             if self._snopt_jac_map_csr_to_csc is None:
                 self._snopt_jac_map_csr_to_csc = mapToCSC(jac)

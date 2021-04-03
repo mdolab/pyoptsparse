@@ -9,9 +9,7 @@ from sqlitedict import SqliteDict
 
 # Local modules
 from .pyOpt_error import Error, pyOptSparseWarning
-
-# constants
-eps = np.finfo(np.float64).eps
+from .pyOpt_utils import EPS
 
 
 class History(object):
@@ -180,7 +178,7 @@ class History(object):
         for i in range(last, 0, -1):
             key = "%d" % i
             xuser = self.optProb.processXtoVec(self.db[key]["xuser"])
-            if np.isclose(xuser, x, atol=eps, rtol=eps).all() and "funcs" in self.db[key].keys():
+            if np.isclose(xuser, x, atol=EPS, rtol=EPS).all() and "funcs" in self.db[key].keys():
                 callCounter = i
                 break
         return callCounter

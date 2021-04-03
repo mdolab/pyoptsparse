@@ -15,7 +15,7 @@ import numpy as np
 
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
-from ..pyOpt_utils import IROW, ICOL, convertToCOO, extractRows, scaleRows
+from ..pyOpt_utils import IROW, ICOL, convertToCOO, extractRows, scaleRows, INFINITY
 
 
 class IPOPT(Optimizer):
@@ -177,8 +177,8 @@ class IPOPT(Optimizer):
             jac = extractRows(jac, indices)  # Does reordering
             scaleRows(jac, fact)  # Perform logical scaling
         else:
-            blc = np.array([-1e20])
-            buc = np.array([1e20])
+            blc = np.array([-INFINITY])
+            buc = np.array([INFINITY])
             ncon = 1
 
         jac = convertToCOO(jac)  # Conver to coo format for IPOPT

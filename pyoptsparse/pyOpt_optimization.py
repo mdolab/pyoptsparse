@@ -13,11 +13,8 @@ from .pyOpt_MPI import MPI
 from .pyOpt_constraint import Constraint
 from .pyOpt_error import Error
 from .pyOpt_objective import Objective
-from .pyOpt_utils import ICOL, IDATA, IROW, convertToCOO, convertToCSR, mapToCSR, scaleColumns, scaleRows
+from .pyOpt_utils import ICOL, IDATA, INFINITY, IROW, convertToCOO, convertToCSR, mapToCSR, scaleColumns, scaleRows
 from .pyOpt_variable import Variable
-
-# constants
-INFINITY = 1e20
 
 
 class Optimization(object):

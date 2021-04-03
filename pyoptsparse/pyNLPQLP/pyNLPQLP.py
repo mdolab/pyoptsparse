@@ -14,9 +14,6 @@ import numpy as np
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_error import Error
 
-# constants
-eps = np.finfo(np.float64).eps
-
 
 class NLPQLP(Optimizer):
     """

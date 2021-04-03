@@ -6,11 +6,7 @@ import numpy as np
 
 # Local modules
 from .pyOpt_error import Error, pyOptSparseWarning
-from .pyOpt_utils import convertToCOO
-
-# constants
-INFINITY = 1e20
-eps = np.finfo(np.float64).eps
+from .pyOpt_utils import INFINITY, convertToCOO
 
 
 class Constraint(object):
@@ -382,9 +378,9 @@ class Constraint(object):
             upper = self.upper[i]
             value = self.value[i]
             if lower is None:
-                lower = -1e20
+                lower = -INFINITY
             if upper is None:
-                upper = 1e20
+                upper = INFINITY
 
             res += (
                 "	 "
