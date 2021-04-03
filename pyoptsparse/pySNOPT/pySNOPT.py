@@ -14,10 +14,8 @@ import re
 import time
 
 # External modules
-import numpy as np
-
-# First party modules
 from baseclasses.utils import CaseInsensitiveSet
+import numpy as np
 
 # Local modules
 from ..pyOpt_error import Error
