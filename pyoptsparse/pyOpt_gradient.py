@@ -165,7 +165,7 @@ class Gradient(object):
 
         if self.sensMode == "pgc":
             # We just mpi_reduce to the root with sum. This uses the
-            # efficent numpy versions
+            # efficient numpy versions
             self.comm.Reduce(gobj.copy(), gobj, op=MPI.SUM, root=0)
             self.comm.Reduce(gcon.copy(), gcon, op=MPI.SUM, root=0)
 
@@ -176,18 +176,18 @@ class Gradient(object):
 
         # Finally, we have to convert everything **back** to a
         # dictionary so the rest of the code works:
-        funcs = {}
+        funcsSens = {}
         for objKey in self.optProb.objectives:
-            funcs[objKey] = {}
+            funcsSens[objKey] = {}
             for dvGroup in self.optProb.variables:
                 ss = self.optProb.dvOffset[dvGroup]
-                funcs[objKey][dvGroup] = gobj[ss[0] : ss[1]]
+                funcsSens[objKey][dvGroup] = gobj[ss[0] : ss[1]]
 
         for conKey in self.optProb.constraints:
             con = self.optProb.constraints[conKey]
-            funcs[conKey] = {}
+            funcsSens[conKey] = {}
             for dvGroup in self.optProb.variables:
                 ss = self.optProb.dvOffset[dvGroup]
-                funcs[conKey][dvGroup] = gcon[con.rs : con.re, ss[0] : ss[1]]
+                funcsSens[conKey][dvGroup] = gcon[con.rs : con.re, ss[0] : ss[1]]
 
-        return funcs, masterFail
+        return funcsSens, masterFail

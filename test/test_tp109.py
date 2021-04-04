@@ -146,14 +146,22 @@ class TestTP109(unittest.TestCase):
         else:
             assert_allclose(sol.fStar, 0.536206927538e04, atol=tol, rtol=tol)
 
+        # Check that the function values in the solution are real
+        self.assertTrue(np.isrealobj(sol.objectives["obj"].value))
+        self.assertTrue(np.isrealobj(sol.constraints["con"].value))
+
     def test_snopt(self):
         name = "tp109_snopt.hst"
         self.optimize("SNOPT", 1e-7, storeHistory=name)
         hist = History(name)
         self.assertNotIn("lin_con", hist.getConNames())
         self.assertNotIn("lin_con", hist.getConInfo())
-        hist.getValues()
+        val = hist.getValues()
         hist.getValues(scale=True)
+
+        # Check that the function values in the history are real
+        self.assertTrue(np.isrealobj(val["obj"]))
+        self.assertTrue(np.isrealobj(val["con"]))
 
     def test_slsqp(self):
         self.optimize("slsqp", 1e-7)

@@ -60,7 +60,8 @@ class Optimization(object):
         # constraints
         self.ndvs = None
         self.conScale = None
-        self.nCon = None
+        self.nCon = 0
+        self.nObj = 0
         self.invXScale = None
         self.xOffset = None
         self.linearJacobian = None
@@ -845,7 +846,6 @@ class Optimization(object):
         # ----------------------------------------------------
 
         # Determine number of constraints
-        self.nCon = 0
         for iCon in self.constraints:
             self.nCon += self.constraints[iCon].ncon
 
@@ -888,6 +888,7 @@ class Optimization(object):
         # --------------------------------------
         for idx, objKey in enumerate(self.objectives):
             self.objectiveIdx[objKey] = idx
+            self.nObj += 1
 
         # ---------------------------------------------
         # Step 4. Final Jacobian for linear constraints
@@ -1121,7 +1122,7 @@ class Optimization(object):
                 except ValueError:
                     raise Error("The objective return value, '%s' must be a scalar!" % objKey)
                 # Store objective for printing later
-                self.objectives[objKey].value = f
+                self.objectives[objKey].value = np.real(f)
                 fobj.append(f)
             else:
                 raise Error("The key for the objective, '%s' was not found." % objKey)
@@ -1216,7 +1217,7 @@ class Optimization(object):
                     )
 
                 # Store constraint values for printing later
-                con.value = copy.copy(c)
+                con.value = np.real(copy.copy(c))
             else:
                 raise Error("No constraint values were found for the constraint '%s'." % iCon)
 
@@ -1346,9 +1347,7 @@ class Optimization(object):
         """
 
         dvGroups = set(self.variables.keys())
-
-        nobj = len(self.objectives)
-        gobj = np.zeros((nobj, self.ndvs))
+        gobj = np.zeros((self.nObj, self.ndvs))
 
         iObj = 0
         for objKey in self.objectives.keys():
@@ -1635,10 +1634,7 @@ class Optimization(object):
         fmt = "    {0:>7d}  {1:{width}s}   {2:>14.6E}   {3:>14.6E}\n"
         for idx, name in enumerate(self.objectives):
             obj = self.objectives[name]
-            value = obj.value
-            if np.iscomplexobj(value):
-                value = value.real
-            text += fmt.format(idx, obj.name, value, obj.optimum, width=num_c)
+            text += fmt.format(idx, obj.name, obj.value, obj.optimum, width=num_c)
 
         # Find the longest name in the variables
         num_c = 0
@@ -1656,8 +1652,6 @@ class Optimization(object):
             for var in self.variables[varname]:
                 if var.type in ["c", "i"]:
                     value = var.value
-                    if np.iscomplexobj(value):
-                        value = value.real
                     lower = var.lower if var.lower is not None else -1.0e20
                     upper = var.upper if var.upper is not None else 1.0e20
                     status = ""
@@ -1718,8 +1712,6 @@ class Optimization(object):
                     lower = c.lower[j] if c.lower[j] is not None else -1.0e20
                     upper = c.upper[j] if c.upper[j] is not None else 1.0e20
                     value = c.value[j]
-                    if np.iscomplexobj(value):
-                        value = value.real
                     status = ""
                     typ = "e" if j in c.equalityConstraints["ind"] else "i"
                     if typ == "e":
