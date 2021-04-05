@@ -10,28 +10,25 @@ John Jasa 2015-2019
 
 import os
 import argparse
-import shelve
-import sys
 import tkinter as Tk
 from tkinter import font as tkFont
 import re
 import warnings
 import matplotlib
 
-matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
+import numpy as np
+from .OptView_baseclass import OVBaseClass
 
+matplotlib.use("TkAgg")
 try:
     warnings.filterwarnings("ignore", category=matplotlib.cbook.mplDeprecation)
     warnings.filterwarnings("ignore", category=UserWarning)
 except:
     pass
-import numpy as np
-from sqlitedict import SqliteDict
-from .OptView_baseclass import OVBaseClass
 
 
 class Display(OVBaseClass):

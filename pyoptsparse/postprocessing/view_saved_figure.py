@@ -1,9 +1,9 @@
 import matplotlib
-
-matplotlib.use("TkAgg")  # noqa: E402
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 import Tkinter as Tk
 import dill
+
+matplotlib.use("TkAgg")
 
 root = Tk.Tk()
 
