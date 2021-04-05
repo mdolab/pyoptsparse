@@ -7,28 +7,12 @@ John Jasa 2015-2019
 
 """
 
-# ======================================================================
-# Standard Python modules
-# ======================================================================
 import shelve
-
 import sys
-
-major_python_version = sys.version_info[0]
-
-if major_python_version == 2:
-    import tkFont
-    import Tkinter as Tk
-else:
-    import tkinter as Tk
-    from tkinter import font as tkFont
-
+import tkinter as Tk
+from tkinter import font as tkFont
 import re
 import warnings
-
-# ======================================================================
-# External Python modules
-# ======================================================================
 import matplotlib
 
 matplotlib.use("TkAgg")

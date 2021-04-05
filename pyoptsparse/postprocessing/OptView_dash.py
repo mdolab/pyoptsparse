@@ -10,12 +10,10 @@ from plotly import graph_objs as go
 from plotly import subplots
 import numpy as np
 import argparse
-import sys
 from pyoptsparse import History
 import json
 
 # Read in the history files given by user
-major_python_version = sys.version_info[0]
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "histFile", nargs="*", type=str, default="opt_hist.hst", help="Specify the history file to be plotted"

@@ -8,9 +8,6 @@ John Jasa 2015-2019
 
 """
 
-# ======================================================================
-# Standard Python modules
-# ======================================================================
 import os
 import argparse
 import shelve
@@ -19,10 +16,6 @@ import tkinter as Tk
 from tkinter import font as tkFont
 import re
 import warnings
-
-# ======================================================================
-# External Python modules
-# ======================================================================
 import matplotlib
 
 matplotlib.use("TkAgg")
