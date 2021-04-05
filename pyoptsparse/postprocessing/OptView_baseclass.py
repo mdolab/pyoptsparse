@@ -1,5 +1,4 @@
 """
-
 Shared base class for both OptView and OptView_dash.
 This reduces code duplication by having both OptViews read from this baseclass.
 
