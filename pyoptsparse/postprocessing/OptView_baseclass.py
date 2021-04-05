@@ -7,7 +7,10 @@ John Jasa 2015-2019
 
 """
 
+# Standard Python modules
 import shelve
+
+# External modules
 import numpy as np
 from sqlitedict import SqliteDict
 

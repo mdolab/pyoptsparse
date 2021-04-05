@@ -1,7 +1,8 @@
-import matplotlib
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+# External modules
 import Tkinter as Tk
 import dill
+import matplotlib
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 
 matplotlib.use("TkAgg")
 

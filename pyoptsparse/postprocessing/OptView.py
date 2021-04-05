@@ -8,19 +8,23 @@ John Jasa 2015-2019
 
 """
 
-import os
+# Standard Python modules
 import argparse
+import os
+import re
 import tkinter as Tk
 from tkinter import font as tkFont
-import re
 import warnings
-import matplotlib
 
+# External modules
+import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
 import numpy as np
+
+# Local modules
 from .OptView_baseclass import OVBaseClass
 
 matplotlib.use("TkAgg")
@@ -239,6 +243,7 @@ class Display(OVBaseClass):
                        (1.0, 0.0, 0.0))
             }
             # fmt: on
+            # External modules
             from matplotlib.colors import LinearSegmentedColormap
 
             cmap = LinearSegmentedColormap("RedGreen", cdict1)
@@ -702,6 +707,7 @@ class Display(OVBaseClass):
         fname = "saved_figure.pickle"
         fpathname = os.path.join(self.outputDir, fname)
         try:
+            # External modules
             import dill
 
             dill.dump(self.f, file(fpathname, "wb"))

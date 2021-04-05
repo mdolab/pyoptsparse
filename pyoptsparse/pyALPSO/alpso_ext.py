@@ -15,14 +15,17 @@ To Do:
     - Fix Neighbourhood best from Lagrangian value
 """
 
+# Standard Python modules
+from math import floor
 import os
 import random
 import time
-from math import floor
 
+# External modules
 import numpy as np
-from ..pyOpt_error import pyOptSparseWarning
 
+# Local modules
+from ..pyOpt_error import pyOptSparseWarning
 
 # Misc Definitions
 inf = 10.0e20  # define a value for infinity

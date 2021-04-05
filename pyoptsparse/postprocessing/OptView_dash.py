@@ -3,15 +3,20 @@
 # OptView baseclass. This should be more maintainable
 # for adding new features or displaying new information with OptView.
 
+# Standard Python modules
+import argparse
+import json
+
+# External modules
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import numpy as np
 from plotly import graph_objs as go
 from plotly import subplots
-import numpy as np
-import argparse
+
+# First party modules
 from pyoptsparse import History
-import json
 
 # Read in the history files given by user
 parser = argparse.ArgumentParser()
