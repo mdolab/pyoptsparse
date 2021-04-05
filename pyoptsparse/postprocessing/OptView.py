@@ -1,5 +1,4 @@
 """
-
 Provides interactive visualization of optimization results created by
 pyOptSparse. Figures produced here can be saved as images or pickled
 for future customization.
@@ -8,37 +7,31 @@ John Jasa 2015-2019
 
 """
 
-# ======================================================================
 # Standard Python modules
-# ======================================================================
-import os
 import argparse
-import shelve
-import sys
+import os
+import re
 import tkinter as Tk
 from tkinter import font as tkFont
-import re
 import warnings
 
-# ======================================================================
-# External Python modules
-# ======================================================================
+# External modules
 import matplotlib
-
-matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
+import numpy as np
 
+# Local modules
+from .OptView_baseclass import OVBaseClass
+
+matplotlib.use("TkAgg")
 try:
     warnings.filterwarnings("ignore", category=matplotlib.cbook.mplDeprecation)
     warnings.filterwarnings("ignore", category=UserWarning)
 except:
     pass
-import numpy as np
-from sqlitedict import SqliteDict
-from .OptView_baseclass import OVBaseClass
 
 
 class Display(OVBaseClass):
@@ -249,6 +242,7 @@ class Display(OVBaseClass):
                        (1.0, 0.0, 0.0))
             }
             # fmt: on
+            # External modules
             from matplotlib.colors import LinearSegmentedColormap
 
             cmap = LinearSegmentedColormap("RedGreen", cdict1)
@@ -712,6 +706,7 @@ class Display(OVBaseClass):
         fname = "saved_figure.pickle"
         fpathname = os.path.join(self.outputDir, fname)
         try:
+            # External modules
             import dill
 
             dill.dump(self.f, file(fpathname, "wb"))

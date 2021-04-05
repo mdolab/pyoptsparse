@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 pyOptSparse_utils holds a minimal set of sparse-matrix type routines for pyOptSparse.
 This is designed to replace the SciPy sparse matrix formats, which have no way to enforce a constant sparsity structure as required by the optimizers.
@@ -8,8 +7,13 @@ We use a very simple dictionary format to represent the three most common forms 
     mat = {'csr':[rowp, colind, data], 'shape':[nrow, ncols]} # A csr matrix
     mat = {'csc':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
 """
-import numpy as np
+# Standard Python modules
 import warnings
+
+# External modules
+import numpy as np
+
+# Local modules
 from .pyOpt_error import Error
 
 # Define index mnemonics
@@ -23,24 +27,10 @@ ICOLP = 0
 IROWIND = 1
 
 IDATA = 2
-__all__ = [
-    "convertToCOO",
-    "convertToCSR",
-    "convertToCSC",
-    "convertToDense",
-    "mapToCSC",
-    "mapToCSR",
-    "scaleColumns",
-    "scaleRows",
-    "extractRows",
-    "IROW",
-    "ICOL",
-    "IROWP",
-    "ICOLIND",
-    "ICOLP",
-    "IROWIND",
-    "IDATA",
-]
+
+# Constants
+INFINITY = 1e20
+EPS = np.finfo(np.float64).eps
 
 
 def mapToCSR(mat):
@@ -222,7 +212,7 @@ def convertToCOO(mat):
     else:
         # Try to do it with a scipy sparse matrix:
         try:
-            from scipy import sparse
+            from scipy import sparse  # isort: skip
 
             if sparse.issparse(mat):
                 warnings.warn(

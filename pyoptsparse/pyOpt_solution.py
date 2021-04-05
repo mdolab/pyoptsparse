@@ -1,5 +1,7 @@
-#!/usr/bin/env python
+# Standard Python modules
 import copy
+
+# Local modules
 from .pyOpt_optimization import Optimization
 
 

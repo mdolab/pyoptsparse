@@ -1,8 +1,13 @@
 """ Test NSGA2."""
 
+# Standard Python modules
 import unittest
+
+# External modules
 from numpy.testing import assert_allclose
-from pyoptsparse import Optimization, NSGA2
+
+# First party modules
+from pyoptsparse import NSGA2, Optimization
 from pyoptsparse.pyOpt_error import Error
 
 

@@ -1,38 +1,26 @@
-# /bin/env python
 """
 pyIPOPT - A python wrapper to the core IPOPT compiled module.
 """
-# =============================================================================
-# IPOPT Library
-# =============================================================================
-
+# Compiled module
 try:
-    from . import pyipoptcore
+    from . import pyipoptcore  # isort: skip
 except ImportError:
     pyipoptcore = None
 
-# =============================================================================
-# standard Python modules
-# =============================================================================
+# Standard Python modules
 import copy
-import time
 import datetime
+import time
 
-# =============================================================================
-# External Python modules
-# =============================================================================
+# External modules
 import numpy as np
 
-# =============================================================================
-# Extension modules
-# =============================================================================
-from ..pyOpt_optimizer import Optimizer
+# Local modules
 from ..pyOpt_error import Error
-from ..pyOpt_utils import IROW, ICOL, convertToCOO, extractRows, scaleRows
+from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, scaleRows
 
-# =============================================================================
-# IPOPT Optimizer Class
-# =============================================================================
+
 class IPOPT(Optimizer):
     """
     IPOPT Optimizer Class - Inherited from Optimizer Abstract Class
@@ -192,8 +180,8 @@ class IPOPT(Optimizer):
             jac = extractRows(jac, indices)  # Does reordering
             scaleRows(jac, fact)  # Perform logical scaling
         else:
-            blc = np.array([-1e20])
-            buc = np.array([1e20])
+            blc = np.array([-INFINITY])
+            buc = np.array([INFINITY])
             ncon = 1
 
         jac = convertToCOO(jac)  # Conver to coo format for IPOPT
@@ -281,12 +269,3 @@ class IPOPT(Optimizer):
                 nlp.int_option(name, value)
             else:
                 print("invalid option type", type(value))
-
-
-# ==============================================================================
-# IPOPT Optimizer Test
-# ==============================================================================
-if __name__ == "__main__":
-
-    ipopt = IPOPT()
-    print(ipopt)

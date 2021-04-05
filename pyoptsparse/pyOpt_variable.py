@@ -1,11 +1,8 @@
-#!/usr/bin/env python
-
+# Local modules
 from .pyOpt_error import Error
+from .pyOpt_utils import INFINITY
 
-INFINITY = 1e20
-# =============================================================================
-# Variable Class
-# =============================================================================
+
 class Variable(object):
     def __init__(self, name, type, value, lower, upper, scale, offset, scalar=False, choices=None):
         """
@@ -85,9 +82,9 @@ class Variable(object):
             lower = self.lower
             upper = self.upper
             if self.lower is None:
-                lower = -1e20
+                lower = -INFINITY
             if self.upper is None:
-                upper = 1e20
+                upper = INFINITY
 
             res += "	 "
             res += str(self.name).center(9)

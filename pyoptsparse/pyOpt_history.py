@@ -1,18 +1,17 @@
-#!/usr/bin/env python
-# =============================================================================
-# External Python modules
-# =============================================================================
-import os
-import copy
-import numpy as np
-from .pyOpt_error import Error, pyOptSparseWarning
-from sqlitedict import SqliteDict
+# Standard Python modules
 from collections import OrderedDict
+import copy
+import os
 
-eps = np.finfo(np.float64).eps
-# =============================================================================
-# History Class
-# =============================================================================
+# External modules
+import numpy as np
+from sqlitedict import SqliteDict
+
+# Local modules
+from .pyOpt_error import Error, pyOptSparseWarning
+from .pyOpt_utils import EPS
+
+
 class History(object):
     def __init__(self, fileName, optProb=None, temp=False, flag="r"):
         """
@@ -179,7 +178,7 @@ class History(object):
         for i in range(last, 0, -1):
             key = "%d" % i
             xuser = self.optProb.processXtoVec(self.db[key]["xuser"])
-            if np.isclose(xuser, x, atol=eps, rtol=eps).all() and "funcs" in self.db[key].keys():
+            if np.isclose(xuser, x, atol=EPS, rtol=EPS).all() and "funcs" in self.db[key].keys():
                 callCounter = i
                 break
         return callCounter
@@ -218,7 +217,7 @@ class History(object):
         # remove objective and constraint keys
         self.extraFuncsNames = self.extraFuncsNames.difference(self.conNames).difference(self.objNames)
 
-        from .__init__ import __version__
+        from .__init__ import __version__  # isort: skip
 
         if self.metadata["version"] != __version__:
             pyOptSparseWarning(
@@ -680,12 +679,3 @@ class History(object):
                 os.remove(self.fileName)
         except:  # noqa: E722
             pass
-
-
-# ==============================================================================
-# Optimizer History Test
-# ==============================================================================
-if __name__ == "__main__":
-
-    # Test Optimizer History
-    print("Testing Optimizer History...")

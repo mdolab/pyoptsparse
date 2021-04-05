@@ -1,34 +1,22 @@
-# File: pyNOMAD.py
-# Author: Nicolas Bons
-# Description: This program finds the optimum solution for a given objective
-# function using the optimization package NOMAD.
+"""
+This program finds the optimum solution for a given objective
+function using the optimization package NOMAD.
+"""
 
-# =============================================================================
-# NOMAD Library
-# =============================================================================
+# Compiled module
 try:
-    from . import nomad
+    from . import nomad  # isort: skip
 except ImportError:
     nomad = None
-# =============================================================================
 # Standard Python modules
-# =============================================================================
 import time
 
-# =============================================================================
-# External Python modules
-# =============================================================================
+# External modules
 import numpy as np
 
-# ===========================================================================
-# Extension modules
-# ===========================================================================
-from ..pyOpt_optimizer import Optimizer
+# Local modules
 from ..pyOpt_error import Error
-
-# =============================================================================
-# SLSQP Optimizer Class
-# =============================================================================
+from ..pyOpt_optimizer import Optimizer
 
 
 class NOMAD(Optimizer):

@@ -1,29 +1,28 @@
-#!/usr/bin/env python
-# =============================================================================
-# Imports
-# =============================================================================
-import os
-import time
-import copy
-import tempfile
-import shutil
-import numpy as np
-from .pyOpt_gradient import Gradient
-from .pyOpt_error import Error, pyOptSparseWarning
-from .pyOpt_history import History
-from .pyOpt_solution import Solution
-from .pyOpt_optimization import INFINITY
-from .pyOpt_utils import convertToDense, convertToCOO, extractRows, mapToCSC, scaleRows, IDATA
+# Standard Python modules
 from collections import OrderedDict
+import copy
 import datetime
+import os
+import shutil
+import tempfile
+import time
+
+# External modules
 from baseclasses import BaseSolver
+import numpy as np
+
+# Local modules
 from .pyOpt_MPI import MPI
+from .pyOpt_error import Error, pyOptSparseWarning
+from .pyOpt_gradient import Gradient
+from .pyOpt_history import History
+from .pyOpt_optimization import INFINITY
+from .pyOpt_solution import Solution
+from .pyOpt_utils import EPS, IDATA, convertToCOO, convertToDense, extractRows, mapToCSC, scaleRows
 
-eps = np.finfo(np.float64).eps
+# isort: off
 
-# =============================================================================
-# Optimizer Class
-# =============================================================================
+
 class Optimizer(BaseSolver):
     def __init__(
         self,
@@ -235,7 +234,7 @@ class Optimizer(BaseSolver):
 
                 # Validated x-point point to use:
                 xuser_vec = self.optProb._mapXtoUser(x)
-                if np.isclose(xuser_vec, xuser_ref, rtol=eps, atol=eps).all():
+                if np.isclose(xuser_vec, xuser_ref, rtol=EPS, atol=EPS).all():
 
                     # However, we may need a sens that *isn't* in the
                     # the dictionary:
@@ -339,7 +338,7 @@ class Optimizer(BaseSolver):
         returns = []
         # Start with fobj:
         if "fobj" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
                 timeA = time.time()
                 args = self.optProb.objFun(xuser)
                 if isinstance(args, tuple):
@@ -386,7 +385,7 @@ class Optimizer(BaseSolver):
             hist["funcs"] = self.cache["funcs"]
 
         if "fcon" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
                 timeA = time.time()
 
                 args = self.optProb.objFun(xuser)
@@ -434,7 +433,7 @@ class Optimizer(BaseSolver):
             hist["funcs"] = self.cache["funcs"]
 
         if "gobj" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recursively call
                 # the routine with ['fobj', and 'fcon']
@@ -489,7 +488,7 @@ class Optimizer(BaseSolver):
                 hist["funcsSens"] = self.cache["funcsSens"]
 
         if "gcon" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recursively call
                 # the routine with ['fobj', and 'fcon']
@@ -952,9 +951,8 @@ def OPT(optName, *args, **kwargs):
         from .pyParOpt.ParOpt import ParOpt as opt
     else:
         raise Error(
-            "The optimizer specified in 'optName' was \
-not recognized. The current list of supported optimizers is: %s"
-            % repr(optList)
+            "The optimizer specified in 'optName' was not recognized. "
+            + f"The current list of supported optimizers is: {optList}"
         )
 
     # Create the optimizer and return it

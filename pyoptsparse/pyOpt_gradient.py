@@ -1,13 +1,10 @@
-#!/usr/bin/env python
-# =============================================================================
-# External Python modules
-# =============================================================================
+# External modules
 import numpy as np
+
+# Local modules
 from .pyOpt_MPI import MPI
 
-# =============================================================================
-# Gradient Class
-# =============================================================================
+
 class Gradient(object):
     def __init__(self, optProb, sensType, sensStep=None, sensMode="", comm=None):
         """

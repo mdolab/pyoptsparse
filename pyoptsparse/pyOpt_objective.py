@@ -1,9 +1,7 @@
-#!/usr/bin/env python
+# External modules
 import numpy as np
 
-# =============================================================================
-# Objective Class
-# =============================================================================
+
 class Objective(object):
     def __init__(self, name, scale=1.0):
         """

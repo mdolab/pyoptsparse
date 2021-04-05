@@ -1,5 +1,4 @@
 """
-
 Shared base class for both OptView and OptView_dash.
 This reduces code duplication by having both OptViews read from this baseclass.
 
@@ -7,44 +6,12 @@ John Jasa 2015-2019
 
 """
 
-# ======================================================================
 # Standard Python modules
-# ======================================================================
 import shelve
 
-import sys
-
-major_python_version = sys.version_info[0]
-
-if major_python_version == 2:
-    import tkFont
-    import Tkinter as Tk
-else:
-    import tkinter as Tk
-    from tkinter import font as tkFont
-
-import re
-import warnings
-
-# ======================================================================
-# External Python modules
-# ======================================================================
-import matplotlib
-
-matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import host_subplot
-import mpl_toolkits.axisartist as AA
-
-try:
-    warnings.filterwarnings("ignore", category=matplotlib.cbook.mplDeprecation)
-    warnings.filterwarnings("ignore", category=UserWarning)
-except:
-    pass
+# External modules
 import numpy as np
 from sqlitedict import SqliteDict
-import traceback
 
 
 class OVBaseClass(object):
@@ -86,7 +53,7 @@ class OVBaseClass(object):
             try:  # This is the classic method of storing history files
                 db = shelve.open(histFileName, "r")
                 OpenMDAO = False
-            except:  # Bare except because error is not in standard Python.
+            except Exception:  # Bare except because error is not in standard Python.
                 # If the db has the 'iterations' tag, it's an OpenMDAO db.
                 db = SqliteDict(histFileName, "iterations")
                 OpenMDAO = True
@@ -104,11 +71,8 @@ class OVBaseClass(object):
 
                 # Get the number of iterations by looking at the largest number
                 # in the split string names for each entry in the db
-                if major_python_version == 3:
-                    for string in db.keys():
-                        string = string.split("|")
-                else:
-                    string = db.keys()[-1].split("|")
+                for string in db.keys():
+                    string = string.split("|")
 
                 nkey = int(string[-1])
                 self.solver_name = string[0]

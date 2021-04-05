@@ -1,39 +1,23 @@
-#!/usr/bin/env python
-# =============================================================================
 # Standard Python modules
-# =============================================================================
+from collections import OrderedDict
 import copy
 import os
-from collections import OrderedDict
-from sqlitedict import SqliteDict
 import warnings
 
-# =============================================================================
-# External Python modules
-# =============================================================================
+# External modules
 import numpy as np
 from scipy.sparse import coo_matrix
+from sqlitedict import SqliteDict
 
-# =============================================================================
-# Extension modules
-# =============================================================================
-from .pyOpt_variable import Variable
-from .pyOpt_objective import Objective
+# Local modules
+from .pyOpt_MPI import MPI
 from .pyOpt_constraint import Constraint
 from .pyOpt_error import Error
-from .pyOpt_MPI import MPI
-
-from .pyOpt_utils import IROW, ICOL, IDATA, convertToCSR, convertToCOO, mapToCSR, scaleRows, scaleColumns
-
-# =============================================================================
-# Misc Definitions
-# =============================================================================
-INFINITY = 1e20
+from .pyOpt_objective import Objective
+from .pyOpt_utils import ICOL, IDATA, INFINITY, IROW, convertToCOO, convertToCSR, mapToCSR, scaleColumns, scaleRows
+from .pyOpt_variable import Variable
 
 
-# =============================================================================
-# Optimization Class
-# =============================================================================
 class Optimization(object):
     def __init__(self, name, objFun, comm=None, sens=None):
         """
@@ -1771,12 +1755,3 @@ class Optimization(object):
             if key in d.keys():
                 del d[key]
         return d
-
-
-# ==============================================================================
-# Optimization Test
-# ==============================================================================
-if __name__ == "__main__":
-
-    print("Testing Optimization...")
-    optprob = Optimization("Optimization Problem", {})

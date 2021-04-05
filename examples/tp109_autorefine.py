@@ -1,9 +1,12 @@
 # Example of auto-refinement -- runs ALPSO followed by SNOPT.
 # See TP109.py for more information.
 
+# External modules
 import numpy as np
-from pyoptsparse import Optimization, SNOPT, ALPSO
 from tp109 import objfunc  # Import objective from the other file
+
+# First party modules
+from pyoptsparse import ALPSO, SNOPT, Optimization
 
 USE_LINEAR = True
 # Optimization Object

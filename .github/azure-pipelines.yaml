@@ -16,3 +16,4 @@ extends:
   parameters:
     REPO_NAME: pyoptsparse
     IMAGE: auto
+    IGNORE_ISORT: false

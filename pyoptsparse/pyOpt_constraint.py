@@ -1,17 +1,14 @@
-#!/usr/bin/env python
-# =============================================================================
-# External Python modules
-# =============================================================================
+# Standard Python modules
 import copy
-import numpy as np
-from .pyOpt_error import Error, pyOptSparseWarning
-from .pyOpt_utils import convertToCOO
 
-INFINITY = 1e20
-eps = np.finfo(np.float64).eps
-# =============================================================================
-# Constraint Class
-# =============================================================================
+# External modules
+import numpy as np
+
+# Local modules
+from .pyOpt_error import Error, pyOptSparseWarning
+from .pyOpt_utils import INFINITY, convertToCOO
+
+
 class Constraint(object):
     def __init__(self, name, nCon, linear, wrt, jac, lower, upper, scale):
         """
@@ -381,9 +378,9 @@ class Constraint(object):
             upper = self.upper[i]
             value = self.value[i]
             if lower is None:
-                lower = -1e20
+                lower = -INFINITY
             if upper is None:
-                upper = 1e20
+                upper = INFINITY
 
             res += (
                 "	 "

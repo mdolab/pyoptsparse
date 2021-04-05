@@ -1,39 +1,28 @@
-# /bin/env python
 """
 pySNOPT - A variation of the pySNOPT wrapper specificially designed to
 work with sparse optimization problems.
 """
-# =============================================================================
-# SNOPT Library
-# =============================================================================
+# Compiled module
 try:
-    from . import snopt
+    from . import snopt  # isort: skip
 except ImportError:
     snopt = None
-# =============================================================================
 # Standard Python modules
-# =============================================================================
-import os
-import time
 import datetime
+import os
 import re
+import time
 
-# =============================================================================
-# External Python modules
-# =============================================================================
+# External modules
+from baseclasses.utils import CaseInsensitiveSet
 import numpy as np
 
-# # ===========================================================================
-# # Extension modules
-# # ===========================================================================
-from ..pyOpt_optimizer import Optimizer
+# Local modules
 from ..pyOpt_error import Error
-from ..pyOpt_utils import ICOL, IDATA, IROW, extractRows, mapToCSC, scaleRows
-from baseclasses.utils import CaseInsensitiveSet
+from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_utils import ICOL, IDATA, INFINITY, IROW, extractRows, mapToCSC, scaleRows
 
-# =============================================================================
-# SNOPT Optimizer Class
-# =============================================================================
+
 class SNOPT(Optimizer):
     """
     SNOPT Optimizer Class - Inherited from Optimizer Abstract Class
@@ -317,8 +306,8 @@ class SNOPT(Optimizer):
                 jac = extractRows(jac, indices)  # Does reordering
                 scaleRows(jac, fact)  # Perform logical scaling
             else:
-                blc = [-1e20]
-                buc = [1e20]
+                blc = [-INFINITY]
+                buc = [INFINITY]
 
             if self._snopt_jac_map_csr_to_csc is None:
                 self._snopt_jac_map_csr_to_csc = mapToCSC(jac)

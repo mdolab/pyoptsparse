@@ -1,28 +1,20 @@
-# /bin/env python
 """
 pyALPSO - A pyOptSparse interface to ALPSO
 work with sparse optimization problems.
 """
-# =============================================================================
 # Standard Python modules
-# =============================================================================
 import time
 
-# =============================================================================
-# External Python modules
-# =============================================================================
+# External modules
 import numpy as np
 
-# ===========================================================================
-# Extension modules
-# ===========================================================================
-from ..pyOpt_optimizer import Optimizer
+# Local modules
 from ..pyOpt_error import Error
+from ..pyOpt_optimizer import Optimizer
+
+# isort: off
 
 
-# =============================================================================
-# ALPSO Optimizer Class
-# =============================================================================
 class ALPSO(Optimizer):
     """
     ALPSO Optimizer Class - Inherited from Optimizer Abstract Class
