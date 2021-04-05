@@ -1,5 +1,4 @@
 """
-
 Provides interactive visualization of optimization results created by
 pyOptSparse. Figures produced here can be saved as images or pickled
 for future customization.
