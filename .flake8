@@ -1,6 +1,6 @@
 [flake8]
 exclude =
     # OptView and related files need to be fixed eventually
-    #pyoptsparse/postprocessing/OptView.py
-    #pyoptsparse/postprocessing/OptView_baseclass.py
-    #pyoptsparse/postprocessing/view_saved_figure.py
+    pyoptsparse/postprocessing/OptView.py
+    pyoptsparse/postprocessing/OptView_baseclass.py
+    pyoptsparse/postprocessing/view_saved_figure.py
