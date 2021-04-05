@@ -1,7 +1,9 @@
-# This dash version of OptView makes use of the new API
-# to read in the history file, rather than using the
-# OptView baseclass. This should be more maintainable
-# for adding new features or displaying new information with OptView.
+"""
+This dash version of OptView makes use of the new API
+to read in the history file, rather than using the
+OptView baseclass. This should be more maintainable
+for adding new features or displaying new information with OptView.
+"""
 
 # Standard Python modules
 import argparse
