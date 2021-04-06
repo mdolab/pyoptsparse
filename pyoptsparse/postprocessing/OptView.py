@@ -13,7 +13,7 @@ import sys
 # ==============================================================================
 # External Python modules
 # ==============================================================================
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
 # ==============================================================================
@@ -35,10 +35,47 @@ class MainView(QtWidgets.QWidget):
 
     def _initUI(self):
         self._center()  # centers the application in the middle of the screen
-        self.setWindowTitle("OptView")
+        self.setWindowTitle("OptView")  # sets the GUI title
+        self.setWindowIcon(QtGui.QIcon("assets/OptViewIcon.gif"))  # sets the OptView logo
 
         # --- Create top level layout ---
         layout = QtWidgets.QVBoxLayout()
+
+        # ==============================================================================
+        # Menu Bar - First item added to top-level layout
+        # ==============================================================================
+        # --- Add the menu bar object ---
+        menu_bar = QtWidgets.QMenuBar(self)
+
+        # --- Add file sub-directory with sub-actions ---
+        file_menu = menu_bar.addMenu("File")
+
+        new_window_action = QtWidgets.QAction("New Window", self)
+        file_menu.addAction(new_window_action)
+
+        load_action = QtWidgets.QAction("Load File...", self)
+        file_menu.addAction(load_action)
+
+        save_tec_action = QtWidgets.QAction("Save As Tec File", self)
+        file_menu.addAction(save_tec_action)
+
+        exit_action = QtWidgets.QAction("Exit", self)
+        exit_action.triggered.connect(QtWidgets.qApp.quit)
+        file_menu.addAction(exit_action)
+
+        # --- Add format sub-directory with sub-actions ---
+        format_menu = menu_bar.addMenu("Format")
+
+        font_action = QtWidgets.QAction("Font size", self)
+        format_menu.addAction(font_action)
+
+        refresh_plot_action = QtWidgets.QAction("Refresh Plot", self)
+        format_menu.addAction(refresh_plot_action)
+
+        clear_plot_action = QtWidgets.QAction("Clear Plot", self)
+        format_menu.addAction(clear_plot_action)
+
+        layout.addWidget(menu_bar)
 
         # --- Create plot view and add to layout ---
         plot = PlotView(self)
@@ -48,29 +85,21 @@ class MainView(QtWidgets.QWidget):
         sub_layout = QtWidgets.QHBoxLayout()
         layout.addLayout(sub_layout)
 
-        # --- Create sublayout for right hand side buttons ---
-        button_layout = QtWidgets.QVBoxLayout()
-        sub_layout.addLayout(button_layout)
-
-        # --- Create layout for x-variables ---
+        # --- Create sublayout for x-variables ---
         x_layout = QtWidgets.QVBoxLayout()
         sub_layout.addLayout(x_layout)
 
-        # --- Create layout for y-variables ---
+        # --- Create sublayout for y-variables ---
         y_layout = QtWidgets.QVBoxLayout()
         sub_layout.addLayout(y_layout)
 
-        # --- Create layout for options ---
-        opt_layout = QtWidgets.QVBoxLayout()
-        sub_layout.addLayout(opt_layout)
+        # --- Create sublayout for LHS options ---
+        opt1_layout = QtWidgets.QVBoxLayout()
+        sub_layout.addLayout(opt1_layout)
 
-        # ==============================================================================
-        # Button Layout - Left hand column of Sub Layout
-        # ==============================================================================
-        # --- Add "Add Files" button to the main view ---
-        add_file_btn = Button("Add Files", self)
-        add_file_btn.setToolTip("Add files to current application")
-        button_layout.addWidget(add_file_btn)
+        # --- Create sublayout for RHS options ---
+        opt2_layout = QtWidgets.QVBoxLayout()
+        sub_layout.addLayout(opt2_layout)
 
         # ==============================================================================
         # X Variable Layout - Left Center column of Sub Layout
@@ -81,6 +110,22 @@ class MainView(QtWidgets.QWidget):
         x_cbox.resize(250, 30)
         x_layout.addWidget(x_cbox)
 
+        # --- Add x-vars variable list ---
+        x_label = QtWidgets.QLabel(self)
+        x_label.setStyleSheet("background-color: white; border: 1px solid black;")
+        x_label.resize(250, 100)
+        x_layout.addWidget(x_label)
+
+        # --- Add undo x-vars button ---
+        x_undo_btn = Button("Undo x-var", self)
+        x_undo_btn.setToolTip("Undo add x-variable")
+        x_layout.addWidget(x_undo_btn)
+
+        # --- Add clear x-vars button ---
+        x_clear_btn = Button("Clear x-var", self)
+        x_clear_btn.setToolTip("Clear all x-variables")
+        x_layout.addWidget(x_clear_btn)
+
         # ==============================================================================
         # Y Variable Layout - Right Center column of Sub Layout
         # ==============================================================================
@@ -90,13 +135,67 @@ class MainView(QtWidgets.QWidget):
         y_cbox.resize(250, 30)
         y_layout.addWidget(y_cbox)
 
+        # --- Add y-vars variable list ---
+        y_label = QtWidgets.QLabel(self)
+        y_label.setStyleSheet("background-color: white; border: 1px solid black;")
+        y_label.resize(250, 100)
+        y_layout.addWidget(y_label)
+
+        # --- Add undo y-vars button ---
+        y_undo_btn = Button("Undo y-var", self)
+        y_undo_btn.setToolTip("Undo add y-variable")
+        y_layout.addWidget(y_undo_btn)
+
+        # --- Add clear y-vars button ---
+        y_clear_btn = Button("Clear y-var", self)
+        y_clear_btn.setToolTip("Clear all y-variables")
+        y_layout.addWidget(y_clear_btn)
+
         # ==============================================================================
-        # Options Layout - Right hand column of Sub Layout
+        # Options Layout 1 - First sub-layout column for options
         # ==============================================================================
-        # --- Add options checkboxes ---
+        # --- Stacked Plots ---
         stack_plot_opt = QtWidgets.QCheckBox("Stack plots")
-        opt_layout.addWidget(stack_plot_opt)
-        opt_layout.setAlignment(stack_plot_opt, QtCore.Qt.AlignCenter)
+        opt1_layout.addWidget(stack_plot_opt)
+        opt1_layout.setAlignment(stack_plot_opt, QtCore.Qt.AlignLeft)
+
+        # --- Shared y-axis ---
+        share_y_opt = QtWidgets.QCheckBox("Shared y-axis")
+        opt1_layout.addWidget(share_y_opt)
+        opt1_layout.setAlignment(share_y_opt, QtCore.Qt.AlignLeft)
+
+        # --- y-axis as absolute delta values ---
+        abs_delta_opt = QtWidgets.QCheckBox("y-axis as absolute delta values")
+        opt1_layout.addWidget(abs_delta_opt)
+        opt1_layout.setAlignment(abs_delta_opt, QtCore.Qt.AlignLeft)
+
+        # --- x-axis as minor iterations ---
+        minor_itr_opt = QtWidgets.QCheckBox("x-axis as minor iterations")
+        opt1_layout.addWidget(minor_itr_opt)
+        opt1_layout.setAlignment(minor_itr_opt, QtCore.Qt.AlignLeft)
+
+        # --- x-axis as major iterations ---
+        major_itr_opt = QtWidgets.QCheckBox("x-axis as major iterations")
+        opt1_layout.addWidget(major_itr_opt)
+        opt1_layout.setAlignment(major_itr_opt, QtCore.Qt.AlignLeft)
+
+        # --- Apply scaling factor ---
+        scale_factor_opt = QtWidgets.QCheckBox("Apply Scaling Factor")
+        opt1_layout.addWidget(scale_factor_opt)
+        opt1_layout.setAlignment(scale_factor_opt, QtCore.Qt.AlignLeft)
+
+        # ==============================================================================
+        # Options Layout 2 - Second sub-layout column for options
+        # ==============================================================================
+        # --- Min/Max arrays ---
+        min_max_opt = QtWidgets.QCheckBox("Min/Max for arrays")
+        opt2_layout.addWidget(min_max_opt)
+        opt2_layout.setAlignment(min_max_opt, QtCore.Qt.AlignLeft)
+
+        # --- Auto refresh data ---
+        auto_refresh_opt = QtWidgets.QCheckBox("Automatically refresh history")
+        opt2_layout.addWidget(auto_refresh_opt)
+        opt2_layout.setAlignment(auto_refresh_opt, QtCore.Qt.AlignLeft)
 
         # --- Set the main layout ---
         self.setLayout(layout)
@@ -106,9 +205,7 @@ class MainView(QtWidgets.QWidget):
 
     def _center(self):
         qr = self.frameGeometry()
-        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
+        self.move(qr.center())
 
 
 if __name__ == "__main__":
