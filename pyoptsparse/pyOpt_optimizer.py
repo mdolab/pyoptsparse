@@ -6,6 +6,7 @@ import os
 import shutil
 import tempfile
 import time
+from typing import Any, Dict, Optional
 
 # External modules
 from baseclasses import BaseSolver
@@ -16,9 +17,9 @@ from .pyOpt_MPI import MPI
 from .pyOpt_error import Error, pyOptSparseWarning
 from .pyOpt_gradient import Gradient
 from .pyOpt_history import History
-from .pyOpt_optimization import INFINITY
+from .pyOpt_optimization import Optimization
 from .pyOpt_solution import Solution
-from .pyOpt_utils import EPS, IDATA, convertToCOO, convertToDense, extractRows, mapToCSC, scaleRows
+from .pyOpt_utils import EPS, IDATA, INFINITY, convertToCOO, convertToDense, extractRows, mapToCSC, scaleRows
 
 # isort: off
 
@@ -26,14 +27,14 @@ from .pyOpt_utils import EPS, IDATA, convertToCOO, convertToDense, extractRows, 
 class Optimizer(BaseSolver):
     def __init__(
         self,
-        name,
-        category,
-        defaultOptions={},
-        informs={},
-        options={},
-        checkDefaultOptions=True,
-        caseSensitiveOptions=True,
-        version=None,
+        name: str,
+        category: str,
+        defaultOptions: Dict[str, Any] = {},
+        informs: Dict[int, str] = {},
+        options: Dict[str, Any] = {},
+        checkDefaultOptions: bool = True,
+        caseSensitiveOptions: bool = True,
+        version: Optional[str] = None,
     ):
         """
         This is the base optimizer class that all optimizers inherit from.
@@ -61,18 +62,18 @@ class Optimizer(BaseSolver):
         )
         self.callCounter = 0
         self.sens = None
-        self.optProb = None
-        self.version = version
+        self.optProb: Optional[Optimization] = None
+        self.version: Optional[str] = version
 
         # Default options:
-        self.appendLinearConstraints = False
-        self.jacType = "dense"
-        self.unconstrained = False
-        self.userObjTime = 0.0
-        self.userSensTime = 0.0
-        self.interfaceTime = 0.0
-        self.userObjCalls = 0
-        self.userSensCalls = 0
+        self.appendLinearConstraints: bool = False
+        self.jacType: str = "dense"
+        self.unconstrained: bool = False
+        self.userObjTime: float = 0.0
+        self.userSensTime: float = 0.0
+        self.interfaceTime: float = 0.0
+        self.userObjCalls: int = 0
+        self.userSensCalls: int = 0
         self.storeSens = True
 
         # Cache storage
@@ -80,14 +81,14 @@ class Optimizer(BaseSolver):
 
         # A second-level cache for optimizers that require callbacks
         # for each constraint. (eg. PSQP etc)
-        self.storedData = {}
+        self.storedData: Dict[str, Any] = {}
         self.storedData["x"] = None
 
         # Store the Jacobian conversion maps
         self._jac_map_csr_to_csc = None
 
         # Initialize metadata
-        self.metadata = {}
+        self.metadata: Dict[str, Any] = {}
 
     def _clearTimings(self):
         """Clear timings and call counters"""

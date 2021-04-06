@@ -12,6 +12,7 @@ import datetime
 import os
 import re
 import time
+from typing import Any, Dict, Set
 
 # External modules
 from baseclasses.utils import CaseInsensitiveSet
@@ -19,6 +20,7 @@ import numpy as np
 
 # Local modules
 from ..pyOpt_error import Error
+from ..pyOpt_optimization import Optimization
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_utils import ICOL, IDATA, INFINITY, IROW, extractRows, mapToCSC, scaleRows
 
@@ -28,7 +30,7 @@ class SNOPT(Optimizer):
     SNOPT Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, raiseError=True, options={}):
+    def __init__(self, raiseError=True, options: Dict = {}):
         """
         SNOPT Optimizer Class Initialization
         """
@@ -37,7 +39,7 @@ class SNOPT(Optimizer):
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
         # these are SNOPT-related options that do not get set via snset
-        self.specialOptions = CaseInsensitiveSet(
+        self.specialOptions: Set[str] = CaseInsensitiveSet(
             {
                 "iPrint",
                 "iSumm",
@@ -45,7 +47,7 @@ class SNOPT(Optimizer):
             }
         )
         # this is purely within pySNOPT, nothing to do with SNOPT itself
-        self.pythonOptions = CaseInsensitiveSet({"Save major iteration variables"})
+        self.pythonOptions: Set[str] = CaseInsensitiveSet({"Save major iteration variables"})
 
         informs = self._getInforms()
 
@@ -83,7 +85,7 @@ class SNOPT(Optimizer):
         self._snopt_jac_map_csr_to_csc = None
 
     @staticmethod
-    def _getDefaultOptions():
+    def _getDefaultOptions() -> Dict[str, Any]:
         defOpts = {
             "iPrint": [int, 18],
             "iSumm": [int, 19],
@@ -101,7 +103,7 @@ class SNOPT(Optimizer):
         return defOpts
 
     @staticmethod
-    def _getInforms():
+    def _getInforms() -> Dict[int, str]:
         informs = {
             0: "finished successfully",
             1: "optimality conditions satisfied",
@@ -178,7 +180,7 @@ class SNOPT(Optimizer):
 
     def __call__(
         self,
-        optProb,
+        optProb: Optimization,
         sens=None,
         sensStep=None,
         sensMode=None,
