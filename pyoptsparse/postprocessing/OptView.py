@@ -51,12 +51,15 @@ class MainView(QtWidgets.QWidget):
         file_menu = menu_bar.addMenu("File")
 
         new_window_action = QtWidgets.QAction("New Window", self)
+        new_window_action.triggered.connect(self._controller.newWindow)
         file_menu.addAction(new_window_action)
 
         load_action = QtWidgets.QAction("Load File...", self)
+        load_action.triggered.connect(self._controller.openFile)
         file_menu.addAction(load_action)
 
         save_tec_action = QtWidgets.QAction("Save As Tec File", self)
+        save_tec_action.triggered.connect(self._controller.saveTecFile)
         file_menu.addAction(save_tec_action)
 
         exit_action = QtWidgets.QAction("Exit", self)
@@ -67,12 +70,15 @@ class MainView(QtWidgets.QWidget):
         format_menu = menu_bar.addMenu("Format")
 
         font_action = QtWidgets.QAction("Font size", self)
+        font_action.triggered.connect(self._controller.changePlotFontSize)
         format_menu.addAction(font_action)
 
         refresh_plot_action = QtWidgets.QAction("Refresh Plot", self)
+        refresh_plot_action.triggered.connect(self._controller.refreshPlot)
         format_menu.addAction(refresh_plot_action)
 
         clear_plot_action = QtWidgets.QAction("Clear Plot", self)
+        clear_plot_action.triggered.connect(self._controller.clearPlot)
         format_menu.addAction(clear_plot_action)
 
         layout.addWidget(menu_bar)
@@ -105,97 +111,115 @@ class MainView(QtWidgets.QWidget):
         # X Variable Layout - Left Center column of Sub Layout
         # ==============================================================================
         # --- Add x-vars combobox ---
-        x_cbox = ExtendedComboBox(self)
-        x_cbox.setToolTip("Type to search for x-variables")
-        x_cbox.resize(250, 30)
+        self.x_cbox = ExtendedComboBox(self)
+        self.x_cbox.setToolTip("Type to search for x-variables")
+        self.x_cbox.setInsertPolicy(QtWidgets.QComboBox.NoInsert)
+        self.x_cbox.resize(250, 30)
+        self.x_cbox.addItems(["test1", "test2", "test3"])
+        self.x_cbox.currentIndexChanged.connect(self._controller.addVarX)
         x_layout.addWidget(x_cbox)
 
         # --- Add x-vars variable list ---
-        x_label = QtWidgets.QLabel(self)
-        x_label.setStyleSheet("background-color: white; border: 1px solid black;")
-        x_label.resize(250, 100)
+        self.x_label = QtWidgets.QLabel(self)
+        self.x_label.setStyleSheet("background-color: white; border: 1px solid black;")
+        self.x_label.resize(250, 100)
         x_layout.addWidget(x_label)
 
         # --- Add undo x-vars button ---
-        x_undo_btn = Button("Undo x-var", self)
-        x_undo_btn.setToolTip("Undo add x-variable")
+        self.x_undo_btn = Button("Undo x-var", self)
+        self.x_undo_btn.setToolTip("Undo add x-variable")
+        self.x_undo_btn.clicked.connect(self._controller.undoVarX)
         x_layout.addWidget(x_undo_btn)
 
         # --- Add clear x-vars button ---
-        x_clear_btn = Button("Clear x-var", self)
-        x_clear_btn.setToolTip("Clear all x-variables")
+        self.x_clear_btn = Button("Clear x-var", self)
+        self.x_clear_btn.setToolTip("Clear all x-variables")
+        self.x_clear_btn.clicked.connect(self._controller.clearAllX)
         x_layout.addWidget(x_clear_btn)
 
         # ==============================================================================
         # Y Variable Layout - Right Center column of Sub Layout
         # ==============================================================================
         # --- Add y-vars combobox ---
-        y_cbox = ExtendedComboBox(self)
-        y_cbox.setToolTip("Type to search for y-variables")
-        y_cbox.resize(250, 30)
+        self.y_cbox = ExtendedComboBox(self)
+        self.y_cbox.setInsertPolicy(QtWidgets.QComboBox.NoInsert)
+        self.y_cbox.setToolTip("Type to search for y-variables")
+        self.y_cbox.resize(250, 30)
+        self.y_cbox.addItems(["test1", "test2", "test3"])
+        self.y_cbox.currentIndexChanged.connect(self._controller.addVarY)
         y_layout.addWidget(y_cbox)
 
         # --- Add y-vars variable list ---
-        y_label = QtWidgets.QLabel(self)
-        y_label.setStyleSheet("background-color: white; border: 1px solid black;")
-        y_label.resize(250, 100)
+        self.y_label = QtWidgets.QLabel(self)
+        self.y_label.setStyleSheet("background-color: white; border: 1px solid black;")
+        self.y_label.resize(250, 100)
         y_layout.addWidget(y_label)
 
         # --- Add undo y-vars button ---
-        y_undo_btn = Button("Undo y-var", self)
-        y_undo_btn.setToolTip("Undo add y-variable")
+        self.y_undo_btn = Button("Undo y-var", self)
+        self.y_undo_btn.setToolTip("Undo add y-variable")
+        self.y_undo_btn.clicked.connect(self._controller.undoVarY)
         y_layout.addWidget(y_undo_btn)
 
         # --- Add clear y-vars button ---
-        y_clear_btn = Button("Clear y-var", self)
-        y_clear_btn.setToolTip("Clear all y-variables")
+        self.y_clear_btn = Button("Clear y-var", self)
+        self.y_clear_btn.setToolTip("Clear all y-variables")
+        self.y_clear_btn.clicked.connect(self._controller.clearAllY)
         y_layout.addWidget(y_clear_btn)
 
         # ==============================================================================
         # Options Layout 1 - First sub-layout column for options
         # ==============================================================================
         # --- Stacked Plots ---
-        stack_plot_opt = QtWidgets.QCheckBox("Stack plots")
-        opt1_layout.addWidget(stack_plot_opt)
-        opt1_layout.setAlignment(stack_plot_opt, QtCore.Qt.AlignLeft)
+        self.stack_plot_opt = QtWidgets.QCheckBox("Stack plots")
+        self.stack_plot_opt.clicked.connect(self._controller.stackPlots)
+        opt1_layout.addWidget(self.stack_plot_opt)
+        opt1_layout.setAlignment(self.stack_plot_opt, QtCore.Qt.AlignLeft)
 
         # --- Shared y-axis ---
-        share_y_opt = QtWidgets.QCheckBox("Shared y-axis")
-        opt1_layout.addWidget(share_y_opt)
-        opt1_layout.setAlignment(share_y_opt, QtCore.Qt.AlignLeft)
+        self.share_y_opt = QtWidgets.QCheckBox("Shared y-axis")
+        self.share_y_opt.clicked.connect(self._controller.shareAxisY)
+        opt1_layout.addWidget(self.share_y_opt)
+        opt1_layout.setAlignment(self.share_y_opt, QtCore.Qt.AlignLeft)
 
         # --- y-axis as absolute delta values ---
-        abs_delta_opt = QtWidgets.QCheckBox("y-axis as absolute delta values")
-        opt1_layout.addWidget(abs_delta_opt)
-        opt1_layout.setAlignment(abs_delta_opt, QtCore.Qt.AlignLeft)
+        self.abs_delta_opt = QtWidgets.QCheckBox("y-axis as absolute delta values")
+        self.abs_delta_opt.clicked.connect(self._controller.absDeltaY)
+        opt1_layout.addWidget(self.abs_delta_opt)
+        opt1_layout.setAlignment(self.abs_delta_opt, QtCore.Qt.AlignLeft)
 
         # --- x-axis as minor iterations ---
-        minor_itr_opt = QtWidgets.QCheckBox("x-axis as minor iterations")
-        opt1_layout.addWidget(minor_itr_opt)
-        opt1_layout.setAlignment(minor_itr_opt, QtCore.Qt.AlignLeft)
+        self.minor_itr_opt = QtWidgets.QCheckBox("x-axis as minor iterations")
+        self.minor_itr_opt.clicked.connect(self._controller.minorIterX)
+        opt1_layout.addWidget(self.minor_itr_opt)
+        opt1_layout.setAlignment(self.minor_itr_opt, QtCore.Qt.AlignLeft)
 
         # --- x-axis as major iterations ---
-        major_itr_opt = QtWidgets.QCheckBox("x-axis as major iterations")
-        opt1_layout.addWidget(major_itr_opt)
-        opt1_layout.setAlignment(major_itr_opt, QtCore.Qt.AlignLeft)
+        self.major_itr_opt = QtWidgets.QCheckBox("x-axis as major iterations")
+        self.major_itr_opt.clicked.connect(self._controller.majorIterX)
+        opt1_layout.addWidget(self.major_itr_opt)
+        opt1_layout.setAlignment(self.major_itr_opt, QtCore.Qt.AlignLeft)
 
         # --- Apply scaling factor ---
-        scale_factor_opt = QtWidgets.QCheckBox("Apply Scaling Factor")
-        opt1_layout.addWidget(scale_factor_opt)
-        opt1_layout.setAlignment(scale_factor_opt, QtCore.Qt.AlignLeft)
+        self.scale_factor_opt = QtWidgets.QCheckBox("Apply Scaling Factor")
+        self.scale_factor_opt.clicked.connect(self._controller.scaleFactor)
+        opt1_layout.addWidget(self.scale_factor_opt)
+        opt1_layout.setAlignment(self.scale_factor_opt, QtCore.Qt.AlignLeft)
 
         # ==============================================================================
         # Options Layout 2 - Second sub-layout column for options
         # ==============================================================================
         # --- Min/Max arrays ---
-        min_max_opt = QtWidgets.QCheckBox("Min/Max for arrays")
-        opt2_layout.addWidget(min_max_opt)
-        opt2_layout.setAlignment(min_max_opt, QtCore.Qt.AlignLeft)
+        self.min_max_opt = QtWidgets.QCheckBox("Min/Max for arrays")
+        self.min_max_opt.clicked.connect(self._controller.minMaxPlot)
+        opt2_layout.addWidget(self.min_max_opt)
+        opt2_layout.setAlignment(self.min_max_opt, QtCore.Qt.AlignLeft)
 
         # --- Auto refresh data ---
-        auto_refresh_opt = QtWidgets.QCheckBox("Automatically refresh history")
-        opt2_layout.addWidget(auto_refresh_opt)
-        opt2_layout.setAlignment(auto_refresh_opt, QtCore.Qt.AlignLeft)
+        self.auto_refresh_opt = QtWidgets.QCheckBox("Automatically refresh history")
+        self.auto_refresh_opt.clicked.connect(self._controller.autoRefresh)
+        opt2_layout.addWidget(self.auto_refresh_opt)
+        opt2_layout.setAlignment(self.auto_refresh_opt, QtCore.Qt.AlignLeft)
 
         # --- Set the main layout ---
         self.setLayout(layout)
