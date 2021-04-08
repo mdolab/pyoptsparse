@@ -62,7 +62,7 @@ class Optimizer(BaseSolver):
         )
         self.callCounter = 0
         self.sens = None
-        self.optProb: Optional[Optimization] = None
+        self.optProb: Optimization
         self.version: Optional[str] = version
 
         # Default options:
@@ -81,8 +81,7 @@ class Optimizer(BaseSolver):
 
         # A second-level cache for optimizers that require callbacks
         # for each constraint. (eg. PSQP etc)
-        self.storedData: Dict[str, Any] = {}
-        self.storedData["x"] = None
+        self.storedData: Dict[str, Any] = {"x": None}
 
         # Store the Jacobian conversion maps
         self._jac_map_csr_to_csc = None

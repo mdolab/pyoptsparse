@@ -6,6 +6,7 @@ import warnings
 
 # External modules
 import numpy as np
+from numpy import ndarray
 from scipy.sparse import coo_matrix
 from sqlitedict import SqliteDict
 
@@ -68,6 +69,9 @@ class Optimization(object):
         self.dummyConstraint = False
         self.objectiveIdx = {}
         self.finalized = False
+        self.jacIndices = None
+        self.fact = None
+        self.offset = None
 
         # Store the Jacobian conversion maps
         self._jac_map_coo_to_csr = None
@@ -1530,7 +1534,7 @@ class Optimization(object):
 
         return gcon
 
-    def _mapObjGradtoOpt(self, gobj):
+    def _mapObjGradtoOpt(self, gobj: ndarray) -> ndarray:
         gobj_return = np.copy(gobj)
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
@@ -1538,48 +1542,48 @@ class Optimization(object):
         gobj_return *= self.invXScale
         return gobj_return
 
-    def _mapContoOpt(self, fcon):
+    def _mapContoOpt(self, fcon: ndarray) -> ndarray:
         return fcon * self.conScale
 
-    def _mapContoUser(self, fcon):
+    def _mapContoUser(self, fcon: ndarray) -> ndarray:
         return fcon / self.conScale
 
-    def _mapObjtoOpt(self, fobj):
+    def _mapObjtoOpt(self, fobj: ndarray) -> ndarray:
         fobj_return = np.copy(np.atleast_1d(fobj))
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
             fobj_return[iObj] *= self.objectives[objKey].scale
         return fobj_return
 
-    def _mapObjtoUser(self, fobj):
+    def _mapObjtoUser(self, fobj: ndarray) -> ndarray:
         fobj_return = np.copy(np.atleast_1d(fobj))
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
             fobj_return[iObj] /= self.objectives[objKey].scale
         return fobj_return
 
-    def _mapConJactoOpt(self, gcon):
+    def _mapConJactoOpt(self, gcon: ndarray) -> ndarray:
         """
         The mapping is done in memory, without any return.
         """
         scaleRows(gcon, self.conScale)
         scaleColumns(gcon, self.invXScale)
 
-    def _mapConJactoUser(self, gcon):
+    def _mapConJactoUser(self, gcon: ndarray) -> ndarray:
         """
         The mapping is done in memory, without any return.
         """
         scaleRows(gcon, 1 / self.conScale)
         scaleColumns(gcon, 1 / self.invXScale)
 
-    def _mapXtoOpt(self, x):
+    def _mapXtoOpt(self, x: ndarray) -> ndarray:
         """
         This performs the user-space to optimizer mapping for the DVs.
         All inputs/outputs are numpy arrays.
         """
         return (x - self.xOffset) / self.invXScale
 
-    def _mapXtoUser(self, x):
+    def _mapXtoUser(self, x: ndarray) -> ndarray:
         """
         This performs the optimizer to user-space mapping for the DVs.
         All inputs/outputs are numpy arrays.
@@ -1587,32 +1591,32 @@ class Optimization(object):
         return x * self.invXScale + self.xOffset
 
     # these are the dictionary-based versions of the mapping functions
-    def _mapXtoUser_Dict(self, xDict):
+    def _mapXtoUser_Dict(self, xDict: dict) -> dict:
         x = self.processXtoVec(xDict)
         x_user = self._mapXtoUser(x)
         return self.processXtoDict(x_user)
 
-    def _mapXtoOpt_Dict(self, xDict):
+    def _mapXtoOpt_Dict(self, xDict: dict) -> dict:
         x = self.processXtoVec(xDict)
         x_opt = self._mapXtoOpt(x)
         return self.processXtoDict(x_opt)
 
-    def _mapObjtoUser_Dict(self, objDict):
+    def _mapObjtoUser_Dict(self, objDict: dict) -> dict:
         obj = self.processObjtoVec(objDict, scaled=False)
         obj_user = self._mapObjtoUser(obj)
         return self.processObjtoDict(obj_user, scaled=False)
 
-    def _mapObjtoOpt_Dict(self, objDict):
+    def _mapObjtoOpt_Dict(self, objDict: dict) -> dict:
         obj = self.processObjtoVec(objDict, scaled=False)
         obj_opt = self._mapObjtoOpt(obj)
         return self.processObjtoDict(obj_opt, scaled=False)
 
-    def _mapContoUser_Dict(self, conDict):
+    def _mapContoUser_Dict(self, conDict: dict) -> dict:
         con = self.processContoVec(conDict, scaled=False, natural=True)
         con_user = self._mapContoUser(con)
         return self.processContoDict(con_user, scaled=False, natural=True)
 
-    def _mapContoOpt_Dict(self, conDict):
+    def _mapContoOpt_Dict(self, conDict: dict) -> dict:
         con = self.processContoVec(conDict, scaled=False, natural=True)
         con_opt = self._mapContoOpt(con)
         return self.processContoDict(con_opt, scaled=False, natural=True)
@@ -1745,7 +1749,7 @@ class Optimization(object):
 
         return text
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict:
         """
         This is used for serializing class instances.
         The un-serializable fields are deleted first.

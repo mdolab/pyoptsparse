@@ -12,11 +12,12 @@ import datetime
 import os
 import re
 import time
-from typing import Any, Dict, Set
+from typing import Any, Dict, Optional, Set, Tuple
 
 # External modules
 from baseclasses.utils import CaseInsensitiveSet
 import numpy as np
+from numpy import ndarray
 
 # Local modules
 from ..pyOpt_error import Error
@@ -82,7 +83,7 @@ class SNOPT(Optimizer):
         self.jacType = "csc"
 
         # SNOPT specific Jacobian map
-        self._snopt_jac_map_csr_to_csc = None
+        self._snopt_jac_map_csr_to_csc: Optional[Tuple[ndarray, ndarray, ndarray]] = None
 
     @staticmethod
     def _getDefaultOptions() -> Dict[str, Any]:
