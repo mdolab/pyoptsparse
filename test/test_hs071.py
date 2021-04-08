@@ -89,7 +89,7 @@ class TestHS71(unittest.TestCase):
                 assert_allclose(sol.fStar, self.fStar, atol=tol, rtol=tol)
             assert_allclose(sol.xStar["xvars"], self.xStar, atol=tol, rtol=tol)
 
-            if hasattr(sol, "lambdaStar"):
+            if sol.lambdaStar is not None:
                 assert_allclose(sol.lambdaStar["con"], self.lambdaStar, atol=tol, rtol=tol)
         return sol
 

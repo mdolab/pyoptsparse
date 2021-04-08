@@ -1690,11 +1690,10 @@ class Optimization(object):
                 idx += 1
 
         if len(self.constraints) > 0:
-
-            try:
+            if hasattr(self, "lambdaStar") and self.lambdaStar is not None:
                 lambdaStar = self.lambdaStar
                 lambdaStar_label = "Lagrange Multiplier"
-            except AttributeError:
+            else:
                 # the optimizer did not set the lagrange multipliers so set them to something obviously wrong
                 lambdaStar = {}
                 for c in self.constraints:

@@ -758,28 +758,14 @@ class Optimizer(BaseSolver):
 
         return np.real(np.squeeze(ff))
 
-    def _createSolution(self, optTime, sol_inform, obj, xopt, multipliers=None):
+    def _createSolution(self, optTime, sol_inform, obj, xopt, multipliers=None) -> Solution:
         """
         Generic routine to create the solution after an optimizer
         finishes.
         """
-        sol = Solution(self.optProb, optTime, sol_inform)
-        sol.userObjTime = self.userObjTime
-        sol.userSensTime = self.userSensTime
-        sol.userObjCalls = self.userObjCalls
-        sol.userSensCalls = self.userSensCalls
-        sol.interfaceTime = self.interfaceTime - self.userSensTime - self.userObjTime
-        sol.optCodeTime = sol.optTime - self.interfaceTime
-        sol.fStar = self.optProb._mapObjtoUser(obj)
+        fStar = self.optProb._mapObjtoUser(obj)
         xuser = self.optProb._mapXtoUser(xopt)
-        sol.xStar = self.optProb.processXtoDict(xuser)
-
-        # Now set the x-values:
-        i = 0
-        for dvGroup in sol.variables:
-            for var in sol.variables[dvGroup]:
-                var.value = xopt[i]
-                i += 1
+        xStar = self.optProb.processXtoDict(xuser)
 
         if multipliers is not None:
             multipliers = self.optProb.processContoDict(multipliers, scaled=True, multipliers=True)
@@ -789,7 +775,18 @@ class Optimizer(BaseSolver):
                 obj = list(self.optProb.objectives.keys())[0]
                 for con in multipliers.keys():
                     multipliers[con] /= self.optProb.objectives[obj].scale
-            sol.lambdaStar = multipliers
+        # construct info dict
+        info = {
+            "optTime": optTime,
+            "userObjTime": self.userObjTime,
+            "userSensTime": self.userSensTime,
+            "userObjCalls": self.userObjCalls,
+            "userSensCalls": self.userSensCalls,
+            "interfaceTime": self.interfaceTime - self.userSensTime - self.userObjTime,
+            "optCodeTime": optTime - self.interfaceTime,
+        }
+        sol = Solution(self.optProb, xStar, fStar, multipliers, sol_inform, info)
+
         return sol
 
     def _communicateSolution(self, sol):
