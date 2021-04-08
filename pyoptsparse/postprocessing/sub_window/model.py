@@ -1,8 +1,8 @@
 # --- Python 3.8 ---
 """
-Module for all the different message box warnings and info displays
-used by the controller.  Message boxes provide an intermediate state
-control and guide the user through proper use of the GUI.
+Data structure and management class for history files.  The controller
+only has access to top level data for plotting.  Data manipulation
+only occurs here and not in the controller or views.
 """
 
 # ==============================================================================
@@ -16,3 +16,14 @@ control and guide the user through proper use of the GUI.
 # ==============================================================================
 # Extension modules
 # ==============================================================================
+from pyoptsparse import History
+
+
+class HistoryFileModel:
+    """Manages top-level data for the controller"""
+
+    def __init__(self, fp):
+        self._file = History(fileName=fp)
+
+    def changeFile(self, fp):
+        self._file = History(fileName=fp)

@@ -43,11 +43,13 @@ class MplCanvas(FigureCanvasQTAgg):
             Display resolution for the canvas, by default 100
         """
 
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
-        super(MplCanvas, self).__init__(fig)
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = self.fig.add_subplot(111)
         img = plt.imread("assets/pyOptSparse_logo.png")
-        fig.figimage(img, 600, 400, zorder=3, alpha=0.5)
+        self.fig.figimage(img, 600, 400, zorder=3, alpha=0.5)
+
+        super(MplCanvas, self).__init__(self.fig)
+
         FigureCanvasQTAgg.setSizePolicy(self, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         FigureCanvasQTAgg.updateGeometry(self)
         self.setParent(parent)

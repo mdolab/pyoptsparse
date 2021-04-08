@@ -19,26 +19,37 @@ from PyQt5 import QtWidgets
 # ==============================================================================
 # Extension modules
 # ==============================================================================
+from .model import HistoryFileModel
 
 
-class MainController:
+class SubWindowController:
     """
     Contains functionality for user input and software
     response for the main view.
     """
 
     def __init__(self, view):
-        self._plot_controller = None
         self._model = None
         self._view = view
+        self._plot_controller = None
+
+    def setPlotController(self, controller):
+        self._plot_controller = controller
 
     def openFile(self):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
+        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(
             self._view, "Open History File", "", "History Files (*.sql)", options=options
         )
-        # TODO: Set model file name and load variable names
+
+        if self._model is None:
+            self._model = HistoryFileModel(file_name)
+        else:
+            self._model.changeFile(file_name)
+
+        self._view.x_cbox.addItems(["test1", "test2", "test3"])
+        self._view.y_cbox.addItems(["test1", "test2", "test3"])
 
     def newWindow(self):
         print("New window")
@@ -46,14 +57,12 @@ class MainController:
     def saveTecFile(self):
         print("Save Tec File")
 
-    def changePlotFontSize(self, value):
-        print("Change Font")
-
     def refreshPlot(self):
         print("Refresh Plot")
 
     def clearPlot(self):
-        print("Clear Plot")
+        if self._plot_controller is not None:
+            self._plot_controller.clear()
 
     def addVarX(self):
         print("Add X Var")

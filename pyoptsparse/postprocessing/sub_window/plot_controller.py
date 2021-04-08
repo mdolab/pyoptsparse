@@ -35,10 +35,13 @@ class PlotController:
         """
 
         self.canvas.axes.plot(x_data, y_data)
-        self.draw()  # draw updates the plot
+        self.canvas.draw()  # draw updates the plot
+
+    def stackedPlot(self, x_data=[], y_data_1=[], y_data_2=[]):
+        pass
 
     def clear(self):
         """Clears the matplotlib canvas"""
 
         self.canvas.axes.cla()
-        self.draw()  # draw updates the plot
+        self.canvas.draw()  # draw updates the plot
