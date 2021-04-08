@@ -15,4 +15,3 @@ omit =
     */test/*
     */setup.py
     */pyALPSO/alpso_ext.py
-    */pyNOMAD/pyNOMAD.py
