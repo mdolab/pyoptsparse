@@ -14,7 +14,7 @@ class Variable(object):
         scale,
         offset,
         scalar=False,
-        choices=None,
+        choices=[],
     ):
         """
         This class holds the representation of a single pyOptSparse variable
@@ -26,7 +26,7 @@ class Variable(object):
         self.name = name
         self.type = type
         self.scalar = scalar
-        self.choices = None
+        self.choices = choices
         if self.type == "c":
             if lower is None:
                 self.lower = -INFINITY
@@ -48,7 +48,7 @@ class Variable(object):
             self.scale = scale
             self.offset = offset
         elif self.type == "d":
-            if choices is None:
+            if len(choices) == 0:
                 raise Error("A discrete variable requires to input an array of choices.")
             self.choices = choices
             self.value = self.choices[int(value)]

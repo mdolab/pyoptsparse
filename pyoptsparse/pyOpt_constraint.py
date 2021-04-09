@@ -38,8 +38,8 @@ class Constraint(object):
         self.jac = jac
         self.partialReturnOk: Optional[bool] = None
         self.scale = scale
-        self.rs = None
-        self.re = None
+        self.rs: int
+        self.re: int
         # Before we can do the processing below we need to have lower
         # and upper arguments expanded:
 
