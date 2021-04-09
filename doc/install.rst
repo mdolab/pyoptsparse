@@ -12,7 +12,7 @@ pyOptSparse has the following dependencies:
   We recommend ``gcc`` and ``gfortran`` which can be installed via the package manager for your operating system.
 
 Please make sure these are installed and available for use.
-In order to use NSGA2 and NOMAD, SWIG (v1.3+) is also required, which can be installed via the package manager.
+In order to use NSGA2, SWIG (v1.3+) is also required, which can be installed via the package manager.
 If those optimizers are not needed, then you do not need to install SWIG.
 Simply comment out the corresponding lines in ``pyoptsparse/pyoptsparse/setup.py`` so that they are not compiled.
 The corresponding lines in ``pyoptsparse/__init__.py`` must be commented out as well.

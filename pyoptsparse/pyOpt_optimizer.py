@@ -945,8 +945,6 @@ def OPT(optName, *args, **kwargs):
         from .pyNSGA2.pyNSGA2 import NSGA2 as opt
     elif optName == "alpso":
         from .pyALPSO.pyALPSO import ALPSO as opt
-    # elif optName == 'nomad':
-    #     from .pyNOMAD.pyNOMAD import NOMAD as opt
     elif optName == "paropt":
         from .pyParOpt.ParOpt import ParOpt as opt
     else:
