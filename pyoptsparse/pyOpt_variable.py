@@ -7,7 +7,7 @@ class Variable(object):
     def __init__(
         self,
         name: str,
-        type: str,
+        varType: str,
         value,
         lower,
         upper,
@@ -24,7 +24,7 @@ class Variable(object):
         Optimization.addVarGroup : for the full documentation
         """
         self.name = name
-        self.type = type
+        self.type = varType
         self.scalar = scalar
         self.choices = choices
         if self.type == "c":

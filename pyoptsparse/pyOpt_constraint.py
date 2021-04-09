@@ -1,7 +1,7 @@
 # Standard Python modules
 from collections import OrderedDict
 import copy
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Union
 
 # External modules
 import numpy as np
@@ -18,7 +18,7 @@ class Constraint(object):
         name: str,
         nCon: int,
         linear: bool,
-        wrt: Optional[Iterable[str]],
+        wrt: Optional[Union[str, Iterable[str]]],
         jac: Dict[str, ndarray],
         lower,
         upper,

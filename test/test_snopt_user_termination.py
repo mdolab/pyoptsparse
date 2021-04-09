@@ -70,8 +70,8 @@ class TestUserTerminationStatus(unittest.TestCase):
         termcomp = TerminateComp(max_obj=2)
         optProb = Optimization("Paraboloid", termcomp.objfunc)
 
-        optProb.addVarGroup("x", 1, type="c", lower=-50.0, upper=50.0, value=0.0)
-        optProb.addVarGroup("y", 1, type="c", lower=-50.0, upper=50.0, value=0.0)
+        optProb.addVarGroup("x", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
+        optProb.addVarGroup("y", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
 
         optProb.addObj("obj")
 
@@ -98,8 +98,8 @@ class TestUserTerminationStatus(unittest.TestCase):
         termcomp = TerminateComp(max_sens=3)
         optProb = Optimization("Paraboloid", termcomp.objfunc)
 
-        optProb.addVarGroup("x", 1, type="c", lower=-50.0, upper=50.0, value=0.0)
-        optProb.addVarGroup("y", 1, type="c", lower=-50.0, upper=50.0, value=0.0)
+        optProb.addVarGroup("x", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
+        optProb.addVarGroup("y", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
 
         optProb.addObj("obj")
 

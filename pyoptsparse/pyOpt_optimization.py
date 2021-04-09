@@ -144,7 +144,7 @@ class Optimization(object):
         self,
         name: str,
         nVars: int,
-        type: str = "c",
+        varType: str = "c",
         value=0.0,
         lower=None,
         upper=None,
@@ -165,7 +165,7 @@ class Optimization(object):
         nVars : int
             Number of design variables in this group.
 
-        type : str.
+        varType : str.
             String representing the type of variable. Suitable values for type
             are: 'c' for continuous variables, 'i' for integer values and
             'd' for discrete selection.
@@ -201,9 +201,9 @@ class Optimization(object):
         Examples
         --------
         >>> # Add a single design variable 'alpha'
-        >>> optProb.addVar('alpha', type='c', value=2.0, lower=0.0, upper=10.0, scale=0.1)
+        >>> optProb.addVar('alpha', varType='c', value=2.0, lower=0.0, upper=10.0, scale=0.1)
         >>> # Add 10 unscaled variables of 0.5 between 0 and 1 with name 'y'
-        >>> optProb.addVarGroup('y', type='c', value=0.5, lower=0.0, upper=1.0, scale=1.0)
+        >>> optProb.addVarGroup('y', varType='c', value=0.5, lower=0.0, upper=1.0, scale=1.0)
 
         Notes
         -----
@@ -226,7 +226,7 @@ class Optimization(object):
             )
 
         # Check that the type is ok:
-        if type not in ["c", "i", "d"]:
+        if varType not in ["c", "i", "d"]:
             raise Error("Type must be one of 'c' for continuous, 'i' for integer or 'd' for discrete.")
 
         # ------ Process the value argument
@@ -315,7 +315,7 @@ class Optimization(object):
             varList.append(
                 Variable(
                     varName,
-                    type=type,
+                    varType=varType,
                     value=value[iVar],
                     lower=lower[iVar],
                     upper=upper[iVar],
@@ -425,7 +425,7 @@ class Optimization(object):
         upper=None,
         scale=1.0,
         linear: bool = False,
-        wrt: Optional[Iterable[str]] = None,
+        wrt: Optional[Union[str, Iterable[str]]] = None,
         jac=None,
     ):
         """Add a group of variables into a variable set. This is the main
