@@ -22,7 +22,7 @@ class PlotController:
     def __init__(self, canvas):
         self.canvas = canvas
 
-    def plot(self, x_data=[], y_data=[]):
+    def plot(self, x_data=[], y_data=[], options=1):
         """
         Plot function for updating the Canvas
 
@@ -32,16 +32,45 @@ class PlotController:
             List of x data to be plotted, by default []
         y_data : list, optional
             List of y data to be plotted, by default []
+        options: int, optional
+            Number representing the option for plotting
+            1 : Normal x-y plot
+            2 : Stacked plot
+            3 : Shared x-axis
         """
+        if options == 1:  # plot normal x-y
+            self.canvas.fig.clf()
+            ax = self.canvas.fig.add_subplot(111)
+            ax.plot(x_data, y_data)
+            self.canvas.draw()  # draw updates the plot
 
-        self.canvas.axes.plot(x_data, y_data)
-        self.canvas.draw()  # draw updates the plot
+        elif options == 2:  # stacked plots
+            self.canvas.fig.clf()
+            ax1 = self.canvas.fig.add_subplot(211)
+            x1 = [i for i in range(100)]
+            y1 = [i ** 0.5 for i in x1]
+            ax1.set(title="Plot 1")
+            ax1.plot(x1, y1, "b.-")
 
-    def stackedPlot(self, x_data=[], y_data_1=[], y_data_2=[]):
-        pass
+            ax2 = self.canvas.fig.add_subplot(212)
+            x2 = [i for i in range(100)]
+            y2 = [i for i in x2]
+            ax2.set(title="Plot 2")
+            ax2.plot(x2, y2, "b.-")
+            self.canvas.draw()
+
+        elif options == 3:  # shared X-axis plot
+            self.canvas.fig.clf()
+            ax1 = self.canvas.fig.add_subplot(111)
+            ax1.plot(x_data, y_data)
+
+            ax2 = ax1.twinx()
+            ax2.plot(x_data, [y ** 2 for y in y_data])
+
+            self.canvas.draw()
 
     def clear(self):
         """Clears the matplotlib canvas"""
-
-        self.canvas.axes.cla()
+        self.canvas.fig.clf()
+        self.canvas.addImage()
         self.canvas.draw()  # draw updates the plot
