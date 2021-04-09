@@ -44,15 +44,17 @@ class MplCanvas(FigureCanvasQTAgg):
         """
 
         self.fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = self.fig.add_subplot(111)
-        img = plt.imread("assets/pyOptSparse_logo.png")
-        self.fig.figimage(img, 600, 400, zorder=3, alpha=0.5)
-
         super(MplCanvas, self).__init__(self.fig)
+
+        self.addImage()
 
         FigureCanvasQTAgg.setSizePolicy(self, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         FigureCanvasQTAgg.updateGeometry(self)
         self.setParent(parent)
+
+    def addImage(self):
+        self.img = plt.imread("assets/pyOptSparse_logo.png")
+        self.im_artist = self.fig.figimage(self.img, 600, 400, zorder=3, alpha=0.5)
 
 
 class PlotView(QtWidgets.QWidget):
@@ -68,11 +70,11 @@ class PlotView(QtWidgets.QWidget):
         # Create toolbar for the figure:
         # * First argument: the canvas that the toolbar must control
         # * Second argument: the toolbar's parent (self, the PlotterWidget)
-        toolbar = NavigationToolbar(self.canvas, self)
+        self.toolbar = NavigationToolbar(self.canvas, self)
 
         # Define and apply widget layout
         layout = QtWidgets.QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(toolbar)
+        layout.addWidget(self.toolbar)
         layout.addWidget(self.canvas)
         self.setLayout(layout)
