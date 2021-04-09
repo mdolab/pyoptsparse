@@ -5,7 +5,6 @@ from typing import Dict, Iterable, List, Optional, Union
 
 # External modules
 import numpy as np
-from numpy import ndarray
 
 # Local modules
 from .pyOpt_error import Error, pyOptSparseWarning

@@ -6,11 +6,12 @@ import os
 import shutil
 import tempfile
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 # External modules
 from baseclasses import BaseSolver
 import numpy as np
+from numpy import ndarray
 
 # Local modules
 from .pyOpt_MPI import MPI
@@ -61,7 +62,7 @@ class Optimizer(BaseSolver):
             caseSensitiveOptions=caseSensitiveOptions,
         )
         self.callCounter = 0
-        self.sens = None
+        self.sens: Union[None, Callable, Gradient] = None
         self.optProb: Optimization
         self.version: Optional[str] = version
 
@@ -74,10 +75,10 @@ class Optimizer(BaseSolver):
         self.interfaceTime: float = 0.0
         self.userObjCalls: int = 0
         self.userSensCalls: int = 0
-        self.storeSens = True
+        self.storeSens: bool = True
 
         # Cache storage
-        self.cache = {"x": None, "fobj": None, "fcon": None, "gobj": None, "gcon": None}
+        self.cache: Dict[str, Any] = {"x": None, "fobj": None, "fcon": None, "gobj": None, "gcon": None}
 
         # A second-level cache for optimizers that require callbacks
         # for each constraint. (eg. PSQP etc)
@@ -97,7 +98,7 @@ class Optimizer(BaseSolver):
         self.userObjCalls = 0
         self.userSensCalls = 0
 
-    def _setSens(self, sens, sensStep, sensMode):
+    def _setSens(self, sens: Union[None, str, Callable], sensStep: float, sensMode: str):
         """
         Common function to setup sens function
         """
@@ -122,10 +123,8 @@ class Optimizer(BaseSolver):
                 self.sens = None
             else:
                 raise Error(
-                    (
-                        "'None' value given for sens. "
-                        + "Must be one of 'FD', 'FDR', 'CD', 'CDR', 'CS' or a user supplied function."
-                    )
+                    "'None' value given for sens. "
+                    + "Must be one of 'FD', 'FDR', 'CD', 'CDR', 'CS' or a user supplied function."
                 )
         elif callable(sens):
             # We have function handle for gradients! Excellent!
@@ -139,7 +138,7 @@ class Optimizer(BaseSolver):
                 "Unknown value given for sens. Must be one of [None,'FD','FDR','CD','CDR','CS'] or a python function handle"
             )
 
-    def _setHistory(self, storeHistory, hotStart):
+    def _setHistory(self, storeHistory: str, hotStart: str):
         """
         Generic routine for setting up the hot start information
 
@@ -196,7 +195,7 @@ class Optimizer(BaseSolver):
                     self.hist.writeData("metadata", self.metadata)
         self.optProb.comm.Barrier()
 
-    def _masterFunc(self, x, evaluate):
+    def _masterFunc(self, x: ndarray, evaluate: List[str]):
         """
         This is the master function that **ALL** optimizers call from
         the specific signature functions. The reason for this is that
