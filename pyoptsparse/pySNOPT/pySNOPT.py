@@ -12,7 +12,7 @@ import datetime
 import os
 import re
 import time
-from typing import Any, Dict, Optional, Set, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 # External modules
 from baseclasses.utils import CaseInsensitiveSet
@@ -40,7 +40,7 @@ class SNOPT(Optimizer):
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
         # these are SNOPT-related options that do not get set via snset
-        self.specialOptions: Set[str] = CaseInsensitiveSet(
+        self.specialOptions = CaseInsensitiveSet(
             {
                 "iPrint",
                 "iSumm",
@@ -48,7 +48,7 @@ class SNOPT(Optimizer):
             }
         )
         # this is purely within pySNOPT, nothing to do with SNOPT itself
-        self.pythonOptions: Set[str] = CaseInsensitiveSet({"Save major iteration variables"})
+        self.pythonOptions = CaseInsensitiveSet({"Save major iteration variables"})
 
         informs = self._getInforms()
 
@@ -288,7 +288,7 @@ class SNOPT(Optimizer):
                 self.optProb.jacIndices = [0]
                 self.optProb.fact = np.array([1.0])
                 self.optProb.offset = np.zeros_like(self.optProb.fact)
-
+        sol = None
         # We make a split here: If the rank is zero we setup the
         # problem and run SNOPT, otherwise we go to the waiting loop:
         if self.optProb.comm.rank == 0:
@@ -484,12 +484,11 @@ class SNOPT(Optimizer):
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
-            sol = None
 
         # Communication solution and return
-        sol = self._communicateSolution(sol)
+        commSol = self._communicateSolution(sol)
 
-        return sol
+        return commSol
 
     def _userfg_wrap(self, mode, nnJac, x, fobj, gobj, fcon, gcon, nState, cu, iu, ru):
         """
@@ -618,7 +617,7 @@ class SNOPT(Optimizer):
         iabort = 0
         return iabort
 
-    def _set_snopt_options(self, iPrint, iSumm, cw, iw, rw):
+    def _set_snopt_options(self, iPrint: int, iSumm: int, cw: ndarray, iw: ndarray, rw: ndarray):
         """
         Set all the options into SNOPT that have been assigned
         by the user
@@ -646,33 +645,6 @@ class SNOPT(Optimizer):
                 snopt.snseti(name, value, iPrint, iSumm, inform, cw, iw, rw)
             elif isinstance(value, type(None)):
                 snopt.snset(name, iPrint, iSumm, inform, cw, iw, rw)
-
-        return
-
-    def _on_getInform(self, infocode):
-        """
-        Get Optimizer Result Information (Optimizer Specific Routine)
-
-        Parameters
-        ----------
-        infocode: int
-            The info code
-
-        Returns
-        -------
-        inform_text : str
-            The inform text
-        """
-
-        mjr_code = (infocode[0] / 10) * 10
-        # mnr_code = infocode[0] - 10*mjr_code
-        try:
-            inform_text = self.informs[mjr_code]
-        except KeyError:
-            inform_text = "Unknown Exit Status"
-        # end try
-
-        return inform_text
 
     def _on_flushFiles(self):
         """

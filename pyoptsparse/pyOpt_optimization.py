@@ -2,6 +2,7 @@
 from collections import OrderedDict
 import copy
 import os
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 import warnings
 
 # External modules
@@ -20,7 +21,7 @@ from .pyOpt_variable import Variable
 
 
 class Optimization(object):
-    def __init__(self, name, objFun, comm=None, sens=None):
+    def __init__(self, name: str, objFun: Callable, comm=None, sens: Optional[Union[str, Callable]] = None):
         """
         The main purpose of this class is to describe the structure and
         potentially, sparsity pattern of an optimization problem.
@@ -40,7 +41,7 @@ class Optimization(object):
             computations. Defaults to MPI.COMM_WORLD if not given.
 
         sens : str or python Function.
-            Specifiy method to compute sensitivities.
+            Specify method to compute sensitivities.
         """
         self.name = name
         self.objFun = objFun
@@ -51,32 +52,31 @@ class Optimization(object):
             self.comm = comm
 
         # Ordered dictionaries to keep track of variables and constraints
-        self.variables = OrderedDict()
-        self.constraints = OrderedDict()
-        self.objectives = OrderedDict()
-        self.dvOffset = OrderedDict()
+        self.variables: OrderedDict = OrderedDict()
+        self.constraints: OrderedDict = OrderedDict()
+        self.objectives: OrderedDict = OrderedDict()
+        self.dvOffset: OrderedDict = OrderedDict()
 
         # Variables to be set in finalizeConstraints
         # have finalized the specification of the variable and the
         # constraints
-        self.ndvs = None
-        self.conScale = None
-        self.nCon = 0
-        self.nObj = 0
-        self.invXScale = None
-        self.xOffset = None
-        self.linearJacobian = None
+        self.ndvs: int = 0
+        self.conScale: ndarray = None
+        self.nCon: int = 0
+        self.nObj: int = 0
+        self.invXScale: ndarray = None
+        self.xOffset: ndarray = None
         self.dummyConstraint = False
-        self.objectiveIdx = {}
-        self.finalized = False
-        self.jacIndices = None
-        self.fact = None
-        self.offset = None
+        self.objectiveIdx: Dict[str, int] = {}
+        self.finalized: bool = False
+        self.jacIndices: ndarray = None
+        self.fact: ndarray = None
+        self.offset: ndarray = None
 
         # Store the Jacobian conversion maps
         self._jac_map_coo_to_csr = None
 
-    def addVar(self, name, *args, **kwargs):
+    def addVar(self, name: str, *args, **kwargs):
         """
         This is a convenience function. It simply calls addVarGroup()
         with nVars=1. Variables added with addVar() are returned as
@@ -84,7 +84,7 @@ class Optimization(object):
         """
         self.addVarGroup(name, 1, *args, scalar=True, **kwargs)
 
-    def checkVarName(self, varName):
+    def checkVarName(self, varName: str) -> str:
         """
         Check if the desired variable name varName if has already been
         added. If it is has already been added, return a mangled name
@@ -112,7 +112,7 @@ class Optimization(object):
                 validName = varName + "_%d" % i
             return validName
 
-    def checkConName(self, conName):
+    def checkConName(self, conName: str) -> str:
         """
         Check if the desired constraint name has already been
         added. If it is has already been added, return a mangled name
@@ -141,7 +141,17 @@ class Optimization(object):
             return validName
 
     def addVarGroup(
-        self, name, nVars, type="c", value=0.0, lower=None, upper=None, scale=1.0, offset=0.0, choices=None, **kwargs
+        self,
+        name: str,
+        nVars: int,
+        type: str = "c",
+        value=0.0,
+        lower=None,
+        upper=None,
+        scale=1.0,
+        offset=0.0,
+        choices: List[str] = None,
+        **kwargs
     ):
         """
         Add a group of variables into a variable set. This is the main
@@ -332,7 +342,7 @@ class Optimization(object):
             # Finally we set the variable list
             self.variables[name] = varList
 
-    def delVar(self, name):
+    def delVar(self, name: str):
         """
         Delete a variable or variable group
 
@@ -396,20 +406,30 @@ class Optimization(object):
 
         return variables
 
-    def addObj(self, name, *args, **kwargs):
+    def addObj(self, name: str, *args, **kwargs):
         """
         Add Objective into Objectives Set
         """
         self.finalized = False
         self.objectives[name] = Objective(name, *args, **kwargs)
 
-    def addCon(self, name, *args, **kwargs):
+    def addCon(self, name: str, *args, **kwargs):
         """
         Convenience function. See addConGroup() for more information
         """
         self.addConGroup(name, 1, *args, **kwargs)
 
-    def addConGroup(self, name, nCon, lower=None, upper=None, scale=1.0, linear=False, wrt=None, jac=None):
+    def addConGroup(
+        self,
+        name: str,
+        nCon: int,
+        lower=None,
+        upper=None,
+        scale=1.0,
+        linear: bool = False,
+        wrt: Optional[Iterable[str]] = None,
+        jac=None,
+    ):
         """Add a group of variables into a variable set. This is the main
         function used for adding variables to pyOptSparse.
 
@@ -733,7 +753,7 @@ class Optimization(object):
         for i in range(len(txt)):
             print("".join(txt[i]))
 
-    def getDVConIndex(self, startIndex=1, printIndex=True):
+    def getDVConIndex(self, startIndex: int = 1, printIndex: bool = True) -> Tuple[OrderedDict, OrderedDict]:
         """
         Return the index of a scalar DV/constraint, or the beginning
         and end index (inclusive) of a DV/constraint array.
@@ -915,7 +935,9 @@ class Optimization(object):
                 # Now create a coo, convert to CSR and store
                 con.linearJacobian = coo_matrix((data, (row, col)), shape=[con.ncon, self.ndvs]).tocsr()
 
-    def getOrdering(self, conOrder, oneSided, noEquality=False):
+    def getOrdering(
+        self, conOrder: List[str], oneSided: bool, noEquality: bool = False
+    ) -> Tuple[ndarray, ndarray, ndarray, ndarray]:
         """
         Internal function that is used to produce a index list that
         reorders the constraints the way a particular optimizer needs.
@@ -1025,11 +1047,9 @@ class Optimization(object):
                     lower.extend(icon["lower"])
                     upper.extend(icon["upper"])
 
-        if len(fact) == 0:
-            fact = None
-        return np.array(indices), np.array(lower), np.array(upper), fact
+        return np.array(indices), np.array(lower), np.array(upper), np.array(fact)
 
-    def processXtoDict(self, x):
+    def processXtoDict(self, x: ndarray) -> OrderedDict:
         """
         Take the flattened array of variables in 'x' and return a
         dictionary of variables keyed on the name of each variable.
@@ -1061,7 +1081,7 @@ class Optimization(object):
             raise Error("Error processing x. There is a mismatch in the number of variables.")
         return xg
 
-    def processXtoVec(self, x):
+    def processXtoVec(self, x: dict) -> ndarray:
         """
         Take the dictionary form of x and convert back to flattened
         array.
@@ -1099,7 +1119,7 @@ class Optimization(object):
 
         return x_array
 
-    def processObjtoVec(self, funcs, scaled=True):
+    def processObjtoVec(self, funcs: dict, scaled: bool = True) -> Union[float, ndarray]:
         """
         This is currently just a stub-function. It is here since it
         the future we may have to deal with multiple objectives so
@@ -1137,7 +1157,7 @@ class Optimization(object):
         # Finally squeeze back out so we get a scalar for a single objective
         return np.squeeze(fobj)
 
-    def processObjtoDict(self, fobj_in, scaled=True):
+    def processObjtoDict(self, fobj_in: Union[float, ndarray], scaled: bool = True) -> dict:
         """
         This function converts the objective in array form
         to the corresponding dictionary form.
@@ -1169,7 +1189,7 @@ class Optimization(object):
             fobj = self._mapObjtoOpt(fobj)
         return fobj
 
-    def processContoVec(self, fcon_in, scaled=True, dtype="d", natural=False):
+    def processContoVec(self, fcon_in: dict, scaled: bool = True, dtype: str = "d", natural: bool = False) -> ndarray:
         """
         Parameters
         ----------
@@ -1239,7 +1259,9 @@ class Optimization(object):
             else:
                 return fcon
 
-    def processContoDict(self, fcon_in, scaled=True, dtype="d", natural=False, multipliers=False):
+    def processContoDict(
+        self, fcon_in: ndarray, scaled: bool = True, dtype: str = "d", natural: bool = False, multipliers: bool = False
+    ) -> dict:
         """
         Parameters
         ----------
@@ -1310,7 +1332,7 @@ class Optimization(object):
 
         return fcon
 
-    def evaluateLinearConstraints(self, x, fcon):
+    def evaluateLinearConstraints(self, x: ndarray, fcon: dict):
         """
         This function is required for optimizers that do not explicitly
         treat the linear constraints. For those optimizers, we will
@@ -1334,7 +1356,7 @@ class Optimization(object):
             if self.constraints[iCon].linear:
                 fcon[iCon] = self.constraints[iCon].linearJacobian.dot(x)
 
-    def processObjectiveGradient(self, funcsSens):
+    def processObjectiveGradient(self, funcsSens: Dict[str, Any]) -> Union[float, ndarray]:
         """
         This generic function is used to assemble the objective
         gradient(s)
@@ -1470,7 +1492,7 @@ class Optimization(object):
                     )
                 if not gotDerivative:
                     # All keys for this constraint must be returned
-                    # since the user has explictly specified the wrt.
+                    # since the user has explicitly specified the wrt.
                     if not con.partialReturnOk:
                         raise Error(
                             (
@@ -1690,7 +1712,8 @@ class Optimization(object):
                 idx += 1
 
         if len(self.constraints) > 0:
-            if hasattr(self, "lambdaStar") and self.lambdaStar is not None:
+            # must be an instance of the Solution class
+            if not isinstance(self, Optimization) and self.lambdaStar is not None:
                 lambdaStar = self.lambdaStar
                 lambdaStar_label = "Lagrange Multiplier"
             else:

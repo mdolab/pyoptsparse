@@ -789,7 +789,7 @@ class Optimizer(BaseSolver):
 
         return sol
 
-    def _communicateSolution(self, sol):
+    def _communicateSolution(self, sol: Optional[Solution]) -> Solution:
         """
         Broadcast the solution from the root proc back to everyone. We
         have to be a little careful since we can't in general
@@ -798,11 +798,11 @@ class Optimizer(BaseSolver):
 
         if sol is not None:
             sol.comm = None
-        sol = self.optProb.comm.bcast(sol)
-        sol.objFun = self.optProb.objFun
-        sol.comm = self.optProb.comm
+        commSol = self.optProb.comm.bcast(sol)
+        commSol.objFun = self.optProb.objFun
+        commSol.comm = self.optProb.comm
 
-        return sol
+        return commSol
 
     def _setMetadata(self):
         """
@@ -880,7 +880,10 @@ class Optimizer(BaseSolver):
         """
         Routine to be implemented by optimizer
         """
-        return self.informs[info]
+        try:
+            return self.informs[info]
+        except KeyError:
+            return f"Unknown Exit Status, Exit Code {info}"
 
     def getInform(self, infocode=None):
         """

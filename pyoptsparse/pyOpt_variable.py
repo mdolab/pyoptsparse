@@ -4,7 +4,18 @@ from .pyOpt_utils import INFINITY
 
 
 class Variable(object):
-    def __init__(self, name, type, value, lower, upper, scale, offset, scalar=False, choices=None):
+    def __init__(
+        self,
+        name: str,
+        type: str,
+        value,
+        lower,
+        upper,
+        scale,
+        offset,
+        scalar=False,
+        choices=None,
+    ):
         """
         This class holds the representation of a single pyOptSparse variable
 

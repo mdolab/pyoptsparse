@@ -1,8 +1,11 @@
 # Standard Python modules
+from collections import OrderedDict
 import copy
+from typing import Dict, Iterable, List, Optional
 
 # External modules
 import numpy as np
+from numpy import ndarray
 
 # Local modules
 from .pyOpt_error import Error, pyOptSparseWarning
@@ -10,7 +13,17 @@ from .pyOpt_utils import INFINITY, convertToCOO
 
 
 class Constraint(object):
-    def __init__(self, name, nCon, linear, wrt, jac, lower, upper, scale):
+    def __init__(
+        self,
+        name: str,
+        nCon: int,
+        linear: bool,
+        wrt: Optional[Iterable[str]],
+        jac: Dict[str, ndarray],
+        lower,
+        upper,
+        scale,
+    ):
         """
         This class holds the representation of a pyOptSparse constraint group
 
@@ -23,7 +36,7 @@ class Constraint(object):
         self.linear = linear
         self.wrt = wrt
         self.jac = jac
-        self.partialReturnOk = None
+        self.partialReturnOk: Optional[bool] = None
         self.scale = scale
         self.rs = None
         self.re = None
@@ -92,12 +105,12 @@ class Constraint(object):
         # automatically.
 
         # This keeps track of the equality constraints:
-        equalityConstraints = {"value": [], "ind": [], "fact": []}
+        equalityConstraints: Dict[str, List] = {"value": [], "ind": [], "fact": []}
 
         # All (inequality) constraints get added to
         # "twoSidedConstraints". This will be used in optimizers that
         # can do two-sided constraints properly
-        twoSidedConstraints = {"lower": [], "upper": [], "ind": [], "fact": []}
+        twoSidedConstraints: Dict[str, List] = {"lower": [], "upper": [], "ind": [], "fact": []}
 
         # All (inequality) constraints are also added to
         # "oneSidedConstraints". These are processed such that the
@@ -107,7 +120,7 @@ class Constraint(object):
         # defined which is precisely 1.0 or -1.0. The -1.0 appears
         # when a greater-than-constraint is turned into a
         # less-than-constraint.
-        oneSidedConstraints = {"lower": [], "upper": [], "ind": [], "fact": []}
+        oneSidedConstraints: Dict[str, List] = {"lower": [], "upper": [], "ind": [], "fact": []}
 
         for icon in range(self.ncon):
             # Check for equality constraint:
@@ -192,14 +205,14 @@ class Constraint(object):
         self.oneSidedConstraints = oneSidedConstraints
         self.twoSidedConstraints = twoSidedConstraints
 
-    def finalize(self, variables, dvOffset, index):
+    def finalize(self, variables: OrderedDict, dvOffset, index: int):
         """
         After the design variables have been finalized and the order
         is known we can check the constraint for consistency.
 
         Parameters
         ----------
-        variables : Ordered Dict
+        variables : OrderedDict
             The pyOpt variable list after they have been finalized.
 
         dvOffset : dict
