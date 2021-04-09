@@ -1496,10 +1496,9 @@ class Optimization(object):
                     # since the user has explicitly specified the wrt.
                     if not con.partialReturnOk:
                         raise Error(
-                            (
-                                "Constraint '{}' was expecting a jacobain with respect to dvGroup '{}' as was supplied in addConGroup(). "
-                                + "This was not found in the constraint Jacobian dictionary"
-                            ).format(con.name, dvGroup)
+                            f"Constraint '{con.name}' was expecting a jacobain with respect to dvGroup "
+                            + f"'{dvGroup}' as was supplied in addConGroup(). "
+                            + "This was not found in the constraint Jacobian dictionary"
                         )
                     else:
                         # This key is not returned. Just use the

@@ -1,6 +1,7 @@
 """
 pyOptSparse_utils holds a minimal set of sparse-matrix type routines for pyOptSparse.
-This is designed to replace the SciPy sparse matrix formats, which have no way to enforce a constant sparsity structure as required by the optimizers.
+This is designed to replace the SciPy sparse matrix formats, which have no way to enforce
+a constant sparsity structure as required by the optimizers.
 We use a very simple dictionary format to represent the three most common forms of sparse matrices::
 
     mat = {'coo':[row,  col,    data], 'shape':[nrow, ncols]} # A coo matrix
