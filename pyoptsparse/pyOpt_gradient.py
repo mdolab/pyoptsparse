@@ -1,12 +1,18 @@
+# Standard Python modules
+from typing import Union
+
 # External modules
 import numpy as np
+from numpy import ndarray
 
 # Local modules
 from .pyOpt_MPI import MPI
+from .pyOpt_optimization import Optimization
+from .types import Dict1DType, Dict2DType
 
 
 class Gradient(object):
-    def __init__(self, optProb, sensType, sensStep=None, sensMode="", comm=None):
+    def __init__(self, optProb: Optimization, sensType: str, sensStep: float = None, sensMode: str = "", comm=None):
         """
         Gradient class for automatically computing gradients with finite
         difference or complex step.
@@ -31,6 +37,7 @@ class Gradient(object):
         """
         self.optProb = optProb
         self.sensType = sensType
+        self.sensStep: Union[float, complex]
         if sensStep is None:
             if self.sensType in ["fd", "fdr"]:
                 self.sensStep = 1e-6
@@ -51,7 +58,7 @@ class Gradient(object):
         else:
             self.mydvs = list(range(ndvs))
 
-    def _eval_func(self, x):
+    def _eval_func(self, x: ndarray):
         """internal method to call function and extract obj, con"""
 
         xCall = self.optProb.processXtoDict(x)
@@ -69,7 +76,7 @@ class Gradient(object):
 
         return fobj, fcon, fail
 
-    def __call__(self, x, funcs):
+    def __call__(self, x: ndarray, funcs: Dict1DType):
         """
         We need to make this object "look" the same as a user supplied
         function handle. That way, the optimizers need not care how
@@ -176,7 +183,7 @@ class Gradient(object):
 
         # Finally, we have to convert everything **back** to a
         # dictionary so the rest of the code works:
-        funcsSens = {}
+        funcsSens: Dict2DType = {}
         for objKey in self.optProb.objectives:
             funcsSens[objKey] = {}
             for dvGroup in self.optProb.variables:

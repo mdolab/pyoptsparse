@@ -2,7 +2,7 @@
 from collections import OrderedDict
 import copy
 import os
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 import warnings
 
 # External modules
@@ -18,6 +18,7 @@ from .pyOpt_error import Error
 from .pyOpt_objective import Objective
 from .pyOpt_utils import ICOL, IDATA, INFINITY, IROW, convertToCOO, convertToCSR, mapToCSR, scaleColumns, scaleRows
 from .pyOpt_variable import Variable
+from .types import Dict1DType, Dict2DType, NumpyType
 
 
 class Optimization(object):
@@ -151,7 +152,7 @@ class Optimization(object):
         scale=1.0,
         offset=0.0,
         choices: List[str] = [],
-        **kwargs
+        **kwargs,
     ):
         """
         Add a group of variables into a variable set. This is the main
@@ -1117,7 +1118,7 @@ class Optimization(object):
 
         return x_array
 
-    def processObjtoVec(self, funcs: dict, scaled: bool = True) -> Union[float, ndarray]:
+    def processObjtoVec(self, funcs: Dict1DType, scaled: bool = True) -> NumpyType:
         """
         This is currently just a stub-function. It is here since it
         the future we may have to deal with multiple objectives so
@@ -1155,7 +1156,7 @@ class Optimization(object):
         # Finally squeeze back out so we get a scalar for a single objective
         return np.squeeze(fobj)
 
-    def processObjtoDict(self, fobj_in: Union[float, ndarray], scaled: bool = True) -> dict:
+    def processObjtoDict(self, fobj_in: NumpyType, scaled: bool = True) -> Dict1DType:
         """
         This function converts the objective in array form
         to the corresponding dictionary form.
@@ -1187,7 +1188,9 @@ class Optimization(object):
             fobj = self._mapObjtoOpt(fobj)
         return fobj
 
-    def processContoVec(self, fcon_in: dict, scaled: bool = True, dtype: str = "d", natural: bool = False) -> ndarray:
+    def processContoVec(
+        self, fcon_in: Dict1DType, scaled: bool = True, dtype: str = "d", natural: bool = False
+    ) -> ndarray:
         """
         Parameters
         ----------
@@ -1259,7 +1262,7 @@ class Optimization(object):
 
     def processContoDict(
         self, fcon_in: ndarray, scaled: bool = True, dtype: str = "d", natural: bool = False, multipliers: bool = False
-    ) -> dict:
+    ) -> Dict1DType:
         """
         Parameters
         ----------
@@ -1330,7 +1333,7 @@ class Optimization(object):
 
         return fcon
 
-    def evaluateLinearConstraints(self, x: ndarray, fcon: dict):
+    def evaluateLinearConstraints(self, x: ndarray, fcon: Dict1DType):
         """
         This function is required for optimizers that do not explicitly
         treat the linear constraints. For those optimizers, we will
@@ -1354,7 +1357,7 @@ class Optimization(object):
             if self.constraints[iCon].linear:
                 fcon[iCon] = self.constraints[iCon].linearJacobian.dot(x)
 
-    def processObjectiveGradient(self, funcsSens: Dict[str, Any]) -> Union[float, ndarray]:
+    def processObjectiveGradient(self, funcsSens: Dict2DType) -> NumpyType:
         """
         This generic function is used to assemble the objective
         gradient(s)
@@ -1611,32 +1614,32 @@ class Optimization(object):
         return x * self.invXScale + self.xOffset
 
     # these are the dictionary-based versions of the mapping functions
-    def _mapXtoUser_Dict(self, xDict: dict) -> dict:
+    def _mapXtoUser_Dict(self, xDict: Dict1DType) -> Dict1DType:
         x = self.processXtoVec(xDict)
         x_user = self._mapXtoUser(x)
         return self.processXtoDict(x_user)
 
-    def _mapXtoOpt_Dict(self, xDict: dict) -> dict:
+    def _mapXtoOpt_Dict(self, xDict: Dict1DType) -> Dict1DType:
         x = self.processXtoVec(xDict)
         x_opt = self._mapXtoOpt(x)
         return self.processXtoDict(x_opt)
 
-    def _mapObjtoUser_Dict(self, objDict: dict) -> dict:
+    def _mapObjtoUser_Dict(self, objDict: Dict1DType) -> Dict1DType:
         obj = self.processObjtoVec(objDict, scaled=False)
         obj_user = self._mapObjtoUser(obj)
         return self.processObjtoDict(obj_user, scaled=False)
 
-    def _mapObjtoOpt_Dict(self, objDict: dict) -> dict:
+    def _mapObjtoOpt_Dict(self, objDict: Dict1DType) -> Dict1DType:
         obj = self.processObjtoVec(objDict, scaled=False)
         obj_opt = self._mapObjtoOpt(obj)
         return self.processObjtoDict(obj_opt, scaled=False)
 
-    def _mapContoUser_Dict(self, conDict: dict) -> dict:
+    def _mapContoUser_Dict(self, conDict: Dict1DType) -> Dict1DType:
         con = self.processContoVec(conDict, scaled=False, natural=True)
         con_user = self._mapContoUser(con)
         return self.processContoDict(con_user, scaled=False, natural=True)
 
-    def _mapContoOpt_Dict(self, conDict: dict) -> dict:
+    def _mapContoOpt_Dict(self, conDict: Dict1DType) -> Dict1DType:
         con = self.processContoVec(conDict, scaled=False, natural=True)
         con_opt = self._mapContoOpt(con)
         return self.processContoDict(con_opt, scaled=False, natural=True)

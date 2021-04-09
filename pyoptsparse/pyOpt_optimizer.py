@@ -127,7 +127,7 @@ class Optimizer(BaseSolver):
                         + "Must be one of 'FD', 'FDR', 'CD', 'CDR', 'CS' or a user supplied function."
                     )
                 )
-        elif hasattr(sens, "__call__"):
+        elif callable(sens):
             # We have function handle for gradients! Excellent!
             self.sens = sens
         elif sens.lower() in ["fd", "fdr", "cd", "cdr", "cs"]:

@@ -10,6 +10,7 @@ from numpy import ndarray
 # Local modules
 from .pyOpt_error import Error, pyOptSparseWarning
 from .pyOpt_utils import INFINITY, convertToCOO
+from .types import Dict1DType
 
 
 class Constraint(object):
@@ -18,8 +19,8 @@ class Constraint(object):
         name: str,
         nCon: int,
         linear: bool,
-        wrt: Optional[Union[str, Iterable[str]]],
-        jac: Dict[str, ndarray],
+        wrt: Union[None, str, Iterable[str]],
+        jac: Dict1DType,
         lower,
         upper,
         scale,
@@ -381,7 +382,7 @@ class Constraint(object):
 
         # end if (if Jac)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Print Constraint
         """

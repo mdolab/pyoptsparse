@@ -50,7 +50,6 @@ class Variable(object):
         elif self.type == "d":
             if len(choices) == 0:
                 raise Error("A discrete variable requires to input an array of choices.")
-            self.choices = choices
             self.value = self.choices[int(value)]
             self.lower = 0
             self.upper = len(self.choices)
@@ -72,7 +71,7 @@ class Variable(object):
         else:
             return False
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Print Structured List of Variable
         """
