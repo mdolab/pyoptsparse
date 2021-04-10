@@ -5,9 +5,6 @@ import sys
 # External modules
 from sphinx_mdolab_theme.config import *
 
-# First party modules
-import pyoptsparse
-
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -16,12 +13,12 @@ import pyoptsparse
 
 
 sys.path.insert(0, os.path.abspath("../"))
-sys.path.insert(0, os.path.abspath("./"))  # to import custom Sphinx extension
+from pyoptsparse import __version__  # isort: skip
 
 # -- Project information -----------------------------------------------------
 
 project = "pyOptSparse"
-version = pyoptsparse.__version__
+version = __version__
 
 # -- General configuration ---------------------------------------------------
 
