@@ -1,5 +1,6 @@
 # Standard Python modules
 import os
+import re
 import sys
 
 # External modules
@@ -13,12 +14,15 @@ from sphinx_mdolab_theme.config import *
 
 
 sys.path.insert(0, os.path.abspath("../"))
-from pyoptsparse import __version__  # isort: skip
+
 
 # -- Project information -----------------------------------------------------
 
 project = "pyOptSparse"
-version = __version__
+version = re.findall(
+    r"""__version__ = ["']+([0-9\.]*)["']+""",
+    open("../pyoptsparse/__init__.py").read(),
+)[0]
 
 # -- General configuration ---------------------------------------------------
 
