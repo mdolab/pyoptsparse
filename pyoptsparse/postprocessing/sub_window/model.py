@@ -74,20 +74,31 @@ class HistoryFileModel:
         for key in self.x_vars.keys():
             self.x_vars[key] = self._file.getValues(names=str(key), scale=True)
 
-    def scaleY(self):
+    def unscaleX(self):
         for key in self.x_vars.keys():
-            self.x_vars[key] = self._file.getValues(names=str(key), scale=True)
+            self.x_vars[key] = self._file.getValues(names=str(key), scale=False)
+
+    def scaleY(self):
+        for key in self.y_vars.keys():
+            self.y_vars[key] = self._file.getValues(names=str(key), scale=True)
+
+    def unscaleY(self):
+        for key in self.y_vars.keys():
+            self.y_vars[key] = self._file.getValues(names=str(key), scale=False)
 
     def majorIterX(self):
-        self.x_vars["major_iterations"] = self._file.getValues(names="nMajor")["nMajor"]
+        self.x_vars["major_iterations"] = self._file.getValues(names="nMajor")["nMajor"].flatten()
 
     def minorIterX(self):
         self.x_vars["minor_iterations"] = np.arange(
             0, len(self._file.getValues(names=self._names[0], major=False)[self._names[0]]), 1
         )
+        print(self._file.getValues(names="nMinor")["nMinor"].flatten())
 
 
 if __name__ == "__main__":
     model = HistoryFileModel("test.sql")
     model.minorIterX()
+    print(model.x_vars)
+    model.majorIterX()
     print(model.x_vars)
