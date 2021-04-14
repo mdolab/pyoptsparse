@@ -22,29 +22,14 @@ class PlotController:
     def __init__(self, canvas):
         self.canvas = canvas
 
-    def plot(self, x_data=[], y_data=[], options=1):
-        """
-        Plot function for updating the Canvas
-
-        Parameters
-        ----------
-        x_data : list, optional
-            List of x data to be plotted, by default []
-        y_data : list, optional
-            List of y data to be plotted, by default []
-        options: int, optional
-            Number representing the option for plotting
-            1 : Normal x-y plot
-            2 : Stacked plot
-            3 : Shared x-axis
-        """
-        if options == 1:  # plot normal x-y
+    def plot(self, x_data=[], y_data=[], options={}):
+        if options["standard"]:  # plot normal x-y
             self.canvas.fig.clf()
             ax = self.canvas.fig.add_subplot(111)
             ax.plot(x_data, y_data)
             self.canvas.draw()  # draw updates the plot
 
-        elif options == 2:  # stacked plots
+        elif options["stacked"]:  # stacked plots
             self.canvas.fig.clf()
             ax1 = self.canvas.fig.add_subplot(211)
             x1 = [i for i in range(100)]
