@@ -6,12 +6,12 @@ View class for the matplotlib plotting canvas
 # ==============================================================================
 # Standard Python modules
 # ==============================================================================
+from PIL import Image
 
 # ==============================================================================
 # External Python modules
 # ==============================================================================
 import matplotlib
-import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 from PyQt5 import QtWidgets
@@ -42,7 +42,7 @@ class MplCanvas(FigureCanvasQTAgg):
         dpi : int, optional
             Display resolution for the canvas, by default 100
         """
-
+        self.parent = parent
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         super(MplCanvas, self).__init__(self.fig)
 
@@ -53,8 +53,10 @@ class MplCanvas(FigureCanvasQTAgg):
         self.setParent(parent)
 
     def addImage(self):
-        self.img = plt.imread("assets/pyOptSparse_logo.png")
-        self.im_artist = self.fig.figimage(self.img, 600, 400, zorder=3, alpha=0.5)
+        self.img = Image.open("assets/pyOptSparse_logo.png")
+        axes = self.fig.add_subplot(111)
+        axes.imshow(self.img, alpha=0.5)
+        axes.axis("off")
 
 
 class PlotView(QtWidgets.QWidget):
