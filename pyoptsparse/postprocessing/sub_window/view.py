@@ -123,21 +123,18 @@ class SubWindowView(QtWidgets.QWidget):
         self.stack_plot_opt = QtWidgets.QCheckBox("Stack plots")
         opt1_layout.addWidget(self.stack_plot_opt, QtCore.Qt.AlignLeft)
 
-        # --- Shared x-axis ---
-        self.share_x_opt = QtWidgets.QCheckBox("Shared x-axis")
-        opt1_layout.addWidget(self.share_x_opt, QtCore.Qt.AlignLeft)
-
         # --- y-axis as absolute delta values ---
         self.abs_delta_opt = QtWidgets.QCheckBox("y-axis as absolute delta values")
         opt1_layout.addWidget(self.abs_delta_opt, QtCore.Qt.AlignLeft)
 
         # --- x-axis as minor iterations ---
         self.minor_itr_opt = QtWidgets.QCheckBox("x-axis as minor iterations")
+        self.minor_itr_opt.clicked.connect(self._controller.majorMinorIterX)
         opt1_layout.addWidget(self.minor_itr_opt, QtCore.Qt.AlignLeft)
 
         # --- x-axis as major iterations ---
         self.major_itr_opt = QtWidgets.QCheckBox("x-axis as major iterations")
-        self.major_itr_opt.clicked.connect(self._controller.majorIterX)
+        self.major_itr_opt.clicked.connect(self._controller.majorMinorIterX)
         opt1_layout.addWidget(self.major_itr_opt, QtCore.Qt.AlignLeft)
 
         # --- Min/Max arrays ---
@@ -178,6 +175,7 @@ class SubWindowView(QtWidgets.QWidget):
         scale_layout = QtWidgets.QHBoxLayout()
         button_layout.addLayout(scale_layout)
         self.scale_var_togg = Switch(self)
+        self.scale_var_togg.clicked.connect(self._controller.scaleVars)
         self.scale_var_lbl = QtWidgets.QLabel("Apply Scaling Factor")
         self.scale_var_lbl.setBuddy(self.scale_var_togg)
         scale_layout.addWidget(self.scale_var_lbl)
