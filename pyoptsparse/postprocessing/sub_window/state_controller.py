@@ -30,7 +30,6 @@ class StateController:
         self._view.y_clear_btn.setDisabled(True)
 
         self._view.stack_plot_opt.setDisabled(True)
-        self._view.share_x_opt.setDisabled(True)
         self._view.abs_delta_opt.setDisabled(True)
         self._view.minor_itr_opt.setDisabled(True)
         self._view.major_itr_opt.setDisabled(True)
@@ -72,3 +71,21 @@ class StateController:
         self._view.x_label.setStyleSheet("background-color: white; border: 1px solid black;")
         self._view.x_undo_btn.setDisabled(False)
         self._view.x_clear_btn.setDisabled(False)
+
+    def setStackedPlotState(self, state: bool):
+        self._view.stack_plot_opt.setDisabled(state)
+
+    def setClearVarState(self):
+        self._view.stack_plot_opt.setDisabled(True)
+        self._view.abs_delta_opt.setDisabled(True)
+        self._view.min_max_opt.setDisabled(True)
+        self._view.bound_opt.setDisabled(True)
+
+    def setAbsDeltaState(self, state: bool):
+        self._view.abs_delta_opt.setDisabled(state)
+
+    def setPlotState(self, state: bool):
+        self._view.plot_btn.setDisabled(state)
+        self._view.clear_plot_btn.setDisabled(state)
+        self._view.bound_opt.setDisabled(state)
+        self._view.scale_var_togg.setDisabled(state)
