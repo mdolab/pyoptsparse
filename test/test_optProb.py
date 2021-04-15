@@ -241,6 +241,26 @@ class TestOptProb(unittest.TestCase):
                 scale = np.hstack(self.conScale)
             assert_allclose(val_opt, val_user * scale)
 
+    def test_finalize(self):
+        """
+        Check that multiple finalize calls don't mess up the optProb
+        """
+        self.setup_optProb(nObj=1, nDV=[4, 8], nCon=[2, 3], xScale=[1.0, 1.0], conScale=[1.0, 1.0], offset=[0, 0])
+        self.assert_optProb_size(1, 12, 5)
+        self.optProb.addObj("obj2")
+        self.assert_optProb_size(2, 12, 5)
+        self.optProb.addVar("DV2")
+        self.assert_optProb_size(2, 13, 5)
+        self.optProb.addCon("CON2")
+        self.assert_optProb_size(2, 13, 6)
+
+    def assert_optProb_size(self, nObj, nDV, nCon):
+        """Checks that nObj, nDV adn nCon are correct for self.optProb"""
+        self.optProb.finalize()
+        self.assertEqual(self.optProb.nObj, nObj)
+        self.assertEqual(self.optProb.nCon, nCon)
+        self.assertEqual(self.optProb.ndvs, nDV)
+
     def assert_dict_allclose(self, actual, desired, atol=tol, rtol=tol):
         """
         Simple assert for two flat dictionaries, where the values are
