@@ -255,7 +255,7 @@ class TestOptProb(unittest.TestCase):
         self.assert_optProb_size(2, 13, 6)
 
     def assert_optProb_size(self, nObj, nDV, nCon):
-        """Checks that nObj, nDV adn nCon are correct for self.optProb"""
+        """Checks that nObj, nDV and nCon are correct for self.optProb"""
         self.optProb.finalize()
         self.assertEqual(self.optProb.nObj, nObj)
         self.assertEqual(self.optProb.nCon, nCon)
