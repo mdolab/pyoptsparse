@@ -19,6 +19,7 @@ from testing_utils import OptTest
 
 
 class TestLarge(OptTest):
+    name = "large_sparse"
     xStar = None
     fStar = 10.0
 
@@ -69,23 +70,25 @@ class TestLarge(OptTest):
             self.N = 500
         self.xStar = {"x": 2}
         # Optimization Object
-        optProb = Optimization("large and sparse", self.objfunc, sens=self.sens)
+        self.optProb = Optimization("large and sparse", self.objfunc, sens=self.sens)
 
         # Design Variables
-        optProb.addVar("x", lower=-100, upper=150, value=0)
-        optProb.addVarGroup("y", self.N, lower=-10 - np.arange(self.N), upper=np.arange(self.N), value=0)
-        optProb.addVarGroup("z", 2 * self.N, upper=np.arange(2 * self.N), lower=-100 - np.arange(2 * self.N), value=0)
+        self.optProb.addVar("x", lower=-100, upper=150, value=0)
+        self.optProb.addVarGroup("y", self.N, lower=-10 - np.arange(self.N), upper=np.arange(self.N), value=0)
+        self.optProb.addVarGroup(
+            "z", 2 * self.N, upper=np.arange(2 * self.N), lower=-100 - np.arange(2 * self.N), value=0
+        )
 
         # Constraints
-        optProb.addCon("con1", upper=100, wrt=["x"])
-        optProb.addCon("con2", upper=100)
-        optProb.addCon("con3", lower=4, wrt=["x", "z"])
+        self.optProb.addCon("con1", upper=100, wrt=["x"])
+        self.optProb.addCon("con2", upper=100)
+        self.optProb.addCon("con3", lower=4, wrt=["x", "z"])
         xJac = np.ones((self.N, 1))
         if sparse:
             yJac = scipy.sparse.spdiags(np.ones(self.N), 0, self.N, self.N)
         else:
             yJac = np.eye(self.N)
-        optProb.addConGroup(
+        self.optProb.addConGroup(
             "lincon",
             self.N,
             lower=2 - 3 * np.arange(self.N),
@@ -93,32 +96,31 @@ class TestLarge(OptTest):
             wrt=["x", "y"],
             jac={"x": xJac, "y": yJac},
         )
-        optProb.addObj("obj")
-        return optProb
+        self.optProb.addObj("obj")
 
     def test_sparse(self):
         self.optName = "SNOPT"
-        optProb = self.setup_optProb(sparse=True)
-        sol = self.optimize(optProb)
+        self.setup_optProb(sparse=True)
+        sol = self.optimize()
         self.assert_solution(sol, 1e-5, partial=True)
 
     def test_sparse_IPOPT(self):
         self.optName = "IPOPT"
-        optProb = self.setup_optProb(sparse=True)
-        sol = self.optimize(optProb)
+        self.setup_optProb(sparse=True)
+        sol = self.optimize()
         self.assert_solution(sol, 1e-5, partial=True)
 
     def test_dense_default(self):
         self.optName = "SNOPT"
-        optProb = self.setup_optProb(sparse=False)
-        sol = self.optimize(optProb)
+        self.setup_optProb(sparse=False)
+        sol = self.optimize()
         self.assert_solution(sol, 1e-5, partial=True)
 
     def test_dense_user(self):
         self.optName = "SNOPT"
-        optProb = self.setup_optProb(sparse=False)
+        self.setup_optProb(sparse=False)
         optOptions = {"Total real workspace": 401300}  # 500 + 200 * (503 + 1501)
-        sol = self.optimize(optProb, optOptions=optOptions)
+        sol = self.optimize(optOptions=optOptions)
 
         # Check that the workspace is too small without overwriting the lengths
         self.assert_inform(sol, 84)
