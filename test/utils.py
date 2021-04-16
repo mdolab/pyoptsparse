@@ -1,8 +1,13 @@
+# Standard Python modules
 import unittest
+
+# External modules
 import numpy as np
 from numpy.testing import assert_allclose
-from pyoptsparse.pyOpt_error import Error
+
+# First party modules
 from pyoptsparse import OPT
+from pyoptsparse.pyOpt_error import Error
 
 DEFAULT_TOL = 1e-12
 
@@ -59,6 +64,16 @@ SUCCESS_INFORM = {
     "SLSQP": 0,
     "PSQP": 4,
 }
+# these are the name(s) of options that control the output file name
+OUTPUT_FILENAMES = {
+    "SNOPT": {"Print file": "_print.out", "Summary file": "_summary.out"},
+    "IPOPT": {"output_file": ".out"},
+    "SLSQP": {"IFILE": ".out"},
+    "PSQP": {"IFILE": ".out"},
+    "CONMIN": {"IFILE": ".out"},
+    "NLPQLP": {"iFile": ".out"},
+    "ParOpt": {"output_file": ".out"},
+}
 
 
 class OptTest(unittest.TestCase):
@@ -68,35 +83,30 @@ class OptTest(unittest.TestCase):
         if hasattr(sol, "lambdaStar"):
             assert_allclose(sol.lambdaStar["con"], self.lambdaStar, atol=tol, rtol=tol)
 
-    def assert_inform(self, sol, optName, optInform=None):
+    def assert_inform(self, sol, optInform=None):
         if optInform is not None:
             self.assertEqual(sol.optInform["value"], optInform)
         else:
             # some optimizers do not have informs
-            if optName in SUCCESS_INFORM:
-                self.assertEqual(sol.optInform["value"], SUCCESS_INFORM[optName])
+            if self.optName in SUCCESS_INFORM:
+                self.assertEqual(sol.optInform["value"], SUCCESS_INFORM[self.optName])
 
-    def updateOptOptions(self, optName, optOptions):
-        fileNameMapping = {
-            "SNOPT": {"Print file": "_print.out", "Summary file": "_summary.out"},
-            "IPOPT": {"output_file": ".out"},
-            "SLSQP": {"IFILE": ".out"},
-            "PSQP": {"IFILE": ".out"},
-            "CONMIN": {"IFILE": ".out"},
-            "NLPQLP": {"iFile": ".out"},
-            "ParOpt": {"output_file": ".out"},
-        }
-        optionName = fileNameMapping[optName]
-        for optionName, suffix in fileNameMapping[optName].items():
+    def updateOptOptions(self, optOptions):
+        optionName = OUTPUT_FILENAMES[self.optName]
+        for optionName, suffix in OUTPUT_FILENAMES[self.optName].items():
             optOptions[optionName] = self._testMethodName + suffix
         return optOptions
 
-    def optimize(self, optProb, optName, setDV=None, optOptions={}, storeHistory=False):
+    def optimize(self, optProb, setDV=None, optOptions=None, storeHistory=False):
+        if optOptions is None:
+            optOptions = {}
+        # always update the output file name
+        optOptions = self.updateOptOptions(optOptions)
         # Optimizer
         try:
-            opt = OPT(optName, options=optOptions)
+            opt = OPT(self.optName, options=optOptions)
         except Error:
-            raise unittest.SkipTest("Optimizer not available:", optName)
+            raise unittest.SkipTest("Optimizer not available:", self.optName)
 
         if isinstance(setDV, str):
             optProb.setDVsFromHistory(setDV)

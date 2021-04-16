@@ -6,11 +6,11 @@ import unittest
 # External modules
 import numpy as np
 from numpy.testing import assert_allclose
+from parameterized import parameterized
+from utils import OptTest
 
 # First party modules
 from pyoptsparse import History, Optimization
-from utils import OptTest
-from parameterized import parameterized
 
 
 class TestHS71(OptTest):
@@ -20,8 +20,7 @@ class TestHS71(OptTest):
     xStar = [1.0, 4.743, 3.82115, 1.37941]
     lambdaStar = [0.55229366, -0.16146857]
 
-    # Optimizer
-    optOptions = {}
+    # Tolerances
     tol = {
         "SNOPT": 1e-6,
         "IPOPT": 1e-6,
@@ -56,7 +55,7 @@ class TestHS71(OptTest):
         fail = False
         return funcsSens, fail
 
-    def setup_optProb(self, xScale=1.0, objScale=1.0, conScale=1.0, offset=0.0, assert_solution=True):
+    def setup_optProb(self, xScale=1.0, objScale=1.0, conScale=1.0, offset=0.0):
         # Optimization Object
         optProb = Optimization("HS071 Constraint Problem", self.objfunc, sens=self.sens)
 
@@ -75,12 +74,11 @@ class TestHS71(OptTest):
         """
         Test that setDV works as expected, even with scaling/offset
         """
-        test_name = "hs071_SLSQP_setDV"
-        histFileName = "{}.hst".format(test_name)
+        self.optName = "SLSQP"
+        histFileName = "hs071_SLSQP_setDV.hst"
         newDV = {"xvars": np.array([1, 4, 4, 1])}
-        optOptions = {"IFILE": "{}.out".format(test_name)}
         optProb = self.setup_optProb(xScale=1.5, conScale=1.2, objScale=32, offset=1.5)
-        sol = self.optimize(optProb, "SLSQP", setDV=newDV, storeHistory=histFileName, optOptions=optOptions)
+        sol = self.optimize(optProb, setDV=newDV, storeHistory=histFileName)
         self.assert_solution(sol, self.tol["SLSQP"])
         # Verify the history file
         hist = History(histFileName, flag="r")
@@ -92,20 +90,16 @@ class TestHS71(OptTest):
         """
         Test that setDVFromHistory works as expected, even with scaling/offset
         """
-        test_name = "hs071_SNOPT_setDVFromHist"
-        optOptions = {
-            "Print file": "{}.out".format(test_name),
-            "Summary file": "{}_summary.out".format(test_name),
-        }
-        histFileName = "{}.hst".format(test_name)
+        self.optName = "SNOPT"
+        histFileName = "hs071_SNOPT_setDVFromHist.hst"
         optProb = self.setup_optProb(xScale=1.5, conScale=1.2, objScale=32, offset=1.5)
-        sol = self.optimize(optProb, "SNOPT", storeHistory=histFileName, optOptions=optOptions)
+        sol = self.optimize(optProb, storeHistory=histFileName)
         self.assert_solution(sol, self.tol["SNOPT"])
         hist = History(histFileName, flag="r")
         first = hist.getValues(names="xvars", callCounters="last", scale=False)
         x_final = first["xvars"][0]
         optProb = self.setup_optProb(xScale=0.5, conScale=4.8, objScale=0.1, offset=1.5)
-        sol = self.optimize(optProb, "SNOPT", setDV=histFileName, storeHistory=histFileName, optOptions=optOptions)
+        sol = self.optimize(optProb, setDV=histFileName, storeHistory=histFileName)
         self.assert_solution(sol, self.tol["SNOPT"])
         # Verify the history file
         hist = History(histFileName, flag="r")
@@ -121,15 +115,14 @@ class TestHS71(OptTest):
         Test that scaling and offset works as expected
         Also test optProb stored in the history file is correct
         """
-        test_name = "hs071_SLSQP_scaling_offset"
-        histFileName = "{}.hst".format(test_name)
-        optOptions = {"IFILE": "{}.out".format(test_name)}
+        self.optName = "SLSQP"
+        histFileName = "hs071_SLSQP_scaling_offset.hst"
         objScale = 4.2
         xScale = [2, 3, 4, 5]
         conScale = [0.6, 1.7]
         offset = [1, -2, 40, 2.5]
         optProb = self.setup_optProb(objScale=objScale, xScale=xScale, conScale=conScale, offset=offset)
-        sol = self.optimize(optProb, "SLSQP", storeHistory=histFileName, optOptions=optOptions)
+        sol = self.optimize(optProb, storeHistory=histFileName)
         self.assert_solution(sol, self.tol["SLSQP"])
         # now we retrieve the history file, and check the scale=True option is indeed
         # scaling things correctly
@@ -166,74 +159,49 @@ class TestHS71(OptTest):
         assert_allclose(con_scaled, con_orig * conScale, atol=1e-12, rtol=1e-12)
 
     def test_snopt_informs(self):
+        self.optName = "SNOPT"
         optProb = self.setup_optProb()
-        test_name = "hs071_SNOPT"
-        optOptions = {
-            "Print file": "{}.out".format(test_name),
-            "Summary file": "{}_summary.out".format(test_name),
-        }
-        optOptions["Major iterations limit"] = 1
-        sol = self.optimize(optProb, "SNOPT", optOptions=optOptions)
+        sol = self.optimize(optProb, optOptions={"Major iterations limit": 1})
         self.assert_inform(sol, 32)
 
     def test_slsqp_informs(self):
+        self.optName = "SLSQP"
         optProb = self.setup_optProb()
-        optOptions = {"IFILE": "hs071_SLSQP.out"}
         # now we set max iteration to 1 and verify that we get a different inform
-        optOptions["MAXIT"] = 1
-        sol = self.optimize(optProb, "slsqp", optOptions=optOptions)
+        sol = self.optimize(optProb, optOptions={"MAXIT": 1})
         self.assert_inform(sol, 9)
 
     def test_nlpqlp_informs(self):
+        self.optName = "NLPQLP"
         optProb = self.setup_optProb()
-        optOptions = {"iFile": "hs071_NLPQLP.out"}
-        optOptions["maxIt"] = 1
-        sol = self.optimize(optProb, "nlpqlp", optOptions=optOptions)
+        sol = self.optimize(optProb, optOptions={"maxIt": 1})
         self.assert_inform(sol, 1)
 
     def test_ipopt_informs(self):
+        self.optName = "IPOPT"
         optProb = self.setup_optProb()
-        optOptions = {"print_level": 5, "output_file": "hs071_IPOPT.out"}
         # Test that the inform is -1 when iterations are too limited.
-        optOptions["max_iter"] = 1
-        sol = self.optimize(optProb, "ipopt", optOptions=optOptions)
+        sol = self.optimize(optProb, optOptions={"max_iter": 1})
         self.assert_inform(sol, -1)
         # Test that the inform is -4 when max_cpu_time are too limited.
-        optOptions["max_iter"] = 100
-        optOptions["max_cpu_time"] = 0.001
-        sol = self.optimize(optProb, "ipopt", optOptions=optOptions)
+        sol = self.optimize(optProb, optOptions={"max_cpu_time": 0.001})
         self.assert_inform(sol, -4)
 
     def test_psqp_informs(self):
+        self.optName = "PSQP"
         optProb = self.setup_optProb()
-        optOptions = {"IFILE": "hs071_PSQP.out"}
-        optOptions["MIT"] = 1
-        sol = self.optimize(optProb, "psqp", optOptions=optOptions)
-        self.assertEqual(sol.optInform["value"], 11)
+        sol = self.optimize(optProb, optOptions={"MIT": 1})
+        self.assert_inform(sol, 11)
 
-    @parameterized.expand(
-        [
-            "SNOPT",
-            "IPOPT",
-            "SLSQP",
-            "PSQP",
-            "CONMIN",
-            "NLPQLP",
-            "ParOpt",
-        ]
-    )
+    @parameterized.expand(["SNOPT", "IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "ParOpt"])
     def test_optimization(self, optName):
-        if optName in self.optOptions:
-            optOptions = self.optOptions[optName]
-        else:
-            optOptions = {}
-        optOptions = self.updateOptOptions(optName, optOptions)
+        self.optName = optName
         optProb = self.setup_optProb()
-        sol = self.optimize(optProb, optName, optOptions=optOptions)
+        sol = self.optimize(optProb)
         # Check Solution
         self.assert_solution(sol, self.tol[optName])
         # Check informs
-        self.assert_inform(sol, optName)
+        self.assert_inform(sol)
 
 
 if __name__ == "__main__":

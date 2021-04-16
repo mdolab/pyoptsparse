@@ -6,10 +6,10 @@ import unittest
 # External modules
 import numpy as np
 from numpy.testing import assert_allclose
+from utils import assert_dict_allclose, assert_dict_not_allclose, assert_not_allclose, assert_optProb_size
 
 # First party modules
 from pyoptsparse import OPT, Optimization
-from utils import assert_dict_allclose, assert_optProb_size, assert_dict_not_allclose, assert_not_allclose
 
 
 class TestOptProb(unittest.TestCase):
