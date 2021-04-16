@@ -7,7 +7,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_allclose
 from parameterized import parameterized
-from utils import OptTest
+from testing_utils import OptTest
 
 # First party modules
 from pyoptsparse import History, Optimization

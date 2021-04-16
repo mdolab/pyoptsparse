@@ -82,7 +82,7 @@ class OptTest(unittest.TestCase):
     def assert_solution(self, sol, tol, partial=False):
         assert_allclose(sol.fStar, self.fStar, atol=tol, rtol=tol)
         assert_dict_allclose(sol.xStar, self.xStar, atol=tol, rtol=tol, partial=partial)
-        if hasattr(self, "lambdaStar"):
+        if hasattr(self, "lambdaStar") and hasattr(sol, "lambdaStar"):
             assert_dict_allclose(sol.lambdaStar, self.lambdaStar, atol=tol, rtol=tol)
 
     def assert_inform(self, sol, optInform=None):

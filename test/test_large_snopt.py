@@ -11,13 +11,11 @@ import unittest
 
 # External modules
 import numpy as np
-from numpy.testing import assert_allclose
 import scipy
 
 # First party modules
-from pyoptsparse import OPT, Optimization
-from pyoptsparse.pyOpt_error import Error
-from utils import OptTest
+from pyoptsparse import Optimization
+from testing_utils import OptTest
 
 
 class TestLarge(OptTest):
