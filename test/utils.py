@@ -51,30 +51,30 @@ def assert_optProb_size(optProb, nObj, nDV, nCon):
     assertEqual(optProb.ndvs, nDV)
 
 
+# these are the informs if optimization completed successfully
+SUCCESS_INFORM = {
+    "SNOPT": 1,
+    "IPOPT": 0,
+    "NLPQLP": 0,
+    "SLSQP": 0,
+    "PSQP": 4,
+}
+
+
 class OptTest(unittest.TestCase):
-
-    # these are the informs if optimization completed successfully
-    optInform = {
-        "SNOPT": 1,
-        "IPOPT": 0,
-        "NLPQLP": 0,
-        "SLSQP": 0,
-        "PSQP": 4,
-    }
-
-    def check_solution(self, sol, tol):
+    def assert_solution(self, sol, tol):
         assert_allclose(sol.fStar, self.fStar, atol=tol, rtol=tol)
         assert_allclose(sol.xStar["xvars"], self.xStar, atol=tol, rtol=tol)
         if hasattr(sol, "lambdaStar"):
             assert_allclose(sol.lambdaStar["con"], self.lambdaStar, atol=tol, rtol=tol)
 
-    def check_inform(self, sol, optName, optInform=None):
+    def assert_inform(self, sol, optName, optInform=None):
         if optInform is not None:
             self.assertEqual(sol.optInform["value"], optInform)
         else:
             # some optimizers do not have informs
-            if optName in self.optInform:
-                self.assertEqual(sol.optInform["value"], self.optInform[optName])
+            if optName in SUCCESS_INFORM:
+                self.assertEqual(sol.optInform["value"], SUCCESS_INFORM[optName])
 
     def updateOptOptions(self, optName, optOptions):
         fileNameMapping = {
