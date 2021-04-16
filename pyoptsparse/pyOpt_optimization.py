@@ -859,7 +859,9 @@ class Optimization(object):
         This should not be called directly. Instead, call self.finalize()
         to ensure that both design variables and constraints are properly finalized.
         """
-
+        # reset these counters
+        self.nObj = 0
+        self.nCon = 0
         # First thing we need is to determine the consistent set of
         # constraints from all processors
         self.constraints = self._reduceDict(self.constraints)
