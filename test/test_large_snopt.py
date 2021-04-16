@@ -15,11 +15,15 @@ from numpy.testing import assert_allclose
 import scipy
 
 # First party modules
-from pyoptsparse import SNOPT, Optimization
+from pyoptsparse import OPT, Optimization
 from pyoptsparse.pyOpt_error import Error
+from utils import OptTest
 
 
-class TestLarge(unittest.TestCase):
+class TestLarge(OptTest):
+    xStar = None
+    fStar = 10.0
+
     def objfunc(self, xdict):
         x = xdict["x"]
         y = xdict["y"]
@@ -59,14 +63,15 @@ class TestLarge(unittest.TestCase):
 
         return funcsSens, False
 
-    def optimize(self, sparse=True, tol=None, optOptions={}, storeHistory=False):
+    def setup_optProb(self, sparse=True):
         # set N
         if sparse:
             self.N = 50000
         else:
             self.N = 500
+        self.xStar = {"x": 2}
         # Optimization Object
-        optProb = Optimization("large and sparse", self.objfunc)
+        optProb = Optimization("large and sparse", self.objfunc, sens=self.sens)
 
         # Design Variables
         optProb.addVar("x", lower=-100, upper=150, value=0)
@@ -91,51 +96,34 @@ class TestLarge(unittest.TestCase):
             jac={"x": xJac, "y": yJac},
         )
         optProb.addObj("obj")
-
-        # Optimizer
-        try:
-            opt = SNOPT(options=optOptions)
-        except Error:
-            raise unittest.SkipTest("Optimizer not available: SNOPT")
-
-        sol = opt(optProb, sens=self.sens)
-
-        # Check Solution
-        if tol is not None:
-            if opt.version != "7.7.7":
-                assert_allclose(sol.objectives["obj"].value, 10.0, atol=tol, rtol=tol)
-            else:
-                assert_allclose(sol.fStar, 10.0, atol=tol, rtol=tol)
-            assert_allclose(sol.variables["x"][0].value, 2.0, atol=tol, rtol=tol)
-        return sol
+        return optProb
 
     def test_sparse(self):
-        test_name = "large_sparse_SNOPT"
-        optOptions = {
-            "Print file": "{}.out".format(test_name),
-            "Summary file": "{}_summary.out".format(test_name),
-        }
-        self.optimize(tol=1e-5, optOptions=optOptions)
+        self.optName = "SNOPT"
+        optProb = self.setup_optProb(sparse=True)
+        sol = self.optimize(optProb)
+        self.assert_solution(sol, 1e-5, partial=True)
+
+    def test_sparse_IPOPT(self):
+        self.optName = "IPOPT"
+        optProb = self.setup_optProb(sparse=True)
+        sol = self.optimize(optProb)
+        self.assert_solution(sol, 1e-5, partial=True)
 
     def test_dense_default(self):
-        test_name = "SNOPT_workspace_default"
-        optOptions = {
-            "Print file": "{}.out".format(test_name),
-            "Summary file": "{}_summary.out".format(test_name),
-        }
-        self.optimize(tol=1e-5, sparse=False, optOptions=optOptions)
+        self.optName = "SNOPT"
+        optProb = self.setup_optProb(sparse=False)
+        sol = self.optimize(optProb)
+        self.assert_solution(sol, 1e-5, partial=True)
 
     def test_dense_user(self):
-        test_name = "SNOPT_workspace_user"
-        optOptions = {
-            "Print file": "{}.out".format(test_name),
-            "Summary file": "{}_summary.out".format(test_name),
-            "Total real workspace": 401300,  # 500 + 200 * (503 + 1501)
-        }
-        sol = self.optimize(sparse=False, optOptions=optOptions)
+        self.optName = "SNOPT"
+        optProb = self.setup_optProb(sparse=False)
+        optOptions = {"Total real workspace": 401300}  # 500 + 200 * (503 + 1501)
+        sol = self.optimize(optProb, optOptions=optOptions)
 
         # Check that the workspace is too small without overwriting the lengths
-        self.assertEqual(sol.optInform["value"], 84)
+        self.assert_inform(sol, 84)
 
 
 if __name__ == "__main__":

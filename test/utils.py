@@ -18,16 +18,18 @@ def assertEqual(a, b):
         raise AssertionError(f"{a} and {b} are not equal.")
 
 
-def assert_dict_allclose(actual, desired, atol=DEFAULT_TOL, rtol=DEFAULT_TOL):
+def assert_dict_allclose(actual, desired, atol=DEFAULT_TOL, rtol=DEFAULT_TOL, partial=False):
     """
     Simple assert for two flat dictionaries, where the values are
     assumed to be numpy arrays
 
     The keys are checked first to make sure that they match
     """
-    assertEqual(set(actual.keys()), set(desired.keys()))
+    if not partial:
+        assertEqual(set(actual.keys()), set(desired.keys()))
     for key in actual.keys():
-        assert_allclose(actual[key], desired[key], atol=atol, rtol=rtol)
+        if key in desired.keys() or not partial:
+            assert_allclose(actual[key], desired[key], atol=atol, rtol=rtol, err_msg=f"Failed for key {key}")
 
 
 def assert_dict_not_allclose(actual, desired, atol=DEFAULT_TOL, rtol=DEFAULT_TOL):
@@ -37,7 +39,7 @@ def assert_dict_not_allclose(actual, desired, atol=DEFAULT_TOL, rtol=DEFAULT_TOL
     assertEqual(set(actual.keys()), set(desired.keys()))
     for key in actual.keys():
         if np.allclose(actual[key], desired[key], atol=atol, rtol=rtol):
-            raise AssertionError("Dictionaries are close! Inputs are {} and {}".format(actual, desired))
+            raise AssertionError(f"Dictionaries are close! Got {actual} and {desired} for key {key}")
 
 
 def assert_not_allclose(actual, desired, atol=DEFAULT_TOL, rtol=DEFAULT_TOL):
@@ -45,7 +47,7 @@ def assert_not_allclose(actual, desired, atol=DEFAULT_TOL, rtol=DEFAULT_TOL):
     The numpy array version
     """
     if np.allclose(actual, desired, atol=atol, rtol=rtol):
-        raise AssertionError("Arrays are close! Inputs are {} and {}".format(actual, desired))
+        raise AssertionError(f"Arrays are close! Inputs are {actual} and {desired}")
 
 
 def assert_optProb_size(optProb, nObj, nDV, nCon):
@@ -77,11 +79,11 @@ OUTPUT_FILENAMES = {
 
 
 class OptTest(unittest.TestCase):
-    def assert_solution(self, sol, tol):
+    def assert_solution(self, sol, tol, partial=False):
         assert_allclose(sol.fStar, self.fStar, atol=tol, rtol=tol)
-        assert_allclose(sol.xStar["xvars"], self.xStar, atol=tol, rtol=tol)
-        if hasattr(sol, "lambdaStar"):
-            assert_allclose(sol.lambdaStar["con"], self.lambdaStar, atol=tol, rtol=tol)
+        assert_dict_allclose(sol.xStar, self.xStar, atol=tol, rtol=tol, partial=partial)
+        if hasattr(self, "lambdaStar"):
+            assert_dict_allclose(sol.lambdaStar, self.lambdaStar, atol=tol, rtol=tol)
 
     def assert_inform(self, sol, optInform=None):
         if optInform is not None:
@@ -112,8 +114,6 @@ class OptTest(unittest.TestCase):
             optProb.setDVsFromHistory(setDV)
         elif isinstance(setDV, dict):
             optProb.setDVs(setDV)
-            outDV = optProb.getDVs()
-            assert_allclose(setDV["xvars"], outDV["xvars"])
 
         sol = opt(optProb, storeHistory=storeHistory)
         return sol
