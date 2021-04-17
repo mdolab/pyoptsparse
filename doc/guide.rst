@@ -205,12 +205,19 @@ Analytic Derivatives
 ++++++++++++++++++++
 
 pyOptSparse can automatically compute derivatives of the objective and constraint functions using finite differences or the complex-step method (See implementation details `here <https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/api/gradient.html>`__).
-If analytic derivatives are available, users can define them within the ``sens()`` function.
+If analytic derivatives are available, users can define them within a user-defined function (let's use the function name ``sens()`` for the explanation purposes).
+This ``sens()`` function reads as inputs a dictionary containing design variables as well as another dictionary containing objective and constraint functions.
 Note that when supplying analytic derivatives, users need to make sure the keys in the ``sens()`` function are consistent with the keys of design variables (e.g. ``var_name``), constraints (e.g. ``equality_constraint``) and objectives (e.g. ``obj_name``).
-Based on these keys (or names) users can separately define the analytic derivatives using a nested dictionary ``funcsSens``.
+These names are simply examples used in previous paragraphs but they can be anything users prefer.
+Based on these keys (or names) users can separately define the analytic derivatives using a nested dictionary ``funcsSens`` (again, for the explanation convenience).
 Specifically, the first-layer keys should be associated with constraint and objective names while the second-layer keys are corresponding to design variables.
 The dictionary values are the provided analytic derivative lists whose column number equals the amount of objectives (or constraints) and row number equals the amount of design variables.
-Once this ``sens()`` function is constructed, users can link it to pyOptSparse by::
+For example, if the optimization problem has one objective (``obj``), two constraints (``con``), and three design variables (``xvars``), the ``funcsSens`` dictionary (assuming some simple explicit-value derivatives)  will look like::
+
+  funcsSens = { "obj": { "xvars": [1, 2, 3]  }, "con": { "xvars": [[4, 5, 6], [7, 8, 9]]  }  }
+
+The ``sens()`` function returns this ``funcsSens`` dictionary and a failure flag (most of the time ``False``) in the end.
+Once this ``sens()`` function is constructed, users can link it to `pyOptSparse <https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/api/optimizer.html#pyoptsparse.pyOpt_optimizer.OPT>` by::
 
   sol = opt(optProb, sens=sens, ...)
 
