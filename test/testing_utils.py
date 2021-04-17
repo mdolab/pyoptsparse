@@ -203,24 +203,39 @@ class OptTest(unittest.TestCase):
         # Metadata checks
         metadata = hist.getMetadata()
         self.assertEqual(metadata["optimizer"], self.optName)
-        metadata_def_keys = ["optName", "optOptions", "nprocs", "startTime", "endTime", "optTime", "version"]
+        metadata_def_keys = [
+            "optName",
+            "optOptions",
+            "nprocs",
+            "startTime",
+            "endTime",
+            "optTime",
+            "version",
+            "optVersion",
+        ]
         for key in metadata_def_keys:
             self.assertIn(key, metadata)
+            # we test that SNOPT version is stored correctly
+            if self.optName == "SNOPT" and key == "optVersion":
+                self.assertNotEqual(metadata[key], None)
+
         hist.getOptProb()
 
         # Info checks
         self.assertEqual(hist.getDVNames(), ["xvars"])
+        # self.assertEqual(hist.getConNames(), ["con"])
         self.assertEqual(hist.getObjNames(), ["obj"])
         dvInfo = hist.getDVInfo()
         self.assertEqual(len(dvInfo), 1)
         self.assertEqual(dvInfo["xvars"], hist.getDVInfo(key="xvars"))
         conInfo = hist.getConInfo()
-        self.assertEqual(len(conInfo), 0)
+        # self.assertEqual(len(conInfo), 1)
         objInfo = hist.getObjInfo()
         self.assertEqual(len(objInfo), 1)
         self.assertEqual(objInfo["obj"], hist.getObjInfo(key="obj"))
         for key in ["lower", "upper", "scale"]:
             self.assertIn(key, dvInfo["xvars"])
+            # self.assertIn(key, conInfo["con"])
         self.assertIn("scale", objInfo["obj"])
 
         # callCounter checks
@@ -233,6 +248,14 @@ class OptTest(unittest.TestCase):
         for key in ["xuser", "fail", "isMajor"]:
             self.assertIn(key, iterKeys)
 
+        # # extraFuncsNames checks
+        # extraFuncsNames = hist.getExtraFuncsNames()
+        # for key in ["extra1", "extra2"]:
+        #     self.assertIn(key, extraFuncsNames)
+
+        # getValues checks
+        val = hist.getValues()
+
         # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
         if self.optName in ["SNOPT", "PSQP"]:
             val = hist.getValues(callCounters=["0", "last"], stack=True)
@@ -240,16 +263,17 @@ class OptTest(unittest.TestCase):
             self.assertTrue(val["isMajor"][0])  # the first callCounter must be a major iteration
             self.assertTrue(val["isMajor"][-1])  # the last callCounter must be a major iteration
             # check optimum stored in history file against xstar
-            assert_allclose(val["xuser"][-1], self.xStar["xvars"], atol=tol, rtol=tol)
+            # assert_allclose(val["xuser"][-1], self.xStar["xvars"], atol=tol, rtol=tol)
 
-    def optimize_with_hotstart(self, tol, optOptions=None):
+    def optimize_with_hotstart(self, tol, optOptions=None, x0=None):
         """
         This code will perform 4 optimizations, one real opt and three restarts.
         In this process, it will check various combinations of storeHistory and hotStart filenames.
         It will also call `check_hist_file` after the first optimization.
         """
-
-        sol = self.optimize(storeHistory=True, optOptions=optOptions)
+        # we use a non-default starting point to test that the hotstart works
+        # even if it does not match optProb initial values
+        sol = self.optimize(storeHistory=True, optOptions=optOptions, setDV=x0)
         self.assert_solution(sol, tol)
         self.assertGreater(self.nf, 0)
         self.assertGreater(self.ng, 0)
@@ -267,6 +291,12 @@ class OptTest(unittest.TestCase):
         # we should have zero actual function/gradient evaluations
         self.assertEqual(self.nf, 0)
         self.assertEqual(self.ng, 0)
+        # another test with hotstart, this time with a non-existing history file
+        # this will perform a cold start
+        self.optimize(storeHistory=True, hotStart="notexisting.hst", optOptions=optOptions)
+        self.assertGreater(self.nf, 0)
+        self.assertGreater(self.ng, 0)
+        self.check_hist_file(tol)
         # final test with hotstart, this time with a different storeHistory
         sol = self.optimize(
             storeHistory="{}_new_hotstart.hst".format(self.optName),
