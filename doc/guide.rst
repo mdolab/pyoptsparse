@@ -201,6 +201,21 @@ What this does is tell pyOptSparse that the key ``obj_name`` in the function ret
 For optimizers that can do multi-objective optimization (e.g. NSGA2), multiple objectives can be added.
 Optimizers that can only handle one objective enforce that only a single objective is added to the optimization description.
 
+Analytic Derivatives
+++++++++++++++++++++
+
+pyOptSparse can automatically compute derivatives of the objective and constraint functions using finite differences or the complex-step method (See implementation details `here <https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/api/gradient.html>`__).
+If analytic derivatives are available, users can define them within the ``sens()`` function.
+Note that when supplying analytic derivatives, users need to make sure the keys in the ``sens()`` function are consistent with the keys of design variables (e.g. ``var_name``), constraints (e.g. ``equality_constraint``) and objectives (e.g. ``obj_name``).
+Based on these keys (or names) users can separately define the analytic derivatives using a nested dictionary ``funcsSens``.
+Specifically, the first-layer keys should be associated with constraint and objective names while the second-layer keys are corresponding to design variables.
+The dictionary values are the provided analytic derivative lists whose column number equals the amount of objectives (or constraints) and row number equals the amount of design variables.
+Once this ``sens()`` function is constructed, users can link it to pyOptSparse by::
+
+  sol = opt(optProb, sens=sens, ...)
+
+This ``opt`` function is an optimizer instantiation which comes in the following section.
+
 Optimizer Instantiation
 +++++++++++++++++++++++
 There are two ways to instantiate the optimizer object.
