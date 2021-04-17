@@ -59,6 +59,20 @@ def assert_optProb_size(optProb, nObj, nDV, nCon):
     assertEqual(optProb.ndvs, nDV)
 
 
+def get_dict_distance(d, d2):
+    """This converts a flat 1D dict to array using sorted keys, then computes the L2 distance"""
+    assertEqual(set(d.keys()), set(d2.keys()))
+    a = []
+    a2 = []
+    for k in sorted(d.keys()):
+        a.append(d[k])
+        a2.append(d2[k])
+
+    a = np.concatenate(a)
+    a2 = np.concatenate(a2)
+    return np.linalg.norm(a - a2)
+
+
 # these are the informs if optimization completed successfully
 SUCCESS_INFORM = {
     "SNOPT": 1,
@@ -82,10 +96,27 @@ OUTPUT_FILENAMES = {
 
 class OptTest(unittest.TestCase):
     def assert_solution(self, sol, tol, partial=False):
-        assert_allclose(sol.fStar, self.fStar, atol=tol, rtol=tol)
-        assert_dict_allclose(sol.xStar, self.xStar, atol=tol, rtol=tol, partial=partial)
+        if not isinstance(self.xStar, list):
+            self.xStar = [self.xStar]
+        if not isinstance(self.fStar, list):
+            self.fStar = [self.fStar]
+        has_lambdaStar = hasattr(self, "lambdaStar") and hasattr(sol, "lambdaStar")
+        if has_lambdaStar and not isinstance(self.lambdaStar, list):
+            self.lambdaStar = [self.lambdaStar]
+
+        if not partial:
+            dist = []
+            for x in self.xStar:
+                dist.append(get_dict_distance(x, sol.xStar))
+            min_index = dist.index(min(dist))
+        else:
+            # assume we have a single solution
+            min_index = 0
+        # now we assert against the closest solution
+        assert_dict_allclose(sol.fStar, self.fStar[min_index], atol=tol, rtol=tol)
+        assert_dict_allclose(sol.xStar, self.xStar[min_index], atol=tol, rtol=tol, partial=partial)
         if hasattr(self, "lambdaStar") and hasattr(sol, "lambdaStar"):
-            assert_dict_allclose(sol.lambdaStar, self.lambdaStar, atol=tol, rtol=tol)
+            assert_dict_allclose(sol.lambdaStar, self.lambdaStar[min_index], atol=tol, rtol=tol)
 
     def assert_inform(self, sol, optInform=None):
         if optInform is not None:
@@ -98,7 +129,7 @@ class OptTest(unittest.TestCase):
     def updateOptOptions(self, optOptions):
         optionName = OUTPUT_FILENAMES[self.optName]
         for optionName, suffix in OUTPUT_FILENAMES[self.optName].items():
-            optOptions[optionName] = f"{self.name}_{self._testMethodName} + {suffix}"
+            optOptions[optionName] = f"{self.name}_{self._testMethodName}{suffix}"
         return optOptions
 
     def optimize(self, sens=None, setDV=None, optOptions=None, storeHistory=False, hotStart=None):
