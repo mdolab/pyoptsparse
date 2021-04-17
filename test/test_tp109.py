@@ -40,9 +40,9 @@ USE_LINEAR = True
 
 class TestTP109(OptTest):
     name = "TP109"
-    fStar = 0.536206927538e4
+    fStar = {"obj": 0.536206927538e4}
     xStar = {
-        "xvars": [
+        "xvars": (
             675.0253392597418,
             1134.021089714841,
             0.1334850509182756,
@@ -52,7 +52,7 @@ class TestTP109(OptTest):
             201.4658577338128,
             426.6190056621182,
             368.4881990875219,
-        ]
+        )
     }
 
     def objfunc(self, xdict):

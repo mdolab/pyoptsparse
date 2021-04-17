@@ -20,8 +20,8 @@ from testing_utils import OptTest
 
 class TestLarge(OptTest):
     name = "large_sparse"
-    xStar = None
-    fStar = 10.0
+    xStar = {"x": 2}
+    fStar = {"obj": 10.0}
 
     def objfunc(self, xdict):
         x = xdict["x"]
@@ -68,7 +68,7 @@ class TestLarge(OptTest):
             self.N = 50000
         else:
             self.N = 500
-        self.xStar = {"x": 2}
+
         # Optimization Object
         self.optProb = Optimization("large and sparse", self.objfunc, sens=self.sens)
 

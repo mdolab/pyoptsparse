@@ -770,7 +770,8 @@ class Optimizer(BaseSolver):
         sol.userSensCalls = self.userSensCalls
         sol.interfaceTime = self.interfaceTime - self.userSensTime - self.userObjTime
         sol.optCodeTime = sol.optTime - self.interfaceTime
-        sol.fStar = self.optProb._mapObjtoUser(obj)
+        fStar = self.optProb._mapObjtoUser(obj)
+        sol.fStar = self.optProb.processObjtoDict(fStar, scaled=False)
         xuser = self.optProb._mapXtoUser(xopt)
         sol.xStar = self.optProb.processXtoDict(xuser)
 

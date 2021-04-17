@@ -32,7 +32,7 @@ class TestRosenbrock(OptTest):
 
     name = "Rosenbrock"
     N = 4
-    fStar = 0.0
+    fStar = {"obj": 0.0}
     xStar = {"xvars": np.ones(N)}
 
     # Tolerances
