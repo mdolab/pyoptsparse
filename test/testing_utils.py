@@ -76,6 +76,7 @@ OUTPUT_FILENAMES = {
     "CONMIN": {"IFILE": ".out"},
     "NLPQLP": {"iFile": ".out"},
     "ParOpt": {"output_file": ".out"},
+    "ALPSO": {"filename": ".out"},
 }
 
 
@@ -100,12 +101,14 @@ class OptTest(unittest.TestCase):
             optOptions[optionName] = f"{self.name}_{self._testMethodName} + {suffix}"
         return optOptions
 
-    def optimize(self, setDV=None, optOptions=None, storeHistory=False, hotStart=None):
+    def optimize(self, sens=None, setDV=None, optOptions=None, storeHistory=False, hotStart=None):
         """
         This is the workhorse routine, which will optimize self.optProb using self.optName as the optimizer.
 
         Parameters
         ----------
+        sens : str or callable, optional
+            The sens parameter which is passed to the optimizer
         setDV : str or dict, optional
             Initial DVs to use. If str, a history file path is assumed and the DVs are read from the last iteration.
             If dict, it is assumed to contain the initial DVs. None means no DVs are set and the initial values from the optProb
@@ -129,6 +132,8 @@ class OptTest(unittest.TestCase):
         # reset counter
         self.nf = 0
         self.ng = 0
+        if sens is None:
+            sens = self.sens
         if optOptions is None:
             optOptions = {}
         # always update the output file name
@@ -156,7 +161,7 @@ class OptTest(unittest.TestCase):
         elif hotStart is False:
             hotStart = None
 
-        sol = opt(self.optProb, sens=self.sens, storeHistory=storeHistory, hotStart=hotStart)
+        sol = opt(self.optProb, sens=sens, storeHistory=storeHistory, hotStart=hotStart)
         return sol
 
     def check_hist_file(self, tol):
