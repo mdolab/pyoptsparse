@@ -108,15 +108,15 @@ class OptTest(unittest.TestCase):
             dist = []
             for x in self.xStar:
                 dist.append(get_dict_distance(x, sol.xStar))
-            min_index = dist.index(min(dist))
+            self.sol_index = dist.index(min(dist))
         else:
             # assume we have a single solution
-            min_index = 0
+            self.sol_index = 0
         # now we assert against the closest solution
-        assert_dict_allclose(sol.fStar, self.fStar[min_index], atol=tol, rtol=tol)
-        assert_dict_allclose(sol.xStar, self.xStar[min_index], atol=tol, rtol=tol, partial=partial)
+        assert_dict_allclose(sol.fStar, self.fStar[self.sol_index], atol=tol, rtol=tol)
+        assert_dict_allclose(sol.xStar, self.xStar[self.sol_index], atol=tol, rtol=tol, partial=partial)
         if hasattr(self, "lambdaStar") and hasattr(sol, "lambdaStar"):
-            assert_dict_allclose(sol.lambdaStar, self.lambdaStar[min_index], atol=tol, rtol=tol)
+            assert_dict_allclose(sol.lambdaStar, self.lambdaStar[self.sol_index], atol=tol, rtol=tol)
 
     def assert_inform(self, sol, optInform=None):
         if optInform is not None:
@@ -222,21 +222,26 @@ class OptTest(unittest.TestCase):
         hist.getOptProb()
 
         # Info checks
-        self.assertEqual(hist.getDVNames(), ["xvars"])
-        # self.assertEqual(hist.getConNames(), ["con"])
-        self.assertEqual(hist.getObjNames(), ["obj"])
+        self.assertEqual(set(hist.getDVNames()), self.DVs)
+        self.assertEqual(set(hist.getConNames()), self.cons)
+        self.assertEqual(set(hist.getObjNames()), self.objs)
         dvInfo = hist.getDVInfo()
-        self.assertEqual(len(dvInfo), 1)
-        self.assertEqual(dvInfo["xvars"], hist.getDVInfo(key="xvars"))
+        self.assertEqual(len(dvInfo), len(self.DVs))
+        for var in self.DVs:
+            self.assertEqual(dvInfo[var], hist.getDVInfo(key=var))
         conInfo = hist.getConInfo()
-        # self.assertEqual(len(conInfo), 1)
+        self.assertEqual(len(conInfo), len(self.cons))
         objInfo = hist.getObjInfo()
-        self.assertEqual(len(objInfo), 1)
-        self.assertEqual(objInfo["obj"], hist.getObjInfo(key="obj"))
+        self.assertEqual(len(objInfo), len(self.objs))
+        for obj in self.objs:
+            self.assertEqual(objInfo[obj], hist.getObjInfo(key=obj))
         for key in ["lower", "upper", "scale"]:
-            self.assertIn(key, dvInfo["xvars"])
-            # self.assertIn(key, conInfo["con"])
-        self.assertIn("scale", objInfo["obj"])
+            for dvName in self.DVs:
+                self.assertIn(key, dvInfo[dvName])
+            for con in self.cons:
+                self.assertIn(key, conInfo[con])
+        for obj in self.objs:
+            self.assertIn("scale", objInfo[obj])
 
         # callCounter checks
         callCounters = hist.getCallCounters()
@@ -248,10 +253,11 @@ class OptTest(unittest.TestCase):
         for key in ["xuser", "fail", "isMajor"]:
             self.assertIn(key, iterKeys)
 
-        # # extraFuncsNames checks
-        # extraFuncsNames = hist.getExtraFuncsNames()
-        # for key in ["extra1", "extra2"]:
-        #     self.assertIn(key, extraFuncsNames)
+        # extraFuncsNames checks
+        extraFuncsNames = hist.getExtraFuncsNames()
+        if hasattr(self, "extras"):
+            for key in self.extras:
+                self.assertIn(key, extraFuncsNames)
 
         # getValues checks
         val = hist.getValues()
@@ -263,7 +269,9 @@ class OptTest(unittest.TestCase):
             self.assertTrue(val["isMajor"][0])  # the first callCounter must be a major iteration
             self.assertTrue(val["isMajor"][-1])  # the last callCounter must be a major iteration
             # check optimum stored in history file against xstar
-            # assert_allclose(val["xuser"][-1], self.xStar["xvars"], atol=tol, rtol=tol)
+            val = hist.getValues(callCounters="last", stack=False)
+            for varName in self.DVs:
+                assert_allclose(val[varName].flatten(), self.xStar[self.sol_index][varName], atol=tol, rtol=tol)
 
     def optimize_with_hotstart(self, tol, optOptions=None, x0=None):
         """

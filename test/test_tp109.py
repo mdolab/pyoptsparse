@@ -40,6 +40,9 @@ USE_LINEAR = True
 
 class TestTP109(OptTest):
     name = "TP109"
+    DVs = {"xvars"}
+    cons = {"con"}
+    objs = {"obj"}
     fStar = {"obj": 0.536206927538e4}
     xStar = {
         "xvars": (

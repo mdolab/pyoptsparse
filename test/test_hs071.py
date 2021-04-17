@@ -16,6 +16,9 @@ from pyoptsparse import History, Optimization
 class TestHS71(OptTest):
     # Optimization problem definition
     name = "hs071"
+    DVs = {"xvars"}
+    cons = {"con"}
+    objs = {"obj"}
     fStar = {"obj": 17.0140172}
     xStar = {"xvars": (1.0, 4.743, 3.82115, 1.37941)}
     lambdaStar = {"con": (0.55229366, -0.16146857)}

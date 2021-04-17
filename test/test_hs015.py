@@ -28,6 +28,10 @@ class TestHS15(OptTest):
     ##
 
     name = "HS015"
+    DVs = {"xvars"}
+    cons = {"con"}
+    objs = {"obj"}
+    extras = {"extra1", "extra2"}
     fStar = [
         {"obj": 306.5},
         {"obj": 360.379767},
@@ -92,16 +96,12 @@ class TestHS15(OptTest):
         # Objective
         self.optProb.addObj("obj")
 
-        # dv = sol.getDVs()
-        # sol_xvars = [sol.variables["xvars"][i].value for i in range(2)]
-        # assert_allclose(sol_xvars, dv["xvars"], atol=tol, rtol=tol)
-
     def test_snopt(self):
         self.optName = "SNOPT"
         self.setup_optProb()
         store_vars = ["step", "merit", "feasibility", "optimality", "penalty", "Hessian", "condZHZ", "slack", "lambda"]
         optOptions = {"Save major iteration variables": store_vars}
-        self.optimize_with_hotstart(1e-12, optOptions=optOptions)  # , x0={"xvars": [-2.001, 1.001]})
+        self.optimize_with_hotstart(1e-12, optOptions=optOptions)
 
         hist = History(self.histFileName, flag="r")
         data = hist.getValues(callCounters=["last"])
@@ -114,6 +114,20 @@ class TestHS15(OptTest):
         self.assertEqual(data["feasibility"].shape, (1, 1))
         self.assertEqual(data["slack"].shape, (1, 2))
         self.assertEqual(data["lambda"].shape, (1, 2))
+        # dv = sol.getDVs()
+        # sol_xvars = [sol.variables["xvars"][i].value for i in range(2)]
+        # assert_allclose(sol_xvars, dv["xvars"], atol=tol, rtol=tol)
+
+    def test_slsqp_hotstart_newDV(self):
+        self.optName = "SLSQP"
+        self.setup_optProb()
+        sol = self.optimize()
+        # Check Solution
+        self.assert_solution(sol, self.tol[self.optName])
+        self.assertEqual(self.nf, 0)
+        self.assertEqual(self.ng, 0)
+        # Check informs
+        self.assert_inform(sol)
 
     @parameterized.expand(["IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "ParOpt"])
     def test_optimization(self, optName):

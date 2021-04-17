@@ -20,6 +20,9 @@ from testing_utils import OptTest
 
 class TestLarge(OptTest):
     name = "large_sparse"
+    DVs = {"x", "y", "z"}
+    objs = {"obj"}
+    cons = {"con1", "con2", "con3"}
     xStar = {"x": 2}
     fStar = {"obj": 10.0}
 

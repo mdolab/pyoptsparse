@@ -32,6 +32,9 @@ class TestRosenbrock(OptTest):
 
     name = "Rosenbrock"
     N = 4
+    objs = {"obj"}
+    cons = set()
+    DVs = {"xvars"}
     fStar = {"obj": 0.0}
     xStar = {"xvars": np.ones(N)}
 
