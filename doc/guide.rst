@@ -211,7 +211,9 @@ Note that when supplying analytic derivatives, users need to make sure the keys 
 These names are simply examples used in previous paragraphs but they can be anything users prefer.
 Based on these keys (or names) users can separately define the analytic derivatives using a nested dictionary ``funcsSens`` (again, for the explanation convenience).
 Specifically, the first-layer keys should be associated with constraint and objective names while the second-layer keys are corresponding to design variables.
-The dictionary values are the provided analytic derivative lists whose column number equals the amount of objectives (or constraints) and row number equals the amount of design variables.
+The dictionary values are the provided analytic derivative arrays (can also be lists) whose column number equals the amount of objectives (or constraints) and row number equals the amount of design variables.
+An important tip to know is that users only need to specify non-zero sub-blocks because pyOptSparse will assume empty (or unspecified) part
+as zeros, but it is also fine to explicitly specify zeros (up to you).
 For example, if the optimization problem has one objective (``obj``), two constraints (``con``), and three design variables (``xvars``), the ``funcsSens`` dictionary (assuming some simple explicit-value derivatives)  will look like::
 
   funcsSens = { "obj": { "xvars": [1, 2, 3]  }, "con": { "xvars": [[4, 5, 6], [7, 8, 9]]  }  }
