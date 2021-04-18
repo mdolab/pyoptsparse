@@ -226,7 +226,12 @@ class Optimization(object):
                 "The 'nVars' argument to addVarGroup must be greater than or equal to 1. The bad DV is %s." % name
             )
 
-        # Check that the type is ok:
+        # we let type overwrite the newer varType option name
+        if "type" in kwargs:
+            varType = kwargs["type"]
+            # but we also throw a deprecation warning
+            warnings.warn("The argument `type=` is deprecated. Use `varType` in the future.", DeprecationWarning)
+        # Check that the type is ok
         if varType not in ["c", "i", "d"]:
             raise Error("Type must be one of 'c' for continuous, 'i' for integer or 'd' for discrete.")
 
