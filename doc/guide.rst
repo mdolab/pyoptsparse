@@ -201,29 +201,40 @@ What this does is tell pyOptSparse that the key ``obj_name`` in the function ret
 For optimizers that can do multi-objective optimization (e.g. NSGA2), multiple objectives can be added.
 Optimizers that can only handle one objective enforce that only a single objective is added to the optimization description.
 
+Specifying Derivatives
+++++++++++++++++++++++
+Approximating Derivatives
+~~~~~~~~~~~~~~~~~~~~~~~~~
+pyOptSparse can automatically compute derivatives of the objective and constraint functions using finite differences or the complex-step method.
+This is done by simply passing a string to the ``sens=`` argument when calling an optimizer.
+See the possible values :ref:`here <gradient>`.
+In the simplest case, using ``sens="FD"`` will be enough to run an optimization using forward differences with a default step size.
+
 Analytic Derivatives
-++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~
+If analytic derivatives are available, users can compute them within a user-defined function.
+This function accepts as inputs a dictionary containing design variable values as well as another dictionary containing objective and constraint values.
+It returns a nested dictionary containing the gradients of the objective and constraint values with respect to those design variables at the current design point.
+Specifically, the first-layer keys should be associated with objective and constraint names while the second-layer keys correspond to design variables.
+The dictionary values are the computed analytic derivatives, either in the form of lists or NumPy arrays whose column number equals the amount of objectives (or constraints) and row number equals the amount of design variables.
+Since pyOptSparse uses string indexing, users need to make sure the keys in the returned dictionary are consistent with the names of design variables, constraints and objectives which were first added to the optimization problem.
 
-pyOptSparse can automatically compute derivatives of the objective and constraint functions using finite differences or the complex-step method (See implementation details `here <https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/api/gradient.html>`__).
-If analytic derivatives are available, users can define them within a user-defined function (let's use the function name ``sens()`` for the explanation purposes).
-This ``sens()`` function reads as inputs a dictionary containing design variables as well as another dictionary containing objective and constraint functions.
-Note that when supplying analytic derivatives, users need to make sure the keys in the ``sens()`` function are consistent with the keys of design variables (e.g. ``var_name``), constraints (e.g. ``equality_constraint``) and objectives (e.g. ``obj_name``).
-These names are simply examples used in previous paragraphs but they can be anything users prefer.
-Based on these keys (or names) users can separately define the analytic derivatives using a nested dictionary ``funcsSens`` (again, for the explanation convenience).
-Specifically, the first-layer keys should be associated with constraint and objective names while the second-layer keys are corresponding to design variables.
-The dictionary values are the provided analytic derivative arrays (can also be lists) whose column number equals the amount of objectives (or constraints) and row number equals the amount of design variables.
-An important tip to know is that users only need to specify non-zero sub-blocks because pyOptSparse will assume empty (or unspecified) part
-as zeros, but it is also fine to explicitly specify zeros (up to you).
-For example, if the optimization problem has one objective (``obj``), two constraints (``con``), and three design variables (``xvars``), the ``funcsSens`` dictionary (assuming some simple explicit-value derivatives)  will look like::
+.. tip::
+  #. Only the non-zero sub-blocks of the Jacobian needs to be specified, and pyOptSparse will assume the rest to be zeros.
+  #. Derivatives of the linear constraints do not need to be given here, since they are constant and should have already been specified via the ``jac=`` keyword argument when adding the constraint.
 
-  funcsSens = { "obj": { "xvars": [1, 2, 3]  }, "con": { "xvars": [[4, 5, 6], [7, 8, 9]]  }  }
+For example, if the optimization problem has one objective ``obj``, two constraints ``con``, and three design variables ``xvars``, the returned sensitivity dictionary (with placeholder values) should have the following structure:
 
-The ``sens()`` function returns this ``funcsSens`` dictionary and a failure flag (most of the time ``False``) in the end.
-Once this ``sens()`` function is constructed, users can link it to `pyOptSparse <https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/api/optimizer.html#pyoptsparse.pyOpt_optimizer.OPT>` by::
+.. code-block:: python
+
+  {"obj": {"xvars": [1, 2, 3]}, "con": {"xvars": [[4, 5, 6], [7, 8, 9]]}}
+
+Once this function is constructed, users can pass its function handle to the optimizer when it's called via:
+
+.. code-block:: python
 
   sol = opt(optProb, sens=sens, ...)
 
-This ``opt`` function is an optimizer instantiation which comes in the following section.
 
 Optimizer Instantiation
 +++++++++++++++++++++++
