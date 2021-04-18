@@ -7,6 +7,7 @@ from .pyOpt_optimization import Optimization
 
 class Solution(Optimization):
     def __init__(self, optProb, xStar, fStar, lambdaStar, optInform, info):
+
         """
         This class is used to describe the solution of an optimization
         problem. This class inherits from Optimization which enables a
@@ -17,11 +18,21 @@ class Solution(Optimization):
         optProb : Optimization problem class
             Optimization problem used to create solution
 
-        optTime : float
-            Time required for the optimization
+        xStar : dict
+            The final design variables
+
+        fStar : dict
+            The final objective(s)
+
+        lambdaStar : dict
+            The final Lagrange multipliers
 
         optInform : int
-            The inform code from the optimization.
+            The inform code returned by the optimizer
+
+        info : dict
+            A dictionary containing timing and call counter info to be stored
+            in the Solution object.
         """
 
         Optimization.__init__(self, optProb.name, None)
