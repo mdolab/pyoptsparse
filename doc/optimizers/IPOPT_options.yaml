@@ -1,3 +1,5 @@
+print_level:
+  desc: Printing level
 output_file:
   desc: The name of the output file from IPOPT
 option_file_name:
