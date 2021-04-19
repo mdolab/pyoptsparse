@@ -4,8 +4,6 @@ file_print_level:
   desc: Printing level for the output file
 output_file:
   desc: The name of the output file from IPOPT
-option_file_name:
-  desc: The name of the options file passed to IPOPT
 print_user_options:
   desc: Whether to print the user-modified options
 linear_solver:

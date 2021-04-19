@@ -85,7 +85,6 @@ class IPOPT(Optimizer):
             "sb": [str, "yes"],
             "print_user_options": [str, "yes"],
             "output_file": [str, "IPOPT.out"],
-            "option_file_name": [str, "IPOPT_options.opt"],
             "linear_solver": [str, "mumps"],
         }
         return defOpts
