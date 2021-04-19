@@ -248,7 +248,7 @@ class TestHS71(unittest.TestCase):
         self.assertEqual(sol.optInform["value"], 1)
 
     def test_ipopt(self):
-        optOptions = {"print_level": 5, "output_file": "hs071_IPOPT.out"}
+        optOptions = {"output_file": "hs071_IPOPT.out"}
         sol = self.optimize("ipopt", 1e-6, optOptions=optOptions)
         self.assertEqual(sol.optInform["value"], 0)
         self.assertEqual(sol.optInform["text"], "Solve Succeeded")
