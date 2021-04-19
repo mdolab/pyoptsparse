@@ -216,11 +216,11 @@ If analytic derivatives are available, users can compute them within a user-defi
 This function accepts as inputs a dictionary containing design variable values as well as another dictionary containing objective and constraint values.
 It returns a nested dictionary containing the gradients of the objective and constraint values with respect to those design variables at the current design point.
 Specifically, the first-layer keys should be associated with objective and constraint names while the second-layer keys correspond to design variables.
-The dictionary values are the computed analytic derivatives, either in the form of lists or NumPy arrays whose column number equals the number of objectives (or constraints) and row number equals the number of design variables.
+The dictionary values are the computed analytic derivatives, either in the form of lists or NumPy arrays with the expected shape.
 Since pyOptSparse uses string indexing, users need to make sure the keys in the returned dictionary are consistent with the names of design variables, constraints and objectives which were first added to the optimization problem.
 
 .. tip::
-  #. Only the non-zero sub-blocks of the Jacobian need to be specified, and pyOptSparse will assume the rest to be zeros.
+  #. Only the non-zero sub-blocks of the Jacobian need to be defined in the dictionary, and pyOptSparse will assume the rest to be zero.
   #. Derivatives of the linear constraints do not need to be given here, since they are constant and should have already been specified via the ``jac=`` keyword argument when adding the constraint.
 
 For example, if the optimization problem has one objective ``obj``, two constraints ``con``, and three design variables ``xvars``, the returned sensitivity dictionary (with placeholder values) should have the following structure:
