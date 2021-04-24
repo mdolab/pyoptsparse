@@ -1,3 +1,8 @@
 #!/bin/bash
 set -e
-testflo --pre_announce -v
+if [[ $IMAGE == "public" ]]; then
+    testflo --pre_announce -v
+else
+    # all tests should pass on private
+    testflo --pre_announce -v --disallow_skipped
+fi
