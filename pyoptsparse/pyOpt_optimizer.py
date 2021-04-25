@@ -300,7 +300,18 @@ class Optimizer(BaseSolver):
         # has called up to here...the rest of them are waiting at a
         # broadcast to know what to do.
 
-        args = [x, evaluate]
+        if self.name == "IPOPT" and ("fcon" in evaluate or "gcon" in evaluate):
+            # This is a constraint or its jabocian call from IPOPT.
+            # We don't record the history because it's already done
+            # in objective/gradient calls at the same x.
+            # We also don't increment the call counter, so subtract
+            # 1 here in advance.
+            args = [x, evaluate, False]
+            self.callCounter -= 1
+        else:
+            # for all the other optimizers and objective call from IPOPT,
+            # we write the history as usual.
+            args = [x, evaluate]
 
         # Broadcast the type of call (0 means regular call)
         self.optProb.comm.bcast(0, root=0)
