@@ -90,6 +90,10 @@ class Optimizer(BaseSolver):
         # Initialize metadata
         self.metadata: Dict[str, Any] = {}
 
+        # We need to Store x at previous iteration (only matters for IPOPT)
+        self._x_prev_for_funcs = None
+        self._x_prev_for_funcsSens = None
+
     def _clearTimings(self):
         """Clear timings and call counters"""
         self.userObjTime = 0.0
@@ -217,11 +221,38 @@ class Optimizer(BaseSolver):
             values is required on return
         """
 
-        # print(self.callCounter, evaluate)
+        # Flag specifying whether the current call is already written to the history file.
+        # Only matters for IPOPT. For all the other optimizers, it should always be False.
+        flag_duplicated_history = False
 
-        # if self.name == "IPOPT" and ("fcon" in evaluate or "gcon" in evaluate):
-        #     if self.callCounter >= 3:
-        #         self.callCounter -= 1
+        # Since IPOPT makes separate calls for objective and constraints at each x
+        # (same for gradient and constraint jacobian) but we record both objective and constraints
+        # at the same time, we will write history at either objective or constraint call (not both).
+        # We check whether the current call is already recorded or not based on the x values.
+        # If x is identical to the previous x (at which we wrote the history), we don't write this time.
+        if self.name == "IPOPT":
+            if self._x_prev_for_funcs is None and ("fobj" in evaluate or "fcon" in evaluate):
+                # Initial function call. We need to initialize _x_prev
+                # and of course we will write history at this iteration.
+                self._x_prev_for_funcs = copy.deepcopy(x)
+            elif self._x_prev_for_funcsSens is None and ("gobj" in evaluate or "gcon" in evaluate):
+                # Initial jacobian call.
+                self._x_prev_for_funcsSens = copy.deepcopy(x)
+            else:
+                if "fobj" in evaluate or "fcon" in evaluate:
+                    # This is a function call.
+                    if np.isclose(x, self._x_prev_for_funcs, rtol=EPS, atol=EPS).all():
+                        # We've already wrote this call. Subtract 1 from the call counter to not increment it.
+                        flag_duplicated_history = True
+                        self.callCounter -= 1
+                    self._x_prev_for_funcs = copy.deepcopy(x)
+                else:
+                    # This is a jacobian call.
+                    if np.isclose(x, self._x_prev_for_funcsSens, rtol=EPS, atol=EPS).all():
+                        flag_duplicated_history = True
+                        self.callCounter -= 1
+                    self._x_prev_for_funcsSens = copy.deepcopy(x)
+        # end if (IPOPT)
 
         # We are hot starting, we should be able to read the required
         # information out of the hot start file, process it and then
@@ -234,16 +265,27 @@ class Optimizer(BaseSolver):
                 # Read the actual data for this point:
                 data = self.hotStart.read(self.callCounter)
 
+                # When the current call is already recorded, we don't always get the info we want
+                # from the data at self.callCounter -= 1, because we don't know if the previous
+                # call counter is for functions or jacobians.
+                if self.name == "IPOPT" and flag_duplicated_history:
+                    if ("fobj" in evaluate or "fcon" in evaluate) and ("funcs" not in data):
+                        # When we want to evaluate function, but the data is for "funcsSens"
+                        # we need to go back one more callCounter to get the data for "funcs"
+                        if self.hotStart.pointExists(self.callCounter - 1):
+                            data = self.hotStart.read(self.callCounter - 1)
+                    elif ("gobj" in evaluate or "gcon" in evaluate) and ("funcsSens" not in data):
+                        # When we want to evaluate jacobian, but the data is for "funcs"
+                        # we need to go back one more callCounter to get the data for "funcsSens"
+                        if self.hotStart.pointExists(self.callCounter - 1):
+                            data = self.hotStart.read(self.callCounter - 1)
+                # end if (IPOPT)
+
                 # Get the x-value and (de)process
                 xuser_ref = self.optProb.processXtoVec(data["xuser"])
 
                 # Validated x-point point to use:
                 xuser_vec = self.optProb._mapXtoUser(x)
-
-                print("call counter", self.callCounter)
-                if not (np.isclose(xuser_vec, xuser_ref, rtol=EPS, atol=EPS).all()):
-                    aaaaaaaa = 0
-                    pass
 
                 if np.isclose(xuser_vec, xuser_ref, rtol=EPS, atol=EPS).all():
 
@@ -312,18 +354,8 @@ class Optimizer(BaseSolver):
         # has called up to here...the rest of them are waiting at a
         # broadcast to know what to do.
 
-        if self.name == "IPOPT" and ("fcon" in evaluate or "gcon" in evaluate):
-            # This is a constraint or its jabocian call from IPOPT.
-            # We don't record the history because it's already done
-            # in objective/gradient calls at the same x.
-            # We also don't increment the call counter, so subtract
-            # 1 here in advance.
-            args = [x, evaluate, False]
-            self.callCounter -= 1
-        else:
-            # for all the other optimizers and objective call from IPOPT,
-            # we write the history as usual.
-            args = [x, evaluate]
+        # Write history when flag_duplicated_history = False.
+        args = [x, evaluate, not (flag_duplicated_history)]
 
         # Broadcast the type of call (0 means regular call)
         self.optProb.comm.bcast(0, root=0)
