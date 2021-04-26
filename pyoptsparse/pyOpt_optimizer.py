@@ -217,6 +217,12 @@ class Optimizer(BaseSolver):
             values is required on return
         """
 
+        # print(self.callCounter, evaluate)
+
+        # if self.name == "IPOPT" and ("fcon" in evaluate or "gcon" in evaluate):
+        #     if self.callCounter >= 3:
+        #         self.callCounter -= 1
+
         # We are hot starting, we should be able to read the required
         # information out of the hot start file, process it and then
         # fire it back to the specific optimizer
@@ -233,6 +239,12 @@ class Optimizer(BaseSolver):
 
                 # Validated x-point point to use:
                 xuser_vec = self.optProb._mapXtoUser(x)
+
+                print("call counter", self.callCounter)
+                if not (np.isclose(xuser_vec, xuser_ref, rtol=EPS, atol=EPS).all()):
+                    aaaaaaaa = 0
+                    pass
+
                 if np.isclose(xuser_vec, xuser_ref, rtol=EPS, atol=EPS).all():
 
                     # However, we may need a sens that *isn't* in the
