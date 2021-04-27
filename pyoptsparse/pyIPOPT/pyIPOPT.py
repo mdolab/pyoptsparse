@@ -81,8 +81,10 @@ class IPOPT(Optimizer):
     def _getDefaultOptions():
         defOpts = {
             "print_level": [int, 0],
+            "file_print_level": [int, 5],
+            "sb": [str, "yes"],
+            "print_user_options": [str, "yes"],
             "output_file": [str, "IPOPT.out"],
-            "option_file_name": [str, "IPOPT_options.opt"],
             "linear_solver": [str, "mumps"],
         }
         return defOpts
