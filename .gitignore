@@ -10,3 +10,4 @@ build/*
 *.cpp
 env
 \.vscode
+pyoptsparse/postprocessing/sub_window/test.sql
