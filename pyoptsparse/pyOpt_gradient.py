@@ -122,7 +122,7 @@ class Gradient(object):
         # processed as per normal.
         xBase = self.optProb.processXtoVec(x)
         self.optProb.evaluateLinearConstraints(xBase, funcsBase)
-        fconBase = self.optProb.processContoVec(funcsBase, scaled=False, dtype="D", natural=True)
+        fconBase = self.optProb.processContoVec(funcsBase, scaled=False, natural=True)
         fobjBase = self.optProb.processObjtoVec(funcsBase, scaled=False)
 
         # Convert to complex if necessary:
