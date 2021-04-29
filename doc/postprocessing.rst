@@ -6,6 +6,8 @@ There are three post-processing utilities that are provided with pyOptSparse.
 - OptView-Dash is a `Dash <https://plotly.com/dash/>`_ implementation of OptView
 - ``History`` is a Python class that can be used to read in the history file, and provide API for programmatically extracting data.
 
+.. _optview:
+
 OptView
 -------
 Requirements
