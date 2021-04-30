@@ -73,6 +73,7 @@ if __name__ == "__main__":
                 "plotly",
                 "matplotlib",
             ],
+            "testing": ["testflo>=1.4.5"],
         },
         package_data={"pyoptsparse": ["postprocessing/assets/*"]},
         platforms=["Linux"],

@@ -6,4 +6,4 @@ if [[ $IMAGE == "private" ]]; then
     cp -r $HOME/SNOPT/* pyoptsparse/pySNOPT/source
 fi
 # install
-pip install -e .[optview]
+pip install -e .[optview,testing]

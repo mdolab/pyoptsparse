@@ -201,6 +201,41 @@ What this does is tell pyOptSparse that the key ``obj_name`` in the function ret
 For optimizers that can do multi-objective optimization (e.g. NSGA2), multiple objectives can be added.
 Optimizers that can only handle one objective enforce that only a single objective is added to the optimization description.
 
+Specifying Derivatives
+++++++++++++++++++++++
+Approximating Derivatives
+~~~~~~~~~~~~~~~~~~~~~~~~~
+pyOptSparse can automatically compute derivatives of the objective and constraint functions using finite differences or the complex-step method.
+This is done by simply passing a string to the ``sens=`` argument when calling an optimizer.
+See the possible values :ref:`here <gradient>`.
+In the simplest case, using ``sens="FD"`` will be enough to run an optimization using forward differences with a default step size.
+
+Analytic Derivatives
+~~~~~~~~~~~~~~~~~~~~
+If analytic derivatives are available, users can compute them within a user-defined function.
+This function accepts as inputs a dictionary containing design variable values as well as another dictionary containing objective and constraint values.
+It returns a nested dictionary containing the gradients of the objective and constraint values with respect to those design variables at the current design point.
+Specifically, the first-layer keys should be associated with objective and constraint names while the second-layer keys correspond to design variables.
+The dictionary values are the computed analytic derivatives, either in the form of lists or NumPy arrays with the expected shape.
+Since pyOptSparse uses string indexing, users need to make sure the keys in the returned dictionary are consistent with the names of design variables, constraints and objectives which were first added to the optimization problem.
+
+.. tip::
+  #. Only the non-zero sub-blocks of the Jacobian need to be defined in the dictionary, and pyOptSparse will assume the rest to be zero.
+  #. Derivatives of the linear constraints do not need to be given here, since they are constant and should have already been specified via the ``jac=`` keyword argument when adding the constraint.
+
+For example, if the optimization problem has one objective ``obj``, two constraints ``con``, and three design variables ``xvars``, the returned sensitivity dictionary (with placeholder values) should have the following structure:
+
+.. code-block:: python
+
+  {"obj": {"xvars": [1, 2, 3]}, "con": {"xvars": [[4, 5, 6], [7, 8, 9]]}}
+
+Once this function is constructed, users can pass its function handle to the optimizer when it's called via:
+
+.. code-block:: python
+
+  sol = opt(optProb, sens=sens, ...)
+
+
 Optimizer Instantiation
 +++++++++++++++++++++++
 There are two ways to instantiate the optimizer object.
