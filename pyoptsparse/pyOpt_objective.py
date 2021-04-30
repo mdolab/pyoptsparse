@@ -23,15 +23,14 @@ class Objective(object):
         """
         self.name = name
         self.value = 0.0
-        self.optimum = 0.0
         self.scale = scale
 
     def __str__(self):
         """
         Structured Print of Objective
         """
-        res = "        Name        Value        Optimum\n"
+        res = "        Name        Value\n"
         res += "	 " + str(self.name).center(9)
-        res += "%12g  %12g\n" % (np.real(self.value), np.real(self.optimum))
+        res += "%12g\n" % (np.real(self.value))
 
         return res

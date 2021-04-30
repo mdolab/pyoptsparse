@@ -101,8 +101,8 @@ which produces the following table::
 
 
       Objectives
-         Index  Name            Value          Optimum
-            0  obj     0.000000E+00     0.000000E+00
+         Index  Name            Value
+            0  obj     0.000000E+00
 
       Variables (c - continuous, i - integer, d - discrete)
          Index  Name      Type      Lower Bound            Value      Upper Bound     Status
@@ -158,8 +158,8 @@ which produces the following output::
 
 
       Objectives
-         Index  Name            Value          Optimum
-            0  obj    -3.456000E+03     0.000000E+00
+         Index  Name            Value
+            0  obj    -3.456000E+03
 
       Variables (c - continuous, i - integer, d - discrete)
          Index  Name      Type      Lower Bound            Value      Upper Bound     Status
