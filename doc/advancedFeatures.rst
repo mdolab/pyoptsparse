@@ -6,8 +6,17 @@ Advanced Features
 .. Parallel Execution
 .. ------------------
 
-.. Storing Optimization History
-.. ----------------------------
+Storing Optimization History
+----------------------------
+pyOptSparse includes an :ref:`history` class that stores all the relevant optimization information an SQL database.
+This database is updated at every optimization iteration, and can be accessed via both the API described in the linked section, and via :ref:`optview`.
+By default, the history file is NOT written.
+To turn the history recording on, use the ``storeHistory`` attribute when invoking the optimization run, e.g.:
+
+.. code-block:: python
+
+  sol = opt(optProb, sens=sens, storedHistory="<your-history-file-name>.hst", ...)
+
 
 Hot start
 ---------
@@ -39,8 +48,24 @@ Because the hot start process will store all the previous "restarted" iterations
 
 
 
-.. Time limit
-.. ----------
+Time limit (for SNOPT only)
+---------------------------
+The :ref:`optimizer` class in pyOptSparse has an attribute used to set the maximum allowable wall time for optimizations using SNOPT.
+The code will exit gracefully when such time limit is reached.
+This feature is particularly useful when running a time-constrained job, as in the case of most HPC systems.
+To enable this feature, use the ``timeLimit`` option when invoking the optimizer, as shown below:
+
+.. code-block:: python
+
+  sol = opt(optProb, sens=sens, timeLimit=<int>,...)
+
+Note that the attribute takes the maximum wall time *in seconds* as an integer number.
+
+.. note::
+
+   pyOptSparse will verify that the computational time is not exceeded before proceeding to the next iteration.
+   It will NOT interrupt an ongoing function or sensitivity evaluation.
+   If your function evaluations are expensive, you should be more conservative when setting the ``timeLimit`` option for it to be effective.
 
 .. Clean Optimization Termination
 .. ------------------------------
