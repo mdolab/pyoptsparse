@@ -48,9 +48,9 @@ Because the hot start process will store all the previous "restarted" iterations
 
 
 
-Time limit
-----------
-The :ref:`optimizer` class in pyOptSparse has an attribute used to set the maximum allowable wall time for an optimization.
+Time limit (for SNOPT only)
+---------------------------
+The :ref:`optimizer` class in pyOptSparse has an attribute used to set the maximum allowable wall time for optimizations using SNOPT.
 The code will exit gracefully when such time limit is reached.
 This feature is particularly useful when running a time-constrained job, as in the case of most HPC systems.
 To enable this feature, use the ``timeLimit`` option when invoking the optimizer, as shown below:
