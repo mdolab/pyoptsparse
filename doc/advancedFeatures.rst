@@ -15,7 +15,7 @@ To turn the history recording on, use the ``storeHistory`` attribute when invoki
 
 .. code-block:: python
 
-  sol = opt(optProb, sens=sens, storedHistory="<your-history-file-name>.hst", ...)
+  sol = opt(optProb, sens=sens, storeHistory="<your-history-file-name>.hst", ...)
 
 
 Hot start
