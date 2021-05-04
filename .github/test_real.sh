@@ -6,4 +6,4 @@ if [[ $IMAGE == "private" ]]; then
     EXTRA_FLAGS='--disallow_skipped'
 fi
 
-testflo --pre_announce -v --coverage --coverpkg testflo $EXTRA_FLAGS
+testflo --pre_announce -v --coverage --coverpkg pyoptsparse $EXTRA_FLAGS
