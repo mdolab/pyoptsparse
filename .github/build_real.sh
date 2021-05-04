@@ -5,5 +5,6 @@ if [[ $IMAGE == "private" ]]; then
     cp -r $HOME/NLPQLP/* pyoptsparse/pyNLPQLP/source
     cp -r $HOME/SNOPT/* pyoptsparse/pySNOPT/source
 fi
-# install
+
+# install in place due to coverage
 pip install -e .[optview,testing]
