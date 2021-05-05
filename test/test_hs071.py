@@ -87,7 +87,7 @@ class TestHS71(OptTest):
         newDV = {"xvars": np.array([1, 4, 4, 1])}
         self.setup_optProb(xScale=1.5, conScale=1.2, objScale=32, offset=1.5)
         sol = self.optimize(setDV=newDV, storeHistory=histFileName)
-        self.assert_solution(sol, self.tol["SLSQP"])
+        self.assert_solution_allclose(sol, self.tol["SLSQP"])
         # Verify the history file
         hist = History(histFileName, flag="r")
         init = hist.getValues(names="xvars", callCounters="0", scale=False)
@@ -102,13 +102,13 @@ class TestHS71(OptTest):
         histFileName = "hs071_SNOPT_setDVFromHist.hst"
         self.setup_optProb(xScale=1.5, conScale=1.2, objScale=32, offset=1.5)
         sol = self.optimize(storeHistory=histFileName)
-        self.assert_solution(sol, self.tol["SNOPT"])
+        self.assert_solution_allclose(sol, self.tol["SNOPT"])
         hist = History(histFileName, flag="r")
         first = hist.getValues(names="xvars", callCounters="last", scale=False)
         x_final = first["xvars"][0]
         self.setup_optProb(xScale=0.5, conScale=4.8, objScale=0.1, offset=1.5)
         sol = self.optimize(setDV=histFileName, storeHistory=histFileName)
-        self.assert_solution(sol, self.tol["SNOPT"])
+        self.assert_solution_allclose(sol, self.tol["SNOPT"])
         # Verify the history file
         hist = History(histFileName, flag="r")
         second = hist.getValues(names="xvars", scale=False)
@@ -131,7 +131,7 @@ class TestHS71(OptTest):
         offset = [1, -2, 40, 2.5]
         self.setup_optProb(objScale=objScale, xScale=xScale, conScale=conScale, offset=offset)
         sol = self.optimize(storeHistory=histFileName)
-        self.assert_solution(sol, self.tol["SLSQP"])
+        self.assert_solution_allclose(sol, self.tol["SLSQP"])
         # now we retrieve the history file, and check the scale=True option is indeed
         # scaling things correctly
         hist = History(histFileName, flag="r")
@@ -170,36 +170,36 @@ class TestHS71(OptTest):
         self.optName = "SNOPT"
         self.setup_optProb()
         sol = self.optimize(optOptions={"Major iterations limit": 1})
-        self.assert_inform(sol, 32)
+        self.assert_inform_equal(sol, 32)
 
     def test_slsqp_informs(self):
         self.optName = "SLSQP"
         self.setup_optProb()
         # now we set max iteration to 1 and verify that we get a different inform
         sol = self.optimize(optOptions={"MAXIT": 1})
-        self.assert_inform(sol, 9)
+        self.assert_inform_equal(sol, 9)
 
     def test_nlpqlp_informs(self):
         self.optName = "NLPQLP"
         self.setup_optProb()
         sol = self.optimize(optOptions={"maxIt": 1})
-        self.assert_inform(sol, 1)
+        self.assert_inform_equal(sol, 1)
 
     def test_ipopt_informs(self):
         self.optName = "IPOPT"
         self.setup_optProb()
         # Test that the inform is -1 when iterations are too limited.
         sol = self.optimize(optOptions={"max_iter": 1})
-        self.assert_inform(sol, -1)
+        self.assert_inform_equal(sol, -1)
         # Test that the inform is -4 when max_cpu_time are too limited.
         sol = self.optimize(optOptions={"max_cpu_time": 0.001})
-        self.assert_inform(sol, -4)
+        self.assert_inform_equal(sol, -4)
 
     def test_psqp_informs(self):
         self.optName = "PSQP"
         self.setup_optProb()
         sol = self.optimize(optOptions={"MIT": 1})
-        self.assert_inform(sol, 11)
+        self.assert_inform_equal(sol, 11)
 
     @parameterized.expand(["SNOPT", "IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "ParOpt"])
     def test_optimization(self, optName):
@@ -208,9 +208,9 @@ class TestHS71(OptTest):
         optOptions = self.optOptions.pop(optName, None)
         sol = self.optimize(optOptions=optOptions)
         # Check Solution
-        self.assert_solution(sol, self.tol[optName])
+        self.assert_solution_allclose(sol, self.tol[optName])
         # Check informs
-        self.assert_inform(sol)
+        self.assert_inform_equal(sol)
 
 
 if __name__ == "__main__":

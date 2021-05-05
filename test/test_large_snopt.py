@@ -105,19 +105,19 @@ class TestLarge(OptTest):
         self.optName = "SNOPT"
         self.setup_optProb(sparse=True)
         sol = self.optimize()
-        self.assert_solution(sol, 1e-5, partial=True)
+        self.assert_solution_allclose(sol, 1e-5, partial_x=True)
 
     def test_sparse_IPOPT(self):
         self.optName = "IPOPT"
         self.setup_optProb(sparse=True)
         sol = self.optimize()
-        self.assert_solution(sol, 1e-5, partial=True)
+        self.assert_solution_allclose(sol, 1e-5, partial_x=True)
 
     def test_dense_default(self):
         self.optName = "SNOPT"
         self.setup_optProb(sparse=False)
         sol = self.optimize()
-        self.assert_solution(sol, 1e-5, partial=True)
+        self.assert_solution_allclose(sol, 1e-5, partial_x=True)
 
     def test_dense_user(self):
         self.optName = "SNOPT"
@@ -126,7 +126,7 @@ class TestLarge(OptTest):
         sol = self.optimize(optOptions=optOptions)
 
         # Check that the workspace is too small without overwriting the lengths
-        self.assert_inform(sol, 84)
+        self.assert_inform_equal(sol, 84)
 
 
 if __name__ == "__main__":

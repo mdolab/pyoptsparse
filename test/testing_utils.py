@@ -14,7 +14,10 @@ DEFAULT_TOL = 1e-12
 
 
 def assertEqual(a, b):
-    """This replaces the assertEqual functionality provided by unittest.TestCase"""
+    """
+    This replaces the assertEqual functionality provided by unittest.TestCase
+    so that we can call this outside the class
+    """
     if not a == b:
         raise AssertionError(f"{a} and {b} are not equal.")
 
@@ -25,12 +28,35 @@ def assert_dict_allclose(actual, desired, atol=DEFAULT_TOL, rtol=DEFAULT_TOL, pa
     assumed to be numpy arrays
 
     The keys are checked first to make sure that they match
+
+    Parameters
+    ----------
+    actual : 1D dictionary
+        A dictionary of str: array_like pairs
+    desired : 1D dictionary
+        A dictionary of str: array_like pairs
+    atol : float
+        Absolute tolerance
+    rtol : float
+        Relative tolerance
+    partial : bool
+        Whether the assertion allows for partial keys, i.e. when the dictionaries
+        do not have matching keys.
+        If True, we assume that ``desired`` contains a subset of the keys of ``actual``.
+
+    Raises
+    ------
+    AssertionError
+        if the values for any key do not match to the target tolerance.
     """
     if not partial:
-        assertEqual(set(actual.keys()), set(desired.keys()))
-    for key in actual.keys():
-        if key in desired.keys() or not partial:
-            assert_allclose(actual[key], desired[key], atol=atol, rtol=rtol, err_msg=f"Failed for key {key}")
+        assert set(actual.keys()) == set(desired.keys())
+    else:
+        assert set(desired.keys()).issubset(set(actual.keys()))
+    commonKeys = sorted(set(actual.keys()).intersection(set(desired.keys())))
+
+    for key in commonKeys:
+        assert_allclose(actual[key], desired[key], atol=atol, rtol=rtol, err_msg=f"Failed for key {key}")
 
 
 def assert_dict_not_allclose(actual, desired, atol=DEFAULT_TOL, rtol=DEFAULT_TOL):
@@ -95,7 +121,22 @@ OUTPUT_FILENAMES = {
 
 
 class OptTest(unittest.TestCase):
-    def assert_solution(self, sol, tol, partial=False):
+    def assert_solution_allclose(self, sol, tol, partial_x=False):
+        """
+        An assertion method to check that the solution object matches the expected
+        optimum values defined in the class.
+
+        Parameters
+        ----------
+        sol : Solution object
+            The solution object after running an optimization
+        tol : float
+            The tolerance for assertions
+        partial_x : bool, optional
+            Whether partial assertion of the design variables ``x`` is allowed.
+            For large problems, we may not have the full x vector available at the optimum,
+            so we only check a few entries.
+        """
         if not isinstance(self.xStar, list):
             self.xStar = [self.xStar]
         if not isinstance(self.fStar, list):
@@ -104,7 +145,7 @@ class OptTest(unittest.TestCase):
         if has_lambdaStar and not isinstance(self.lambdaStar, list):
             self.lambdaStar = [self.lambdaStar]
 
-        if not partial:
+        if not partial_x:
             dist = []
             for x in self.xStar:
                 dist.append(get_dict_distance(x, sol.xStar))
@@ -114,11 +155,27 @@ class OptTest(unittest.TestCase):
             self.sol_index = 0
         # now we assert against the closest solution
         assert_allclose(sol.fStar, self.fStar[self.sol_index], atol=tol, rtol=tol)
-        assert_dict_allclose(sol.xStar, self.xStar[self.sol_index], atol=tol, rtol=tol, partial=partial)
-        if hasattr(self, "lambdaStar") and hasattr(sol, "lambdaStar"):
+        assert_dict_allclose(sol.xStar, self.xStar[self.sol_index], atol=tol, rtol=tol, partial=partial_x)
+        if (
+            hasattr(self, "lambdaStar")
+            and hasattr(sol, "lambdaStar")
+            and self.lambdaStar is not None
+            and sol.lambdaStar is not None
+        ):
             assert_dict_allclose(sol.lambdaStar, self.lambdaStar[self.sol_index], atol=tol, rtol=tol)
 
-    def assert_inform(self, sol, optInform=None):
+    def assert_inform_equal(self, sol, optInform=None):
+        """
+        Check that the optInform stored in the Solution object is as expected.
+
+        Parameters
+        ----------
+        sol : Solution object
+            The solution object after optimization
+        optInform : int, optional
+            The expected inform. If None, the default inform is used, which corresponds to
+            a successful optimization termination.
+        """
         if optInform is not None:
             self.assertEqual(sol.optInform["value"], optInform)
         else:
@@ -126,7 +183,21 @@ class OptTest(unittest.TestCase):
             if self.optName in SUCCESS_INFORM:
                 self.assertEqual(sol.optInform["value"], SUCCESS_INFORM[self.optName])
 
-    def updateOptOptions(self, optOptions):
+    def update_OptOptions_output(self, optOptions):
+        """
+        A general helper function to set a default output file name in optOptions
+        based on the optimizer and test method name.
+
+        Parameters
+        ----------
+        optOptions : dict
+            The optimizer options dictionary
+
+        Returns
+        -------
+        optOptions: dict
+            The same optOptions dictionary, but with the output file names set.
+        """
         optionName = OUTPUT_FILENAMES[self.optName]
         for optionName, suffix in OUTPUT_FILENAMES[self.optName].items():
             optOptions[optionName] = f"{self.name}_{self._testMethodName}{suffix}"
@@ -168,7 +239,7 @@ class OptTest(unittest.TestCase):
         if optOptions is None:
             optOptions = {}
         # always update the output file name
-        optOptions = self.updateOptOptions(optOptions)
+        optOptions = self.update_OptOptions_output(optOptions)
         # Optimizer
         try:
             opt = OPT(self.optName, options=optOptions)
@@ -282,20 +353,20 @@ class OptTest(unittest.TestCase):
         # we use a non-default starting point to test that the hotstart works
         # even if it does not match optProb initial values
         sol = self.optimize(storeHistory=True, optOptions=optOptions, setDV=x0)
-        self.assert_solution(sol, tol)
+        self.assert_solution_allclose(sol, tol)
         self.assertGreater(self.nf, 0)
         self.assertGreater(self.ng, 0)
         self.check_hist_file(tol)
 
         # re-optimize with hotstart
         sol = self.optimize(storeHistory=False, hotStart=True, optOptions=optOptions)
-        self.assert_solution(sol, tol)
+        self.assert_solution_allclose(sol, tol)
         # we should have zero actual function/gradient evaluations
         self.assertEqual(self.nf, 0)
         self.assertEqual(self.ng, 0)
         # another test with hotstart, this time with storeHistory = hotStart
         sol = self.optimize(storeHistory=True, hotStart=True, optOptions=optOptions)
-        self.assert_solution(sol, tol)
+        self.assert_solution_allclose(sol, tol)
         # we should have zero actual function/gradient evaluations
         self.assertEqual(self.nf, 0)
         self.assertEqual(self.ng, 0)
@@ -311,7 +382,7 @@ class OptTest(unittest.TestCase):
             hotStart=True,
             optOptions=optOptions,
         )
-        self.assert_solution(sol, tol)
+        self.assert_solution_allclose(sol, tol)
         # we should have zero actual function/gradient evaluations
         self.assertEqual(self.nf, 0)
         self.assertEqual(self.ng, 0)

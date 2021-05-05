@@ -118,17 +118,6 @@ class TestHS15(OptTest):
         # sol_xvars = [sol.variables["xvars"][i].value for i in range(2)]
         # assert_allclose(sol_xvars, dv["xvars"], atol=tol, rtol=tol)
 
-    def test_slsqp_hotstart_newDV(self):
-        self.optName = "SLSQP"
-        self.setup_optProb()
-        sol = self.optimize()
-        # Check Solution
-        self.assert_solution(sol, self.tol[self.optName])
-        self.assertEqual(self.nf, 0)
-        self.assertEqual(self.ng, 0)
-        # Check informs
-        self.assert_inform(sol)
-
     @parameterized.expand(["IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "ParOpt"])
     def test_optimization(self, optName):
         self.optName = optName
@@ -136,9 +125,9 @@ class TestHS15(OptTest):
         optOptions = self.optOptions.pop(optName, None)
         sol = self.optimize(optOptions=optOptions)
         # Check Solution
-        self.assert_solution(sol, self.tol[optName])
+        self.assert_solution_allclose(sol, self.tol[optName])
         # Check informs
-        self.assert_inform(sol)
+        self.assert_inform_equal(sol)
 
 
 if __name__ == "__main__":

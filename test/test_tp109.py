@@ -158,7 +158,7 @@ class TestTP109(OptTest):
         self.optName = "SNOPT"
         self.setup_optProb()
         sol = self.optimize(storeHistory=True, sens="CS")
-        self.assert_solution(sol, 1e-7)
+        self.assert_solution_allclose(sol, 1e-7)
         hist = History(self.histFileName)
         self.assertNotIn("lin_con", hist.getConNames())
         self.assertNotIn("lin_con", hist.getConInfo())
@@ -173,7 +173,7 @@ class TestTP109(OptTest):
         self.optName = "SLSQP"
         self.setup_optProb()
         sol = self.optimize(sens="CS")
-        self.assert_solution(sol, 1e-7)
+        self.assert_solution_allclose(sol, 1e-7)
         # Check that the function values in the solution are real
         self.assertTrue(np.isrealobj(sol.objectives["obj"].value))
         self.assertTrue(np.isrealobj(sol.constraints["con"].value))
@@ -191,7 +191,7 @@ class TestTP109(OptTest):
         sol2 = self.optimize(sens="CS")
 
         # Check Solution
-        self.assert_solution(sol2, 1e-2)
+        self.assert_solution_allclose(sol2, 1e-2)
 
 
 if __name__ == "__main__":
