@@ -24,7 +24,7 @@ class TestLarge(OptTest):
     objs = {"obj"}
     cons = {"con1", "con2", "con3"}
     xStar = {"x": 2}
-    fStar = {"obj": 10.0}
+    fStar = 10.0
 
     def objfunc(self, xdict):
         x = xdict["x"]

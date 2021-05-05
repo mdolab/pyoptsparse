@@ -33,8 +33,8 @@ class TestHS15(OptTest):
     objs = {"obj"}
     extras = {"extra1", "extra2"}
     fStar = [
-        {"obj": 306.5},
-        {"obj": 360.379767},
+        306.5,
+        360.379767,
     ]
     xStar = [
         {"xvars": (0.5, 2.0)},

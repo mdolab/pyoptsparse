@@ -43,7 +43,7 @@ class TestTP109(OptTest):
     DVs = {"xvars"}
     cons = {"con"}
     objs = {"obj"}
-    fStar = {"obj": 0.536206927538e4}
+    fStar = 0.536206927538e4
     xStar = {
         "xvars": (
             675.0253392597418,

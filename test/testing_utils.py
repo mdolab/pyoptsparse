@@ -113,7 +113,7 @@ class OptTest(unittest.TestCase):
             # assume we have a single solution
             self.sol_index = 0
         # now we assert against the closest solution
-        assert_dict_allclose(sol.fStar, self.fStar[self.sol_index], atol=tol, rtol=tol)
+        assert_allclose(sol.fStar, self.fStar[self.sol_index], atol=tol, rtol=tol)
         assert_dict_allclose(sol.xStar, self.xStar[self.sol_index], atol=tol, rtol=tol, partial=partial)
         if hasattr(self, "lambdaStar") and hasattr(sol, "lambdaStar"):
             assert_dict_allclose(sol.lambdaStar, self.lambdaStar[self.sol_index], atol=tol, rtol=tol)
