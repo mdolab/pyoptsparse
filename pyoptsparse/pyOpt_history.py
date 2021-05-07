@@ -630,29 +630,32 @@ class History(object):
             callCounters.append(self.read("last"))
             callCounters.remove("last")
 
+        self._ipoptIterCounter = -1  # track iteration, only relevant for IPOPT
+
         for i in callCounters:
             if self.pointExists(i):
                 val = self.read(i)
                 if "funcs" in val.keys() or allowSens:  # we have function evaluation
-                    if ((major and val["isMajor"]) or not major) and not val["fail"]:
-                        conDict, objDict, DVDict = self._processIterDict(val, scale=scale)
-                        for name in names:
-                            if name == "xuser":
-                                data[name].append(self.optProb.processXtoVec(DVDict))
-                            elif name in self.DVNames:
-                                data[name].append(DVDict[name])
-                            elif name in self.conNames:
-                                data[name].append(conDict[name])
-                            elif name in self.objNames:
-                                data[name].append(objDict[name])
-                            elif name in self.extraFuncsNames:
-                                data[name].append(val["funcs"][name])
-                            else:  # must be opt
-                                data[name].append(val[name])
-                    elif val["fail"] and user_specified_callCounter:
-                        pyOptSparseWarning(
-                            ("callCounter {} contained a failed function evaluation and is skipped!").format(i)
-                        )
+                    if user_specified_callCounter or self._checkIPOPTDuplicateHistory(val):
+                        if ((major and val["isMajor"]) or not major) and not val["fail"]:
+                            conDict, objDict, DVDict = self._processIterDict(val, scale=scale)
+                            for name in names:
+                                if name == "xuser":
+                                    data[name].append(self.optProb.processXtoVec(DVDict))
+                                elif name in self.DVNames:
+                                    data[name].append(DVDict[name])
+                                elif name in self.conNames:
+                                    data[name].append(conDict[name])
+                                elif name in self.objNames:
+                                    data[name].append(objDict[name])
+                                elif name in self.extraFuncsNames:
+                                    data[name].append(val["funcs"][name])
+                                else:  # must be opt
+                                    data[name].append(val[name])
+                        elif val["fail"] and user_specified_callCounter:
+                            pyOptSparseWarning(
+                                ("callCounter {} contained a failed function evaluation and is skipped!").format(i)
+                            )
                 elif user_specified_callCounter:
                     pyOptSparseWarning(
                         (
@@ -671,9 +674,24 @@ class History(object):
                 data[name] = np.expand_dims(data[name], 1)
 
         # Raise warning for IPOPT's duplicated history
-        if self.db["metadata"]["optimizer"] == "IPOPT":
+        if self.db["metadata"]["optimizer"] == "IPOPT" and "iter" not in self.db["0"].keys():
             pyOptSparseWarning("The optimization history of IPOPT has duplicated entries at every iteration.")
         return data
+
+    def _checkIPOPTDuplicateHistory(self, val):
+        # check if val is the duplicated entry or not. Only relevant to IPOPT.
+        # return False is this callCounter is a duplicate (therefore should be discarded), True otherwise
+
+        duplicate_flag = True
+
+        if self.db["metadata"]["optimizer"] == "IPOPT":
+            if "iter" in val.keys():  # Note: old hist files don't have "iter" entries
+                if val["iter"] == self._ipoptIterCounter:
+                    duplicate_flag = False
+                # end if
+                self._ipoptIterCounter = val["iter"]
+
+        return duplicate_flag
 
     def __del__(self):
         try:
