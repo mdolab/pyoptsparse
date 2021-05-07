@@ -5,11 +5,13 @@ import unittest
 
 # External modules
 import numpy as np
+from parameterized import parameterized
 
 # First party modules
 from pyoptsparse import History, Optimization
+
+# Local modules
 from testing_utils import OptTest
-from parameterized import parameterized
 
 
 class TestRosenbrock(OptTest):

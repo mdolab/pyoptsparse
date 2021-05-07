@@ -7,10 +7,12 @@ import unittest
 import numpy as np
 from numpy.testing import assert_allclose
 from parameterized import parameterized
-from testing_utils import OptTest
 
 # First party modules
 from pyoptsparse import History, Optimization
+
+# Local modules
+from testing_utils import OptTest
 
 
 class TestHS71(OptTest):

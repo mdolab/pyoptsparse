@@ -5,10 +5,12 @@ import unittest
 
 # External modules
 import numpy as np
+from parameterized import parameterized
 
 # First party modules
 from pyoptsparse import History, Optimization
-from parameterized import parameterized
+
+# Local modules
 from testing_utils import OptTest
 
 

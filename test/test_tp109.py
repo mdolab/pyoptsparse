@@ -33,6 +33,8 @@ import numpy as np
 
 # First party modules
 from pyoptsparse import History, Optimization
+
+# Local modules
 from testing_utils import OptTest
 
 USE_LINEAR = True

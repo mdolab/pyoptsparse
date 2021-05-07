@@ -6,9 +6,8 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 # First party modules
-from pyoptsparse import OPT
+from pyoptsparse import OPT, History
 from pyoptsparse.pyOpt_error import Error
-from pyoptsparse import History
 
 DEFAULT_TOL = 1e-12
 

@@ -15,6 +15,8 @@ import scipy
 
 # First party modules
 from pyoptsparse import Optimization
+
+# Local modules
 from testing_utils import OptTest
 
 
