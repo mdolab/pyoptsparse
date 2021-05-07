@@ -1,5 +1,5 @@
 [flake8]
-exclude =
+extend-exclude =
     # OptView and related files need to be fixed eventually
     pyoptsparse/postprocessing/OptView.py
     pyoptsparse/postprocessing/OptView_baseclass.py
