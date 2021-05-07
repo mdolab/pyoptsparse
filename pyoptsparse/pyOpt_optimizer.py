@@ -61,7 +61,8 @@ class Optimizer(BaseSolver):
             checkDefaultOptions=checkDefaultOptions,
             caseSensitiveOptions=caseSensitiveOptions,
         )
-        self.callCounter = 0
+        self.callCounter = 0  # counts all function calls (fobj, fcon, gobj, gcon)
+        self.iterCounter = -1  # counts iteration(new x point)
         self.sens: Union[None, Callable, Gradient] = None
         self.optProb: Optimization
         self.version: Optional[str] = version
@@ -280,6 +281,10 @@ class Optimizer(BaseSolver):
                             if "gcon" in evaluate:
                                 returns.append(gcon)
 
+                        # get iteration counter and cache current x
+                        self.iterCounter = data["iter"]
+                        self.cache["x"] = x.copy()
+
                         # We can now safely increment the call counter
                         self.callCounter += 1
                         returns.append(fail)
@@ -294,6 +299,10 @@ class Optimizer(BaseSolver):
             self.hotStart.close()
             self.hotStart = None
         # end if (hot starting)
+
+        # Increment iteration counter if x is a new point
+        if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
+            self.iterCounter += 1
 
         # Now we have to actually run our function...this is where the
         # MPI gets a little tricky. Up until now, only the root proc
@@ -543,6 +552,9 @@ class Optimizer(BaseSolver):
 
         # Put the fail flag in the history:
         hist["fail"] = masterFail
+
+        # Put the iteration counter in the history
+        hist["iter"] = self.iterCounter
 
         # Save information about major iteration counting (only matters for SNOPT).
         if self.name == "SNOPT":
