@@ -218,6 +218,10 @@ class Optimizer(BaseSolver):
             values is required on return
         """
 
+        # Increment iteration counter if x is a new point
+        if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
+            self.iterCounter += 1
+
         # We are hot starting, we should be able to read the required
         # information out of the hot start file, process it and then
         # fire it back to the specific optimizer
@@ -281,8 +285,7 @@ class Optimizer(BaseSolver):
                             if "gcon" in evaluate:
                                 returns.append(gcon)
 
-                        # get iteration counter and cache current x
-                        self.iterCounter = data["iter"]
+                        # Cache x because the iteration counter need this
                         self.cache["x"] = x.copy()
 
                         # We can now safely increment the call counter
@@ -299,10 +302,6 @@ class Optimizer(BaseSolver):
             self.hotStart.close()
             self.hotStart = None
         # end if (hot starting)
-
-        # Increment iteration counter if x is a new point
-        if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
-            self.iterCounter += 1
 
         # Now we have to actually run our function...this is where the
         # MPI gets a little tricky. Up until now, only the root proc
