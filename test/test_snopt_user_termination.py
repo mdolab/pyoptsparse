@@ -22,7 +22,7 @@ class TerminateComp(object):
         self.sens_count = 0
 
     def objfunc(self, xdict):
-        """ Evaluates the equation f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3 """
+        """Evaluates the equation f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3"""
         x = xdict["x"]
         y = xdict["y"]
         funcs = {}

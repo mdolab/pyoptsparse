@@ -119,6 +119,9 @@ OUTPUT_FILENAMES = {
     "ALPSO": {"filename": ".out"},
 }
 
+# these are optimizers which are installed by default
+DEFAULT_OPTIMIZERS = {"SLSQP", "PSQP", "CONMIN", "ALPSO", "NSGA2"}
+
 
 class OptTest(unittest.TestCase):
     def assert_solution_allclose(self, sol, tol, partial_x=False):
@@ -243,8 +246,11 @@ class OptTest(unittest.TestCase):
         # Optimizer
         try:
             opt = OPT(self.optName, options=optOptions)
-        except Error:
-            raise unittest.SkipTest("Optimizer not available:", self.optName)
+        except Error as e:
+            if self.optName in DEFAULT_OPTIMIZERS:
+                raise e
+            else:
+                raise unittest.SkipTest("Optimizer not available: ", self.optName)
 
         if isinstance(setDV, str):
             self.optProb.setDVsFromHistory(setDV)

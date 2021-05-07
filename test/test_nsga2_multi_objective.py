@@ -8,7 +8,6 @@ from numpy.testing import assert_allclose
 
 # First party modules
 from pyoptsparse import NSGA2, Optimization
-from pyoptsparse.pyOpt_error import Error
 
 
 def objfunc(xdict):
@@ -38,10 +37,7 @@ class TestNSGA2(unittest.TestCase):
         options = {"maxGen": 200}
 
         # Optimizer
-        try:
-            opt = NSGA2(options=options)
-        except Error:
-            raise unittest.SkipTest("Optimizer not available:", "NSGA2")
+        opt = NSGA2(options=options)
 
         sol = opt(optProb)
 
