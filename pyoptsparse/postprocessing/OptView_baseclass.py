@@ -159,10 +159,10 @@ class OVBaseClass(object):
                 else:
                     self.storedIters = False
 
-                # Raise warning for the IPOPT's duplicated history
+                # Raise warning for IPOPT's duplicated history
                 if db["metadata"]["optimizer"] == "IPOPT" and "iter" not in db["0"].keys():
                     pyOptSparseWarning(
-                        "The optimization history of IPOPT has duplicated entries at every iteration, and the OtpView plot is not correct. \
+                        "The optimization history of IPOPT has duplicated entries at every iteration, and the OptView plot is not correct. \
                         Install the latest version of pyOptSparse for a fix."
                     )
 

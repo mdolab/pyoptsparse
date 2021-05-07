@@ -670,6 +670,9 @@ class History(object):
             if data[name].ndim == 1:
                 data[name] = np.expand_dims(data[name], 1)
 
+        # Raise warning for IPOPT's duplicated history
+        if self.db["metadata"]["optimizer"] == "IPOPT":
+            pyOptSparseWarning("The optimization history of IPOPT has duplicated entries at every iteration.")
         return data
 
     def __del__(self):
