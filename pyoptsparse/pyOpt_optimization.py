@@ -1660,12 +1660,12 @@ class Optimization(object):
         text += "\n   Objectives\n"
 
         num_c = max([len(obj) for obj in self.objectives])
-        fmt = "    {0:>7s}  {1:{width}s}   {2:>14s}   {3:>14s}\n"
-        text += fmt.format("Index", "Name", "Value", "Optimum", width=num_c)
-        fmt = "    {0:>7d}  {1:{width}s}   {2:>14.6E}   {3:>14.6E}\n"
+        fmt = "    {0:>7s}  {1:{width}s}   {2:>14s}\n"
+        text += fmt.format("Index", "Name", "Value", width=num_c)
+        fmt = "    {0:>7d}  {1:{width}s}   {2:>14.6E}\n"
         for idx, name in enumerate(self.objectives):
             obj = self.objectives[name]
-            text += fmt.format(idx, obj.name, obj.value, obj.optimum, width=num_c)
+            text += fmt.format(idx, obj.name, obj.value, width=num_c)
 
         # Find the longest name in the variables
         num_c = 0
