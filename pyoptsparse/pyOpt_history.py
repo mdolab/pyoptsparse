@@ -630,40 +630,26 @@ class History(object):
             callCounters.append(self.read("last"))
             callCounters.remove("last")
 
-        self._ipoptIterCounter = -1  # track iteration, only relevant for IPOPT
+        # get a list of valid call counters
+        validCallCounters = self._generateValidCallCounters(callCounters, user_specified_callCounter, allowSens, major)
 
-        for i in callCounters:
-            if self.pointExists(i):
-                val = self.read(i)
-                if "funcs" in val.keys() or allowSens:  # we have function evaluation
-                    if user_specified_callCounter or self._checkIPOPTDuplicateHistory(val):
-                        if ((major and val["isMajor"]) or not major) and not val["fail"]:
-                            conDict, objDict, DVDict = self._processIterDict(val, scale=scale)
-                            for name in names:
-                                if name == "xuser":
-                                    data[name].append(self.optProb.processXtoVec(DVDict))
-                                elif name in self.DVNames:
-                                    data[name].append(DVDict[name])
-                                elif name in self.conNames:
-                                    data[name].append(conDict[name])
-                                elif name in self.objNames:
-                                    data[name].append(objDict[name])
-                                elif name in self.extraFuncsNames:
-                                    data[name].append(val["funcs"][name])
-                                else:  # must be opt
-                                    data[name].append(val[name])
-                        elif val["fail"] and user_specified_callCounter:
-                            pyOptSparseWarning(
-                                ("callCounter {} contained a failed function evaluation and is skipped!").format(i)
-                            )
-                elif user_specified_callCounter:
-                    pyOptSparseWarning(
-                        (
-                            "callCounter {} did not contain a function evaluation and is skipped! Was it a gradient evaluation step?"
-                        ).format(i)
-                    )
-            elif user_specified_callCounter:
-                pyOptSparseWarning(("callCounter {} was not found and is skipped!").format(i))
+        # loop over valid call counters and parse
+        for i in validCallCounters:
+            val = self.read(i)
+            conDict, objDict, DVDict = self._processIterDict(val, scale=scale)
+            for name in names:
+                if name == "xuser":
+                    data[name].append(self.optProb.processXtoVec(DVDict))
+                elif name in self.DVNames:
+                    data[name].append(DVDict[name])
+                elif name in self.conNames:
+                    data[name].append(conDict[name])
+                elif name in self.objNames:
+                    data[name].append(objDict[name])
+                elif name in self.extraFuncsNames:
+                    data[name].append(val["funcs"][name])
+                else:  # must be opt
+                    data[name].append(val[name])
 
         # reshape lists into numpy arrays
         for name in names:
@@ -681,20 +667,49 @@ class History(object):
             )
         return data
 
-    def _checkIPOPTDuplicateHistory(self, val):
-        # check if val is the duplicated entry or not. Only relevant to IPOPT.
-        # return False is this callCounter is a duplicate (therefore should be discarded), True otherwise
+    def _generateValidCallCounters(self, callCounters, user_specified_flag, allowSens_flag, major_flag):
+        # returns a list of valid callCounters.
 
-        duplicate_flag = True
+        previousIterCounter = -1
+        validCallCounters = []
 
-        if self.db["metadata"]["optimizer"] == "IPOPT":
-            if "iter" in val.keys():  # Note: old hist files don't have "iter" entries
-                if val["iter"] == self._ipoptIterCounter:
-                    duplicate_flag = False
-                # end if
-                self._ipoptIterCounter = val["iter"]
+        for i in callCounters:
+            if not self.pointExists(i):
+                if user_specified_flag:
+                    # user specified a non-existent call counter
+                    pyOptSparseWarning(("callCounter {} was not found and is skipped!").format(i))
+                continue  # without appending i to validCallCounter
+            else:
+                val = self.read(i)
 
-        return duplicate_flag
+                # check if the callCounter is of a function call
+                if not ("funcs" in val.keys() or allowSens_flag):
+                    if user_specified_flag:
+                        # user unintentionally specified a call counter for sensitivity
+                        pyOptSparseWarning(
+                            (
+                                "callCounter {} did not contain a function evaluation and is skipped! Was it a gradient evaluation step?"
+                            ).format(i)
+                        )
+                    continue
+                else:
+                    # exclude the duplicated history (only when we have "iter" recorded)
+                    if "iter" in val.keys():
+                        duplicate_flag = val["iter"] == previousIterCounter
+                        previousIterCounter = val["iter"]  # update iterCounter for next i
+                        if duplicate_flag and not user_specified_flag:
+                            # this is a duplicate, discard
+                            continue
+                    # end if "iter" in val.keys()
+
+                    # check major/minor iteration, and if the call failed
+                    if ((major_flag and val["isMajor"]) or not major_flag) and not val["fail"]:
+                        validCallCounters.append(i)
+                # end if - ("funcs" in val.keys()
+            # end if - pointExists
+        # end for
+
+        return validCallCounters
 
     def __del__(self):
         try:
