@@ -61,6 +61,7 @@ class Optimizer(BaseSolver):
             checkDefaultOptions=checkDefaultOptions,
             caseSensitiveOptions=caseSensitiveOptions,
         )
+        # callCounter will be incremented after the function calls, iterCounters will be incremented before the calls.
         self.callCounter = 0  # counts all function calls (fobj, fcon, gobj, gcon)
         self.iterCounter = -1  # counts iteration(new x point)
         self.sens: Union[None, Callable, Gradient] = None

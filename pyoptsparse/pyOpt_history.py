@@ -675,7 +675,10 @@ class History(object):
 
         # Raise warning for IPOPT's duplicated history
         if self.db["metadata"]["optimizer"] == "IPOPT" and "iter" not in self.db["0"].keys():
-            pyOptSparseWarning("The optimization history of IPOPT has duplicated entries at every iteration.")
+            pyOptSparseWarning(
+                "The optimization history of IPOPT has duplicated entries at every iteration. \
+                Fix the history manually, or re-run the optimization with a current version of pyOptSparse to generate a correct history file."
+            )
         return data
 
     def _checkIPOPTDuplicateHistory(self, val):
