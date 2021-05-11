@@ -666,11 +666,39 @@ class History(object):
             )
         return data
 
-    def _readValidCallCounter(self, i, user_specified_flag, allowSens_flag, major_flag):
+    def _readValidCallCounter(self, i, user_specified_callCounter, allowSens, major):
+        """
+        Checks whether a call counter is valid and read the data. The call counter is valid when it is
+            1) inside the range of the history data,
+            2) a function evaluation (i.e. not a sensitivity evaluation, except when `allowSens = True`),
+            3) not a duplicated entry,
+            4) not a failed function evaluation,
+            5) a major iteration (only when `major = True`).
+
+        Parameters
+        ----------
+        i : int
+            call counter.
+
+        user_specified_callCounter : bool
+            flag to specify whether the call counter `i` is requested by a user or not.
+
+        allowSens: bool
+            flag to specify whether gradient evaluation iterations are allowed.
+
+        major : bool
+            flag to specify whether to include only major iterations.
+
+        Returns
+        -------
+        val : dict or None
+            information corresponding to the call counter `i`.
+            If the call counter is not valid, `None` is returned instead.
+        """
         # returns val = self.db[i] if the callCounter i is valid. If not valid, returns None
 
         if not self.pointExists(i):
-            if user_specified_flag:
+            if user_specified_callCounter:
                 # user specified a non-existent call counter
                 pyOptSparseWarning(("callCounter {} was not found and is skipped!").format(i))
             return None
@@ -678,8 +706,8 @@ class History(object):
             val = self.read(i)
 
             # check if the callCounter is of a function call
-            if not ("funcs" in val.keys() or allowSens_flag):
-                if user_specified_flag:
+            if not ("funcs" in val.keys() or allowSens):
+                if user_specified_callCounter:
                     # user unintentionally specified a call counter for sensitivity
                     pyOptSparseWarning(
                         (
@@ -692,13 +720,13 @@ class History(object):
                 if "iter" in val.keys():
                     duplicate_flag = val["iter"] == self._previousIterCounter
                     self._previousIterCounter = val["iter"]  # update iterCounter for next i
-                    if duplicate_flag and not user_specified_flag:
+                    if duplicate_flag and not user_specified_callCounter:
                         # this is a duplicate, discard
                         return None
                 # end if "iter" in val.keys()
 
                 # check major/minor iteration, and if the call failed
-                if ((major_flag and val["isMajor"]) or not major_flag) and not val["fail"]:
+                if ((major and val["isMajor"]) or not major) and not val["fail"]:
                     return val
                 else:
                     return None
