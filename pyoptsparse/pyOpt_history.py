@@ -630,26 +630,25 @@ class History(object):
             callCounters.append(self.read("last"))
             callCounters.remove("last")
 
-        # get a list of valid call counters
-        validCallCounters = self._generateValidCallCounters(callCounters, user_specified_callCounter, allowSens, major)
-
-        # loop over valid call counters and parse
-        for i in validCallCounters:
-            val = self.read(i)
-            conDict, objDict, DVDict = self._processIterDict(val, scale=scale)
-            for name in names:
-                if name == "xuser":
-                    data[name].append(self.optProb.processXtoVec(DVDict))
-                elif name in self.DVNames:
-                    data[name].append(DVDict[name])
-                elif name in self.conNames:
-                    data[name].append(conDict[name])
-                elif name in self.objNames:
-                    data[name].append(objDict[name])
-                elif name in self.extraFuncsNames:
-                    data[name].append(val["funcs"][name])
-                else:  # must be opt
-                    data[name].append(val[name])
+        self._previousIterCounter = -1
+        # loop over call counters, check if each counter is valid, and parse
+        for i in callCounters:
+            val = self._readValidCallCounter(i, user_specified_callCounter, allowSens, major)
+            if val is not None:  # if i is valid
+                conDict, objDict, DVDict = self._processIterDict(val, scale=scale)
+                for name in names:
+                    if name == "xuser":
+                        data[name].append(self.optProb.processXtoVec(DVDict))
+                    elif name in self.DVNames:
+                        data[name].append(DVDict[name])
+                    elif name in self.conNames:
+                        data[name].append(conDict[name])
+                    elif name in self.objNames:
+                        data[name].append(objDict[name])
+                    elif name in self.extraFuncsNames:
+                        data[name].append(val["funcs"][name])
+                    else:  # must be opt
+                        data[name].append(val[name])
 
         # reshape lists into numpy arrays
         for name in names:
@@ -662,54 +661,49 @@ class History(object):
         # Raise warning for IPOPT's duplicated history
         if self.db["metadata"]["optimizer"] == "IPOPT" and "iter" not in self.db["0"].keys():
             pyOptSparseWarning(
-                "The optimization history of IPOPT has duplicated entries at every iteration. \
-                Fix the history manually, or re-run the optimization with a current version of pyOptSparse to generate a correct history file."
+                "The optimization history of IPOPT has duplicated entries at every iteration. "
+                + "Fix the history manually, or re-run the optimization with a current version of pyOptSparse to generate a correct history file. "
             )
         return data
 
-    def _generateValidCallCounters(self, callCounters, user_specified_flag, allowSens_flag, major_flag):
-        # returns a list of valid callCounters.
+    def _readValidCallCounter(self, i, user_specified_flag, allowSens_flag, major_flag):
+        # returns val = self.db[i] if the callCounter i is valid. If not valid, returns None
 
-        previousIterCounter = -1
-        validCallCounters = []
+        if not self.pointExists(i):
+            if user_specified_flag:
+                # user specified a non-existent call counter
+                pyOptSparseWarning(("callCounter {} was not found and is skipped!").format(i))
+            return None
+        else:
+            val = self.read(i)
 
-        for i in callCounters:
-            if not self.pointExists(i):
+            # check if the callCounter is of a function call
+            if not ("funcs" in val.keys() or allowSens_flag):
                 if user_specified_flag:
-                    # user specified a non-existent call counter
-                    pyOptSparseWarning(("callCounter {} was not found and is skipped!").format(i))
-                continue  # without appending i to validCallCounter
+                    # user unintentionally specified a call counter for sensitivity
+                    pyOptSparseWarning(
+                        (
+                            "callCounter {} did not contain a function evaluation and is skipped! Was it a gradient evaluation step?"
+                        ).format(i)
+                    )
+                return None
             else:
-                val = self.read(i)
+                # exclude the duplicated history (only when we have "iter" recorded)
+                if "iter" in val.keys():
+                    duplicate_flag = val["iter"] == self._previousIterCounter
+                    self._previousIterCounter = val["iter"]  # update iterCounter for next i
+                    if duplicate_flag and not user_specified_flag:
+                        # this is a duplicate, discard
+                        return None
+                # end if "iter" in val.keys()
 
-                # check if the callCounter is of a function call
-                if not ("funcs" in val.keys() or allowSens_flag):
-                    if user_specified_flag:
-                        # user unintentionally specified a call counter for sensitivity
-                        pyOptSparseWarning(
-                            (
-                                "callCounter {} did not contain a function evaluation and is skipped! Was it a gradient evaluation step?"
-                            ).format(i)
-                        )
-                    continue
+                # check major/minor iteration, and if the call failed
+                if ((major_flag and val["isMajor"]) or not major_flag) and not val["fail"]:
+                    return val
                 else:
-                    # exclude the duplicated history (only when we have "iter" recorded)
-                    if "iter" in val.keys():
-                        duplicate_flag = val["iter"] == previousIterCounter
-                        previousIterCounter = val["iter"]  # update iterCounter for next i
-                        if duplicate_flag and not user_specified_flag:
-                            # this is a duplicate, discard
-                            continue
-                    # end if "iter" in val.keys()
-
-                    # check major/minor iteration, and if the call failed
-                    if ((major_flag and val["isMajor"]) or not major_flag) and not val["fail"]:
-                        validCallCounters.append(i)
-                # end if - ("funcs" in val.keys()
-            # end if - pointExists
-        # end for
-
-        return validCallCounters
+                    return None
+            # end if - ("funcs" in val.keys()
+        # end if - pointExists
 
     def __del__(self):
         try:
