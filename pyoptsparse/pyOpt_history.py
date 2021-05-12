@@ -695,7 +695,6 @@ class History(object):
             information corresponding to the call counter `i`.
             If the call counter is not valid, `None` is returned instead.
         """
-        # returns val = self.db[i] if the callCounter i is valid. If not valid, returns None
 
         if not self.pointExists(i):
             if user_specified_callCounter:
@@ -721,7 +720,7 @@ class History(object):
                     duplicate_flag = val["iter"] == self._previousIterCounter
                     self._previousIterCounter = val["iter"]  # update iterCounter for next i
                     if duplicate_flag and not user_specified_callCounter:
-                        # this is a duplicate, discard
+                        # this is a duplicate
                         return None
                 # end if "iter" in val.keys()
 

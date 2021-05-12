@@ -115,6 +115,7 @@ class OVBaseClass(object):
 
                 # Initalize a list detailing if the iterations are major or minor
                 # 1 = major, 2 = minor, 0 = sensitivity (or duplicated info by IPOPT)
+                # The entries whose iter_type = 0 will be ignored.
                 self.iter_type = np.zeros(nkey)
 
                 # Check to see if there is bounds information in the db file.
@@ -214,7 +215,7 @@ class OVBaseClass(object):
                     # check if this entry is duplicated info. Only relevant for IPOPT.
                     # Note: old hist files don't have "iter"
                     if "iter" in db[key].keys() and db[key]["iter"] == previousIterCounter:
-                        # duplicated info, discard
+                        # duplicated info
                         self.iter_type[i] = 0
 
                     # if we did not store major iteration info, everything's major
