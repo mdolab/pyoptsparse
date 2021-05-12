@@ -12,6 +12,7 @@ import unittest
 # External modules
 import numpy as np
 import scipy
+from parameterized import parameterized
 
 # First party modules
 from pyoptsparse import Optimization
@@ -103,25 +104,20 @@ class TestLarge(OptTest):
         )
         self.optProb.addObj("obj")
 
-    def test_sparse(self):
-        self.optName = "SNOPT"
-        self.setup_optProb(sparse=True)
+    @parameterized.expand(
+        [
+            ("SNOPT", True),
+            ("IPOPT", True),
+            ("SNOPT", False),
+        ]
+    )
+    def test_opt(self, optName, sparse):
+        self.optName = optName
+        self.setup_optProb(sparse=sparse)
         sol = self.optimize()
         self.assert_solution_allclose(sol, 1e-5, partial_x=True)
 
-    def test_sparse_IPOPT(self):
-        self.optName = "IPOPT"
-        self.setup_optProb(sparse=True)
-        sol = self.optimize()
-        self.assert_solution_allclose(sol, 1e-5, partial_x=True)
-
-    def test_dense_default(self):
-        self.optName = "SNOPT"
-        self.setup_optProb(sparse=False)
-        sol = self.optimize()
-        self.assert_solution_allclose(sol, 1e-5, partial_x=True)
-
-    def test_dense_user(self):
+    def test_dense_workspace_too_small(self):
         self.optName = "SNOPT"
         self.setup_optProb(sparse=False)
         optOptions = {"Total real workspace": 401300}  # 500 + 200 * (503 + 1501)
