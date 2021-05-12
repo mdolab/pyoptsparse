@@ -71,7 +71,7 @@ class TestLarge(OptTest):
     def setup_optProb(self, sparse=True):
         # set N
         if sparse:
-            self.N = 50000
+            self.N = 10000
         else:
             self.N = 500
 
