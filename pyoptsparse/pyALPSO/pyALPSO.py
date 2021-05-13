@@ -181,8 +181,6 @@ class ALPSO(Optimizer):
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, opt_f, opt_x)
-            for key in sol.objectives.keys():
-                sol.objectives[key].value = opt_f
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
             sol = None
