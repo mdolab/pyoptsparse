@@ -165,7 +165,7 @@ class OptTest(unittest.TestCase):
         # now we assert against the closest solution
         # objective
         # sol.fStar was broken for earlier versions of SNOPT
-        if self.optName == "SNOPT" and Version(self.opt.version) >= Version("7.7.7"):
+        if self.optName == "SNOPT" and Version(self.optVersion) >= Version("7.7.7"):
             assert_allclose(sol.fStar, self.fStar[self.sol_index], atol=tol, rtol=tol)
         sol_objectives = np.array([sol.objectives[key].value for key in sol.objectives])
         assert_allclose(sol_objectives, self.fStar[self.sol_index], atol=tol, rtol=tol)
@@ -262,7 +262,8 @@ class OptTest(unittest.TestCase):
         optOptions = self.update_OptOptions_output(optOptions)
         # Optimizer
         try:
-            self.opt = OPT(self.optName, options=optOptions)
+            opt = OPT(self.optName, options=optOptions)
+            self.optVersion = opt.version
         except Error as e:
             if self.optName in DEFAULT_OPTIMIZERS:
                 raise e
@@ -286,7 +287,7 @@ class OptTest(unittest.TestCase):
         elif hotStart is False:
             hotStart = None
 
-        sol = self.opt(self.optProb, sens=sens, storeHistory=storeHistory, hotStart=hotStart)
+        sol = opt(self.optProb, sens=sens, storeHistory=storeHistory, hotStart=hotStart)
         return sol
 
     def check_hist_file(self, tol):
