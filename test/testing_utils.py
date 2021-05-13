@@ -95,8 +95,12 @@ def get_dict_distance(d, d2):
         a.append(d[k])
         a2.append(d2[k])
 
-    a = np.concatenate(a)
-    a2 = np.concatenate(a2)
+    a = np.array(a)
+    if a.ndim > 1:
+        a = np.concatenate(a)
+    a2 = np.array(a2)
+    if a2.ndim > 1:
+        a2 = np.concatenate(a2)
     return np.linalg.norm(a - a2)
 
 
@@ -118,6 +122,7 @@ OUTPUT_FILENAMES = {
     "NLPQLP": {"iFile": ".out"},
     "ParOpt": {"output_file": ".out"},
     "ALPSO": {"filename": ".out"},
+    "NSGA2": {},
 }
 
 # these are optimizers which are installed by default
@@ -248,7 +253,9 @@ class OptTest(unittest.TestCase):
         self.nf = 0
         self.ng = 0
         if sens is None:
-            sens = self.sens
+            if hasattr(self, "sens"):
+                sens = self.sens
+
         if optOptions is None:
             optOptions = {}
         # always update the output file name
