@@ -11,8 +11,8 @@ import unittest
 
 # External modules
 import numpy as np
-import scipy
 from parameterized import parameterized
+import scipy
 
 # First party modules
 from pyoptsparse import Optimization

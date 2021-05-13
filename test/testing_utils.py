@@ -4,6 +4,8 @@ import unittest
 # External modules
 import numpy as np
 from numpy.testing import assert_allclose
+from packaging.version import Version
+
 
 # First party modules
 from pyoptsparse import OPT, History
@@ -156,8 +158,17 @@ class OptTest(unittest.TestCase):
             # assume we have a single solution
             self.sol_index = 0
         # now we assert against the closest solution
-        assert_allclose(sol.fStar, self.fStar[self.sol_index], atol=tol, rtol=tol)
+        # objective
+        # sol.fStar was broken for earlier versions of SNOPT
+        if self.optName == "SNOPT" and Version(self.opt.version) >= Version("7.7.7"):
+            assert_allclose(sol.fStar, self.fStar[self.sol_index], atol=tol, rtol=tol)
+        sol_objectives = np.array([sol.objectives[key].value for key in sol.objectives])
+        assert_allclose(sol_objectives, self.fStar[self.sol_index], atol=tol, rtol=tol)
+        # x
         assert_dict_allclose(sol.xStar, self.xStar[self.sol_index], atol=tol, rtol=tol, partial=partial_x)
+        dv = sol.getDVs()
+        assert_dict_allclose(dv, self.xStar[self.sol_index], atol=tol, rtol=tol, partial=partial_x)
+        # lambda
         if (
             hasattr(self, "lambdaStar")
             and hasattr(sol, "lambdaStar")
@@ -244,7 +255,7 @@ class OptTest(unittest.TestCase):
         optOptions = self.update_OptOptions_output(optOptions)
         # Optimizer
         try:
-            opt = OPT(self.optName, options=optOptions)
+            self.opt = OPT(self.optName, options=optOptions)
         except Error as e:
             if self.optName in DEFAULT_OPTIMIZERS:
                 raise e
@@ -268,7 +279,7 @@ class OptTest(unittest.TestCase):
         elif hotStart is False:
             hotStart = None
 
-        sol = opt(self.optProb, sens=sens, storeHistory=storeHistory, hotStart=hotStart)
+        sol = self.opt(self.optProb, sens=sens, storeHistory=storeHistory, hotStart=hotStart)
         return sol
 
     def check_hist_file(self, tol):
