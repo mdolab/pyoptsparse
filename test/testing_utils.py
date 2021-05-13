@@ -6,7 +6,6 @@ import numpy as np
 from numpy.testing import assert_allclose
 from packaging.version import Version
 
-
 # First party modules
 from pyoptsparse import OPT, History
 from pyoptsparse.pyOpt_error import Error

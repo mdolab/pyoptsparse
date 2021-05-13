@@ -2,10 +2,14 @@
 
 # Standard Python modules
 import unittest
+
+# External modules
 from numpy.testing import assert_allclose
 
 # First party modules
 from pyoptsparse import Optimization
+
+# Local modules
 from testing_utils import OptTest
 
 
