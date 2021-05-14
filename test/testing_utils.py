@@ -200,6 +200,11 @@ class OptTest(unittest.TestCase):
             if self.optName in SUCCESS_INFORM:
                 self.assertEqual(sol.optInform["value"], SUCCESS_INFORM[self.optName])
 
+    def get_default_hst_name(self):
+        # self.id() is provided by unittest.TestCase automatically
+        # which is an unambiguous identifier
+        return f"{self.id()}.hst"
+
     def update_OptOptions_output(self, optOptions):
         """
         A general helper function to set a default output file name in optOptions
@@ -217,7 +222,9 @@ class OptTest(unittest.TestCase):
         """
         optionName = OUTPUT_FILENAMES[self.optName]
         for optionName, suffix in OUTPUT_FILENAMES[self.optName].items():
-            optOptions[optionName] = f"{self.name}_{self._testMethodName}{suffix}"
+            # self.id() is provided by unittest.TestCase automatically
+            # which is an unambiguous identifier
+            optOptions[optionName] = f"{self.id()}{suffix}"
         return optOptions
 
     def optimize(self, sens=None, setDV=None, optOptions=None, storeHistory=False, hotStart=None):
@@ -273,7 +280,7 @@ class OptTest(unittest.TestCase):
             self.optProb.setDVsFromHistory(setDV)
         elif isinstance(setDV, dict):
             self.optProb.setDVs(setDV)
-        DEFAULT_HST = f"{self.name}_{self._testMethodName}.hst"
+        DEFAULT_HST = self.get_default_hst_name()
         if storeHistory is True:
             storeHistory = DEFAULT_HST
         elif storeHistory is False:
