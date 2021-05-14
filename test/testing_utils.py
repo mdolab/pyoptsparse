@@ -129,6 +129,22 @@ DEFAULT_OPTIMIZERS = {"SLSQP", "PSQP", "CONMIN", "ALPSO", "NSGA2"}
 
 
 class OptTest(unittest.TestCase):
+    # these must be defined prior to using this class
+    # name
+    # optName
+    # optProb
+    # objfunc
+    # objs
+    # cons
+    # DVs
+    # xStar
+    # fStar
+
+    # these are optional attributes
+    # sens
+    # lambdaStar
+    # extras
+
     def assert_solution_allclose(self, sol, tol, partial_x=False):
         """
         An assertion method to check that the solution object matches the expected
@@ -408,7 +424,7 @@ class OptTest(unittest.TestCase):
         self.check_hist_file(tol)
         # final test with hotstart, this time with a different storeHistory
         sol = self.optimize(
-            storeHistory="{}_new_hotstart.hst".format(self.optName),
+            storeHistory=f"{self.id()}_new_hotstart.hst",
             hotStart=True,
             optOptions=optOptions,
         )
