@@ -4,7 +4,7 @@ import unittest
 # External modules
 import numpy as np
 from numpy.testing import assert_allclose
-from packaging.version import Version
+from pkg_resources import parse_version
 
 # First party modules
 from pyoptsparse import OPT, History
@@ -164,7 +164,7 @@ class OptTest(unittest.TestCase):
         # now we assert against the closest solution
         # objective
         # sol.fStar was broken for earlier versions of SNOPT
-        if self.optName == "SNOPT" and Version(self.optVersion) >= Version("7.7.7"):
+        if self.optName == "SNOPT" and parse_version(self.optVersion) >= parse_version("7.7.7"):
             assert_allclose(sol.fStar, self.fStar[self.sol_index], atol=tol, rtol=tol)
         sol_objectives = np.array([sol.objectives[key].value for key in sol.objectives])
         assert_allclose(sol_objectives, self.fStar[self.sol_index], atol=tol, rtol=tol)
