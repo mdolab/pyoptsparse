@@ -79,8 +79,6 @@ class TestHS15(OptTest):
         return funcsSens, fail
 
     def setup_optProb(self):
-        self.nf = 0  # number of function evaluations
-        self.ng = 0  # number of gradient evaluations
         # Optimization Object
         self.optProb = Optimization("HS15 Constraint Problem", self.objfunc)
 
