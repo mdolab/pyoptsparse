@@ -10,10 +10,13 @@ from numpy.testing import assert_allclose
 # First party modules
 from pyoptsparse import OPT, Optimization
 
-tol = 1e-12
+# Local modules
+from testing_utils import assert_dict_allclose, assert_dict_not_allclose, assert_not_allclose, assert_optProb_size
 
 
 class TestOptProb(unittest.TestCase):
+    tol = 1e-12
+
     def objfunc(self, xdict):
         """
         This is a simple quadratic test function with linear constraints.
@@ -111,12 +114,12 @@ class TestOptProb(unittest.TestCase):
         )
         # test getDV first
         x0 = self.optProb.getDVs()
-        self.assert_dict_allclose(x0, self.x0)
+        assert_dict_allclose(x0, self.x0)
         # now set, get, and compare
         newDV = {"x0": np.arange(4), "x1": np.arange(8)}
         self.optProb.setDVs(newDV)
         outDV = self.optProb.getDVs()
-        self.assert_dict_allclose(newDV, outDV)
+        assert_dict_allclose(newDV, outDV)
 
     def test_setDV_VarGroup(self):
         """
@@ -212,20 +215,20 @@ class TestOptProb(unittest.TestCase):
         # test dict to vec mappings
         vec = processValue(key, val, "vec")
         dictionary = processValue(key, vec, "dict")
-        self.assert_dict_allclose(val, dictionary)
+        assert_dict_allclose(val, dictionary)
 
         # test mappings using dictionaries
         val_opt = map_funcs[key + "_Dict"][0](val)
         val_user = map_funcs[key + "_Dict"][1](val_opt)
-        self.assert_dict_allclose(val_user, val)
-        self.assert_dict_not_allclose(val_user, val_opt)
+        assert_dict_allclose(val_user, val)
+        assert_dict_not_allclose(val_user, val_opt)
 
         # test mappings using vectors
         val = processValue(key, val, "vec")
         val_opt = map_funcs[key][0](val)
         val_user = map_funcs[key][1](val_opt)
-        assert_allclose(val_user, val, atol=tol, rtol=tol)
-        self.assert_not_allclose(val_user, val_opt)
+        assert_allclose(val_user, val, atol=self.tol, rtol=self.tol)
+        assert_not_allclose(val_user, val_opt)
 
         # check that the scaling was actually done correctly
         # we only check this for the array version because
@@ -246,47 +249,13 @@ class TestOptProb(unittest.TestCase):
         Check that multiple finalize calls don't mess up the optProb
         """
         self.setup_optProb(nObj=1, nDV=[4, 8], nCon=[2, 3], xScale=[1.0, 1.0], conScale=[1.0, 1.0], offset=[0, 0])
-        self.assert_optProb_size(1, 12, 5)
+        assert_optProb_size(self.optProb, 1, 12, 5)
         self.optProb.addObj("obj2")
-        self.assert_optProb_size(2, 12, 5)
+        assert_optProb_size(self.optProb, 2, 12, 5)
         self.optProb.addVar("DV2")
-        self.assert_optProb_size(2, 13, 5)
+        assert_optProb_size(self.optProb, 2, 13, 5)
         self.optProb.addCon("CON2")
-        self.assert_optProb_size(2, 13, 6)
-
-    def assert_optProb_size(self, nObj, nDV, nCon):
-        """Checks that nObj, nDV and nCon are correct for self.optProb"""
-        self.optProb.finalize()
-        self.assertEqual(self.optProb.nObj, nObj)
-        self.assertEqual(self.optProb.nCon, nCon)
-        self.assertEqual(self.optProb.ndvs, nDV)
-
-    def assert_dict_allclose(self, actual, desired, atol=tol, rtol=tol):
-        """
-        Simple assert for two flat dictionaries, where the values are
-        assumed to be numpy arrays
-
-        The keys are checked first to make sure that they match
-        """
-        self.assertEqual(set(actual.keys()), set(desired.keys()))
-        for key in actual.keys():
-            assert_allclose(actual[key], desired[key], atol=atol, rtol=rtol)
-
-    def assert_dict_not_allclose(self, actual, desired, atol=tol, rtol=tol):
-        """
-        The opposite of assert_dict_allclose
-        """
-        self.assertEqual(set(actual.keys()), set(desired.keys()))
-        for key in actual.keys():
-            if np.allclose(actual[key], desired[key], atol=tol, rtol=tol):
-                raise AssertionError("Dictionaries are close! Inputs are {} and {}".format(actual, desired))
-
-    def assert_not_allclose(self, actual, desired, atol=tol, rtol=tol):
-        """
-        The numpy array version
-        """
-        if np.allclose(actual, desired, atol=atol, rtol=tol):
-            raise AssertionError("Arrays are close! Inputs are {} and {}".format(actual, desired))
+        assert_optProb_size(self.optProb, 2, 13, 6)
 
 
 if __name__ == "__main__":
