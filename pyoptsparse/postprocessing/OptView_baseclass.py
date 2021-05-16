@@ -13,7 +13,7 @@ import shelve
 import numpy as np
 from sqlitedict import SqliteDict
 
-# pyOptSparse warning
+# Local modules
 from ..pyOpt_error import pyOptSparseWarning
 
 
