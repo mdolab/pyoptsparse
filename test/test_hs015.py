@@ -96,7 +96,6 @@ class TestHS15(OptTest):
         # Objective
         self.optProb.addObj("obj")
 
-    """
     def test_snopt(self):
         self.optName = "SNOPT"
         self.setup_optProb()
@@ -129,7 +128,6 @@ class TestHS15(OptTest):
         self.assert_solution_allclose(sol, self.tol[optName])
         # Check informs
         self.assert_inform_equal(sol)
-    """
 
     def test_ipopt(self):
         self.optName = "IPOPT"
