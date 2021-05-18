@@ -16,7 +16,7 @@ from pyoptsparse.pyOpt_error import Error
 
 
 def objfunc(xdict):
-    """ Evaluates the equation f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3 """
+    """Evaluates the equation f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3"""
     x = xdict["x"]
     y = xdict["y"]
     funcs = {}
@@ -30,7 +30,7 @@ def objfunc(xdict):
 
 
 def objfunc_no_con(xdict):
-    """ Evaluates the equation f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3 """
+    """Evaluates the equation f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3"""
     x = xdict["x"]
     y = xdict["y"]
     funcs = {}
@@ -42,7 +42,7 @@ def objfunc_no_con(xdict):
 
 
 def objfunc_2con(xdict):
-    """ Evaluates the equation f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3 """
+    """Evaluates the equation f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3"""
     x = xdict["x"]
     y = xdict["y"]
     funcs = {}
