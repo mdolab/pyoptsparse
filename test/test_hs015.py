@@ -118,7 +118,7 @@ class TestHS15(OptTest):
         # sol_xvars = [sol.variables["xvars"][i].value for i in range(2)]
         # assert_allclose(sol_xvars, dv["xvars"], atol=tol, rtol=tol)
 
-    @parameterized.expand(["IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "ParOpt"])
+    @parameterized.expand(["SLSQP", "PSQP", "CONMIN", "NLPQLP", "ParOpt"])
     def test_optimization(self, optName):
         self.optName = optName
         self.setup_optProb()
@@ -128,6 +128,30 @@ class TestHS15(OptTest):
         self.assert_solution_allclose(sol, self.tol[optName])
         # Check informs
         self.assert_inform_equal(sol)
+
+    def test_ipopt(self):
+        self.optName = "IPOPT"
+        self.setup_optProb()
+        optOptions = self.optOptions.pop(self.optName, None)
+        sol = self.optimize(optOptions=optOptions, storeHistory=True)
+        # Check Solution
+        self.assert_solution_allclose(sol, self.tol[self.optName])
+        # Check informs
+        self.assert_inform_equal(sol)
+
+        # Check iteration counters
+        hist = History(self.histFileName, flag="r")
+        data_init = hist.read(0)
+        self.assertEqual(0, data_init["iter"])
+        data_last = hist.read(hist.read("last"))
+        self.assertEqual(11, data_last["iter"])  # took 12 function evaluations (see test_ipopt.out)
+
+        # Make sure there is no duplication in objective history
+        data = hist.getValues(names=["obj"])
+        objhis_len = data["obj"].shape[0]
+        self.assertEqual(12, objhis_len)
+        for i in range(objhis_len - 1):
+            self.assertNotEqual(data["obj"][i], data["obj"][i + 1])
 
 
 if __name__ == "__main__":

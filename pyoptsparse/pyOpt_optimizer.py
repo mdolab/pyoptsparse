@@ -61,7 +61,9 @@ class Optimizer(BaseSolver):
             checkDefaultOptions=checkDefaultOptions,
             caseSensitiveOptions=caseSensitiveOptions,
         )
-        self.callCounter = 0
+        # callCounter will be incremented after the function calls, iterCounters will be incremented before the calls.
+        self.callCounter = 0  # counts all function calls (fobj, fcon, gobj, gcon)
+        self.iterCounter = -1  # counts iteration(new x point)
         self.sens: Union[None, Callable, Gradient] = None
         self.optProb: Optimization
         self.version: Optional[str] = version
@@ -217,6 +219,10 @@ class Optimizer(BaseSolver):
             values is required on return
         """
 
+        # Increment iteration counter if x is a new point
+        if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
+            self.iterCounter += 1
+
         # We are hot starting, we should be able to read the required
         # information out of the hot start file, process it and then
         # fire it back to the specific optimizer
@@ -279,6 +285,9 @@ class Optimizer(BaseSolver):
                                 returns.append(gobj)
                             if "gcon" in evaluate:
                                 returns.append(gcon)
+
+                        # Cache x because the iteration counter need this
+                        self.cache["x"] = x.copy()
 
                         # We can now safely increment the call counter
                         self.callCounter += 1
@@ -543,6 +552,9 @@ class Optimizer(BaseSolver):
 
         # Put the fail flag in the history:
         hist["fail"] = masterFail
+
+        # Put the iteration counter in the history
+        hist["iter"] = self.iterCounter
 
         # Save information about major iteration counting (only matters for SNOPT).
         if self.name == "SNOPT":

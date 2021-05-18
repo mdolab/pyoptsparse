@@ -13,6 +13,9 @@ import shelve
 import numpy as np
 from sqlitedict import SqliteDict
 
+# Local modules
+from ..pyOpt_error import pyOptSparseWarning
+
 
 class OVBaseClass(object):
 
@@ -111,6 +114,8 @@ class OVBaseClass(object):
                 self.nkey = nkey
 
                 # Initalize a list detailing if the iterations are major or minor
+                # 1 = major, 2 = minor, 0 = sensitivity (or duplicated info by IPOPT)
+                # The entries whose iter_type = 0 will be ignored.
                 self.iter_type = np.zeros(nkey)
 
                 # Check to see if there is bounds information in the db file.
@@ -155,6 +160,13 @@ class OVBaseClass(object):
                 else:
                     self.storedIters = False
 
+                # Raise warning for IPOPT's duplicated history
+                if db["metadata"]["optimizer"] == "IPOPT" and "iter" not in db["0"].keys():
+                    pyOptSparseWarning(
+                        "The optimization history file has duplicated entries at every iteration, and the OptView plot is not correct. "
+                        + "Re-run the optimization with a current version of pyOptSparse to generate a correct history file."
+                    )
+
                 # Save information from the history file for the funcs.
                 self.DetermineMajorIterations(db, OpenMDAO=OpenMDAO)
 
@@ -180,7 +192,10 @@ class OVBaseClass(object):
     def DetermineMajorIterations(self, db, OpenMDAO):
 
         if not OpenMDAO:
-            # Loop over each optimization iteration
+
+            previousIterCounter = -1
+
+            # Loop over each optimization call
             for i, iter_type in enumerate(self.iter_type):
 
                 # If this is an OpenMDAO file, the keys are of the format
@@ -192,15 +207,28 @@ class OVBaseClass(object):
                 # actual major iteration. In particular, one has funcs
                 # and the next has funcsSens, but they're both part of the
                 # same major iteration.
+                # For IPOPT, it saves info for four calls for every
+                # actual major iteration: objective, constraints,
+                # and sensitivities of each.
+
                 if "funcs" in db[key].keys():
+                    # check if this entry is duplicated info. Only relevant for IPOPT.
+                    # Note: old hist files don't have "iter"
+                    if "iter" in db[key].keys() and db[key]["iter"] == previousIterCounter:
+                        # duplicated info
+                        self.iter_type[i] = 0
+
                     # if we did not store major iteration info, everything's major
-                    if not self.storedIters:
+                    elif not self.storedIters:
                         self.iter_type[i] = 1
                     # this is major iteration
                     elif self.storedIters and db[key]["isMajor"]:
                         self.iter_type[i] = 1
                     else:
                         self.iter_type[i] = 2
+
+                    if "iter" in db[key].keys():
+                        previousIterCounter = db[key]["iter"]
                 else:
                     self.iter_type[i] = 0  # this is not a real iteration,
                     # just the sensitivity evaluation
