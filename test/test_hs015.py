@@ -96,6 +96,7 @@ class TestHS15(OptTest):
         # Objective
         self.optProb.addObj("obj")
 
+    """
     def test_snopt(self):
         self.optName = "SNOPT"
         self.setup_optProb()
@@ -128,6 +129,7 @@ class TestHS15(OptTest):
         self.assert_solution_allclose(sol, self.tol[optName])
         # Check informs
         self.assert_inform_equal(sol)
+    """
 
     def test_ipopt(self):
         self.optName = "IPOPT"
@@ -141,9 +143,9 @@ class TestHS15(OptTest):
 
         # Check iteration counters
         hist = History(self.histFileName, flag="r")
-        data_init = hist.getValues(names=["iter"], callCounters=[0], allowSens=True)
+        data_init = hist.read(0)
         self.assertEqual(0, data_init["iter"])
-        data_last = hist.getValues(names=["iter"], callCounters=["last"], allowSens=True)
+        data_last = hist.read(hist.read("last"))
         self.assertEqual(11, data_last["iter"])  # took 12 function evaluations (see test_ipopt.out)
 
         # Make sure there is no duplication in objective history
