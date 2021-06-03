@@ -35,7 +35,7 @@ class SubWindowView(QtWidgets.QWidget):
 
         # --- Create plot view and add to layout ---
         self.plot = PlotView(self)
-        self._controller.setPlotController(PlotController(self.plot.canvas))  # Need to set a controller for our plot
+        self._controller.set_plot_controller(PlotController(self.plot.canvas))  # Need to set a controller for our plot
         layout.addWidget(self.plot)
 
         # --- Create sublayout underneath the plot for buttons, forms, and options ---
@@ -66,7 +66,7 @@ class SubWindowView(QtWidgets.QWidget):
         self.x_cbox.setToolTip("Type to search for x-variables")
         self.x_cbox.setInsertPolicy(QtWidgets.QComboBox.NoInsert)
         self.x_cbox.resize(250, 30)
-        self.x_cbox.activated.connect(self._controller.addVarX)
+        self.x_cbox.activated.connect(self._controller.add_x_var)
         x_layout.addWidget(self.x_cbox)
 
         # --- Add x-vars variable list ---
@@ -75,16 +75,10 @@ class SubWindowView(QtWidgets.QWidget):
         self.x_label.resize(250, 100)
         x_layout.addWidget(self.x_label)
 
-        # --- Add undo x-vars button ---
-        self.x_undo_btn = Button("Undo x-var", self)
-        self.x_undo_btn.setToolTip("Undo add x-variable")
-        self.x_undo_btn.clicked.connect(self._controller.undoVarX)
-        x_layout.addWidget(self.x_undo_btn)
-
         # --- Add clear x-vars button ---
         self.x_clear_btn = Button("Clear x-var", self)
         self.x_clear_btn.setToolTip("Clear all x-variables")
-        self.x_clear_btn.clicked.connect(self._controller.clearAllX)
+        self.x_clear_btn.clicked.connect(self._controller.clear_x)
         x_layout.addWidget(self.x_clear_btn)
 
         # ==============================================================================
@@ -95,7 +89,7 @@ class SubWindowView(QtWidgets.QWidget):
         self.y_cbox.setInsertPolicy(QtWidgets.QComboBox.NoInsert)
         self.y_cbox.setToolTip("Type to search for y-variables")
         self.y_cbox.resize(250, 30)
-        self.y_cbox.activated.connect(self._controller.addVarY)
+        self.y_cbox.activated.connect(self._controller.add_y_var)
         y_layout.addWidget(self.y_cbox)
 
         # --- Add y-vars variable list ---
@@ -104,16 +98,10 @@ class SubWindowView(QtWidgets.QWidget):
         self.y_label.resize(250, 100)
         y_layout.addWidget(self.y_label)
 
-        # --- Add undo y-vars button ---
-        self.y_undo_btn = Button("Undo y-var", self)
-        self.y_undo_btn.setToolTip("Undo add y-variable")
-        self.y_undo_btn.clicked.connect(self._controller.undoVarY)
-        y_layout.addWidget(self.y_undo_btn)
-
         # --- Add clear y-vars button ---
         self.y_clear_btn = Button("Clear y-var", self)
         self.y_clear_btn.setToolTip("Clear all y-variables")
-        self.y_clear_btn.clicked.connect(self._controller.clearAllY)
+        self.y_clear_btn.clicked.connect(self._controller.clear_y)
         y_layout.addWidget(self.y_clear_btn)
 
         # ==============================================================================
@@ -129,12 +117,10 @@ class SubWindowView(QtWidgets.QWidget):
 
         # --- x-axis as minor iterations ---
         self.minor_itr_opt = QtWidgets.QCheckBox("x-axis as minor iterations")
-        self.minor_itr_opt.clicked.connect(self._controller.majorMinorIterX)
         opt1_layout.addWidget(self.minor_itr_opt, QtCore.Qt.AlignLeft)
 
         # --- x-axis as major iterations ---
         self.major_itr_opt = QtWidgets.QCheckBox("x-axis as major iterations")
-        self.major_itr_opt.clicked.connect(self._controller.majorMinorIterX)
         opt1_layout.addWidget(self.major_itr_opt, QtCore.Qt.AlignLeft)
 
         # --- Min/Max arrays ---
@@ -150,12 +136,12 @@ class SubWindowView(QtWidgets.QWidget):
         # ==============================================================================
         # --- Add file ---
         self.add_file_btn = Button("Add file", self)
-        self.add_file_btn.clicked.connect(self._controller.addFile)
+        self.add_file_btn.clicked.connect(self._controller.open_file)
         button_layout.addWidget(self.add_file_btn)
 
         # --- Refresh history file ---
         self.refresh_btn = Button("Refresh History File", self)
-        self.refresh_btn.clicked.connect(self._controller.refreshFile)
+        self.refresh_btn.clicked.connect(self._controller.refresh_file)
         button_layout.addWidget(self.refresh_btn)
 
         # --- Plot ---
@@ -165,7 +151,7 @@ class SubWindowView(QtWidgets.QWidget):
 
         # --- Clear Plot ---
         self.clear_plot_btn = Button("Clear Plot", self)
-        self.clear_plot_btn.clicked.connect(self._controller.clearPlot)
+        self.clear_plot_btn.clicked.connect(self._controller.clear_plot)
         button_layout.addWidget(self.clear_plot_btn)
 
         # ==============================================================================
@@ -175,7 +161,7 @@ class SubWindowView(QtWidgets.QWidget):
         scale_layout = QtWidgets.QHBoxLayout()
         button_layout.addLayout(scale_layout)
         self.scale_var_togg = Switch(self)
-        self.scale_var_togg.clicked.connect(self._controller.scaleVars)
+        self.scale_var_togg.clicked.connect(self._controller.scale_vars)
         self.scale_var_lbl = QtWidgets.QLabel("Apply Scaling Factor")
         self.scale_var_lbl.setBuddy(self.scale_var_togg)
         scale_layout.addWidget(self.scale_var_lbl)
@@ -189,9 +175,6 @@ class SubWindowView(QtWidgets.QWidget):
         self.auto_refresh_lbl.setBuddy(self.auto_refresh_togg)
         refresh_layout.addWidget(self.auto_refresh_lbl)
         refresh_layout.addWidget(self.auto_refresh_togg, alignment=QtCore.Qt.AlignRight)
-
-        # --- Set initial UI states ---
-        self._controller.setInitialState()
 
         # --- Set the main layout ---
         self.setLayout(layout)
