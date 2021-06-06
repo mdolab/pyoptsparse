@@ -33,7 +33,6 @@ class Variable(object):
     def __init__(self, var_name: str, file_idx: int, var_idx: int = 0):
         self.name = var_name
         self.file_idx = file_idx
-        self.var_idx = var_idx
         self.vectorized = False  # Is the variable an array of values
         self.bounds = {"unscaled": {"upper": None, "lower": None}, "scaled": {"upper": None, "lower": None}}
         self.data = {"major_iter": {"scaled": [], "unscaled": []}, "minor_iter": {"scaled": [], "unscaled": []}}
@@ -54,6 +53,7 @@ class File(object):
 
     def __init__(self, file_name: str, file_idx: int):
         self.name = file_name
+        self.name_short = file_name.split("/")[-1]
         self.file_index = file_idx
         self.backend = None
         self.file_reader = None
