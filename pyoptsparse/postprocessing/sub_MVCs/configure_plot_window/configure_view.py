@@ -16,6 +16,33 @@ from PyQt5 import QtWidgets
 # Extension modules
 # ==============================================================================
 from pyoptsparse.postprocessing.utils.combo_box import ExtendedComboBox
+from pyoptsparse.postprocessing.utils.button import Button
+
+
+class VariableListWidget(QtWidgets.QWidget):
+    def __init__(self, var_name: str = "Default Name", idx: int = 0, axis: str = "x", parent=None, controller=None):
+        super(VariableListWidget, self).__init__(parent)
+
+        self.controller = controller
+
+        self.idx = idx
+
+        self.axis = axis
+
+        self.label = QtWidgets.QLabel(var_name)
+
+        self.remove_button = QtWidgets.QPushButton("X")
+        self.remove_button.clicked.connect(self.remove)
+
+        layout = QtWidgets.QHBoxLayout()
+
+        layout.addWidget(self.label, 10)
+        layout.addWidget(self.remove_button, 1)
+
+        self.setLayout(layout)
+
+    def remove(self):
+        self.controller.remove_variable(self.idx, self.axis)
 
 
 class ConfigurePlotView(QtWidgets.QDialog):
@@ -47,8 +74,20 @@ class ConfigurePlotView(QtWidgets.QDialog):
         top_right_layout = QtWidgets.QVBoxLayout()
         top_layout.addLayout(top_right_layout, 2)
 
+        mid_layout = QtWidgets.QHBoxLayout()
+        layout.addLayout(mid_layout)
+
+        mid_left_layout = QtWidgets.QVBoxLayout()
+        mid_layout.addLayout(mid_left_layout)
+
+        mid_center_layout = QtWidgets.QVBoxLayout()
+        mid_layout.addLayout(mid_center_layout)
+
+        mid_right_layout = QtWidgets.QVBoxLayout()
+        mid_layout.addLayout(mid_right_layout)
+
         # ==============================================================================
-        # File Layout - Left most column of Sub Layout
+        # File List - Top Right Layout
         # ==============================================================================
         self.file_list = QtWidgets.QListWidget()
         self.file_list.clicked.connect(self._controller.file_selected)
@@ -56,7 +95,7 @@ class ConfigurePlotView(QtWidgets.QDialog):
         self._controller.populate_files()  # This must be called after file list is instantiated
 
         # ==============================================================================
-        # X Variable Layout - Left Center column of Sub Layout
+        # X Variables - Top Center Layout
         # ==============================================================================
         # --- Add x-vars combobox ---
         self.x_cbox = ExtendedComboBox(self)
@@ -70,7 +109,7 @@ class ConfigurePlotView(QtWidgets.QDialog):
         top_center_layout.addWidget(self.x_list)
 
         # ==============================================================================
-        # Y Variable Layout - Right Center column of Sub Layout
+        # Y Variables - Top Right Layout
         # ==============================================================================
         # --- Add y-vars combobox ---
         self.y_cbox = ExtendedComboBox(self)
@@ -82,6 +121,33 @@ class ConfigurePlotView(QtWidgets.QDialog):
         # --- Add y-vars variable list ---
         self.y_list = QtWidgets.QListWidget(self)
         top_right_layout.addWidget(self.y_list)
+
+        # ==============================================================================
+        # Options Layout 1 - Mid Left Layout
+        # ==============================================================================
+        self.bounds_opt = QtWidgets.QCheckBox("Y-Variable Bounds")
+        self.bounds_opt.clicked.connect(self._controller.bounds_opt_checked)
+        mid_left_layout.addWidget(self.bounds_opt)
+
+        self.scale_opt = QtWidgets.QCheckBox("Scale Y-Variables")
+        self.scale_opt.clicked.connect(self._controller.scale_opt_checked)
+        mid_left_layout.addWidget(self.scale_opt)
+
+        # ==============================================================================
+        # Options Layout 2 -  Mid Center Layout
+        # ==============================================================================
+        self.extra_opt = QtWidgets.QLabel("Options")
+        mid_center_layout.addWidget(self.extra_opt)
+
+        # ==============================================================================
+        # Button Layout - Mid right Layout
+        # ==============================================================================
+        self.ok_btn = Button("Ok", self)
+        mid_right_layout.addWidget(self.ok_btn)
+
+        self.cancel_btn = Button("Cancel", self)
+        self.cancel_btn.clicked.connect(self._controller.cancel)
+        mid_right_layout.addWidget(self.cancel_btn)
 
         # --- Set the main layout ---
         self.setLayout(layout)
