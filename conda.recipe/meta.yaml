@@ -20,6 +20,7 @@ requirements:
     - python
     - numpy
     - swig
+    - ipopt
     - {{ compiler('c')}}
     - {{ compiler('cxx')}}
     - {{ compiler('fortran') }}
@@ -31,6 +32,7 @@ requirements:
   run:
     - python
     - numpy
+    - ipopt
     - sqlitedict >=1.6
     - scipy >1.2
 
@@ -46,4 +48,4 @@ test:
     - parameterized
 
   commands:
-    - testflo .
+    - testflo --verbose .
