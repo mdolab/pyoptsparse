@@ -24,7 +24,7 @@ from PyQt5 import QtWidgets
 # ==============================================================================
 from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_model import TabModel
 from pyoptsparse.postprocessing.sub_MVCs.plotting.plot_model import PlotModel
-from pyoptsparse.postprocessing.utils.list_widgets import PlotListWidget
+from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_widgets import PlotListWidget
 from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_view import ConfigurePlotView
 from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_controller import ConfigureController
 
