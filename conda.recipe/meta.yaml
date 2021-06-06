@@ -5,6 +5,8 @@ package:
 
 source:
   - path: ../
+  - patches:
+    - patch-IPOPT-setup-for-conda.patch
 
   # Embed mdolab-baseclasses package.
   # This is sub-optimal, baseclasses should be provided as a conda package as
