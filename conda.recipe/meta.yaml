@@ -1,0 +1,49 @@
+package:
+  name: pyoptsparse 
+  version: "{{ load_setup_py_data().version }}"
+
+
+source:
+  - path: ../
+
+  # Embed mdolab-baseclasses package.
+  # This is sub-optimal, baseclasses should be provided as a conda package as
+  # well. This may cause problems if the pyoptsparse is installed into an
+  # environment which requires other, incompatible versions of baseclasses.
+  - git_url: https://github.com/mdolab/baseclasses.git
+    git_rev: v1.5.2
+    folder: baseclasses
+
+
+requirements:
+  build:
+    - python
+    - numpy
+    - swig
+    - {{ compiler('c')}}
+    - {{ compiler('cxx')}}
+    - {{ compiler('fortran') }}
+
+  host:
+    - python
+    - numpy
+
+  run:
+    - python
+    - numpy
+    - sqlitedict >=1.6
+    - scipy >1.2
+
+test:
+  imports:
+    - pyoptsparse
+
+  source_files:
+    - test
+
+  requires:
+    - testflo
+    - parameterized
+
+  commands:
+    - testflo .
