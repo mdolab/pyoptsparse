@@ -16,10 +16,10 @@ from PyQt5 import QtWidgets
 # ==============================================================================
 # Extension modules
 # ==============================================================================
-from sub_window.view import SubWindowView
+from pyoptsparse.postprocessing.sub_MVCs.tab_view import TabView
 
 
-class MainController:
+class OptViewController:
     def __init__(self, view):
         self._view = view
 
@@ -27,7 +27,7 @@ class MainController:
         tab_name, ok_pressed = QtWidgets.QInputDialog.getText(
             self._view, "Enter Tab Name", "Tab Name:", QtWidgets.QLineEdit.Normal, ""
         )
-        tab = SubWindowView()
+        tab = TabView(self._view)
         self._view.tabs.addTab(tab, tab_name)
 
     def closeTab(self, current_index):

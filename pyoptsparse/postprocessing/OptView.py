@@ -18,8 +18,8 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 # ==============================================================================
 # Extension modules
 # ==============================================================================
-from sub_window.view import SubWindowView
-from main_controller import MainController
+from pyoptsparse.postprocessing.sub_MVCs.tab_view import TabView
+from pyoptsparse.postprocessing.opt_view_controller import OptViewController
 
 QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
@@ -30,7 +30,7 @@ class MainView(QtWidgets.QWidget):
         self._center()  # centers the application in the middle of the screen
         self.setWindowTitle("OptView")  # sets the GUI title
         self.setWindowIcon(QtGui.QIcon("assets/OptViewIcon.gif"))  # sets the OptView logo
-        self._controller = MainController(self)
+        self._controller = OptViewController(self)
         self._initUI()
 
     def _initUI(self):
@@ -59,7 +59,7 @@ class MainView(QtWidgets.QWidget):
         self.tabs = QtWidgets.QTabWidget()
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self._controller.closeTab)
-        tab1 = SubWindowView()
+        tab1 = TabView(self)
 
         self.tabs.addTab(tab1, "Home")
 
