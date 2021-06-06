@@ -18,7 +18,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 # ==============================================================================
 # Extension modules
 # ==============================================================================
-from pyoptsparse.postprocessing.sub_MVCs.tab_view import TabView
+from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_view import TabView
 from pyoptsparse.postprocessing.opt_view_controller import OptViewController
 
 QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)

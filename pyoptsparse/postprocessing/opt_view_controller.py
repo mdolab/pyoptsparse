@@ -16,7 +16,7 @@ from PyQt5 import QtWidgets
 # ==============================================================================
 # Extension modules
 # ==============================================================================
-from pyoptsparse.postprocessing.sub_MVCs.tab_view import TabView
+from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_view import TabView
 
 
 class OptViewController:

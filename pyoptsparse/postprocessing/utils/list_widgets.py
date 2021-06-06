@@ -22,7 +22,8 @@ class VariableListWidget(QtWidgets.QWidget):
         self,
         var_name: str = "Default Name",
         file_idx: int = 0,
-        var_idx: int = 0,
+        var_idx_abs: int = 0,
+        var_idx_rel: int = 0,
         axis: str = "x",
         parent=None,
         controller=None,
@@ -32,7 +33,8 @@ class VariableListWidget(QtWidgets.QWidget):
         self.controller = controller
 
         self.file_idx = file_idx
-        self.var_idx = var_idx
+        self.var_idx_abs = var_idx_abs
+        self.var_idx_rel = var_idx_rel
 
         self.axis = axis
 
@@ -49,7 +51,7 @@ class VariableListWidget(QtWidgets.QWidget):
         self.setLayout(layout)
 
     def remove(self):
-        self.controller.remove_variable(self.var_idx, self.axis)
+        self.controller.remove_variable(self.var_idx_abs, self.var_idx_rel, self.axis)
 
 
 class PlotListWidget(QtWidgets.QWidget):

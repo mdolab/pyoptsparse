@@ -17,8 +17,8 @@ from PyQt5 import QtWidgets, QtCore
 # ==============================================================================
 from pyoptsparse.postprocessing.utils.button import Button
 from pyoptsparse.postprocessing.utils.switch import Switch
-from pyoptsparse.postprocessing.sub_MVCs.plot_view import PlotView
-from pyoptsparse.postprocessing.sub_MVCs.tab_controller import TabViewController
+from pyoptsparse.postprocessing.sub_MVCs.plotting.plot_view import PlotView
+from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_controller import TabViewController
 
 
 class TabView(QtWidgets.QWidget):

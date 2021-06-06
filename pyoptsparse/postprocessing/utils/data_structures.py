@@ -83,51 +83,41 @@ class File(object):
     def refresh(self):
         pass
 
-    def get_single_variable(self, var_name: str, file_idx: int):
+    def get_single_variable(self, var: Variable):
         """
-        Gets all iterations (minor and major) of a single variable from
-        either the OpenMDAO case reader or the pyOptSparse history API is
+        Gets all iterations (minor and major), bounds, and scaling
+        of a single variable from either the OpenMDAO case reader or the
+        pyOptSparse history API and stores them in a variable object.
 
         Parameters
         ----------
-        var_name : str
-            Name of the variable to
-        idx : int
-            File index associated with the variable.  The index is used
-            to track the connection between variables an the file they
-            come from
-
-        Returns
-        -------
-        Variable
-            The variable object
+        var: Variable
+            A Variable object which stores all data required for
+            plotting.
         """
-
-        # --- Initialize the variable ---
-        var = Variable(var_name=var_name, file_idx=file_idx)
 
         # --- Use the case reader for OpenMDAO ---
         if self.backend == "OpenMDAO":
             # --- Need to sort through metadata to get bounds and scaling ---
             try:  # Check for upper bound
-                upper_bound = self.file_reader.problem_metadata["variables"][var_name]["upper"]
+                upper_bound = self.file_reader.problem_metadata["variables"][var.name]["upper"]
             except KeyError:
                 upper_bound = None
 
             try:  # Check for lower bound
-                lower_bound = self.file_reader.problem_metadata["variables"][var_name]["lower"]
+                lower_bound = self.file_reader.problem_metadata["variables"][var.name]["lower"]
             except KeyError:
                 lower_bound = None
 
             try:  # Check for scaler
-                scaler = self.file_reader.problem_metadata["variables"][var_name]["scaler"]
+                scaler = self.file_reader.problem_metadata["variables"][var.name]["scaler"]
                 if not scaler:  # Ensure scaler is not None
                     scaler = 1.0
             except KeyError:
                 scaler = 1.0
 
             try:  # Check for adder
-                adder = self.file_reader.problem_metadata["variables"][var_name]["adder"]
+                adder = self.file_reader.problem_metadata["variables"][var.name]["adder"]
                 if not adder:  # Ensure adder is not None
                     adder = 0.0
             except KeyError:
@@ -163,7 +153,7 @@ class File(object):
             unscaled_list = []
             scaled_list = []
             for case in cases:
-                unscaled_val = case.get_val(var_name)
+                unscaled_val = case.get_val(var.name)
                 scaled_val = scaler * (unscaled_val + adder)
                 unscaled_list.append(unscaled_val)
                 scaled_list.append(scaled_val)
@@ -177,18 +167,18 @@ class File(object):
 
         # --- Use the History API for pyOptSparse ---
         elif self.backend == "pyOptSparse":
-            major_iter_vals_unscaled = self.file_reader.getValues(names=var_name, major=True)
-            major_iter_vals_scaled = self.file_reader.getValues(names=var_name, major=True, scale=True)
-            minor_iter_vals_unscaled = self.file_reader.getValues(names=var_name, major=False, scale=False)
-            minor_iter_vals_scaled = self.file_reader.getValues(names=var_name, major=False, scale=True)
+            major_iter_vals_unscaled = self.file_reader.getValues(names=var.name, major=True)
+            major_iter_vals_scaled = self.file_reader.getValues(names=var.name, major=True, scale=True)
+            minor_iter_vals_unscaled = self.file_reader.getValues(names=var.name, major=False, scale=False)
+            minor_iter_vals_scaled = self.file_reader.getValues(names=var.name, major=False, scale=True)
 
-            var.data["major_iter"]["unscaled"] = major_iter_vals_unscaled[var_name].flatten()
-            var.data["major_iter"]["scaled"] = major_iter_vals_scaled[var_name].flatten()
-            var.data["minor_iter"]["unscaled"] = minor_iter_vals_unscaled[var_name].flatten()
-            var.data["minor_iter"]["scaled"] = minor_iter_vals_scaled[var_name].flatten()
+            var.data["major_iter"]["unscaled"] = major_iter_vals_unscaled[var.name].flatten()
+            var.data["major_iter"]["scaled"] = major_iter_vals_scaled[var.name].flatten()
+            var.data["minor_iter"]["unscaled"] = minor_iter_vals_unscaled[var.name].flatten()
+            var.data["minor_iter"]["scaled"] = minor_iter_vals_scaled[var.name].flatten()
 
             try:
-                info = self.file_reader.getDVInfo(var_name)
+                info = self.file_reader.getDVInfo(var.name)
                 try:
                     scale = float(info["scale"][0])
                 except TypeError:
@@ -199,7 +189,7 @@ class File(object):
                 var.bounds["scaled"]["lower"] = info["lower"][0] * scale
             except KeyError:
                 try:
-                    info = self.file_reader.getConInfo(var_name)
+                    info = self.file_reader.getConInfo(var.name)
                     try:
                         scale = float(info["scale"][0])
                     except TypeError:
@@ -209,7 +199,7 @@ class File(object):
                     var.bounds["scaled"]["upper"] = info["upper"][0] * scale
                     var.bounds["scaled"]["lower"] = info["lower"][0] * scale
                 except KeyError:
-                    info = self.file_reader.getObjInfo(var_name)
+                    info = self.file_reader.getObjInfo(var.name)
                     var.bounds = None
 
         return var

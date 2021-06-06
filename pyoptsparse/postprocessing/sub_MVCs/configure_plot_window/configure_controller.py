@@ -16,6 +16,7 @@ from PyQt5 import QtWidgets
 # Extension modules
 # ==============================================================================
 from pyoptsparse.postprocessing.utils.list_widgets import VariableListWidget
+from pyoptsparse.postprocessing.utils.data_structures import Variable
 
 
 class ConfigureController(object):
@@ -70,16 +71,26 @@ class ConfigureController(object):
             self._view.file_list.addItem(file.name.split("/")[-1])
 
     def add_x_var(self):
+        # --- Get selected name from the combobox ---
         var_name = self._view.x_cbox.currentText()
 
+        # --- Get the file index from the file list widget ---
         file_idx = self._view.file_list.currentRow()
+
+        # --- Get the file at the specified index from from the parent model ---
         file = self._parent_model.files[file_idx]
 
-        var = file.get_single_variable(var_name, file_idx)
-        var.var_idx = var_idx = len(self._plot_model.x_vars)
+        # --- Get a single variable from the file ---
+        var_idx = len(self._plot_model.x_vars)
+        new_var = Variable(var_name, file_idx, var_idx)  # Need to set both indices to fully define variable
 
-        self._plot_model.add_x_var(var)
+        # --- Retrieve data from the file and store in variable ---
+        file.get_single_variable(new_var)
 
+        # --- Add variable to the plot model ---
+        self._plot_model.add_x_var(new_var)
+
+        # --- Add the new variable to the view and set the identifier indices ---
         x_item = QtWidgets.QListWidgetItem(self._view.x_list)
         x_item_widget = VariableListWidget(var_name, file_idx, var_idx, "x", self._view, self)
         x_item.setSizeHint(x_item_widget.sizeHint())
