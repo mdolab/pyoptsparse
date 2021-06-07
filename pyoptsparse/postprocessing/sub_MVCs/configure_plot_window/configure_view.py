@@ -10,13 +10,14 @@ Window view for each tab.
 # ==============================================================================
 # External Python modules
 # ==============================================================================
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 
 # ==============================================================================
 # Extension modules
 # ==============================================================================
 from pyoptsparse.postprocessing.utils.combo_box import ExtendedComboBox
 from pyoptsparse.postprocessing.utils.button import Button
+from pyoptsparse.postprocessing.utils.switch import Switch
 
 
 class VariableListWidget(QtWidgets.QWidget):
@@ -136,8 +137,23 @@ class ConfigurePlotView(QtWidgets.QDialog):
         # ==============================================================================
         # Options Layout 2 -  Mid Center Layout
         # ==============================================================================
-        self.extra_opt = QtWidgets.QLabel("Options")
-        mid_center_layout.addWidget(self.extra_opt)
+        major_iter_layout = QtWidgets.QHBoxLayout()
+        mid_center_layout.addLayout(major_iter_layout)
+        self.major_iter_togg = Switch(self)
+        self.major_iter_togg.clicked.connect(self._controller.major_iter_toggled)
+        self.major_iter_lbl = QtWidgets.QLabel("X-Axis as Major Iterations")
+        self.major_iter_lbl.setBuddy(self.major_iter_togg)
+        major_iter_layout.addWidget(self.major_iter_lbl)
+        major_iter_layout.addWidget(self.major_iter_togg, alignment=QtCore.Qt.AlignRight)
+
+        minor_iter_layout = QtWidgets.QHBoxLayout()
+        mid_center_layout.addLayout(minor_iter_layout)
+        self.minor_iter_togg = Switch(self)
+        self.minor_iter_togg.clicked.connect(self._controller.minor_iter_toggled)
+        self.minor_iter_lbl = QtWidgets.QLabel("X-Axis as Minor Iterations")
+        self.minor_iter_lbl.setBuddy(self.minor_iter_togg)
+        minor_iter_layout.addWidget(self.minor_iter_lbl)
+        minor_iter_layout.addWidget(self.minor_iter_togg, alignment=QtCore.Qt.AlignRight)
 
         # ==============================================================================
         # Button Layout - Mid right Layout
