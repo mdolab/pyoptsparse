@@ -49,7 +49,7 @@ class TabModel(object):
         for i, p in enumerate(self.plots):
             p.update_axis(self.canvas.fig.add_subplot(int(f"{n_plots}1{i+1}")))
 
-        # TODO: Redraw the plots
+        # TODO: Replot existing plots
 
         # --- If no plots exist then draw pyOptSparse logo ---
         if not self.plots:
