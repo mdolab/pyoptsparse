@@ -61,15 +61,15 @@ class TabViewController:
                 raise ValueError
 
             # --- Clear the plot to prepare for axis update ---
-            self.clear_plot()
+            self._model.canvas.fig.clf()
 
             # --- Update previous plots to reflect new number of axis ---
             for i, p in enumerate(self._model.plots):
-                p.update_axis(self._model.canvas.fig.add_subplot(int(f"{idx+1}1{i+1}")))
+                p.update_axis(self._model.canvas.fig.add_subplot(int(f"{idx+1}1{i+1}"), label=f"Plot {i}"))
 
             # --- Create a plot object and set its axis ---
             plot = PlotModel()
-            plot.axis = self._model.canvas.fig.add_subplot(int(f"{idx+1}1{idx+1}"))
+            plot.axis = self._model.canvas.fig.add_subplot(int(f"{idx+1}1{idx+1}"), label=f"Plot {idx}")
             self._model.add_plot(plot)
 
             # --- Create socket for custom widget ---
@@ -101,9 +101,6 @@ class TabViewController:
             widget = self._view.plot_list.itemWidget(item)
             widget.idx = i
             widget.title.setText(f"Plot {i}")
-
-    def clear_plot(self):
-        self._model.canvas.fig.clf()
 
     def configure_view(self, idx: int, name: str):
         configure_plot_controller = ConfigureController(self._model, self._model.plots[idx])
