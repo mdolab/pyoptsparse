@@ -27,32 +27,27 @@ matplotlib.use("Qt5Agg")
 class MplCanvas(FigureCanvasQTAgg):
     """Configures a canvas using the matplotlib backend for PyQT5"""
 
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
+    def __init__(self, parent=None):
         """
         Initializer for the matplotlib canvas
 
         Parameters
         ----------
-        parent : PyQt5 view, optional
-            The view to embed the canvas, by default None
-        width : int, optional
-            Width of the plot canvas, by default 5
-        height : int, optional
-            Height of the plot canvas, by default 4
-        dpi : int, optional
-            Display resolution for the canvas, by default 100
+        parent : Figure, optional
+            Matplotlib figure used to set the canvas
         """
-        self.parent = parent
-        self.fig = Figure(figsize=(width, height), dpi=dpi)
-        super(MplCanvas, self).__init__(self.fig)
+        super(MplCanvas, self).__init__(parent)
+        self.fig = parent
 
         self.addImage()
 
         FigureCanvasQTAgg.setSizePolicy(self, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         FigureCanvasQTAgg.updateGeometry(self)
-        self.setParent(parent)
 
     def addImage(self):
+        """
+        Adds the pyoptsparse logo to the canvas as an axis.
+        """
         self.img = Image.open("assets/pyOptSparse_logo.png")
         axes = self.fig.add_subplot(111)
         axes.imshow(self.img, alpha=0.5)
@@ -60,14 +55,31 @@ class MplCanvas(FigureCanvasQTAgg):
 
 
 class PlotView(QtWidgets.QWidget):
-    def __init__(self, parent=None):
+    """Creates the plot view with a canvas and matplotlib toolbar"""
+
+    def __init__(self, parent=None, width: int = 10, height: int = 5, dpi: int = 100):
+        """
+        Constructor
+
+        Parameters
+        ----------
+        parent : QtWidgets.QtWidget, optional
+            Parent Window, by default None
+        width : int, optional
+            Figure Width, by default 10
+        height : int, optional
+            Figure Height, by default 5
+        dpi : int, optional
+            Figure dpi, by default 100
+        """
         super(PlotView, self).__init__(parent)
 
         # Create three "plot" QPushButton widgets
 
         # Create a maptlotlib FigureCanvas object,
         # which defines a single set of axes as its axes attribute
-        self.canvas = MplCanvas(self, width=10, height=5, dpi=100)
+        fig = Figure(figsize=(width, height), dpi=dpi)
+        self.canvas = MplCanvas(parent=fig)
 
         # Create toolbar for the figure:
         # * First argument: the canvas that the toolbar must control
