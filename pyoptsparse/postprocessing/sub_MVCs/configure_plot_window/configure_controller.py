@@ -174,6 +174,18 @@ class ConfigureController(object):
         else:
             self._plot_model.options["bounds"] = False
 
+    def major_iter_toggled(self):
+        if self._view.major_iter_togg.isChecked():
+            print("True")
+        else:
+            print("False")
+
+    def minor_iter_toggled(self):
+        if self._view.minor_iter_togg.isChecked():
+            print("True")
+        else:
+            print("False")
+
     def cancel(self):
         self._plot_model.x_vars = []
         self._plot_model.y_vars = []
