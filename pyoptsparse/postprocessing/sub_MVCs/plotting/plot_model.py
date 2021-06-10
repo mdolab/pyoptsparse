@@ -21,22 +21,10 @@ class PlotModel(object):
 
     def __init__(self):
         self.options = {"scaled": False, "bounds": False}
-        self.x_vars = []
-        self.y_vars = []
+        self.vars = []
         self.axis = None
 
-    def add_x_var(self, var):
-        """
-        Adds an x-variable to the data model
-
-        Parameters
-        ----------
-        var_name : str
-            Name of the variable
-        """
-        self.x_vars.append(var)
-
-    def add_y_var(self, var):
+    def add_var(self, var):
         """
         Adds a y-variable to the data model
 
@@ -45,20 +33,9 @@ class PlotModel(object):
         var_name : str
             Name of the variable
         """
-        self.y_vars.append(var)
+        self.vars.append(var)
 
-    def remove_x_var(self, idx: int):
-        """
-        Removes an x-variable from the data model
-
-        Parameters
-        ----------
-        var_name : str
-            Name of the variable
-        """
-        self.x_vars.pop(idx)
-
-    def remove_y_var(self, idx: int):
+    def remove_var(self, idx: int):
         """
         Removes a y-variable from the data model
 
@@ -67,15 +44,14 @@ class PlotModel(object):
         var_name : str
             Name of the variable
         """
-        self.y_vars.pop(idx)
+        self.vars.pop(idx)
 
-    def clear_x_vars(self):
-        """Resets the x-variables"""
-        self.x_vars = []
-
-    def clear_y_vars(self):
+    def clear_vars(self):
         """Resets the y-variables"""
-        self.y_vars = []
+        self.vars = []
+
+    def clear_options(self):
+        self.options = {}
 
     def update_axis(self, axis):
         self.axis.cla()
