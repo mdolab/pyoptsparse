@@ -18,10 +18,9 @@ Model for the configure plot window
 
 class ConfigurePlotModel(object):
     def __init__(self):
-        self.x_var_mapping = []
-        self.y_var_mapping = []
+        self.var_mapping = []
 
-    def add_var(self, file_idx: int, axis: str):
+    def add_var(self, file_idx: int):
         """
         Determine the relative index of the variable based on the file index
 
@@ -29,41 +28,22 @@ class ConfigurePlotModel(object):
         ----------
         file_idx : int
             File index
-        axis : str
-            Plot axis (x or y)
         """
         count = 0
-        if axis == "x":
-            for i in self.x_var_mapping:
-                if i[0] == file_idx:
-                    count += 1
+        for i in self.var_mapping:
+            if i[0] == file_idx:
+                count += 1
 
-            var_idx_rel = count
+        var_idx_rel = count
 
-            self.x_var_mapping.append([file_idx, var_idx_rel])
+        self.var_mapping.append([file_idx, var_idx_rel])
 
-        elif axis == "y":
-            for i in self.y_var_mapping:
-                if i[0] == file_idx:
-                    count += 1
+    def remove_var(self, var_idx_abs: int):
 
-            var_idx_rel = count
+        var = self.var_mapping.pop(var_idx_abs)
 
-            self.y_var_mapping.append([file_idx, var_idx_rel])
-
-    def remove_var(self, var_idx_abs: int, axis: str):
-        if axis == "x":
-            var = self.x_var_mapping.pop(var_idx_abs)
-
-            for i in self.x_var_mapping:
-                if i[0] == var[0] and i[1] > var[1]:
-                    i[1] -= 1
-
-        elif axis == "y":
-            var = self.y_var_mapping.pop(var_idx_abs)
-
-            for i in self.y_var_mapping:
-                if i[0] == var[0] and i[1] > var[1]:
-                    i[1] -= 1
+        for i in self.var_mapping:
+            if i[0] == var[0] and i[1] > var[1]:
+                i[1] -= 1
 
         return var[0], var[1]
