@@ -1,6 +1,11 @@
-import numpy as np
+# Standard Python modules
 import argparse
-from pyoptsparse import Optimization, OPT
+
+# External modules
+import numpy as np
+
+# First party modules
+from pyoptsparse import OPT, Optimization
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--opt", help="optimizer", type=str, default="SLSQP")

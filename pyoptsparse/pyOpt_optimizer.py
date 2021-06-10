@@ -1,37 +1,41 @@
-#!/usr/bin/env python
-# =============================================================================
-# Imports
-# =============================================================================
-import os
-import time
-import copy
-import numpy as np
-from .pyOpt_gradient import Gradient
-from .pyOpt_error import Error, pyOptSparseWarning
-from .pyOpt_history import History
-from .pyOpt_solution import Solution
-from .pyOpt_optimization import INFINITY
-from .pyOpt_utils import convertToDense, convertToCOO, extractRows, mapToCSC, scaleRows, IDATA
+# Standard Python modules
 from collections import OrderedDict
+import copy
 import datetime
+import os
+import shutil
+import tempfile
+import time
+from typing import Any, Callable, Dict, List, Optional, Union
+
+# External modules
 from baseclasses import BaseSolver
+import numpy as np
+from numpy import ndarray
+
+# Local modules
 from .pyOpt_MPI import MPI
+from .pyOpt_error import Error, pyOptSparseWarning
+from .pyOpt_gradient import Gradient
+from .pyOpt_history import History
+from .pyOpt_optimization import Optimization
+from .pyOpt_solution import Solution
+from .pyOpt_utils import EPS, IDATA, INFINITY, convertToCOO, convertToDense, extractRows, mapToCSC, scaleRows
 
-eps = np.finfo(np.float64).eps
+# isort: off
 
-# =============================================================================
-# Optimizer Class
-# =============================================================================
+
 class Optimizer(BaseSolver):
     def __init__(
         self,
-        name,
-        category,
-        defaultOptions={},
-        informs={},
-        options={},
-        checkDefaultOptions=True,
-        caseSensitiveOptions=True,
+        name: str,
+        category: str,
+        defaultOptions: Dict[str, Any] = {},
+        informs: Dict[int, str] = {},
+        options: Dict[str, Any] = {},
+        checkDefaultOptions: bool = True,
+        caseSensitiveOptions: bool = True,
+        version: Optional[str] = None,
     ):
         """
         This is the base optimizer class that all optimizers inherit from.
@@ -57,33 +61,36 @@ class Optimizer(BaseSolver):
             checkDefaultOptions=checkDefaultOptions,
             caseSensitiveOptions=caseSensitiveOptions,
         )
-        self.callCounter = 0
-        self.sens = None
-        self.optProb = None
+        # callCounter will be incremented after the function calls, iterCounters will be incremented before the calls.
+        self.callCounter = 0  # counts all function calls (fobj, fcon, gobj, gcon)
+        self.iterCounter = -1  # counts iteration(new x point)
+        self.sens: Union[None, Callable, Gradient] = None
+        self.optProb: Optimization
+        self.version: Optional[str] = version
+
         # Default options:
-        self.appendLinearConstraints = False
-        self.jacType = "dense"
-        self.unconstrained = False
-        self.userObjTime = 0.0
-        self.userSensTime = 0.0
-        self.interfaceTime = 0.0
-        self.userObjCalls = 0
-        self.userSensCalls = 0
-        self.storeSens = True
+        self.appendLinearConstraints: bool = False
+        self.jacType: str = "dense"
+        self.unconstrained: bool = False
+        self.userObjTime: float = 0.0
+        self.userSensTime: float = 0.0
+        self.interfaceTime: float = 0.0
+        self.userObjCalls: int = 0
+        self.userSensCalls: int = 0
+        self.storeSens: bool = True
 
         # Cache storage
-        self.cache = {"x": None, "fobj": None, "fcon": None, "gobj": None, "gcon": None}
+        self.cache: Dict[str, Any] = {"x": None, "fobj": None, "fcon": None, "gobj": None, "gcon": None}
 
         # A second-level cache for optimizers that require callbacks
         # for each constraint. (eg. PSQP etc)
-        self.storedData = {}
-        self.storedData["x"] = None
+        self.storedData: Dict[str, Any] = {"x": None}
 
         # Store the Jacobian conversion maps
         self._jac_map_csr_to_csc = None
 
         # Initialize metadata
-        self.metadata = {}
+        self.metadata: Dict[str, Any] = {}
 
     def _clearTimings(self):
         """Clear timings and call counters"""
@@ -93,10 +100,15 @@ class Optimizer(BaseSolver):
         self.userObjCalls = 0
         self.userSensCalls = 0
 
-    def _setSens(self, sens, sensStep, sensMode):
+    def _setSens(self, sens: Union[None, str, Callable], sensStep: float, sensMode: str):
         """
         Common function to setup sens function
         """
+
+        # If the sens parameter is None and the sens parameter in the
+        # optProb is not None, use the optProb setting
+        if sens is None and self.optProb.sens is not None:
+            sens = self.optProb.sens
 
         # If we have SNOPT set derivative level to 3...it will be
         # reset if necessary
@@ -113,12 +125,10 @@ class Optimizer(BaseSolver):
                 self.sens = None
             else:
                 raise Error(
-                    (
-                        "'None' value given for sens. "
-                        + "Must be one of 'FD', 'FDR', 'CD', 'CDR', 'CS' or a user supplied function."
-                    )
+                    "'None' value given for sens. "
+                    + "Must be one of 'FD', 'FDR', 'CD', 'CDR', 'CS' or a user supplied function."
                 )
-        elif hasattr(sens, "__call__"):
+        elif callable(sens):
             # We have function handle for gradients! Excellent!
             self.sens = sens
         elif sens.lower() in ["fd", "fdr", "cd", "cdr", "cs"]:
@@ -130,7 +140,7 @@ class Optimizer(BaseSolver):
                 "Unknown value given for sens. Must be one of [None,'FD','FDR','CD','CDR','CS'] or a python function handle"
             )
 
-    def _setHistory(self, storeHistory, hotStart):
+    def _setHistory(self, storeHistory: str, hotStart: str):
         """
         Generic routine for setting up the hot start information
 
@@ -142,42 +152,52 @@ class Optimizer(BaseSolver):
         hotStart : str
             Filename for history file for hot start
         """
-        # By default no hot start
-        self.hotStart = None
+        # we have to wrap the whole function
+        # so it's parallel safe
+        if self.optProb.comm.rank == 0:
+            # By default no hot start
+            self.hotStart = None
 
-        # Determine if we want to do a hot start:
-        if hotStart is not None:
-            # Now, if if the hot start file and the history are
-            # the SAME, we don't allow that. We will create a copy
-            # of the hotStart file and use *that* instead.
-            import tempfile
-            import shutil
-
-            if storeHistory == hotStart:
-                if os.path.exists(hotStart):
-                    fname = tempfile.mktemp()
-                    shutil.copyfile(storeHistory, fname)
-                    self.hotStart = History(fname, temp=True, flag="r")
-            else:
-                if os.path.exists(hotStart):
-                    self.hotStart = History(hotStart, temp=False, flag="r")
-                else:
-                    pyOptSparseWarning("Hot start file does not exist. Performing a regular start")
-
-        self.storeHistory = False
-        if storeHistory:
-            self.hist = History(storeHistory, flag="n", optProb=self.optProb)
-            self.storeHistory = True
-
+            # Determine if we want to do a hot start:
             if hotStart is not None:
-                for key in ["varInfo", "conInfo", "objInfo", "optProb"]:
-                    val = self.hotStart.read(key)
-                    if val is not None:
-                        self.hist.writeData(key, val)
-                self._setMetadata()
-                self.hist.writeData("metadata", self.metadata)
+                # Now, if if the hot start file and the history are
+                # the SAME, we don't allow that. We will create a copy
+                # of the hotStart file and use *that* instead.
+                if storeHistory == hotStart:
+                    if os.path.exists(hotStart):
+                        fname = tempfile.mktemp()
+                        shutil.copyfile(storeHistory, fname)
+                        self.hotStart = History(fname, temp=True, flag="r")
+                else:
+                    if os.path.exists(hotStart):
+                        self.hotStart = History(hotStart, temp=False, flag="r")
+                    else:
+                        pyOptSparseWarning("Hot start file does not exist. Performing a regular start")
 
-    def _masterFunc(self, x, evaluate):
+            self.storeHistory = False
+            if storeHistory:
+                self.hist = History(storeHistory, flag="n", optProb=self.optProb)
+                self.storeHistory = True
+
+                if self.hotStart is not None:
+                    # we set the DVs to the _initial_ values of the hotstart history file
+                    # we need major=False here since not all optimizers support major iteration counting
+                    # even though in theory the first call counter should always be major
+                    init_DV = self.hotStart.getValues(
+                        names=self.hotStart.getDVNames(), callCounters=[0], major=False, allowSens=True
+                    )
+                    self.optProb.setDVs(init_DV)
+                    # we also save these metadata values
+                    # into the new history file
+                    for key in ["varInfo", "conInfo", "objInfo", "optProb"]:
+                        val = self.hotStart.read(key)
+                        if val is not None:
+                            self.hist.writeData(key, val)
+                    self._setMetadata()
+                    self.hist.writeData("metadata", self.metadata)
+        self.optProb.comm.Barrier()
+
+    def _masterFunc(self, x: ndarray, evaluate: List[str]):
         """
         This is the master function that **ALL** optimizers call from
         the specific signature functions. The reason for this is that
@@ -199,6 +219,10 @@ class Optimizer(BaseSolver):
             values is required on return
         """
 
+        # Increment iteration counter if x is a new point
+        if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
+            self.iterCounter += 1
+
         # We are hot starting, we should be able to read the required
         # information out of the hot start file, process it and then
         # fire it back to the specific optimizer
@@ -215,7 +239,7 @@ class Optimizer(BaseSolver):
 
                 # Validated x-point point to use:
                 xuser_vec = self.optProb._mapXtoUser(x)
-                if np.isclose(xuser_vec, xuser_ref, rtol=eps, atol=eps).all():
+                if np.isclose(xuser_vec, xuser_ref, rtol=EPS, atol=EPS).all():
 
                     # However, we may need a sens that *isn't* in the
                     # the dictionary:
@@ -261,6 +285,9 @@ class Optimizer(BaseSolver):
                                 returns.append(gobj)
                             if "gcon" in evaluate:
                                 returns.append(gcon)
+
+                        # Cache x because the iteration counter need this
+                        self.cache["x"] = x.copy()
 
                         # We can now safely increment the call counter
                         self.callCounter += 1
@@ -319,7 +346,7 @@ class Optimizer(BaseSolver):
         returns = []
         # Start with fobj:
         if "fobj" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
                 timeA = time.time()
                 args = self.optProb.objFun(xuser)
                 if isinstance(args, tuple):
@@ -338,7 +365,12 @@ class Optimizer(BaseSolver):
 
                 self.userObjTime += time.time() - timeA
                 self.userObjCalls += 1
-                # User values stored is immediately
+
+                # Discard zero imaginary components in funcs
+                for key, val in funcs.items():
+                    funcs[key] = np.real(val)
+
+                # Store user values
                 self.cache["funcs"] = copy.deepcopy(funcs)
 
                 # Process constraints/objectives
@@ -361,7 +393,7 @@ class Optimizer(BaseSolver):
             hist["funcs"] = self.cache["funcs"]
 
         if "fcon" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
                 timeA = time.time()
 
                 args = self.optProb.objFun(xuser)
@@ -381,7 +413,12 @@ class Optimizer(BaseSolver):
 
                 self.userObjTime += time.time() - timeA
                 self.userObjCalls += 1
-                # User values stored is immediately
+
+                # Discard zero imaginary components in funcs
+                for key, val in funcs.items():
+                    funcs[key] = np.real(val)
+
+                # Store user values
                 self.cache["funcs"] = copy.deepcopy(funcs)
 
                 # Process constraints/objectives
@@ -404,7 +441,7 @@ class Optimizer(BaseSolver):
             hist["funcs"] = self.cache["funcs"]
 
         if "gobj" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recursively call
                 # the routine with ['fobj', and 'fcon']
@@ -436,7 +473,7 @@ class Optimizer(BaseSolver):
                 self.userSensTime += time.time() - timeA
                 self.userSensCalls += 1
 
-                # User values are stored is immediately
+                # User values are stored immediately
                 self.cache["funcsSens"] = copy.deepcopy(funcsSens)
 
                 # Process objective gradient for optimizer
@@ -459,7 +496,7 @@ class Optimizer(BaseSolver):
                 hist["funcsSens"] = self.cache["funcsSens"]
 
         if "gcon" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=eps, rtol=eps).all():
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
                 # Previous evaluated point is *different* than the
                 # point requested for the derivative. Recursively call
                 # the routine with ['fobj', and 'fcon']
@@ -490,7 +527,8 @@ class Optimizer(BaseSolver):
 
                 self.userSensTime += time.time() - timeA
                 self.userSensCalls += 1
-                # User values stored is immediately
+
+                # User values are stored immediately
                 self.cache["funcsSens"] = copy.deepcopy(funcsSens)
 
                 # Process objective gradient for optimizer
@@ -514,6 +552,9 @@ class Optimizer(BaseSolver):
 
         # Put the fail flag in the history:
         hist["fail"] = masterFail
+
+        # Put the iteration counter in the history
+        hist["iter"] = self.iterCounter
 
         # Save information about major iteration counting (only matters for SNOPT).
         if self.name == "SNOPT":
@@ -728,28 +769,14 @@ class Optimizer(BaseSolver):
 
         return np.real(np.squeeze(ff))
 
-    def _createSolution(self, optTime, sol_inform, obj, xopt, multipliers=None):
+    def _createSolution(self, optTime, sol_inform, obj, xopt, multipliers=None) -> Solution:
         """
         Generic routine to create the solution after an optimizer
         finishes.
         """
-        sol = Solution(self.optProb, optTime, sol_inform)
-        sol.userObjTime = self.userObjTime
-        sol.userSensTime = self.userSensTime
-        sol.userObjCalls = self.userObjCalls
-        sol.userSensCalls = self.userSensCalls
-        sol.interfaceTime = self.interfaceTime - self.userSensTime - self.userObjTime
-        sol.optCodeTime = sol.optTime - self.interfaceTime
-        sol.fStar = obj  # FIXME: this doesn't work, at least for SNOPT
+        fStar = self.optProb._mapObjtoUser(obj)
         xuser = self.optProb._mapXtoUser(xopt)
-        sol.xStar = self.optProb.processXtoDict(xuser)
-
-        # Now set the x-values:
-        i = 0
-        for dvGroup in sol.variables:
-            for var in sol.variables[dvGroup]:
-                var.value = xopt[i]
-                i += 1
+        xStar = self.optProb.processXtoDict(xuser)
 
         if multipliers is not None:
             multipliers = self.optProb.processContoDict(multipliers, scaled=True, multipliers=True)
@@ -759,10 +786,21 @@ class Optimizer(BaseSolver):
                 obj = list(self.optProb.objectives.keys())[0]
                 for con in multipliers.keys():
                     multipliers[con] /= self.optProb.objectives[obj].scale
-            sol.lambdaStar = multipliers
+        # construct info dict
+        info = {
+            "optTime": optTime,
+            "userObjTime": self.userObjTime,
+            "userSensTime": self.userSensTime,
+            "userObjCalls": self.userObjCalls,
+            "userSensCalls": self.userSensCalls,
+            "interfaceTime": self.interfaceTime - self.userSensTime - self.userObjTime,
+            "optCodeTime": optTime - self.interfaceTime,
+        }
+        sol = Solution(self.optProb, xStar, fStar, multipliers, sol_inform, info)
+
         return sol
 
-    def _communicateSolution(self, sol):
+    def _communicateSolution(self, sol: Optional[Solution]) -> Solution:
         """
         Broadcast the solution from the root proc back to everyone. We
         have to be a little careful since we can't in general
@@ -771,11 +809,11 @@ class Optimizer(BaseSolver):
 
         if sol is not None:
             sol.comm = None
-        sol = self.optProb.comm.bcast(sol)
-        sol.objFun = self.optProb.objFun
-        sol.comm = self.optProb.comm
+        commSol = self.optProb.comm.bcast(sol)
+        commSol.objFun = self.optProb.objFun
+        commSol.comm = self.optProb.comm
 
-        return sol
+        return commSol
 
     def _setMetadata(self):
         """
@@ -793,6 +831,7 @@ class Optimizer(BaseSolver):
         self.metadata = {
             "version": __version__,
             "optimizer": self.name,
+            "optVersion": self.version,
             "optName": self.optProb.name,
             "nprocs": MPI.COMM_WORLD.size,
             "optOptions": options,
@@ -852,7 +891,10 @@ class Optimizer(BaseSolver):
         """
         Routine to be implemented by optimizer
         """
-        return self.informs[info]
+        try:
+            return self.informs[info]
+        except KeyError:
+            return f"Unknown Exit Status, Exit Code {info}"
 
     def getInform(self, infocode=None):
         """
@@ -914,15 +956,12 @@ def OPT(optName, *args, **kwargs):
         from .pyNSGA2.pyNSGA2 import NSGA2 as opt
     elif optName == "alpso":
         from .pyALPSO.pyALPSO import ALPSO as opt
-    # elif optName == 'nomad':
-    #     from .pyNOMAD.pyNOMAD import NOMAD as opt
     elif optName == "paropt":
         from .pyParOpt.ParOpt import ParOpt as opt
     else:
         raise Error(
-            "The optimizer specified in 'optName' was \
-not recognized. The current list of supported optimizers is: %s"
-            % repr(optList)
+            "The optimizer specified in 'optName' was not recognized. "
+            + f"The current list of supported optimizers is: {optList}"
         )
 
     # Create the optimizer and return it

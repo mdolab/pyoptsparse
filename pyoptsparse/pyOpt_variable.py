@@ -1,13 +1,21 @@
-#!/usr/bin/env python
-
+# Local modules
 from .pyOpt_error import Error
+from .pyOpt_utils import INFINITY
 
-INFINITY = 1e20
-# =============================================================================
-# Variable Class
-# =============================================================================
+
 class Variable(object):
-    def __init__(self, name, type, value, lower, upper, scale, offset, scalar=False, choices=None):
+    def __init__(
+        self,
+        name: str,
+        varType: str,
+        value,
+        lower,
+        upper,
+        scale,
+        offset,
+        scalar=False,
+        choices=[],
+    ):
         """
         This class holds the representation of a single pyOptSparse variable
 
@@ -16,9 +24,9 @@ class Variable(object):
         Optimization.addVarGroup : for the full documentation
         """
         self.name = name
-        self.type = type
+        self.type = varType
         self.scalar = scalar
-        self.choices = None
+        self.choices = choices
         if self.type == "c":
             if lower is None:
                 self.lower = -INFINITY
@@ -40,9 +48,8 @@ class Variable(object):
             self.scale = scale
             self.offset = offset
         elif self.type == "d":
-            if choices is None:
+            if len(choices) == 0:
                 raise Error("A discrete variable requires to input an array of choices.")
-            self.choices = choices
             self.value = self.choices[int(value)]
             self.lower = 0
             self.upper = len(self.choices)
@@ -64,7 +71,7 @@ class Variable(object):
         else:
             return False
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Print Structured List of Variable
         """
@@ -85,9 +92,9 @@ class Variable(object):
             lower = self.lower
             upper = self.upper
             if self.lower is None:
-                lower = -1e20
+                lower = -INFINITY
             if self.upper is None:
-                upper = 1e20
+                upper = INFINITY
 
             res += "	 "
             res += str(self.name).center(9)

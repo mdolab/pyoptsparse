@@ -1,67 +1,44 @@
-# /bin/env python
 """
 pySNOPT - A variation of the pySNOPT wrapper specificially designed to
 work with sparse optimization problems.
 """
-# =============================================================================
-# SNOPT Library
-# =============================================================================
+# Compiled module
 try:
-    from . import snopt
+    from . import snopt  # isort: skip
 except ImportError:
     snopt = None
-# =============================================================================
 # Standard Python modules
-# =============================================================================
-import os
-import time
 import datetime
+import os
+import re
+import time
+from typing import Any, Dict, Optional, Tuple
 
-# =============================================================================
-# External Python modules
-# =============================================================================
-import numpy as np
-
-# # ===========================================================================
-# # Extension modules
-# # ===========================================================================
-from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_error import Error
-from ..pyOpt_utils import ICOL, IDATA, IROW, extractRows, mapToCSC, scaleRows
+# External modules
 from baseclasses.utils import CaseInsensitiveSet
+import numpy as np
+from numpy import ndarray
 
-# =============================================================================
-# SNOPT Optimizer Class
-# =============================================================================
+# Local modules
+from ..pyOpt_error import Error
+from ..pyOpt_optimization import Optimization
+from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_utils import ICOL, IDATA, INFINITY, IROW, extractRows, mapToCSC, scaleRows
+
+
 class SNOPT(Optimizer):
     """
     SNOPT Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, raiseError=True, options={}):
+    def __init__(self, raiseError=True, options: Dict = {}):
         """
         SNOPT Optimizer Class Initialization
         """
 
         name = "SNOPT"
         category = "Local Optimizer"
-        self.defOpts = {
-            "iPrint": [int, 18],  # Print File Output Unit (override internally in snopt?)
-            "iSumm": [int, 19],  # Summary File Output Unit (override internally in snopt?)
-            "Print file": [str, "SNOPT_print.out"],  # Print File Name (specified by subroutine snInit)
-            "Summary file": [str, "SNOPT_summary.out"],  # Summary File Name (specified by subroutine snInit)
-            "Problem Type": [str, ["Minimize", "Maximize", "Feasible point"]],
-            "Start": [str, ["Cold", "Warm"]],  # used in call to snkerc, the option "Cold Start" etc are NOT allowed
-            "Derivative level": [int, 3],
-            "Proximal iterations limit": [int, 10000],  # very large # to solve proximal point problem to optimality
-            "Total character workspace": [int, None],  # lencw: 500
-            "Total integer workspace": [int, None],  # leniw: 500 + 100 * (ncon + nvar)
-            "Total real workspace": [int, None],  # lenrw: 500 + 200 * (ncon + nvar)
-            "Save major iteration variables": [
-                list,
-                ["step", "merit", "feasibility", "optimality", "penalty"],
-            ],  # 'Hessian', 'slack', 'lambda' and 'condZHZ' are also supported
-        }
+        defOpts = self._getDefaultOptions()
         # these are SNOPT-related options that do not get set via snset
         self.specialOptions = CaseInsensitiveSet(
             {
@@ -73,7 +50,62 @@ class SNOPT(Optimizer):
         # this is purely within pySNOPT, nothing to do with SNOPT itself
         self.pythonOptions = CaseInsensitiveSet({"Save major iteration variables"})
 
-        self.informs = {
+        informs = self._getInforms()
+
+        if snopt is None:
+            if raiseError:
+                raise Error("There was an error importing the compiled snopt module")
+            else:
+                version = None
+        else:
+            # extract SNOPT version
+            version_str = snopt.sntitle().decode("utf-8")
+            # The version_str is going to look like
+            # S N O P T  7.7.5    (Oct 2020)
+            # we search between "S N O P T" and "("
+            res = re.search("S N O P T(.*)\(", version_str)
+            if res is not None:
+                version = res.group(1).strip()
+            else:
+                version = None
+
+        super().__init__(
+            name,
+            category,
+            defaultOptions=defOpts,
+            informs=informs,
+            options=options,
+            checkDefaultOptions=False,
+            version=version,
+        )
+
+        # SNOPT need Jacobians in csc format
+        self.jacType = "csc"
+
+        # SNOPT specific Jacobian map
+        self._snopt_jac_map_csr_to_csc: Optional[Tuple[ndarray, ndarray, ndarray]] = None
+
+    @staticmethod
+    def _getDefaultOptions() -> Dict[str, Any]:
+        defOpts = {
+            "iPrint": [int, 18],
+            "iSumm": [int, 19],
+            "Print file": [str, "SNOPT_print.out"],
+            "Summary file": [str, "SNOPT_summary.out"],
+            "Problem Type": [str, ["Minimize", "Maximize", "Feasible point"]],
+            "Start": [str, ["Cold", "Warm"]],
+            "Derivative level": [int, 3],
+            "Proximal iterations limit": [int, 10000],
+            "Total character workspace": [int, None],
+            "Total integer workspace": [int, None],
+            "Total real workspace": [int, None],
+            "Save major iteration variables": [list, ["step", "merit", "feasibility", "optimality", "penalty"]],
+        }
+        return defOpts
+
+    @staticmethod
+    def _getInforms() -> Dict[int, str]:
+        informs = {
             0: "finished successfully",
             1: "optimality conditions satisfied",
             2: "feasible point found",
@@ -145,29 +177,11 @@ class SNOPT(Optimizer):
             141: "wrong no of basic variables",
             142: "error in basis package",
         }
-
-        if snopt is None:
-            if raiseError:
-                raise Error("There was an error importing the compiled snopt module")
-
-        super().__init__(
-            name,
-            category,
-            defaultOptions=self.defOpts,
-            informs=self.informs,
-            options=options,
-            checkDefaultOptions=False,
-        )
-
-        # SNOPT need Jacobians in csc format
-        self.jacType = "csc"
-
-        # SNOPT specific Jacobian map
-        self._snopt_jac_map_csr_to_csc = None
+        return informs
 
     def __call__(
         self,
-        optProb,
+        optProb: Optimization,
         sens=None,
         sensStep=None,
         sensMode=None,
@@ -249,13 +263,12 @@ class SNOPT(Optimizer):
             optProb.dummyConstraint = True
 
         self.optProb = optProb
-        self.optProb.finalizeDesignVariables()
-        self.optProb.finalizeConstraints()
-
+        self.optProb.finalize()
+        # Set history/hotstart
+        self._setHistory(storeHistory, hotStart)
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
-        ff = self._assembleObjective()
 
         oneSided = False
         # Set the number of nonlinear constraints snopt *thinks* we have:
@@ -275,7 +288,7 @@ class SNOPT(Optimizer):
                 self.optProb.jacIndices = [0]
                 self.optProb.fact = np.array([1.0])
                 self.optProb.offset = np.zeros_like(self.optProb.fact)
-
+        sol = None
         # We make a split here: If the rank is zero we setup the
         # problem and run SNOPT, otherwise we go to the waiting loop:
         if self.optProb.comm.rank == 0:
@@ -296,8 +309,8 @@ class SNOPT(Optimizer):
                 jac = extractRows(jac, indices)  # Does reordering
                 scaleRows(jac, fact)  # Perform logical scaling
             else:
-                blc = [-1e20]
-                buc = [1e20]
+                blc = [-INFINITY]
+                buc = [INFINITY]
 
             if self._snopt_jac_map_csr_to_csc is None:
                 self._snopt_jac_map_csr_to_csc = mapToCSC(jac)
@@ -354,7 +367,7 @@ class SNOPT(Optimizer):
                 lenrw = minWorkArrayLength + 200 * (ncon + nvar)
                 self.setOption("Total real workspace", lenrw)
 
-            cw = np.empty((lencw, 8), "c")
+            cw = np.empty((lencw, 8), dtype="|S1")
             iw = np.zeros(leniw, np.intc)
             rw = np.zeros(lenrw, np.float)
             snopt.sninit(iPrint, iSumm, cw, iw, rw)
@@ -380,7 +393,7 @@ class SNOPT(Optimizer):
             if checkLencw and mincw > lencw:
                 lencw = mincw
                 self.setOption("Total character workspace", lencw)
-                cw = np.array((lencw, 8), "c")
+                cw = np.empty((lencw, 8), dtype="|S1")
                 cw[:] = " "
                 lengthsChanged = True
             if checkLeniw and miniw > leniw:
@@ -416,7 +429,7 @@ class SNOPT(Optimizer):
             bu = np.concatenate((bux, buc))
             leniu = 2
             lenru = 3
-            cu = np.array(["        "], "c")
+            cu = np.empty((1, 8), dtype="|S1")
             iu = np.zeros(leniu, np.intc)
             ru = np.zeros(lenru, np.float)
             hs = np.zeros(nvar + ncon, np.intc)
@@ -432,16 +445,13 @@ class SNOPT(Optimizer):
             ninf = np.array([0], np.intc)
             sinf = np.array([0.0], np.float)
 
-            # Set history/hotstart
-            self._setHistory(storeHistory, hotStart)
-
             # The snopt c interface
             timeA = time.time()
             # fmt: off
-            snopt.snkerc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
-                         self._userfg_wrap, snopt.snlog, snopt.snlog2, snopt.sqlog, self._snstop,
-                         Acol, indA, locA, bl, bu, Names, hs, xs, pi, rc, inform,
-                         mincw, miniw, minrw, nS, ninf, sinf, ff, cu, iu, ru, cw, iw, rw)
+            obj = snopt.snkerc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
+                               self._userfg_wrap, snopt.snlog, snopt.snlog2, snopt.sqlog, self._snstop,
+                               Acol, indA, locA, bl, bu, Names, hs, xs, pi, rc, inform,
+                               mincw, miniw, minrw, nS, ninf, sinf, cu, iu, ru, cw, iw, rw)
             # fmt: on
             optTime = time.time() - timeA
 
@@ -470,16 +480,15 @@ class SNOPT(Optimizer):
             sol_inform["text"] = self.informs[inform]
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff, xs[:nvar], multipliers=pi)
+            sol = self._createSolution(optTime, sol_inform, obj, xs[:nvar], multipliers=pi)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
-            sol = None
 
         # Communication solution and return
-        sol = self._communicateSolution(sol)
+        commSol = self._communicateSolution(sol)
 
-        return sol
+        return commSol
 
     def _userfg_wrap(self, mode, nnJac, x, fobj, gobj, fcon, gcon, nState, cu, iu, ru):
         """
@@ -608,7 +617,7 @@ class SNOPT(Optimizer):
         iabort = 0
         return iabort
 
-    def _set_snopt_options(self, iPrint, iSumm, cw, iw, rw):
+    def _set_snopt_options(self, iPrint: int, iSumm: int, cw: ndarray, iw: ndarray, rw: ndarray):
         """
         Set all the options into SNOPT that have been assigned
         by the user
@@ -636,33 +645,6 @@ class SNOPT(Optimizer):
                 snopt.snseti(name, value, iPrint, iSumm, inform, cw, iw, rw)
             elif isinstance(value, type(None)):
                 snopt.snset(name, iPrint, iSumm, inform, cw, iw, rw)
-
-        return
-
-    def _on_getInform(self, infocode):
-        """
-        Get Optimizer Result Information (Optimizer Specific Routine)
-
-        Parameters
-        ----------
-        infocode: int
-            The info code
-
-        Returns
-        -------
-        inform_text : str
-            The inform text
-        """
-
-        mjr_code = (infocode[0] / 10) * 10
-        # mnr_code = infocode[0] - 10*mjr_code
-        try:
-            inform_text = self.informs[mjr_code]
-        except KeyError:
-            inform_text = "Unknown Exit Status"
-        # end try
-
-        return inform_text
 
     def _on_flushFiles(self):
         """

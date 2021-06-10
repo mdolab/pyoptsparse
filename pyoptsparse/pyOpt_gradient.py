@@ -1,15 +1,18 @@
-#!/usr/bin/env python
-# =============================================================================
-# External Python modules
-# =============================================================================
-import numpy as np
-from .pyOpt_MPI import MPI
+# Standard Python modules
+from typing import Tuple, Union
 
-# =============================================================================
-# Gradient Class
-# =============================================================================
+# External modules
+import numpy as np
+from numpy import ndarray
+
+# Local modules
+from .pyOpt_MPI import MPI
+from .pyOpt_optimization import Optimization
+from .types import Dict1DType, Dict2DType
+
+
 class Gradient(object):
-    def __init__(self, optProb, sensType, sensStep=None, sensMode="", comm=None):
+    def __init__(self, optProb: Optimization, sensType: str, sensStep: float = None, sensMode: str = "", comm=None):
         """
         Gradient class for automatically computing gradients with finite
         difference or complex step.
@@ -34,6 +37,7 @@ class Gradient(object):
         """
         self.optProb = optProb
         self.sensType = sensType
+        self.sensStep: Union[float, complex]
         if sensStep is None:
             if self.sensType in ["fd", "fdr"]:
                 self.sensStep = 1e-6
@@ -54,7 +58,7 @@ class Gradient(object):
         else:
             self.mydvs = list(range(ndvs))
 
-    def _eval_func(self, x):
+    def _eval_func(self, x: ndarray) -> Tuple[ndarray, ndarray, bool]:
         """internal method to call function and extract obj, con"""
 
         xCall = self.optProb.processXtoDict(x)
@@ -72,7 +76,7 @@ class Gradient(object):
 
         return fobj, fcon, fail
 
-    def __call__(self, x, funcs):
+    def __call__(self, x: Dict1DType, funcs: Dict1DType) -> Tuple[Dict2DType, bool]:
         """
         We need to make this object "look" the same as a user supplied
         function handle. That way, the optimizers need not care how
@@ -80,7 +84,7 @@ class Gradient(object):
 
         Parameters
         ----------
-        x : array
+        x : dict
             Optimization variables from optimizer
 
         funcs : dict
@@ -88,13 +92,8 @@ class Gradient(object):
 
         Returns
         -------
-        gobj : 1D array
-            The derivative of the objective with respect to the design
-            variables
-
-        gcon : 2D array
-            The derivative of the constraints with respect to the design
-            variables
+        funcsSens : dict
+            Dictionary of sensitivities
 
         fail : bool
             Flag for failure. It currently always returns False
@@ -123,7 +122,7 @@ class Gradient(object):
         # processed as per normal.
         xBase = self.optProb.processXtoVec(x)
         self.optProb.evaluateLinearConstraints(xBase, funcsBase)
-        fconBase = self.optProb.processContoVec(funcsBase, scaled=False, dtype="D", natural=True)
+        fconBase = self.optProb.processContoVec(funcsBase, scaled=False, natural=True)
         fobjBase = self.optProb.processObjtoVec(funcsBase, scaled=False)
 
         # Convert to complex if necessary:
@@ -168,7 +167,7 @@ class Gradient(object):
 
         if self.sensMode == "pgc":
             # We just mpi_reduce to the root with sum. This uses the
-            # efficent numpy versions
+            # efficient numpy versions
             self.comm.Reduce(gobj.copy(), gobj, op=MPI.SUM, root=0)
             self.comm.Reduce(gcon.copy(), gcon, op=MPI.SUM, root=0)
 
@@ -179,18 +178,18 @@ class Gradient(object):
 
         # Finally, we have to convert everything **back** to a
         # dictionary so the rest of the code works:
-        funcs = {}
+        funcsSens: Dict2DType = {}
         for objKey in self.optProb.objectives:
-            funcs[objKey] = {}
+            funcsSens[objKey] = {}
             for dvGroup in self.optProb.variables:
                 ss = self.optProb.dvOffset[dvGroup]
-                funcs[objKey][dvGroup] = gobj[ss[0] : ss[1]]
+                funcsSens[objKey][dvGroup] = gobj[ss[0] : ss[1]]
 
         for conKey in self.optProb.constraints:
             con = self.optProb.constraints[conKey]
-            funcs[conKey] = {}
+            funcsSens[conKey] = {}
             for dvGroup in self.optProb.variables:
                 ss = self.optProb.dvOffset[dvGroup]
-                funcs[conKey][dvGroup] = gcon[con.rs : con.re, ss[0] : ss[1]]
+                funcsSens[conKey][dvGroup] = gcon[con.rs : con.re, ss[0] : ss[1]]
 
-        return funcs, masterFail
+        return funcsSens, masterFail

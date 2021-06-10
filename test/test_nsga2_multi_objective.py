@@ -1,49 +1,51 @@
 """ Test NSGA2."""
 
+# Standard Python modules
 import unittest
+
+# External modules
 from numpy.testing import assert_allclose
-from pyoptsparse import Optimization, NSGA2
-from pyoptsparse.pyOpt_error import Error
+
+# First party modules
+from pyoptsparse import Optimization
+
+# Local modules
+from testing_utils import OptTest
 
 
-def objfunc(xdict):
-    x = xdict["x"]
-    y = xdict["y"]
+class TestNSGA2(OptTest):
+    name = "quadratic"
+    optName = "NSGA2"
 
-    funcs = {}
-    funcs["obj1"] = (x - 0.0) ** 2 + (y - 0.0) ** 2
-    funcs["obj2"] = (x - 1.0) ** 2 + (y - 1.0) ** 2
+    def objfunc(self, xdict):
+        x = xdict["x"]
+        y = xdict["y"]
 
-    fail = False
+        funcs = {}
+        funcs["obj1"] = (x - 0.0) ** 2 + (y - 0.0) ** 2
+        funcs["obj2"] = (x - 1.0) ** 2 + (y - 1.0) ** 2
 
-    return funcs, fail
+        fail = False
 
+        return funcs, fail
 
-class TestNSGA2(unittest.TestCase):
-    def test_opt(self):
+    def setup_optProb(self):
         # Instantiate Optimization Problem
-        optProb = Optimization("Rosenbrock function", objfunc)
-        optProb.addVar("x", "c", value=0, lower=-600, upper=600)
-        optProb.addVar("y", "c", value=0, lower=-600, upper=600)
+        self.optProb = Optimization("quadratic", self.objfunc)
+        self.optProb.addVar("x", value=0, lower=-600, upper=600)
+        self.optProb.addVar("y", value=0, lower=-600, upper=600)
 
-        optProb.addObj("obj1")
-        optProb.addObj("obj2")
+        self.optProb.addObj("obj1")
+        self.optProb.addObj("obj2")
+
+    def test_opt(self):
+        self.setup_optProb()
 
         # 300 generations will find x=(0,0), 200 or less will find x=(1,1)
-        options = {"maxGen": 200}
-
-        # Optimizer
-        try:
-            opt = NSGA2(options=options)
-        except Error:
-            raise unittest.SkipTest("Optimizer not available:", "NSGA2")
-
-        sol = opt(optProb)
-
-        # Check Solution
+        optOptions = {"maxGen": 200}
+        sol = self.optimize(optOptions=optOptions)
         tol = 1e-2
         assert_allclose(sol.variables["x"][0].value, 1.0, atol=tol, rtol=tol)
-
         assert_allclose(sol.variables["y"][0].value, 1.0, atol=tol, rtol=tol)
 
 

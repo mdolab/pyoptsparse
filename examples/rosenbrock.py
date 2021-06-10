@@ -1,6 +1,8 @@
-#!/usr/bin/env python
-from pyoptsparse import Optimization, SLSQP
+# Standard Python modules
 import argparse
+
+# First party modules
+from pyoptsparse import SLSQP, Optimization
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--sens", help="sensitivity mode", type=str, default="FD", choices=["FD", "CS", "CD", "user"])

@@ -1,38 +1,26 @@
-# /bin/env python
 """
 pyIPOPT - A python wrapper to the core IPOPT compiled module.
 """
-# =============================================================================
-# IPOPT Library
-# =============================================================================
-
+# Compiled module
 try:
-    from . import pyipoptcore
+    from . import pyipoptcore  # isort: skip
 except ImportError:
     pyipoptcore = None
 
-# =============================================================================
-# standard Python modules
-# =============================================================================
+# Standard Python modules
 import copy
-import time
 import datetime
+import time
 
-# =============================================================================
-# External Python modules
-# =============================================================================
+# External modules
 import numpy as np
 
-# =============================================================================
-# Extension modules
-# =============================================================================
-from ..pyOpt_optimizer import Optimizer
+# Local modules
 from ..pyOpt_error import Error
-from ..pyOpt_utils import IROW, ICOL, convertToCOO, extractRows, scaleRows
+from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, scaleRows
 
-# =============================================================================
-# IPOPT Optimizer Class
-# =============================================================================
+
 class IPOPT(Optimizer):
     """
     IPOPT Optimizer Class - Inherited from Optimizer Abstract Class
@@ -45,15 +33,28 @@ class IPOPT(Optimizer):
 
         name = "IPOPT"
         category = "Local Optimizer"
+        defOpts = self._getDefaultOptions()
+        informs = self._getInforms()
 
-        self.defOpts = {
-            "print_level": [int, 0],
-            "output_file": [str, "IPOPT.out"],
-            "option_file_name": [str, "IPOPT_options.opt"],
-            "linear_solver": [str, "mumps"],
-        }
+        if pyipoptcore is None:
+            if raiseError:
+                raise Error("There was an error importing the compiled IPOPT module")
 
-        self.informs = {
+        super().__init__(
+            name,
+            category,
+            defaultOptions=defOpts,
+            informs=informs,
+            options=options,
+            checkDefaultOptions=False,
+        )
+
+        # IPOPT needs Jacobians in coo format
+        self.jacType = "coo"
+
+    @staticmethod
+    def _getInforms():
+        informs = {
             0: "Solve Succeeded",
             1: "Solved To Acceptable Level",
             2: "Infeasible Problem Detected",
@@ -74,22 +75,19 @@ class IPOPT(Optimizer):
             -102: "Insufficient Memory",
             -199: "Internal Error",
         }
+        return informs
 
-        if pyipoptcore is None:
-            if raiseError:
-                raise Error("There was an error importing the compiled IPOPT module")
-
-        super().__init__(
-            name,
-            category,
-            defaultOptions=self.defOpts,
-            informs=self.informs,
-            options=options,
-            checkDefaultOptions=False,
-        )
-
-        # IPOPT needs Jacobians in coo format
-        self.jacType = "coo"
+    @staticmethod
+    def _getDefaultOptions():
+        defOpts = {
+            "print_level": [int, 0],
+            "file_print_level": [int, 5],
+            "sb": [str, "yes"],
+            "print_user_options": [str, "yes"],
+            "output_file": [str, "IPOPT.out"],
+            "linear_solver": [str, "mumps"],
+        }
+        return defOpts
 
     def __call__(
         self, optProb, sens=None, sensStep=None, sensMode=None, storeHistory=None, hotStart=None, storeSens=True
@@ -157,8 +155,9 @@ class IPOPT(Optimizer):
         # Save the optimization problem and finalize constraint
         # Jacobian, in general can only do on root proc
         self.optProb = optProb
-        self.optProb.finalizeDesignVariables()
-        self.optProb.finalizeConstraints()
+        self.optProb.finalize()
+        # Set history/hotstart
+        self._setHistory(storeHistory, hotStart)
         self._setInitialCacheValues()
         blx, bux, xs = self._assembleContinuousVariables()
         self._setSens(sens, sensStep, sensMode)
@@ -183,8 +182,8 @@ class IPOPT(Optimizer):
             jac = extractRows(jac, indices)  # Does reordering
             scaleRows(jac, fact)  # Perform logical scaling
         else:
-            blc = np.array([-1e20])
-            buc = np.array([1e20])
+            blc = np.array([-INFINITY])
+            buc = np.array([INFINITY])
             ncon = 1
 
         jac = convertToCOO(jac)  # Conver to coo format for IPOPT
@@ -197,9 +196,6 @@ class IPOPT(Optimizer):
             # Now what we need for IPOPT is precisely the .row and
             # .col attributes of the fullJacobian array
             matStruct = (jac["coo"][IROW].copy().astype("int_"), jac["coo"][ICOL].copy().astype("int_"))
-
-            # Set history/hotstart
-            self._setHistory(storeHistory, hotStart)
 
             # Define the 4 call back functions that ipopt needs:
             def eval_f(x, user_data=None):
@@ -275,12 +271,3 @@ class IPOPT(Optimizer):
                 nlp.int_option(name, value)
             else:
                 print("invalid option type", type(value))
-
-
-# ==============================================================================
-# IPOPT Optimizer Test
-# ==============================================================================
-if __name__ == "__main__":
-
-    ipopt = IPOPT()
-    print(ipopt)

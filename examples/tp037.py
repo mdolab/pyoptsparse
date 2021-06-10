@@ -1,5 +1,7 @@
 # rst begin import
-from pyoptsparse import Optimization, SLSQP
+# First party modules
+from pyoptsparse import SLSQP, Optimization
+
 
 # rst begin objfunc
 def objfunc(xdict):

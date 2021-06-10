@@ -1,10 +1,13 @@
-#!/usr/bin/env python
+# Standard Python modules
 import copy
+
+# Local modules
 from .pyOpt_optimization import Optimization
 
 
 class Solution(Optimization):
-    def __init__(self, optProb, optTime, optInform):
+    def __init__(self, optProb, xStar, fStar, lambdaStar, optInform, info):
+
         """
         This class is used to describe the solution of an optimization
         problem. This class inherits from Optimization which enables a
@@ -15,11 +18,21 @@ class Solution(Optimization):
         optProb : Optimization problem class
             Optimization problem used to create solution
 
-        optTime : float
-            Time required for the optimization
+        xStar : dict
+            The final design variables
+
+        fStar : dict
+            The final objective(s)
+
+        lambdaStar : dict
+            The final Lagrange multipliers
 
         optInform : int
-            The inform code from the optimization.
+            The inform code returned by the optimizer
+
+        info : dict
+            A dictionary containing timing and call counter info to be stored
+            in the Solution object.
         """
 
         Optimization.__init__(self, optProb.name, None)
@@ -28,14 +41,31 @@ class Solution(Optimization):
         self.variables = copy.deepcopy(optProb.variables)
         self.constraints = copy.deepcopy(optProb.constraints)
         self.objectives = copy.deepcopy(optProb.objectives)
-        self.optTime = optTime
-        self.optInform = optInform
+        xopt = optProb._mapXtoOpt(optProb.processXtoVec(xStar))
+        # Now set the x-values:
+        i = 0
+        for dvGroup in self.variables:
+            for var in self.variables[dvGroup]:
+                var.value = xopt[i]
+                i += 1
 
-    def __str__(self):
+        self.optTime = info["optTime"]
+        self.userObjTime = info["userObjTime"]
+        self.userSensTime = info["userSensTime"]
+        self.userObjCalls = info["userObjCalls"]
+        self.userSensCalls = info["userSensCalls"]
+        self.interfaceTime = info["interfaceTime"]
+        self.optCodeTime = info["optCodeTime"]
+        self.optInform = optInform
+        self.fStar = fStar
+        self.xStar = xStar
+        self.lambdaStar = lambdaStar
+
+    def __str__(self) -> str:
         """
         Print Structured Solution
         """
-        text0 = Optimization.__str__(self)
+        text0 = super().__str__()
         text1 = ""
         lines = text0.split("\n")
         lines[1] = lines[1][len("Optimization Problem -- ") :]
@@ -47,16 +77,10 @@ class Solution(Optimization):
         text1 += "    Total Time: %25.4f\n" % self.optTime
         text1 += "       User Objective Time :   %10.4f\n" % self.userObjTime
         text1 += "       User Sensitivity Time : %10.4f\n" % self.userSensTime
-        if hasattr(self, "userJProdTime"):
-            text1 += "       User J-Product Time :   %10.4f\n" % self.userJProdTime
-            text1 += "       User J^T-Product Time : %10.4f\n" % self.userJTProdTime
         text1 += "       Interface Time :        %10.4f\n" % self.interfaceTime
         text1 += "       Opt Solver Time:        %10.4f\n" % self.optCodeTime
         text1 += "    Calls to Objective Function : %7d\n" % self.userObjCalls
         text1 += "    Calls to Sens Function :      %7d\n" % self.userSensCalls
-        if hasattr(self, "userJProdCalls"):
-            text1 += "    Calls to JProd Function :     %7d\n" % self.userJProdCalls
-            text1 += "    Calls to JTProd Function :    %7d\n" % self.userJTProdCalls
 
         for i in range(5, len(lines)):
             text1 += lines[i] + "\n"

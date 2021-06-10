@@ -3,11 +3,14 @@ Tests that pyoptsparse allows a objective or gradient function to return a "2" a
 This status is passed to pySNOPT, which returns a -2 fail status, indicating that termination has
 been requested by the user.
 """
+# Standard Python modules
 import unittest
 
+# External modules
 import numpy as np
 
-from pyoptsparse import Optimization, SNOPT
+# First party modules
+from pyoptsparse import SNOPT, Optimization
 from pyoptsparse.pyOpt_error import Error
 
 
@@ -19,7 +22,7 @@ class TerminateComp(object):
         self.sens_count = 0
 
     def objfunc(self, xdict):
-        """ Evaluates the equation f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3 """
+        """Evaluates the equation f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3"""
         x = xdict["x"]
         y = xdict["y"]
         funcs = {}
@@ -67,9 +70,8 @@ class TestUserTerminationStatus(unittest.TestCase):
         termcomp = TerminateComp(max_obj=2)
         optProb = Optimization("Paraboloid", termcomp.objfunc)
 
-        optProb.addVarGroup("x", 1, type="c", lower=-50.0, upper=50.0, value=0.0)
-        optProb.addVarGroup("y", 1, type="c", lower=-50.0, upper=50.0, value=0.0)
-        optProb.finalizeDesignVariables()
+        optProb.addVarGroup("x", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
+        optProb.addVarGroup("y", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
 
         optProb.addObj("obj")
 
@@ -96,9 +98,8 @@ class TestUserTerminationStatus(unittest.TestCase):
         termcomp = TerminateComp(max_sens=3)
         optProb = Optimization("Paraboloid", termcomp.objfunc)
 
-        optProb.addVarGroup("x", 1, type="c", lower=-50.0, upper=50.0, value=0.0)
-        optProb.addVarGroup("y", 1, type="c", lower=-50.0, upper=50.0, value=0.0)
-        optProb.finalizeDesignVariables()
+        optProb.addVarGroup("x", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
+        optProb.addVarGroup("y", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
 
         optProb.addObj("obj")
 

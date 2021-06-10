@@ -16,13 +16,9 @@ selection-based strategy
 
 Options
 -------
-.. optimizertable:: pyoptsparse.pyNSGA2.pyNSGA2.NSGA2
-   :type: options
+.. optionstable:: pyoptsparse.pyNSGA2.pyNSGA2.NSGA2
+   :filename: optimizers/NSGA2_options.yaml
 
-Informs
--------
-.. optimizertable:: pyoptsparse.pyNSGA2.pyNSGA2.NSGA2
-   :type: informs
 
 API
 ---

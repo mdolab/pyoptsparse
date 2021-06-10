@@ -1,13 +1,47 @@
 """Test solution of problem HS71 from the Hock & Schittkowski collection"""
 
+# Standard Python modules
 import unittest
+
+# External modules
 import numpy as np
 from numpy.testing import assert_allclose
-from pyoptsparse import Optimization, OPT, History
-from pyoptsparse.pyOpt_error import Error
+from parameterized import parameterized
+
+# First party modules
+from pyoptsparse import History, Optimization
+
+# Local modules
+from testing_utils import OptTest
 
 
-class TestHS71(unittest.TestCase):
+class TestHS71(OptTest):
+    # Optimization problem definition
+    name = "hs071"
+    DVs = {"xvars"}
+    cons = {"con"}
+    objs = {"obj"}
+    fStar = 17.0140172
+    xStar = {"xvars": (1.0, 4.743, 3.82115, 1.37941)}
+    lambdaStar = {"con": (0.55229366, -0.16146857)}
+
+    # Tolerances
+    tol = {
+        "SNOPT": 1e-6,
+        "IPOPT": 1e-6,
+        "NLPQLP": 1e-6,
+        "SLSQP": 1e-6,
+        "CONMIN": 1e-3,
+        "PSQP": 1e-6,
+        "ParOpt": 1e-6,
+    }
+    optOptions = {
+        "CONMIN": {
+            "DELFUN": 1e-10,
+            "DABFUN": 1e-10,
+        }
+    }
+
     def objfunc(self, xdict):
         x = xdict["xvars"]
         funcs = {}
@@ -32,78 +66,30 @@ class TestHS71(unittest.TestCase):
         fail = False
         return funcsSens, fail
 
-    def optimize(
-        self,
-        optName,
-        tol,
-        optOptions={},
-        storeHistory=False,
-        setDV=None,
-        xScale=1.0,
-        objScale=1.0,
-        conScale=1.0,
-        offset=0.0,
-        check_solution=True,
-    ):
+    def setup_optProb(self, xScale=1.0, objScale=1.0, conScale=1.0, offset=0.0):
         # Optimization Object
-        optProb = Optimization("HS071 Constraint Problem", self.objfunc)
+        self.optProb = Optimization("HS071 Constraint Problem", self.objfunc, sens=self.sens)
 
         # Design Variables
         x0 = [1.0, 5.0, 5.0, 1.0]
-        optProb.addVarGroup("xvars", 4, lower=1, upper=5, value=x0, scale=xScale, offset=offset)
+        self.optProb.addVarGroup("xvars", 4, lower=1, upper=5, value=x0, scale=xScale, offset=offset)
 
         # Constraints
-        optProb.addConGroup("con", 2, lower=[25, 40], upper=[None, 40], scale=conScale)
+        self.optProb.addConGroup("con", 2, lower=[25, 40], upper=[None, 40], scale=conScale)
 
         # Objective
-        optProb.addObj("obj", scale=objScale)
-
-        # Optimizer
-        try:
-            opt = OPT(optName, options=optOptions)
-        except Error:
-            raise unittest.SkipTest("Optimizer not available:", optName)
-
-        if isinstance(setDV, str):
-            optProb.setDVsFromHistory(setDV)
-        elif isinstance(setDV, dict):
-            optProb.setDVs(setDV)
-            outDV = optProb.getDVs()
-            assert_allclose(setDV["xvars"], outDV["xvars"])
-
-        sol = opt(optProb, sens=self.sens, storeHistory=storeHistory)
-
-        # Check Solution
-        if check_solution:
-            self.fStar = 17.0140172
-            self.xStar = (1.0, 4.743, 3.82115, 1.37941)
-            self.lambdaStar = (0.55229366, -0.16146857)
-            assert_allclose(sol.objectives["obj"].value, self.fStar, atol=tol, rtol=tol)
-            assert_allclose(sol.xStar["xvars"], self.xStar, atol=tol, rtol=tol)
-
-            if hasattr(sol, "lambdaStar"):
-                assert_allclose(sol.lambdaStar["con"], self.lambdaStar, atol=tol, rtol=tol)
-        return sol
+        self.optProb.addObj("obj", scale=objScale)
 
     def test_slsqp_setDV(self):
         """
         Test that setDV works as expected, even with scaling/offset
         """
-        test_name = "hs071_SLSQP_setDV"
-        histFileName = "{}.hst".format(test_name)
+        self.optName = "SLSQP"
+        histFileName = "hs071_SLSQP_setDV.hst"
         newDV = {"xvars": np.array([1, 4, 4, 1])}
-        optOptions = {"IFILE": "{}.out".format(test_name)}
-        self.optimize(
-            "SLSQP",
-            1e-5,
-            xScale=1.5,
-            conScale=1.2,
-            objScale=32,
-            offset=1.5,
-            setDV=newDV,
-            storeHistory=histFileName,
-            optOptions=optOptions,
-        )
+        self.setup_optProb(xScale=1.5, conScale=1.2, objScale=32, offset=1.5)
+        sol = self.optimize(setDV=newDV, storeHistory=histFileName)
+        self.assert_solution_allclose(sol, self.tol["SLSQP"])
         # Verify the history file
         hist = History(histFileName, flag="r")
         init = hist.getValues(names="xvars", callCounters="0", scale=False)
@@ -114,36 +100,17 @@ class TestHS71(unittest.TestCase):
         """
         Test that setDVFromHistory works as expected, even with scaling/offset
         """
-        test_name = "hs071_SNOPT_setDVFromHist"
-        optOptions = {
-            "Print file": "{}.out".format(test_name),
-            "Summary file": "{}_summary.out".format(test_name),
-        }
-        histFileName = "{}.hst".format(test_name)
-        self.optimize(
-            "snopt",
-            1e-6,
-            xScale=1.5,
-            conScale=1.2,
-            objScale=32,
-            offset=1.5,
-            storeHistory=histFileName,
-            optOptions=optOptions,
-        )
+        self.optName = "SNOPT"
+        histFileName = "hs071_SNOPT_setDVFromHist.hst"
+        self.setup_optProb(xScale=1.5, conScale=1.2, objScale=32, offset=1.5)
+        sol = self.optimize(storeHistory=histFileName)
+        self.assert_solution_allclose(sol, self.tol["SNOPT"])
         hist = History(histFileName, flag="r")
         first = hist.getValues(names="xvars", callCounters="last", scale=False)
         x_final = first["xvars"][0]
-        self.optimize(
-            "snopt",
-            1e-6,
-            xScale=0.5,
-            conScale=4.8,
-            objScale=0.1,
-            offset=1.5,
-            setDV=histFileName,
-            storeHistory=histFileName,
-            optOptions=optOptions,
-        )
+        self.setup_optProb(xScale=0.5, conScale=4.8, objScale=0.1, offset=1.5)
+        sol = self.optimize(setDV=histFileName, storeHistory=histFileName)
+        self.assert_solution_allclose(sol, self.tol["SNOPT"])
         # Verify the history file
         hist = History(histFileName, flag="r")
         second = hist.getValues(names="xvars", scale=False)
@@ -158,24 +125,15 @@ class TestHS71(unittest.TestCase):
         Test that scaling and offset works as expected
         Also test optProb stored in the history file is correct
         """
-        test_name = "hs071_SLSQP_scaling_offset"
-        histFileName = "{}.hst".format(test_name)
-        optOptions = {"IFILE": "{}.out".format(test_name)}
+        self.optName = "SLSQP"
+        histFileName = "hs071_SLSQP_scaling_offset.hst"
         objScale = 4.2
         xScale = [2, 3, 4, 5]
         conScale = [0.6, 1.7]
         offset = [1, -2, 40, 2.5]
-        self.optimize(
-            "slsqp",
-            1e-6,
-            objScale=objScale,
-            xScale=xScale,
-            conScale=conScale,
-            storeHistory=histFileName,
-            offset=offset,
-            optOptions=optOptions,
-        )
-
+        self.setup_optProb(objScale=objScale, xScale=xScale, conScale=conScale, offset=offset)
+        sol = self.optimize(storeHistory=histFileName)
+        self.assert_solution_allclose(sol, self.tol["SLSQP"])
         # now we retrieve the history file, and check the scale=True option is indeed
         # scaling things correctly
         hist = History(histFileName, flag="r")
@@ -210,71 +168,51 @@ class TestHS71(unittest.TestCase):
         con_scaled = scaled_values["con"][0]
         assert_allclose(con_scaled, con_orig * conScale, atol=1e-12, rtol=1e-12)
 
-    def test_snopt(self):
-        test_name = "hs071_SNOPT"
-        optOptions = {
-            "Print file": "{}.out".format(test_name),
-            "Summary file": "{}_summary.out".format(test_name),
-        }
-        sol = self.optimize("snopt", 1e-6, optOptions=optOptions)
-        self.assertEqual(sol.optInform["value"], 1)
-        optOptions["Major iterations limit"] = 1
-        sol = self.optimize("snopt", 1e-6, optOptions=optOptions, check_solution=False)
-        self.assertEqual(sol.optInform["value"], 32)
+    def test_snopt_informs(self):
+        self.optName = "SNOPT"
+        self.setup_optProb()
+        sol = self.optimize(optOptions={"Major iterations limit": 1})
+        self.assert_inform_equal(sol, 32)
 
-    def test_slsqp(self):
-        optOptions = {"IFILE": "hs071_SLSQP.out"}
-        sol = self.optimize("slsqp", 1e-6, optOptions=optOptions)
-        self.assertEqual(sol.optInform["value"], 0)
+    def test_slsqp_informs(self):
+        self.optName = "SLSQP"
+        self.setup_optProb()
         # now we set max iteration to 1 and verify that we get a different inform
-        optOptions["MAXIT"] = 1
-        sol = self.optimize("slsqp", 1e-6, optOptions=optOptions, check_solution=False)
-        self.assertEqual(sol.optInform["value"], 9)
+        sol = self.optimize(optOptions={"MAXIT": 1})
+        self.assert_inform_equal(sol, 9)
 
-    def test_nlpqlp(self):
-        optOptions = {"iFile": "hs071_NLPQLP.out"}
-        sol = self.optimize("nlpqlp", 1e-6, optOptions=optOptions)
-        self.assertEqual(sol.optInform["value"], 0)
-        optOptions["maxIt"] = 1
-        sol = self.optimize("nlpqlp", 1e-6, optOptions=optOptions, check_solution=False)
-        self.assertEqual(sol.optInform["value"], 1)
+    def test_nlpqlp_informs(self):
+        self.optName = "NLPQLP"
+        self.setup_optProb()
+        sol = self.optimize(optOptions={"maxIt": 1})
+        self.assert_inform_equal(sol, 1)
 
-    def test_ipopt(self):
-        optOptions = {"print_level": 5, "output_file": "hs071_IPOPT.out"}
-        sol = self.optimize("ipopt", 1e-6, optOptions=optOptions)
-        self.assertEqual(sol.optInform["value"], 0)
-        self.assertEqual(sol.optInform["text"], "Solve Succeeded")
+    def test_ipopt_informs(self):
+        self.optName = "IPOPT"
+        self.setup_optProb()
         # Test that the inform is -1 when iterations are too limited.
-        optOptions["max_iter"] = 1
-        sol = self.optimize("ipopt", 1e-6, optOptions=optOptions, check_solution=False)
-        self.assertEqual(sol.optInform["value"], -1)
-        self.assertEqual(sol.optInform["text"], "Maximum Iterations Exceeded")
+        sol = self.optimize(optOptions={"max_iter": 1})
+        self.assert_inform_equal(sol, -1)
         # Test that the inform is -4 when max_cpu_time are too limited.
-        optOptions["max_iter"] = 100
-        optOptions["max_cpu_time"] = 0.001
-        sol = self.optimize("ipopt", 1e-6, optOptions=optOptions, check_solution=False)
-        self.assertEqual(sol.optInform["value"], -4)
-        self.assertEqual(sol.optInform["text"], "Maximum CpuTime Exceeded")
+        sol = self.optimize(optOptions={"max_cpu_time": 0.001})
+        self.assert_inform_equal(sol, -4)
 
-    def test_conmin(self):
-        optOptions = {
-            "DELFUN": 1e-9,
-            "DABFUN": 1e-9,
-            "IFILE": "hs071_CONMIN.out",
-        }
-        self.optimize("conmin", 1e-2, optOptions=optOptions)
+    def test_psqp_informs(self):
+        self.optName = "PSQP"
+        self.setup_optProb()
+        sol = self.optimize(optOptions={"MIT": 1})
+        self.assert_inform_equal(sol, 11)
 
-    def test_psqp(self):
-        optOptions = {"IFILE": "hs071_PSQP.out"}
-        sol = self.optimize("psqp", 1e-6, optOptions=optOptions)
-        self.assertEqual(sol.optInform["value"], 4)
-        optOptions["MIT"] = 1
-        sol = self.optimize("psqp", 1e-6, optOptions=optOptions, check_solution=False)
-        self.assertEqual(sol.optInform["value"], 11)
-
-    def test_paropt(self):
-        optOptions = {"output_file": "hs071_ParOpt.out"}
-        self.optimize("paropt", 1e-6, optOptions=optOptions)
+    @parameterized.expand(["SNOPT", "IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "ParOpt"])
+    def test_optimization(self, optName):
+        self.optName = optName
+        self.setup_optProb()
+        optOptions = self.optOptions.pop(optName, None)
+        sol = self.optimize(optOptions=optOptions)
+        # Check Solution
+        self.assert_solution_allclose(sol, self.tol[optName])
+        # Check informs
+        self.assert_inform_equal(sol)
 
 
 if __name__ == "__main__":

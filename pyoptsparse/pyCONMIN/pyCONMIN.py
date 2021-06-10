@@ -1,36 +1,25 @@
-# /bin/env python
 """
 pyCONMIN - A variation of the pyCONMIN wrapper specificially designed to
 work with sparse optimization problems.
 """
-# =============================================================================
-# CONMIN Library
-# =============================================================================
+# Compiled module
 try:
-    from . import conmin
+    from . import conmin  # isort: skip
 except ImportError:
     conmin = None
-# =============================================================================
 # Standard Python modules
-# =============================================================================
+import datetime
 import os
 import time
-import datetime
 
-# =============================================================================
-# External Python modules
-# =============================================================================
+# External modules
 import numpy as np
 
-# ===========================================================================
-# Extension modules
-# ===========================================================================
-from ..pyOpt_optimizer import Optimizer
+# Local modules
 from ..pyOpt_error import Error
+from ..pyOpt_optimizer import Optimizer
 
-# =============================================================================
-# CONMIN Optimizer Class
-# =============================================================================
+
 class CONMIN(Optimizer):
     """
     CONMIN Optimizer Class - Inherited from Optimizer Abstract Class
@@ -39,26 +28,36 @@ class CONMIN(Optimizer):
     def __init__(self, raiseError=True, options={}):
         name = "CONMIN"
         category = "Local Optimizer"
-        self.defOpts = {
-            "ITMAX": [int, int(1e4)],  # Maximum Number of Iterations
-            "DELFUN": [float, 1e-6],  # Objective Relative Tolerance
-            "DABFUN": [float, 1e-6],  # Objective Absolute Tolerance
-            "ITRM": [int, 5],
-            "NFEASCT": [int, 20],
-            "IPRINT": [int, 4],  # Print Control (0 - None, 1 - Final, 2,3,4 - Debug)
-            "IOUT": [int, 6],  # Output Unit Number
-            "IFILE": [str, "CONMIN.out"],  # Output File Name
-        }
-        self.informs = {}
+        defOpts = self._getDefaultOptions()
+        informs = self._getInforms()
         if conmin is None:
             if raiseError:
                 raise Error("There was an error importing the compiled conmin module")
 
         self.set_options = []
-        super().__init__(name, category, defaultOptions=self.defOpts, informs=self.informs, options=options)
+        super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
 
         # CONMIN needs Jacobians in dense format
         self.jacType = "dense2d"
+
+    @staticmethod
+    def _getInforms():
+        informs = {}
+        return informs
+
+    @staticmethod
+    def _getDefaultOptions():
+        defOpts = {
+            "ITMAX": [int, int(1e4)],
+            "DELFUN": [float, 1e-6],
+            "DABFUN": [float, 1e-6],
+            "ITRM": [int, 5],
+            "NFEASCT": [int, 20],
+            "IPRINT": [int, 4],
+            "IOUT": [int, 6],
+            "IFILE": [str, "CONMIN.out"],
+        }
+        return defOpts
 
     def __call__(
         self, optProb, sens=None, sensStep=None, sensMode=None, storeHistory=None, hotStart=None, storeSens=True
@@ -126,8 +125,9 @@ class CONMIN(Optimizer):
         # Save the optimization problem and finalize constraint
         # Jacobian, in general can only do on root proc
         self.optProb = optProb
-        self.optProb.finalizeDesignVariables()
-        self.optProb.finalizeConstraints()
+        self.optProb.finalize()
+        # Set history/hotstart/coldstart
+        self._setHistory(storeHistory, hotStart)
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
@@ -150,9 +150,6 @@ class CONMIN(Optimizer):
             self.optProb.offset = buc
 
         if self.optProb.comm.rank == 0:
-            # Set history/hotstart/coldstart
-            self._setHistory(storeHistory, hotStart)
-
             # =================================================================
             # CONMIN - Objective/Constraint Values Function
             # =================================================================

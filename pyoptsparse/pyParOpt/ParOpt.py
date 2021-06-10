@@ -1,7 +1,11 @@
-import numpy as np
-import os
+# Standard Python modules
 import datetime
+import os
 
+# External modules
+import numpy as np
+
+# isort: off
 # Attempt to import mpi4py.
 # If PYOPTSPARSE_REQUIRE_MPI is set to a recognized positive value, attempt import
 # and raise exception on failure. If set to anything else, no import is attempted.
@@ -23,9 +27,12 @@ else:
         from mpi4py import MPI
     except ImportError:
         _ParOpt = None
+# isort: on
 
-from ..pyOpt_optimizer import Optimizer
+# Local modules
 from ..pyOpt_error import Error
+from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_utils import INFINITY
 
 
 class ParOpt(Optimizer):
@@ -138,8 +145,9 @@ class ParOpt(Optimizer):
         # Save the optimization problem and finalize constraint
         # Jacobian, in general can only do on root proc
         self.optProb = optProb
-        self.optProb.finalizeDesignVariables()
-        self.optProb.finalizeConstraints()
+        self.optProb.finalize()
+        # Set history/hotstart
+        self._setHistory(storeHistory, hotStart)
         self._setInitialCacheValues()
         self._setSens(sens, sensStep, sensMode)
         blx, bux, xs = self._assembleContinuousVariables()
@@ -161,8 +169,6 @@ class ParOpt(Optimizer):
             self.optProb.offset = buc
 
         if self.optProb.comm.rank == 0:
-            # Set history/hotstart
-            self._setHistory(storeHistory, hotStart)
 
             class Problem(_ParOpt.Problem):
                 def __init__(self, ptr, n, m, xs, blx, bux):
@@ -181,7 +187,7 @@ class ParOpt(Optimizer):
                     # Find the average distance between lower and upper bound
                     bound_sum = 0.0
                     for i in range(len(x)):
-                        if self.blx[i] <= -1e20 or self.bux[i] >= 1e20:
+                        if self.blx[i] <= -INFINITY or self.bux[i] >= INFINITY:
                             bound_sum += 1.0
                         else:
                             bound_sum += self.bux[i] - self.blx[i]

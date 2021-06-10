@@ -348,6 +348,9 @@ python module snopt ! in
             double precision dimension(lenrw) :: rw
             integer optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
         end subroutine sngetr
+        subroutine sntitle(title) ! in :snopt:sn02lib.f
+            character*30, intent(out) :: title
+        end subroutine sntitle
         subroutine snoptc(start,m,n,ne,nname,nncon,nnobj,nnjac,iobj,objadd,prob,userfg,jcol,indj,locj,bl,bu,names,hs,x,pi,rc,inform,mincw,miniw,minrw,ns,ninf,sinf,obj,cu,lencu,iu,leniu,ru,lenru,cw,lencw,iw,leniw,rw,lenrw) ! in :snopt:snoptc.f
             use snoptc__user__routines
             character*(*) intent(inout) :: start
@@ -424,14 +427,14 @@ python module snopt ! in
             integer :: ns
             integer :: ninf
             double precision :: sinf
-            double precision intent(inout) :: obj
-            character*8 intent(in,out), dimension(lencu) :: cu
+            double precision intent(out) :: obj
+            character*8 intent(inplace), dimension(lencu) :: cu
             integer optional,check(len(cu)==lencu),depend(cu) :: lencu=len(cu)
             integer dimension(leniu) :: iu
             integer optional,check(len(iu)>=leniu),depend(iu) :: leniu=len(iu)
             double precision dimension(lenru) :: ru
             integer optional,check(len(ru)>=lenru),depend(ru) :: lenru=len(ru)
-            character*8 intent(in,out), dimension(lencw) :: cw
+            character*8 intent(inplace), dimension(lencw) :: cw
             integer optional,check(len(cw)==lencw),depend(cw) :: lencw=len(cw)
             integer intent(inout), dimension(leniw) :: iw
             integer optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)

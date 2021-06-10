@@ -1,3 +1,9 @@
+# Standard Python modules
+import os
+import re
+import sys
+
+# External modules
 from sphinx_mdolab_theme.config import *
 
 # -- Path setup --------------------------------------------------------------
@@ -6,22 +12,19 @@ from sphinx_mdolab_theme.config import *
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-import os
-import sys
 
 sys.path.insert(0, os.path.abspath("../"))
-sys.path.insert(0, os.path.abspath("./"))  # to import custom Sphinx extension
+
 
 # -- Project information -----------------------------------------------------
 
 project = "pyOptSparse"
+version = re.findall(
+    r"""__version__ = ["']+([0-9\.]*)["']+""",
+    open("../pyoptsparse/__init__.py").read(),
+)[0]
 
 # -- General configuration ---------------------------------------------------
-
-# Add any Sphinx extension module names here, as strings. They can be
-# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
-# ones.
-extensions.extend(["numpydoc", "ext.optimizertable", "sphinxcontrib.bibtex"])
 
 # mock import for autodoc
 autodoc_mock_imports = ["baseclasses", "scipy", "numpy", "sqlitedict"]

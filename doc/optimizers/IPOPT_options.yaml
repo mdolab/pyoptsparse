@@ -1,0 +1,12 @@
+print_level:
+  desc: Printing level
+file_print_level:
+  desc: Printing level for the output file
+output_file:
+  desc: The name of the output file from IPOPT
+print_user_options:
+  desc: Whether to print the user-modified options
+linear_solver:
+  desc: The linear solver used.
+sb:
+  desc: This is an undocumented option which suppresses the IPOPT header from being printed to screen every time.

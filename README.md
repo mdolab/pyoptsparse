@@ -4,8 +4,8 @@
 
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/release/python-370/)
 [![Build Status](https://dev.azure.com/mdolab/Public/_apis/build/status/mdolab.pyoptsparse?branchName=master)](https://dev.azure.com/mdolab/Public/_build/latest?definitionId=29&branchName=master)
-[![Coverage Status](https://coveralls.io/repos/github/mdolab/pyoptsparse/badge.svg?branch=master)](https://coveralls.io/github/mdolab/pyoptsparse?branch=master)
 [![Documentation Status](https://readthedocs.com/projects/mdolab-pyoptsparse/badge/?version=latest)](https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/?badge=latest)
+[![codecov](https://codecov.io/gh/mdolab/pyoptsparse/branch/master/graph/badge.svg?token=thwlcuWxdG)](https://codecov.io/gh/mdolab/pyoptsparse)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.02564/status.svg)](https://doi.org/10.21105/joss.02564)
 
@@ -20,7 +20,6 @@ An example output from OptView is shown below.
 ## Optimizer support
 pyOptSparse provides Python interfaces for a number of optimizers.
 ALPSO, CONMIN, IPOPT, NLPQLP, NSGA2, PSQP, SLSQP, ParOpt and SNOPT are currently tested and supported.
-NOMAD interface is also provided, but it is not tested nor supported.
 
 We do not provide the source code for SNOPT and NLPQLP, due to their restrictive license requirements.
 Please contact the authors of the respective optimizers if you wish to obtain them.
