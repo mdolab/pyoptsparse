@@ -20,7 +20,6 @@ class PlotModel(object):
     """Manages top-level data for the controller"""
 
     def __init__(self):
-        self.options = {"scaled": False, "bounds": False}
         self.vars = []
         self.axis = None
 
@@ -51,17 +50,17 @@ class PlotModel(object):
         self.vars = []
 
     def clear_options(self):
-        self.options = {}
+        self.options = {"scaled": False, "bounds": False, "major_iter": True, "minor_iter": False}
 
     def update_axis(self, axis):
         self.axis.cla()
         self.axis = axis
 
-    # def plot(self):
-    #     if self.options["major_iter"]:
-    #         if self.options["scaled"]:
-    #             for y_var in self.y_vars:
-    #                 self.axis.plot(self.x_vars[0].data["major_iter"]["scaled"],)
+    def plot(self):
+        if self.options["major_iter"]:
+            if self.options["scaled"]:
+                for y_var in self.y_vars:
+                    self.axis.plot(self.x_vars[0].data["major_iter"]["scaled"],)
 
     def refresh(self):
         """Refresh all files and variable lists"""
