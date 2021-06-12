@@ -110,15 +110,16 @@ class ConfigureController(object):
 
     def scale_opt_selected(self, widget: VariableListWidget, var_idx: int):
         if widget.scaled_opt.isChecked():
-            print("True")
+            self._plot_model.vars[var_idx].options["scaled"] = True
+            self._view.all_vars_list[var_idx].strip(" ").split("|")
         else:
-            print("False")
+            self._plot_model.vars[var_idx].options["scaled"] = False
 
     def bounds_opt_selected(self, widget: VariableListWidget, var_idx: int):
         if widget.bounds_opt.isChecked():
-            print("True")
+            self._plot_model.vars[var_idx].options["bounds"] = True
         else:
-            print("False")
+            self._plot_model.vars[var_idx].options["scaled"] = False
 
     def cancel(self):
         self._plot_model.clear_vars()
