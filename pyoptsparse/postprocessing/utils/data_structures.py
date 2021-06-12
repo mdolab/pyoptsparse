@@ -34,6 +34,7 @@ class Variable(object):
         self.name = var_name
         self.file_idx = file_idx
         self.vectorized = False  # Is the variable an array of values
+        self.options = {"scaled": False, "bounds": False, "major_iter": True, "minor_iter": False}
         self.bounds = {"unscaled": {"upper": None, "lower": None}, "scaled": {"upper": None, "lower": None}}
         self.data = {"major_iter": {"scaled": [], "unscaled": []}, "minor_iter": {"scaled": [], "unscaled": []}}
 
