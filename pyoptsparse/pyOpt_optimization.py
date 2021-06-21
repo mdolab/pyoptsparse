@@ -4,6 +4,7 @@ import copy
 import os
 from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 import warnings
+import pickle
 
 # External modules
 import numpy as np
@@ -1782,7 +1783,12 @@ class Optimization(object):
         The un-serializable fields are deleted first.
         """
         d = copy.copy(self.__dict__)
-        for key in ["comm", "objFun"]:
+        keysToRemove = ["comm"]
+        try:
+            pickle.dumps(self.objFun)
+        except pickle.PicklingError:
+            keysToRemove.append("objFun")
+        for key in keysToRemove:
             if key in d.keys():
                 del d[key]
         return d
