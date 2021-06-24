@@ -1786,7 +1786,10 @@ class Optimization(object):
         keysToRemove = ["comm"]
         try:
             pickle.dumps(self.objFun)
-        except pickle.PicklingError:
+        except Exception:
+            # Use a blanket exception because pickle errors are unreliable
+            # Tests raise RecursionError
+            # mpi4py raises TypeError
             keysToRemove.append("objFun")
         for key in keysToRemove:
             if key in d.keys():
