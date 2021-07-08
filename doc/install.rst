@@ -3,8 +3,21 @@
 Installation Instructions
 =========================
 
+Conda
+-----
+Conda packages are available on ``conda-forge`` and can be installed via
+
+.. prompt:: bash
+
+  conda install -c conda-forge pyoptsparse
+
+This would install pyOptSparse with the built-in optimizers, as well as IPOPT.
+If you wish to use optimizers not packaged by ``conda``, e.g. SNOPT, then you must build the package from source.
+
+Building from source
+--------------------
 Requirements
-------------
+~~~~~~~~~~~~
 pyOptSparse has the following dependencies:
 
 * Python 3.7 or 3.8, though other Python 3 versions will likely work
@@ -26,7 +39,7 @@ The only exception is ``numpy``, which is required as part of the build process 
     If you want to run this on macOS or Windows, you are on your own.
 
 Installation
-------------
+~~~~~~~~~~~~
 The easiest and recommended way to install pyOptSparse is with ``pip``.
 First clone the repository into a location which is not on the ``$PYTHONPATH``, for example ``$HOME/packages/``.
 Then in the root ``pyoptsparse`` folder type::
