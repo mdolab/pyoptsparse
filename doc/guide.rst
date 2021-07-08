@@ -18,7 +18,9 @@ and :math:`g(x)` is a set of :math:`m` nonlinear functions.
 Equality constraints are specified using the same upper and lower bounds for the constraint. i.e., :math:`g_{j,\text{L}} = g_{j,\text{U}}`.
 The ordering of the constraints is arbitrary; pyOptSparse reorders the problem automatically depending on the requirements of each individual optimizer.
 
-The optimization class is created using the following call::
+The optimization class is created using the following call:
+
+.. code-block:: python
 
   >>> optProb = Optimization('name', objFun)
 
@@ -45,15 +47,21 @@ If the Optimization problem is unconstrained, ``funcs`` will contain only the ob
 Design Variables
 ++++++++++++++++
 The simplest way to add a single continuous variable with no bounds (side constraints) and initial value of 0.0 is
-to simply call :meth:`addVar <pyoptsparse.pyOpt_optimization.Optimization.addVar>`::
+to simply call :meth:`addVar <pyoptsparse.pyOpt_optimization.Optimization.addVar>`:
+
+.. code-block:: python
 
    >>> optProb.addVar('var_name')
 
-This will result in a scalar variable included in the ``x`` dictionary call to ``obj_fun`` which can be accessed by doing::
+This will result in a scalar variable included in the ``x`` dictionary call to ``obj_fun`` which can be accessed by doing
+
+.. code-block:: python
 
   >>> x['var_name']
 
-A more complex example will include lower bounds, upper bounds and a non-zero initial value::
+A more complex example will include lower bounds, upper bounds and a non-zero initial value:
+
+.. code-block:: python
 
   >>> optProb.addVar('var_name',lower=-10, upper=5, value=-2)
 
@@ -72,7 +80,9 @@ It is desirable to have the magnitude of all variables within an order of magnit
 The :meth:`addVarGroup <pyoptsparse.pyOpt_optimization.Optimization.addVarGroup>` call is similar to 
 :meth:`addVar <pyoptsparse.pyOpt_optimization.Optimization.addVar>` except that it adds a group of 1 or more variables.
 These variables are then returned as a numpy array within the x-dictionary.
-For example, to add 10 variables with no lower bound, and a scale factor of 0.1::
+For example, to add 10 variables with no lower bound, and a scale factor of 0.1:
+
+.. code-block:: python
 
   >>> optProb.addVarGroup('con_group', 10, upper=2.5, scale=0.1)
 
@@ -81,18 +91,24 @@ Constraints
 +++++++++++
 
 The simplest way to add a single constraint with no bounds (i.e., not a very useful constraint!) is
-to use the function :meth:`addCon <pyoptsparse.pyOpt_optimization.Optimization.addCon>`::
+to use the function :meth:`addCon <pyoptsparse.pyOpt_optimization.Optimization.addCon>`:
+
+.. code-block:: python
 
   >>> optProb.addCon('not_a_real_constraint')
 
 To include bounds on the constraints, use the ``lower`` and ``upper`` keyword arguments.
-If ``lower`` and ``upper`` are the same, it will be treated as an equality constraint::
+If ``lower`` and ``upper`` are the same, it will be treated as an equality constraint:
+
+.. code-block:: python
 
   >>> optProb.addCon('inequality_constraint', upper=10)
   >>> optProb.addCon('equality_constraint', lower=5, upper=5)
 
 Like design variables, it is often necessary to scale constraints such that all constraint values are approximately the same order of magnitude.
-This can be specified using the ``scale`` keyword::
+This can be specified using the ``scale`` keyword:
+
+.. code-block:: python
 
   >>> optProb.addCon('scaled_constraint', upper=10000, scale=1.0/10000)
 
@@ -150,7 +166,9 @@ Note that the order of the ``wrt`` (which stands for with-respect-to) is not sig
 Furthermore, if the ``wrt`` argument is omitted altogether, pyOptSparse assumes that the constraint is dense.
 
 To examine the sparsity pattern, pyOptSparse can generate the ASCII table shown above.
-To do so, use the following call after adding all the design variables, objectives and constraints::
+To do so, use the following call after adding all the design variables, objectives and constraints:
+
+.. code-block:: python
 
   >>> optProb.printSparsity()
 
@@ -193,7 +211,9 @@ Objectives
 ++++++++++
 
 Each optimization will require at least one objective to be added.
-This is accomplished using a the call to :meth:`addObj <pyoptsparse.pyOpt_optimization.Optimization.addObj>`::
+This is accomplished using a the call to :meth:`addObj <pyoptsparse.pyOpt_optimization.Optimization.addObj>`:
+
+.. code-block:: python
 
   optProb.addObj('obj_name')
 
@@ -239,14 +259,18 @@ Once this function is constructed, users can pass its function handle to the opt
 Optimizer Instantiation
 +++++++++++++++++++++++
 There are two ways to instantiate the optimizer object.
-The first, and most explicit approach is to directly import the optimizer class, for example via::
+The first, and most explicit approach is to directly import the optimizer class, for example via
+
+.. code-block:: python
 
   from pyoptsparse import SLSQP
   opt = SLSQP(...)
 
 However, in order to easily switch between different optimizers without having to import each class, a convenience function called
 :meth:`OPT <pyoptsparse.pyOpt_optimizer.OPT>` is provided.
-It accepts a string argument in addition to the usual options, and instantiates the optimizer object based on the string::
+It accepts a string argument in addition to the usual options, and instantiates the optimizer object based on the string:
+
+.. code-block:: python
 
   from pyoptsparse import OPT
   opt = OPT("SLSQP", ...)

@@ -42,11 +42,15 @@ Installation
 ~~~~~~~~~~~~
 The easiest and recommended way to install pyOptSparse is with ``pip``.
 First clone the repository into a location which is not on the ``$PYTHONPATH``, for example ``$HOME/packages/``.
-Then in the root ``pyoptsparse`` folder type::
+Then in the root ``pyoptsparse`` folder type
+
+.. prompt:: bash
 
   pip install .
 
-For those not using virtual environments, a user install may be needed::
+For those not using virtual environments, a user install may be needed
+
+.. prompt:: bash
 
   pip install . --user
 
@@ -65,7 +69,9 @@ For those who intend to use pyOptSparse with IPOPT, OpenMDAO developers provide 
 Installing OptView
 ------------------
 OptView and OptView-Dash have separate dependencies that must be installed.
-To install pyOptSparse including those dependencies, run::
+To install pyOptSparse including those dependencies, run
+
+.. prompt:: bash
 
     pip install .[optview]
 
@@ -73,11 +79,15 @@ To install pyOptSparse including those dependencies, run::
 Testing
 -------
 pyOptSparse provides a set of unit and regression tests to verify the installation.
-To run these tests, first install ``testflo`` which is a testing framework developed by the OpenMDAO team::
+To run these tests, first install ``testflo`` which is a testing framework developed by the OpenMDAO team:
+
+.. prompt:: bash
 
   pip install testflo
 
-Then, in the project root directory, type::
+Then, in the project root directory, type:
+
+.. prompt:: bash
 
   testflo . -v
 
@@ -89,7 +99,9 @@ To update pyOptSparse, first delete the ``build`` directory, then update the pac
 For stability, users are encouraged to stick to tagged releases.
 Install the package normally via ``pip``.
 
-To uninstall the package, type::
+To uninstall the package, type
+
+.. prompt:: bash
 
   pip uninstall pyoptsparse
 
