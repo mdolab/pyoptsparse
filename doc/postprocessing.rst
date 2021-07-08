@@ -28,7 +28,9 @@ Requirements
 
 For installation instructions, see :ref:`install_optview`.  
 Although not necessary for most usage, the ``dill`` package is needed if you wish to save an editable version of the graph produced in ``OptView``.
-``dill`` can be installed via ``pip`` in a terminal using::
+``dill`` can be installed via ``pip`` in a terminal using
+
+.. prompt:: bash
 
     pip install dill
 
@@ -36,14 +38,18 @@ Although not necessary for most usage, the ``dill`` package is needed if you wis
 
 Usage
 ~~~~~
-``OptView`` can be run via terminal from any directory as::
+``OptView`` can be run via terminal from any directory as
+
+.. prompt:: bash
 
     optview histFile
 
 Here, ``histFile`` is the name of the history file to be examined (default is ``opt_hist.hst``).
 
 
-Additionally, you can open multiple history files in the same ``OptView`` instance by calling them via the command line::
+Additionally, you can open multiple history files in the same ``OptView`` instance by calling them via the command line
+
+.. prompt:: bash
 
     optview histFile1 histFile2 histFile3
 
@@ -51,12 +57,14 @@ Each file's contents will be loaded into ``OptView`` with a flag appended to the
 The first one listed will have '_A' added to the name, the second will have '_B' added, etc.
 There is currently no limit to the number of history files than can be loaded.
 
-Optionally, if you want to save the generated figures, there is an optional argument::
+Optionally, if you want to save the generated figures, there is an optional argument:
+
+.. prompt:: bash
 
     optview histFile --output ~/my_figures
 
 ``outputDirectory`` is the name of the desired output directory for saved images.
-By default, the figure is saved to the directory where you invokved ``optview``.
+By default, the figure is saved to the directory where you invoked ``optview``.
 
 Features
 ~~~~~~~~
@@ -120,7 +128,9 @@ OptView-Dash
 ------------
 This is a Dash_ implementation of OptView, and has many of the same features offered by OptView.
 For installation instructions, see :ref:`install_optview`.
-To run, use this command::
+To run, use this command:
+
+.. prompt:: bash
 
     optview_dash <filename>
 

@@ -56,7 +56,9 @@ Here we explain a basic setup using MUMPS as the linear solver, together with ME
       make install     
 
 #. You must add the IPOPT library path to the ``LD_LIBRARY_PATH`` variable for things to work right.
-   This could be done for example by adding the following to your ``.bashrc``::
+   This could be done for example by adding the following to your ``.bashrc``:
+
+   .. code-block:: bash
 
      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$IPOPT_DIR/lib
 

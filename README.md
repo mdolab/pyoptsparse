@@ -2,7 +2,7 @@
     <img src="doc/_static/pyOptSparse_logo.svg" width="400" />
 </h2>
 
-[![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/release/python-370/)
+[![Conda](https://img.shields.io/conda/vn/conda-forge/pyoptsparse)](https://anaconda.org/conda-forge/pyoptsparse)
 [![Build Status](https://dev.azure.com/mdolab/Public/_apis/build/status/mdolab.pyoptsparse?branchName=master)](https://dev.azure.com/mdolab/Public/_build/latest?definitionId=29&branchName=master)
 [![Documentation Status](https://readthedocs.com/projects/mdolab-pyoptsparse/badge/?version=latest)](https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/mdolab/pyoptsparse/branch/master/graph/badge.svg?token=thwlcuWxdG)](https://codecov.io/gh/mdolab/pyoptsparse)
