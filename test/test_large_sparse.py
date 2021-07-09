@@ -107,7 +107,6 @@ class TestLarge(OptTest):
     @parameterized.expand(
         [
             ("SNOPT", True),
-            ("IPOPT", True),
             ("SNOPT", False),
         ]
     )
