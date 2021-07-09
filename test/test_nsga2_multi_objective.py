@@ -38,16 +38,6 @@ class TestNSGA2(OptTest):
         self.optProb.addObj("obj1")
         self.optProb.addObj("obj2")
 
-    def test_opt(self):
-        self.setup_optProb()
-
-        # 300 generations will find x=(0,0), 200 or less will find x=(1,1)
-        optOptions = {"maxGen": 200}
-        sol = self.optimize(optOptions=optOptions)
-        tol = 1e-2
-        assert_allclose(sol.variables["x"][0].value, 1.0, atol=tol, rtol=tol)
-        assert_allclose(sol.variables["y"][0].value, 1.0, atol=tol, rtol=tol)
-
 
 if __name__ == "__main__":
     unittest.main()
