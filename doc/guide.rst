@@ -22,19 +22,19 @@ The optimization class is created using the following call:
 
 .. code-block:: python
 
-  >>> optProb = Optimization('name', objFun)
+  optProb = Optimization("name", objFun)
 
 The general template of the objective function is as follows:
 
 .. code-block:: python
 
   def obj_fun(xdict):
-    funcs = {}
-    funcs['obj_name'] = function(xdict)
-    funcs['con_name'] = function(xdict)
-    fail = False # Or True if an analysis failed
+      funcs = {}
+      funcs["obj_name"] = function(xdict)
+      funcs["con_name"] = function(xdict)
+      fail = False  # Or True if an analysis failed
 
-    return funcs, fail
+      return funcs, fail
 
 where:
 
@@ -51,19 +51,19 @@ to simply call :meth:`addVar <pyoptsparse.pyOpt_optimization.Optimization.addVar
 
 .. code-block:: python
 
-   >>> optProb.addVar('var_name')
+   optProb.addVar("var_name")
 
 This will result in a scalar variable included in the ``x`` dictionary call to ``obj_fun`` which can be accessed by doing
 
 .. code-block:: python
 
-  >>> x['var_name']
+  x["var_name"]
 
 A more complex example will include lower bounds, upper bounds and a non-zero initial value:
 
 .. code-block:: python
 
-  >>> optProb.addVar('var_name',lower=-10, upper=5, value=-2)
+  optProb.addVar("var_name", lower=-10, upper=5, value=-2)
 
 The ``lower`` or ``upper`` keywords may be specified as ``None`` to signify there is no bound on the variable.
 
@@ -84,7 +84,7 @@ For example, to add 10 variables with no lower bound, and a scale factor of 0.1:
 
 .. code-block:: python
 
-  >>> optProb.addVarGroup('con_group', 10, upper=2.5, scale=0.1)
+  optProb.addVarGroup("con_group", 10, upper=2.5, scale=0.1)
 
 
 Constraints
@@ -95,22 +95,22 @@ to use the function :meth:`addCon <pyoptsparse.pyOpt_optimization.Optimization.a
 
 .. code-block:: python
 
-  >>> optProb.addCon('not_a_real_constraint')
+  optProb.addCon("not_a_real_constraint")
 
 To include bounds on the constraints, use the ``lower`` and ``upper`` keyword arguments.
 If ``lower`` and ``upper`` are the same, it will be treated as an equality constraint:
 
 .. code-block:: python
 
-  >>> optProb.addCon('inequality_constraint', upper=10)
-  >>> optProb.addCon('equality_constraint', lower=5, upper=5)
+  optProb.addCon("inequality_constraint", upper=10)
+  optProb.addCon("equality_constraint", lower=5, upper=5)
 
 Like design variables, it is often necessary to scale constraints such that all constraint values are approximately the same order of magnitude.
 This can be specified using the ``scale`` keyword:
 
 .. code-block:: python
 
-  >>> optProb.addCon('scaled_constraint', upper=10000, scale=1.0/10000)
+  optProb.addCon("scaled_constraint", upper=10000, scale=1.0 / 10000)
 
 Even if the ``scale`` keyword is given, the ``lower`` and ``upper`` bounds are given in their un-scaled form.
 Internally, pyOptSparse will use the scaling factor to produce the following constraint:
@@ -153,14 +153,14 @@ By way of example, the code that generates the  hypothetical optimization proble
 
 .. code-block:: python
 
-  optProb.addVarGroup('varA', 3)
-  optProb.addVarGroup('varB', 1)
-  optProb.addVarGroup('varC', 3)
+  optProb.addVarGroup("varA", 3)
+  optProb.addVarGroup("varB", 1)
+  optProb.addVarGroup("varC", 3)
 
-  optProb.addConGroup('conA', 2, upper=0.0, wrt=['varB', 'varC'])
-  optProb.addConGroup('conB', 2, upper=0.0, wrt=['varC', 'varA'])
-  optProb.addConGroup('conC', 4, upper=0.0)
-  optProb.addConGroup('conD', 3, upper=0.0, wrt=['varC'])
+  optProb.addConGroup("conA", 2, upper=0.0, wrt=["varB", "varC"])
+  optProb.addConGroup("conB", 2, upper=0.0, wrt=["varC", "varA"])
+  optProb.addConGroup("conC", 4, upper=0.0)
+  optProb.addConGroup("conD", 3, upper=0.0, wrt=["varC"])
 
 Note that the order of the ``wrt`` (which stands for with-respect-to) is not significant.
 Furthermore, if the ``wrt`` argument is omitted altogether, pyOptSparse assumes that the constraint is dense.
@@ -170,7 +170,7 @@ To do so, use the following call after adding all the design variables, objectiv
 
 .. code-block:: python
 
-  >>> optProb.printSparsity()
+  optProb.printSparsity()
 
 Using the ``wrt`` keyword allows the user to determine the overall sparsity structure of the constraint Jacobian.
 However, we have currently assumed that each of the blocks with an ``X`` in is a dense sub-block.
@@ -182,12 +182,12 @@ By way of example, the call instead may be as follows:
 
 .. code-block:: python
 
-  jac = sparse.lil_matrix((3,3))
-  jac[0,0] = 1.0
-  jac[1,1] = 4.0
-  jac[2,2] = 5.0
+  jac = sparse.lil_matrix((3, 3))
+  jac[0, 0] = 1.0
+  jac[1, 1] = 4.0
+  jac[2, 2] = 5.0
 
-  optProb.addConGroup('conD', 3, upper=0.0, wrt=['varC'], linear=True, jac={'varC':jac})
+  optProb.addConGroup("conD", 3, upper=0.0, wrt=["varC"], linear=True, jac={"varC": jac})
 
 We have created a linked list sparse matrix using ``scipy.sparse``.
 Any SciPy sparse matrix format can be accepted.
@@ -215,7 +215,7 @@ This is accomplished using a the call to :meth:`addObj <pyoptsparse.pyOpt_optimi
 
 .. code-block:: python
 
-  optProb.addObj('obj_name')
+  optProb.addObj("obj_name")
 
 What this does is tell pyOptSparse that the key ``obj_name`` in the function returns will be taken as the objective.
 For optimizers that can do multi-objective optimization (e.g. NSGA2), multiple objectives can be added.
@@ -264,6 +264,7 @@ The first, and most explicit approach is to directly import the optimizer class,
 .. code-block:: python
 
   from pyoptsparse import SLSQP
+
   opt = SLSQP(...)
 
 However, in order to easily switch between different optimizers without having to import each class, a convenience function called
@@ -273,6 +274,7 @@ It accepts a string argument in addition to the usual options, and instantiates 
 .. code-block:: python
 
   from pyoptsparse import OPT
+
   opt = OPT("SLSQP", ...)
 
 Note that the name of the optimizer is case-insensitive, so ``slsqp`` can also be used.

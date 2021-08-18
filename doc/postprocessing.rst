@@ -150,7 +150,7 @@ To extract the stored information in Python, first initialize a History object:
 
 .. code-block:: python
 
-    >>> hist = History('path/to/opt_hist.hst', flag='r')
+    hist = History("path/to/opt_hist.hst", flag="r")
 
 From here, various information can be extracted, using the various ``get_`` methods.
 To extract iteration history, use the function ``getValues()``.

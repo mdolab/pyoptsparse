@@ -33,7 +33,7 @@ Notes:
 
     .. code-block:: python
 
-        x = xdict['xvars']
+        x = xdict["xvars"]
 
     retrieves an array of length 3 which are all the variables for this optimization. 
 
@@ -41,7 +41,7 @@ Notes:
 
     .. code-block:: python
 
-        conval = [0]*2
+        conval = [0] * 2
 
     creates a list of length 2, which stores the numerical values of the two constraints.
     The ``funcs`` dictionary return must contain keys that match the constraint names from
@@ -52,8 +52,8 @@ Notes:
 
     .. code-block:: python
 
-        funcs['obj'] = -x[0]*x[1]*x[2]
-        funcs['con'] = conval
+        funcs["obj"] = -x[0] * x[1] * x[2]
+        funcs["con"] = conval
 
 Now the optimization problem can be initialized:
 
