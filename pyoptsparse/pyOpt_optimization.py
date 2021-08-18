@@ -258,8 +258,8 @@ class Optimization:
             lower = np.atleast_1d(lower).real
         else:
             raise Error(
-                    "The 'lower' argument to addVarGroup is invalid. "
-                    + f"It must be None, a scalar, or a list/array or length nVars={nVars}."
+                "The 'lower' argument to addVarGroup is invalid. "
+                + f"It must be None, a scalar, or a list/array or length nVars={nVars}."
             )
 
         if upper is None:
@@ -270,8 +270,8 @@ class Optimization:
             upper = np.atleast_1d(upper).real
         else:
             raise Error(
-                    "The 'upper' argument to addVarGroup is invalid. "
-                    + f"It must be None, a scalar, or a list/array or length nVars={nVars}."
+                "The 'upper' argument to addVarGroup is invalid. "
+                + f"It must be None, a scalar, or a list/array or length nVars={nVars}."
             )
 
         # ------ Process the scale argument

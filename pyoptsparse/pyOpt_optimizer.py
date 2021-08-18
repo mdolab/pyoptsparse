@@ -354,8 +354,8 @@ class Optimizer(BaseSolver):
                     fail = args[1]
                 elif args is None:
                     raise Error(
-                            "No return values from user supplied objective function. "
-                            + "The function must return 'funcs' or 'funcs, fail'"
+                        "No return values from user supplied objective function. "
+                        + "The function must return 'funcs' or 'funcs, fail'"
                     )
                 else:
                     funcs = args
@@ -400,8 +400,8 @@ class Optimizer(BaseSolver):
                     fail = args[1]
                 elif args is None:
                     raise Error(
-                            "No return values from user supplied objective function. "
-                            + "The function must return 'funcs' *OR* 'funcs, fail'"
+                        "No return values from user supplied objective function. "
+                        + "The function must return 'funcs' *OR* 'funcs, fail'"
                     )
                 else:
                     funcs = args
@@ -457,8 +457,8 @@ class Optimizer(BaseSolver):
                     fail = args[1]
                 elif args is None:
                     raise Error(
-                            "No return values from user supplied sensitivity function. "
-                            + "The function must return 'funcsSens' or 'funcsSens, fail'"
+                        "No return values from user supplied sensitivity function. "
+                        + "The function must return 'funcsSens' or 'funcsSens, fail'"
                     )
                 else:
                     funcsSens = args
@@ -510,8 +510,8 @@ class Optimizer(BaseSolver):
                     fail = args[1]
                 elif args is None:
                     raise Error(
-                            "No return values from user supplied sensitivity function. "
-                            + "The function must 'return 'funcsSens' or 'funcsSens, fail'"
+                        "No return values from user supplied sensitivity function. "
+                        + "The function must 'return 'funcsSens' or 'funcsSens, fail'"
                     )
                 else:
                     funcsSens = args
