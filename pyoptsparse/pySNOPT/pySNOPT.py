@@ -63,7 +63,7 @@ class SNOPT(Optimizer):
             # The version_str is going to look like
             # S N O P T  7.7.5    (Oct 2020)
             # we search between "S N O P T" and "("
-            res = re.search("S N O P T(.*)\(", version_str)
+            res = re.search(r"S N O P T(.*)\(", version_str)
             if res is not None:
                 version = res.group(1).strip()
             else:

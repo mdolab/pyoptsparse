@@ -12,7 +12,7 @@ from .pyOpt_utils import INFINITY, convertToCOO
 from .types import Dict1DType
 
 
-class Constraint(object):
+class Constraint:
     def __init__(
         self,
         name: str,
@@ -51,10 +51,8 @@ class Constraint(object):
             pass  # Some iterable object
         else:
             raise Error(
-                (
                     "The 'lower' argument to addCon or addConGroup is invalid. "
-                    + "It must be None, a scalar, or a list/array or length nCon={}.".format(nCon)
-                )
+                    + f"It must be None, a scalar, or a list/array or length nCon={nCon}."
             )
 
         if upper is None:
@@ -65,10 +63,8 @@ class Constraint(object):
             pass  # Some iterable object
         else:
             raise Error(
-                (
                     "The 'upper' argument to addCon or addConGroup is invalid. "
-                    + "It must be None, a scalar, or a list/array or length nCon={}.".format(nCon)
-                )
+                    + f"It must be None, a scalar, or a list/array or length nCon={nCon}."
             )
 
         # ------ Process the scale argument
@@ -79,10 +75,8 @@ class Constraint(object):
             pass
         else:
             raise Error(
-                (
-                    "The length of the 'scale' argument to addCon or addConGroup is {}, ".format(len(scale))
-                    + "but the number of constraints is {}.".format(nCon)
-                )
+                    f"The length of the 'scale' argument to addCon or addConGroup is {len(scale)}, "
+                    + f"but the number of constraints is {nCon}."
             )
 
         # Save lower and upper...they are only used for printing however
@@ -253,26 +247,22 @@ class Constraint(object):
             for dvGroup in self.wrt:
                 if dvGroup not in variables:
                     raise Error(
-                        (
                             "The supplied dvGroup '{}' in 'wrt' for the {} constraint, does not exist. ".format(
                                 dvGroup, self.name
                             )
                             + "It must be added with a call to addVar() or addVarGroup()."
-                        )
                     )
 
             # Check for duplicates in wrt
             wrt_uniq = list(set(self.wrt))
             if len(wrt_uniq) < len(self.wrt):
-                duplicate_vars = list(set([x for x in self.wrt if self.wrt.count(x) > 1]))
+                duplicate_vars = list({x for x in self.wrt if self.wrt.count(x) > 1})
                 pyOptSparseWarning(
-                    (
-                        "The constraint {} was created with duplicate variables in 'wrt'. ".format(self.name)
+                        f"The constraint {self.name} was created with duplicate variables in 'wrt'. "
                         + "The following duplicates were automatically removed: "
-                    )
                 )
                 for var in duplicate_vars:
-                    print("\t\t{}".format(var))
+                    print(f"\t\t{var}")
                 self.wrt = wrt_uniq
 
         # Last thing for wrt is to reorder them such that dvGroups are
@@ -299,10 +289,8 @@ class Constraint(object):
 
             if self.linear:
                 raise Error(
-                    (
                         "The 'jac' keyword to argument to addConGroup() must be supplied for a linear constraint. "
-                        + "The constraint in error is {}.".format(self.name)
-                    )
+                        + f"The constraint in error is {self.name}."
                 )
 
             # without any additional information about the Jacobian
@@ -321,10 +309,8 @@ class Constraint(object):
             # First sanitize input:
             if not isinstance(self.jac, dict):
                 raise Error(
-                    (
                         "The 'jac' keyword argument to addConGroup() must be a dictionary. "
-                        + "The constraint in error is {}.".format(self.name)
-                    )
+                        + f"The constraint in error is {self.name}."
                 )
 
             # Now loop over the set we *know* we need and see if any
@@ -350,7 +336,6 @@ class Constraint(object):
                 # Generically check the shape:
                 if self.jac[dvGroup]["shape"][0] != self.ncon or self.jac[dvGroup]["shape"][1] != ndvs:
                     raise Error(
-                        (
                             "The supplied Jacobian for dvGroup {}' in constraint {}, was the incorrect size. ".format(
                                 dvGroup, self.name
                             )
@@ -360,7 +345,6 @@ class Constraint(object):
                                 self.jac[dvGroup]["shape"][0],
                                 self.jac[dvGroup]["shape"][1],
                             )
-                        )
                     )
             # end for (dvGroup)
 
@@ -398,7 +382,7 @@ class Constraint(object):
             res += (
                 "	 "
                 + str(self.name).center(9)
-                + "	  i %15.2e <= %8f <= %8.2e\n" % (np.real(lower), np.real(value), np.real(upper))
+                + f"	  i {np.real(lower):15.2e} <= {np.real(value):8f} <= {np.real(upper):8.2e}\n"
             )
 
         return res

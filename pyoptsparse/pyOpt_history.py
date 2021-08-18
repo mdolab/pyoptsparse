@@ -12,7 +12,7 @@ from .pyOpt_error import Error, pyOptSparseWarning
 from .pyOpt_utils import EPS
 
 
-class History(object):
+class History:
     def __init__(self, fileName, optProb=None, temp=False, flag="r"):
         """
         This class is essentially a thin wrapper around a SqliteDict dictionary to facilitate
@@ -204,7 +204,7 @@ class History(object):
 
         # extract list of callCounters from self.keys
         # this just checks if each key contains only digits, then cast into int
-        self.callCounters = sorted([x for x in self.keys if x.isdigit()], key=float)
+        self.callCounters = sorted((x for x in self.keys if x.isdigit()), key=float)
 
         # extract all information stored in the call counters
         self.iterKeys = set()
@@ -565,11 +565,11 @@ class History(object):
             .union(self.objNames)
             .union(self.iterKeys)
             .union(self.extraFuncsNames)
-            .difference(set(["funcs", "funcsSens", "xuser"]))
+            .difference({"funcs", "funcsSens", "xuser"})
         )
         # cast string input into a single list
         if isinstance(names, str):
-            names = set([names])
+            names = {names}
         elif names is None:
             names = allNames
         else:

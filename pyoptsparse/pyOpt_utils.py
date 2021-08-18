@@ -219,14 +219,12 @@ def convertToCOO(mat: Union[dict, spmatrix, ndarray]):
         try:
             if sparse.issparse(mat):
                 warnings.warn(
-                    (
                         "Using scipy.sparse matrices with pyOptSparse is VERY STRONGLY discouraged. "
                         + "Please use the simplified pyOptSparse format which allows for "
                         + "fixed sparsity structure and explicit zeros in the matrix. "
                         + "There is no way to guarantee a fixed sparsity structure with scipy matrices "
                         + "which is what the underlying optimizers require. "
                         + "Using scipy.sparse matrices may cause unexpected errors."
-                    )
                 )
 
                 mat = mat.tocoo()
@@ -376,7 +374,7 @@ def convertToDense(mat: Union[dict, spmatrix, ndarray]) -> ndarray:
     """
 
     mat = convertToCSR(mat)
-    newMat = np.zeros((mat["shape"]))
+    newMat = np.zeros(mat["shape"])
     data = mat["csr"][IDATA]
     colInd = mat["csr"][ICOLIND]
     rowp = mat["csr"][IROWP]

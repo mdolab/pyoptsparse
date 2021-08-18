@@ -17,7 +17,7 @@ from sqlitedict import SqliteDict
 from ..pyOpt_error import pyOptSparseWarning
 
 
-class OVBaseClass(object):
+class OVBaseClass:
 
     """
     Container for display parameters, properties, and objects.
@@ -235,7 +235,7 @@ class OVBaseClass(object):
 
         else:  # this is if it's OpenMDAO
             for i, iter_type in enumerate(self.iter_type):
-                key = "{}|{}".format(self.solver_name, i + 1)  # OpenMDAO uses 1-indexing
+                key = f"{self.solver_name}|{i + 1}"  # OpenMDAO uses 1-indexing
                 if i in self.deriv_keys:
                     self.iter_type[i] = 1.0
 
@@ -256,7 +256,7 @@ class OVBaseClass(object):
             # If this is an OpenMDAO file, the keys are of the format
             # 'rank0:SNOPT|1', etc
             if OpenMDAO:
-                key = "{}|{}".format(self.solver_name, i + 1)  # OpenMDAO uses 1-indexing
+                key = f"{self.solver_name}|{i + 1}"  # OpenMDAO uses 1-indexing
             else:  # Otherwise the keys are simply a number
                 key = "%d" % i
 
@@ -271,7 +271,7 @@ class OVBaseClass(object):
 
                     # Format a new_key string where we append a modifier
                     # if we have multiple history files
-                    new_key = key + "{}".format(self.histIndex)
+                    new_key = key + f"{self.histIndex}"
 
                     # If this key is not in the data dictionaries, add it
                     if new_key not in data_all:
@@ -301,7 +301,7 @@ class OVBaseClass(object):
 
                     # We'll rename each item, so we need to get the old item
                     # name and modify it
-                    item = old_item + "{}".format(self.histIndex)
+                    item = old_item + f"{self.histIndex}"
 
                     # Here we just have an open parenthesis, and then we will
                     # add o, c, or dv. Note that we could add multiple flags

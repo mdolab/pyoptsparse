@@ -26,7 +26,7 @@ class Error(Exception):
         Exception.__init__(self)
 
 
-class pyOptSparseWarning(object):
+class pyOptSparseWarning:
     """
     Format a warning message
     """
