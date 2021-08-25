@@ -204,7 +204,7 @@ class History:
 
         # extract list of callCounters from self.keys
         # this just checks if each key contains only digits, then cast into int
-        self.callCounters = sorted((x for x in self.keys if x.isdigit()), key=float)
+        self.callCounters = sorted([x for x in self.keys if x.isdigit()], key=float)
 
         # extract all information stored in the call counters
         self.iterKeys = set()
