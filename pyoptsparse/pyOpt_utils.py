@@ -229,13 +229,13 @@ def convertToCOO(mat: Union[dict, spmatrix, ndarray]):
 
                 mat = mat.tocoo()
                 return {"coo": [mat.row, mat.col, mat.data], "shape": mat.shape}
-        except:  # noqa: E722
+        except Exception:
             pass
 
         # Now try to do it with a numpy matrix:
         try:
             return _denseToCOO(np.atleast_2d(np.array(mat)))
-        except:  # noqa: E722
+        except Exception:
             raise Error(
                 (
                     "Unknown matrix format. "

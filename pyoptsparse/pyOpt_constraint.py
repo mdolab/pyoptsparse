@@ -235,7 +235,7 @@ class Constraint:
             else:
                 try:
                     self.wrt = list(self.wrt)
-                except:  # noqa: E722
+                except Exception:
                     raise Error("The 'wrt' argument to constraint '%s' must be an iterable list" % self.name)
 
             # We allow 'None' to be in the list...they are null so

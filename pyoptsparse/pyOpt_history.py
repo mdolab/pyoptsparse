@@ -737,5 +737,5 @@ class History:
             self.db.close()
             if self.temp:
                 os.remove(self.fileName)
-        except:  # noqa: E722
+        except Exception:
             pass
