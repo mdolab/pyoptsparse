@@ -2,7 +2,7 @@
 import numpy as np
 
 
-class Objective(object):
+class Objective:
     def __init__(self, name, scale=1.0):
         """
         This class holds the representation of a pyOptSparse objective.

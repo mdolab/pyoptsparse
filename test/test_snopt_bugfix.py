@@ -97,8 +97,8 @@ class TestSNOPTBug(unittest.TestCase):
         test_name = "bugfix_SNOPT_test_opt"
         optOptions = {
             "Major feasibility tolerance": 1e-1,
-            "Print file": "{}.out".format(test_name),
-            "Summary file": "{}_summary.out".format(test_name),
+            "Print file": f"{test_name}.out",
+            "Summary file": f"{test_name}_summary.out",
         }
 
         # Optimizer
@@ -128,8 +128,8 @@ class TestSNOPTBug(unittest.TestCase):
         test_name = "bugfix_SNOPT_bug1"
         optOptions = {
             "Major feasibility tolerance": 1e-1,
-            "Print file": "{}.out".format(test_name),
-            "Summary file": "{}_summary.out".format(test_name),
+            "Print file": f"{test_name}.out",
+            "Summary file": f"{test_name}_summary.out",
         }
 
         # Optimizer
@@ -169,8 +169,8 @@ class TestSNOPTBug(unittest.TestCase):
         test_name = "bugfix_SNOPT_bug_print_2con"
         optOptions = {
             "Major feasibility tolerance": 1e-1,
-            "Print file": "{}.out".format(test_name),
-            "Summary file": "{}_summary.out".format(test_name),
+            "Print file": f"{test_name}.out",
+            "Summary file": f"{test_name}_summary.out",
         }
 
         # Optimizer

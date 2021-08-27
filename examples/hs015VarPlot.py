@@ -20,7 +20,7 @@ from pyoptsparse import History
 db = {}
 opts = ["ipopt", "slsqp", "snopt", "conmin", "nlpqlp", "psqp"]
 for opt in opts:
-    fileName = "{}_hs015_Hist.hst".format(opt)
+    fileName = f"{opt}_hs015_Hist.hst"
     try:
         db[opt] = History(fileName)
     except FileNotFoundError:

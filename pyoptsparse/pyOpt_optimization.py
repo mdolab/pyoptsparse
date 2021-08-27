@@ -22,7 +22,7 @@ from .pyOpt_variable import Variable
 from .types import Dict1DType, Dict2DType, NumpyType
 
 
-class Optimization(object):
+class Optimization:
     def __init__(self, name: str, objFun: Callable, comm=None, sens: Optional[Union[str, Callable]] = None):
         """
         The main purpose of this class is to describe the structure and
@@ -258,10 +258,8 @@ class Optimization(object):
             lower = np.atleast_1d(lower).real
         else:
             raise Error(
-                (
-                    "The 'lower' argument to addVarGroup is invalid. "
-                    + "It must be None, a scalar, or a list/array or length nVars={}.".format(nVars)
-                )
+                "The 'lower' argument to addVarGroup is invalid. "
+                + f"It must be None, a scalar, or a list/array or length nVars={nVars}."
             )
 
         if upper is None:
@@ -272,10 +270,8 @@ class Optimization(object):
             upper = np.atleast_1d(upper).real
         else:
             raise Error(
-                (
-                    "The 'upper' argument to addVarGroup is invalid. "
-                    + "It must be None, a scalar, or a list/array or length nVars={}.".format(nVars)
-                )
+                "The 'upper' argument to addVarGroup is invalid. "
+                + f"It must be None, a scalar, or a list/array or length nVars={nVars}."
             )
 
         # ------ Process the scale argument
@@ -1655,12 +1651,12 @@ class Optimization(object):
         """
         TOL = 1.0e-6
 
-        text = "\n\nOptimization Problem -- {0}\n{1}\n    Objective Function: {2}\n\n".format(
+        text = "\n\nOptimization Problem -- {}\n{}\n    Objective Function: {}\n\n".format(
             self.name, "=" * 80, self.objFun.__name__
         )
         text += "\n   Objectives\n"
 
-        num_c = max([len(obj) for obj in self.objectives])
+        num_c = max(len(obj) for obj in self.objectives)
         fmt = "    {0:>7s}  {1:{width}s}   {2:>14s}\n"
         text += fmt.format("Index", "Name", "Value", width=num_c)
         fmt = "    {0:>7d}  {1:{width}s}   {2:>14.6E}\n"
@@ -1712,7 +1708,7 @@ class Optimization(object):
                     upper = max(choices)
                     status = ""
                 else:
-                    raise ValueError("Unrecognized type for variable {0}: {1}".format(var.name, var.type))
+                    raise ValueError(f"Unrecognized type for variable {var.name}: {var.type}")
 
                 text += fmt.format(idx, var.name, var.type, lower, value, upper, status, width=num_c)
                 idx += 1
@@ -1731,7 +1727,7 @@ class Optimization(object):
 
             text += "\n   Constraints (i - inequality, e - equality)\n"
             # Find the longest name in the constraints
-            num_c = max([len(self.constraints[i].name) for i in self.constraints])
+            num_c = max(len(self.constraints[i].name) for i in self.constraints)
             fmt = "    {0:>7s}  {1:{width}s} {2:>4s} {3:>14}  {4:>14}  {5:>14}  {6:>8s}  {7:>14s}\n"
             text += fmt.format(
                 "Index", "Name", "Type", "Lower", "Value", "Upper", "Status", lambdaStar_label, width=num_c

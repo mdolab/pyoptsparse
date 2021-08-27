@@ -634,7 +634,7 @@ class Display(OVBaseClass):
         self.arr_data = {}
         self.val_names = []
         for i, val in enumerate(values):
-            self.val_names.append(values_orig[0] + "_{0}".format(val))
+            self.val_names.append(values_orig[0] + f"_{val}")
             self.arr_data[self.val_names[i]] = []
             for ind_dat in dat:
                 self.arr_data[self.val_names[i]].append(ind_dat[val])
@@ -768,7 +768,7 @@ class Display(OVBaseClass):
                     for j in range(m):
                         indiv_data[j] = small_data[j][i]
                     full_data = np.c_[full_data, indiv_data]
-                    var_names.append(key + "_{}".format(i))
+                    var_names.append(key + f"_{i}")
 
         filename = "OptView_tec.dat"
         self._file = open(filename, "w")
@@ -778,7 +778,7 @@ class Display(OVBaseClass):
             self._file.write('"' + name + '" ')
         self._file.write("\n")
 
-        self._file.write('Zone T= "OptView_tec_data", ' + "I={}, ".format(num_iters) + "F=POINT\n")
+        self._file.write('Zone T= "OptView_tec_data", ' + f"I={num_iters}, " + "F=POINT\n")
         np.savetxt(self._file, full_data)
         self._file.close()
 
@@ -895,7 +895,7 @@ class Display(OVBaseClass):
                 iter_count = np.round(event.xdata, 0)
                 ind = np.where(xdat == iter_count)[0][0]
 
-                label = label + "\niter: {0:d}\nvalue: {1}".format(int(iter_count), ydat[ind])
+                label = label + f"\niter: {int(iter_count):d}\nvalue: {ydat[ind]}"
 
                 # Get the width of the window so we can scale the label placement
                 size = self.f.get_size_inches() * self.f.dpi

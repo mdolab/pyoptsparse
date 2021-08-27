@@ -32,7 +32,7 @@ class TestOptProb(unittest.TestCase):
         for x in xdict.keys():
             funcs["obj_0"] += np.sum(np.power(xdict[x], 2))
         for iCon, nc in enumerate(self.nCon):
-            conName = "con_{}".format(iCon)
+            conName = f"con_{iCon}"
             funcs[conName] = np.zeros(nc)
             for x in xdict.keys():
                 for j in range(nc):
@@ -62,7 +62,7 @@ class TestOptProb(unittest.TestCase):
             lower = np.random.uniform(-5, 2, n)
             upper = np.random.uniform(5, 20, n)
             x0 = np.random.uniform(lower, upper)
-            dvName = "x{}".format(iDV)
+            dvName = f"x{iDV}"
             self.x0[dvName] = x0
             self.optProb.addVarGroup(
                 dvName,
@@ -80,7 +80,7 @@ class TestOptProb(unittest.TestCase):
             lower = np.random.uniform(-5, 2, nc)
             upper = np.random.uniform(5, 6, nc)
             self.optProb.addConGroup(
-                "con_{}".format(iCon),
+                f"con_{iCon}",
                 nc,
                 lower=lower,
                 upper=upper,
@@ -89,7 +89,7 @@ class TestOptProb(unittest.TestCase):
 
         # Objective
         for iObj in range(nObj):
-            self.optProb.addObj("obj_{}".format(iObj), scale=objScale[iObj])
+            self.optProb.addObj(f"obj_{iObj}", scale=objScale[iObj])
 
         # Finalize
         self.optProb.printSparsity()

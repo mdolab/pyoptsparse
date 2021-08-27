@@ -12,7 +12,7 @@ from .pyOpt_error import Error, pyOptSparseWarning
 from .pyOpt_utils import EPS
 
 
-class History(object):
+class History:
     def __init__(self, fileName, optProb=None, temp=False, flag="r"):
         """
         This class is essentially a thin wrapper around a SqliteDict dictionary to facilitate
@@ -565,11 +565,11 @@ class History(object):
             .union(self.objNames)
             .union(self.iterKeys)
             .union(self.extraFuncsNames)
-            .difference(set(["funcs", "funcsSens", "xuser"]))
+            .difference({"funcs", "funcsSens", "xuser"})
         )
         # cast string input into a single list
         if isinstance(names, str):
-            names = set([names])
+            names = {names}
         elif names is None:
             names = allNames
         else:
@@ -737,5 +737,5 @@ class History(object):
             self.db.close()
             if self.temp:
                 os.remove(self.fileName)
-        except:  # noqa: E722
+        except Exception:
             pass

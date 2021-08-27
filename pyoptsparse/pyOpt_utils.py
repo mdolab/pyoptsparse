@@ -219,25 +219,23 @@ def convertToCOO(mat: Union[dict, spmatrix, ndarray]):
         try:
             if sparse.issparse(mat):
                 warnings.warn(
-                    (
-                        "Using scipy.sparse matrices with pyOptSparse is VERY STRONGLY discouraged. "
-                        + "Please use the simplified pyOptSparse format which allows for "
-                        + "fixed sparsity structure and explicit zeros in the matrix. "
-                        + "There is no way to guarantee a fixed sparsity structure with scipy matrices "
-                        + "which is what the underlying optimizers require. "
-                        + "Using scipy.sparse matrices may cause unexpected errors."
-                    )
+                    "Using scipy.sparse matrices with pyOptSparse is VERY STRONGLY discouraged. "
+                    + "Please use the simplified pyOptSparse format which allows for "
+                    + "fixed sparsity structure and explicit zeros in the matrix. "
+                    + "There is no way to guarantee a fixed sparsity structure with scipy matrices "
+                    + "which is what the underlying optimizers require. "
+                    + "Using scipy.sparse matrices may cause unexpected errors."
                 )
 
                 mat = mat.tocoo()
                 return {"coo": [mat.row, mat.col, mat.data], "shape": mat.shape}
-        except:  # noqa: E722
+        except Exception:
             pass
 
         # Now try to do it with a numpy matrix:
         try:
             return _denseToCOO(np.atleast_2d(np.array(mat)))
-        except:  # noqa: E722
+        except Exception:
             raise Error(
                 (
                     "Unknown matrix format. "
@@ -376,7 +374,7 @@ def convertToDense(mat: Union[dict, spmatrix, ndarray]) -> ndarray:
     """
 
     mat = convertToCSR(mat)
-    newMat = np.zeros((mat["shape"]))
+    newMat = np.zeros(mat["shape"])
     data = mat["csr"][IDATA]
     colInd = mat["csr"][ICOLIND]
     rowp = mat["csr"][IROWP]
