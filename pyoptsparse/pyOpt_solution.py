@@ -79,8 +79,8 @@ class Solution(Optimization):
         text1 += f"       User Sensitivity Time : {self.userSensTime:10.4f}\n"
         text1 += f"       Interface Time :        {self.interfaceTime:10.4f}\n"
         text1 += f"       Opt Solver Time:        {self.optCodeTime:10.4f}\n"
-        text1 += "    Calls to Objective Function : %7d\n" % self.userObjCalls
-        text1 += "    Calls to Sens Function :      %7d\n" % self.userSensCalls
+        text1 += f"    Calls to Objective Function : {self.userObjCalls:7}\n"
+        text1 += f"    Calls to Sens Function :      {self.userSensCalls:7}\n"
 
         for i in range(5, len(lines)):
             text1 += lines[i] + "\n"

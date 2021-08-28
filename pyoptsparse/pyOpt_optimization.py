@@ -108,10 +108,10 @@ class Optimization:
             return varName
         else:
             i = 0
-            validName = varName + "_%d" % i
+            validName = f"{varName}_{i}"
             while validName in self.variables:
                 i += 1
-                validName = varName + "_%d" % i
+                validName = f"{varName}_{i}"
             return validName
 
     def checkConName(self, conName: str) -> str:
@@ -136,10 +136,10 @@ class Optimization:
             return conName
         else:
             i = 0
-            validName = conName + "_%d" % i
+            validName = f"{conName}_{i}"
             while validName in self.constraints:
                 i += 1
-                validName = conName + "_%d" % i
+                validName = f"{conName}_{i}"
             return validName
 
     def addVarGroup(
@@ -314,7 +314,7 @@ class Optimization:
         # Now create all the variable objects
         varList = []
         for iVar in range(nVars):
-            varName = name + "_%d" % iVar
+            varName = f"{name}_{iVar}"
             varList.append(
                 Variable(
                     varName,
@@ -660,7 +660,7 @@ class Optimization:
 
             # Otherwise, put in the variable and its size
             else:
-                var_str = dvGroup + " (%d)" % nvar
+                var_str = f"{dvGroup} ({nvar})"
 
             # Find the length of the longest name for design variables
             longestNameLength = max(len(dvGroup), longestNameLength)
@@ -683,7 +683,7 @@ class Optimization:
             if verticalPrint:
                 var_str = "   "
             else:
-                var_str = dvGroup + " (%d)" % nvar
+                var_str = f"{dvGroup} ({nvar})"
             var_str_length = len(var_str)
             txt[0, iCol + 1 : iCol + var_str_length + 1] = list(var_str)
             txt[2:-1, iCol + var_str_length + 2] = "|"
@@ -698,7 +698,7 @@ class Optimization:
             if con.linear:
                 name = name + "(L)"
 
-            name = name + " (%d)" % con.ncon
+            name = f"{name} ({con.ncon})"
             var_str_length = len(name)
             # The name
             txt[iRow, maxConNameLen - var_str_length : maxConNameLen] = list(name)

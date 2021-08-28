@@ -83,7 +83,7 @@ class History:
         """
 
         # String key to database on disk
-        key = "%d" % callCounter
+        key = str(callCounter)
         # if the point exists, we merely update with new data
         if self.pointExists(callCounter):
             oldData = self.read(callCounter)
@@ -176,7 +176,7 @@ class History:
         last = int(self.db["last"])
         callCounter = None
         for i in range(last, 0, -1):
-            key = "%d" % i
+            key = str(i)
             xuser = self.optProb.processXtoVec(self.db[key]["xuser"])
             if np.isclose(xuser, x, atol=EPS, rtol=EPS).all() and "funcs" in self.db[key].keys():
                 callCounter = i
