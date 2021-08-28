@@ -236,7 +236,7 @@ class Constraint:
                 try:
                     self.wrt = list(self.wrt)
                 except Exception:
-                    raise Error("The 'wrt' argument to constraint '%s' must be an iterable list" % self.name)
+                    raise Error(f"The 'wrt' argument to constraint '{self.name}' must be an iterable list")
 
             # We allow 'None' to be in the list...they are null so
             # just pop them out:
@@ -247,9 +247,7 @@ class Constraint:
             for dvGroup in self.wrt:
                 if dvGroup not in variables:
                     raise Error(
-                        "The supplied dvGroup '{}' in 'wrt' for the {} constraint, does not exist. ".format(
-                            dvGroup, self.name
-                        )
+                        f"The supplied dvGroup '{dvGroup}' in 'wrt' for the {self.name} constraint, does not exist. "
                         + "It must be added with a call to addVar() or addVarGroup()."
                     )
 

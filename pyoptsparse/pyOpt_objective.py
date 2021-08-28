@@ -31,6 +31,6 @@ class Objective:
         """
         res = "        Name        Value\n"
         res += "	 " + str(self.name).center(9)
-        res += "%12g\n" % (np.real(self.value))
+        res += f"{np.real(self.value):12g}\n"
 
         return res

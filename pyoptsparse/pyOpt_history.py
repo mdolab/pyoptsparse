@@ -49,7 +49,7 @@ class History:
                 self.db = OrderedDict(SqliteDict(fileName))
             else:
                 raise FileNotFoundError(
-                    "The requested history file %s to open in read-only mode does not exist." % fileName
+                    f"The requested history file {fileName} to open in read-only mode does not exist."
                 )
             self._processDB()
         else:

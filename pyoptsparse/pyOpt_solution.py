@@ -74,11 +74,11 @@ class Solution(Optimization):
 
         text1 += "\n    Solution: \n"
         text1 += ("-" * 80) + "\n"
-        text1 += "    Total Time: %25.4f\n" % self.optTime
-        text1 += "       User Objective Time :   %10.4f\n" % self.userObjTime
-        text1 += "       User Sensitivity Time : %10.4f\n" % self.userSensTime
-        text1 += "       Interface Time :        %10.4f\n" % self.interfaceTime
-        text1 += "       Opt Solver Time:        %10.4f\n" % self.optCodeTime
+        text1 += f"    Total Time: {self.optTime:25.4f}\n"
+        text1 += f"       User Objective Time :   {self.userObjTime:10.4f}\n"
+        text1 += f"       User Sensitivity Time : {self.userSensTime:10.4f}\n"
+        text1 += f"       Interface Time :        {self.interfaceTime:10.4f}\n"
+        text1 += f"       Opt Solver Time:        {self.optCodeTime:10.4f}\n"
         text1 += "    Calls to Objective Function : %7d\n" % self.userObjCalls
         text1 += "    Calls to Sens Function :      %7d\n" % self.userSensCalls
 

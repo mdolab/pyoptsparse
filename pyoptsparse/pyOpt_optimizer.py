@@ -705,7 +705,7 @@ class Optimizer(BaseSolver):
                     xs.append(var.value)
 
                 else:
-                    raise Error("%s cannot handle integer or discrete design variables" % self.name)
+                    raise Error(f"{self.name} cannot handle integer or discrete design variables")
 
         blx = np.array(blx)
         bux = np.array(bux)

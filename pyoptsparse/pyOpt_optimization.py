@@ -224,7 +224,7 @@ class Optimization:
         # Check that the nVars is > 0.
         if nVars < 1:
             raise Error(
-                "The 'nVars' argument to addVarGroup must be greater than or equal to 1. The bad DV is %s." % name
+                f"The 'nVars' argument to addVarGroup must be greater than or equal to 1. The bad DV is {name}."
             )
 
         # we let type overwrite the newer varType option name
@@ -332,10 +332,10 @@ class Optimization:
         if name in self.variables:
             # Check that the variables happen to be the same
             if not len(self.variables[name]) == len(varList):
-                raise Error("The supplied name '%s' for a variable group has already been used!" % name)
+                raise Error(f"The supplied name '{name}' for a variable group has already been used!")
             for i in range(len(varList)):
                 if not varList[i] == self.variables[name][i]:
-                    raise Error("The supplied name '%s' for a variable group has already been used!" % name)
+                    raise Error(f"The supplied name '{name}' for a variable group has already been used!")
             # We we got here, we know that the variables we wanted to
             # add are **EXACTLY** the same so that's cool. We'll just
             # overwrite with the varList below.
@@ -356,7 +356,7 @@ class Optimization:
         try:
             self.variables.pop(name)
         except KeyError:
-            print("%s was not a valid design variable name." % name)
+            print(f"{name} was not a valid design variable name.")
 
     def _reduceDict(self, variables):
         """
@@ -508,7 +508,7 @@ class Optimization:
         """
         self.finalized = False
         if name in self.constraints:
-            raise Error("The supplied name '%s' for a constraint group has already been used." % name)
+            raise Error(f"The supplied name '{name}' for a constraint group has already been used.")
 
         # Simply add constraint object
         self.constraints[name] = Constraint(name, nCon, linear, wrt, jac, lower, upper, scale)
@@ -599,7 +599,7 @@ class Optimization:
             self.setDVs(hist[key]["xuser"])
             hist.close()
         else:
-            raise Error("History file '%s' not found!." % histFile)
+            raise Error(f"History file '{histFile}' not found!.")
 
     def printSparsity(self, verticalPrint=False):
         """
@@ -1145,12 +1145,12 @@ class Optimization:
                 try:
                     f = np.squeeze(funcs[objKey]).item()
                 except ValueError:
-                    raise Error("The objective return value, '%s' must be a scalar!" % objKey)
+                    raise Error(f"The objective return value, '{objKey}' must be a scalar!")
                 # Store objective for printing later
                 self.objectives[objKey].value = np.real(f)
                 fobj.append(f)
             else:
-                raise Error("The key for the objective, '%s' was not found." % objKey)
+                raise Error(f"The key for the objective, '{objKey}' was not found.")
 
         # scale the objective
         if scaled:
@@ -1246,7 +1246,7 @@ class Optimization:
                 # Store constraint values for printing later
                 con.value = np.real(copy.copy(c))
             else:
-                raise Error("No constraint values were found for the constraint '%s'." % iCon)
+                raise Error(f"No constraint values were found for the constraint '{iCon}'.")
 
         # Perform scaling on the original Jacobian:
         if scaled:
@@ -1397,9 +1397,9 @@ class Optimization:
                                 ).format(dvGroup, (ss[1] - ss[0],), funcsSens[objKey][dvGroup].shape)
                             )
                     else:
-                        raise Error("The dvGroup key '%s' is not valid" % dvGroup)
+                        raise Error(f"The dvGroup key '{dvGroup}' is not valid")
             else:
-                raise Error("The key for the objective gradient, '%s', was not found." % objKey)
+                raise Error(f"The key for the objective gradient, '{objKey}', was not found.")
             iObj += 1
 
         # Note that we looped over the keys in funcsSens[objKey]
