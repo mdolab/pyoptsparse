@@ -579,19 +579,17 @@ class History:
         # error if names isn't either a DV, con or obj
         if not names.issubset(allNames):
             raise Error(
-                "The names provided are not one of DVNames, conNames or objNames.\n\
-                The names must be a subset of {}".format(
-                    allNames
-                )
+                "The names provided are not one of DVNames, conNames or objNames.\n"
+                + f"The names must be a subset of {allNames}"
             )
         DVsAsFuncs = self.DVNames.intersection(self.conNames)
         if len(DVsAsFuncs) > 0:
             ambiguousNames = names.intersection(DVsAsFuncs)
             if len(ambiguousNames) > 0:
                 pyOptSparseWarning(
-                    "The names provided {} is ambiguous, since it is both a DV as well as an objective/constraint. It is being assumed to be a DV. If it was set up via addDVsAsFunctions, then there's nothing to worry. Otherwise, consider renaming the variable or manually editing the history file.".format(
-                        ambiguousNames
-                    )
+                    f"The names provided {ambiguousNames} is ambiguous, since it is both a DV as well as an objective/constraint. "
+                    + "It is being assumed to be a DV. If it was set up via addDVsAsFunctions, then there's nothing to worry. "
+                    + "Otherwise, consider renaming the variable or manually editing the history file."
                 )
 
         if len(names.intersection(self.iterKeys)) > 0:
@@ -699,7 +697,7 @@ class History:
         if not self.pointExists(i):
             if user_specified_callCounter:
                 # user specified a non-existent call counter
-                pyOptSparseWarning(("callCounter {} was not found and is skipped!").format(i))
+                pyOptSparseWarning(f"callCounter {i} was not found and is skipped!")
             return None
         else:
             val = self.read(i)
@@ -709,9 +707,8 @@ class History:
                 if user_specified_callCounter:
                     # user unintentionally specified a call counter for sensitivity
                     pyOptSparseWarning(
-                        (
-                            "callCounter {} did not contain a function evaluation and is skipped! Was it a gradient evaluation step?"
-                        ).format(i)
+                        f"callCounter {i} did not contain a function evaluation and is skipped! "
+                        + "Was it a gradient evaluation step?"
                     )
                 return None
             else:

@@ -237,11 +237,9 @@ def convertToCOO(mat: Union[dict, spmatrix, ndarray]):
             return _denseToCOO(np.atleast_2d(np.array(mat)))
         except Exception:
             raise Error(
-                (
-                    "Unknown matrix format. "
-                    + "Must be a dense numpy array or a pyOptSparse sparse matrix format of COO, CSR or CSC. "
-                    + "See documentation for correct format. Supplied Matrix is: {}"
-                ).format(repr(mat))
+                "Unknown matrix format. "
+                + "Must be a dense numpy array or a pyOptSparse sparse matrix format of COO, CSR or CSC. "
+                + f"See documentation for correct format. Supplied Matrix is: {repr(mat)}"
             )
 
 
