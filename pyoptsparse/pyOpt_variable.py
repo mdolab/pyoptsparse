@@ -82,7 +82,7 @@ class Variable:
         if self.type == "d":
             res += "	 "
             res += str(self.name).center(15)
-            res += f"{self.type:>25}{self.value:20f} {min(self.choices):14.2e} {max(self.choices):12.2e}\n"
+            res += f"{self.type:>25}{self.choices[int(self.value)]:20f} {min(self.choices):14.2e} {max(self.choices):12.2e}\n"
         else:
             lower = self.lower
             upper = self.upper
