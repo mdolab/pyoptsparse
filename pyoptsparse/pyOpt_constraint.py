@@ -236,7 +236,7 @@ class Constraint:
                 try:
                     self.wrt = list(self.wrt)
                 except Exception:
-                    raise Error("The 'wrt' argument to constraint '%s' must be an iterable list" % self.name)
+                    raise Error(f"The 'wrt' argument to constraint '{self.name}' must be an iterable list")
 
             # We allow 'None' to be in the list...they are null so
             # just pop them out:
@@ -247,9 +247,7 @@ class Constraint:
             for dvGroup in self.wrt:
                 if dvGroup not in variables:
                     raise Error(
-                        "The supplied dvGroup '{}' in 'wrt' for the {} constraint, does not exist. ".format(
-                            dvGroup, self.name
-                        )
+                        f"The supplied dvGroup '{dvGroup}' in 'wrt' for the {self.name} constraint, does not exist. "
                         + "It must be added with a call to addVar() or addVarGroup()."
                     )
 
@@ -336,24 +334,17 @@ class Constraint:
                 # Generically check the shape:
                 if self.jac[dvGroup]["shape"][0] != self.ncon or self.jac[dvGroup]["shape"][1] != ndvs:
                     raise Error(
-                        "The supplied Jacobian for dvGroup {}' in constraint {}, was the incorrect size. ".format(
-                            dvGroup, self.name
-                        )
-                        + "Expecting a Jacobian of size ({}, {}) but received a Jacobian of size ({}, {}).".format(
-                            self.ncon,
-                            ndvs,
-                            self.jac[dvGroup]["shape"][0],
-                            self.jac[dvGroup]["shape"][1],
-                        )
+                        f"The supplied Jacobian for dvGroup {dvGroup}' in constraint {self.name}, was the incorrect size. "
+                        + f"Expecting a Jacobian of size ({self.ncon}, {ndvs}) but received a Jacobian of size "
+                        + f"({self.jac[dvGroup]['shape'][0]}, {self.jac[dvGroup]['shape'][1]})."
                     )
             # end for (dvGroup)
 
             # If there is anything left in jac print a warning:
             for dvGroup in tmp:
                 pyOptSparseWarning(
-                    "A Jacobian with dvGroup key of '{}' was unused in constraint {}. This will be ignored.".format(
-                        dvGroup, self.name
-                    )
+                    f"A Jacobian with dvGroup key of '{dvGroup}' was unused in constraint {self.name}. "
+                    + "This will be ignored."
                 )
 
             # Since this function *may* be called multiple times, only

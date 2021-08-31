@@ -108,10 +108,10 @@ class Optimization:
             return varName
         else:
             i = 0
-            validName = varName + "_%d" % i
+            validName = f"{varName}_{i}"
             while validName in self.variables:
                 i += 1
-                validName = varName + "_%d" % i
+                validName = f"{varName}_{i}"
             return validName
 
     def checkConName(self, conName: str) -> str:
@@ -136,10 +136,10 @@ class Optimization:
             return conName
         else:
             i = 0
-            validName = conName + "_%d" % i
+            validName = f"{conName}_{i}"
             while validName in self.constraints:
                 i += 1
-                validName = conName + "_%d" % i
+                validName = f"{conName}_{i}"
             return validName
 
     def addVarGroup(
@@ -224,7 +224,7 @@ class Optimization:
         # Check that the nVars is > 0.
         if nVars < 1:
             raise Error(
-                "The 'nVars' argument to addVarGroup must be greater than or equal to 1. The bad DV is %s." % name
+                f"The 'nVars' argument to addVarGroup must be greater than or equal to 1. The bad DV is {name}."
             )
 
         # we let type overwrite the newer varType option name
@@ -244,10 +244,8 @@ class Optimization:
             pass
         else:
             raise Error(
-                (
-                    "The length of the 'value' argument to addVarGroup is {}, "
-                    + "but the number of variables in nVars is {}."
-                ).format(len(value), nVars)
+                f"The length of the 'value' argument to addVarGroup is {len(value)}, "
+                + f"but the number of variables in nVars is {nVars}."
             )
 
         if lower is None:
@@ -285,10 +283,8 @@ class Optimization:
                 pass
             else:
                 raise Error(
-                    (
-                        "The length of the 'scale' argument to addVarGroup is {}, "
-                        + "but the number of variables in nVars is {}."
-                    ).format(len(scale), nVars)
+                    f"The length of the 'scale' argument to addVarGroup is {len(scale)}, "
+                    + f"but the number of variables in nVars is {nVars}."
                 )
 
         # ------ Process the offset argument
@@ -302,10 +298,8 @@ class Optimization:
                 pass
             else:
                 raise Error(
-                    (
-                        "The length of the 'offset' argument to addVarGroup is {}, "
-                        + "but the number of variables is {}."
-                    ).format(len(offset), nVars)
+                    f"The length of the 'offset' argument to addVarGroup is {len(offset)}, "
+                    + f"but the number of variables is {nVars}."
                 )
 
         # Determine if scalar i.e. it was called from addVar():
@@ -314,7 +308,7 @@ class Optimization:
         # Now create all the variable objects
         varList = []
         for iVar in range(nVars):
-            varName = name + "_%d" % iVar
+            varName = f"{name}_{iVar}"
             varList.append(
                 Variable(
                     varName,
@@ -332,10 +326,10 @@ class Optimization:
         if name in self.variables:
             # Check that the variables happen to be the same
             if not len(self.variables[name]) == len(varList):
-                raise Error("The supplied name '%s' for a variable group has already been used!" % name)
+                raise Error(f"The supplied name '{name}' for a variable group has already been used!")
             for i in range(len(varList)):
                 if not varList[i] == self.variables[name][i]:
-                    raise Error("The supplied name '%s' for a variable group has already been used!" % name)
+                    raise Error(f"The supplied name '{name}' for a variable group has already been used!")
             # We we got here, we know that the variables we wanted to
             # add are **EXACTLY** the same so that's cool. We'll just
             # overwrite with the varList below.
@@ -356,7 +350,7 @@ class Optimization:
         try:
             self.variables.pop(name)
         except KeyError:
-            print("%s was not a valid design variable name." % name)
+            print(f"{name} was not a valid design variable name.")
 
     def _reduceDict(self, variables):
         """
@@ -508,7 +502,7 @@ class Optimization:
         """
         self.finalized = False
         if name in self.constraints:
-            raise Error("The supplied name '%s' for a constraint group has already been used." % name)
+            raise Error(f"The supplied name '{name}' for a constraint group has already been used.")
 
         # Simply add constraint object
         self.constraints[name] = Constraint(name, nCon, linear, wrt, jac, lower, upper, scale)
@@ -599,7 +593,7 @@ class Optimization:
             self.setDVs(hist[key]["xuser"])
             hist.close()
         else:
-            raise Error("History file '%s' not found!." % histFile)
+            raise Error(f"History file '{histFile}' not found!.")
 
     def printSparsity(self, verticalPrint=False):
         """
@@ -660,7 +654,7 @@ class Optimization:
 
             # Otherwise, put in the variable and its size
             else:
-                var_str = dvGroup + " (%d)" % nvar
+                var_str = f"{dvGroup} ({nvar})"
 
             # Find the length of the longest name for design variables
             longestNameLength = max(len(dvGroup), longestNameLength)
@@ -683,7 +677,7 @@ class Optimization:
             if verticalPrint:
                 var_str = "   "
             else:
-                var_str = dvGroup + " (%d)" % nvar
+                var_str = f"{dvGroup} ({nvar})"
             var_str_length = len(var_str)
             txt[0, iCol + 1 : iCol + var_str_length + 1] = list(var_str)
             txt[2:-1, iCol + var_str_length + 2] = "|"
@@ -698,7 +692,7 @@ class Optimization:
             if con.linear:
                 name = name + "(L)"
 
-            name = name + " (%d)" % con.ncon
+            name = f"{name} ({con.ncon})"
             var_str_length = len(name)
             # The name
             txt[iRow, maxConNameLen - var_str_length : maxConNameLen] = list(name)
@@ -1145,12 +1139,12 @@ class Optimization:
                 try:
                     f = np.squeeze(funcs[objKey]).item()
                 except ValueError:
-                    raise Error("The objective return value, '%s' must be a scalar!" % objKey)
+                    raise Error(f"The objective return value, '{objKey}' must be a scalar!")
                 # Store objective for printing later
                 self.objectives[objKey].value = np.real(f)
                 fobj.append(f)
             else:
-                raise Error("The key for the objective, '%s' was not found." % objKey)
+                raise Error(f"The key for the objective, '{objKey}' was not found.")
 
         # scale the objective
         if scaled:
@@ -1238,15 +1232,14 @@ class Optimization:
                     fcon[..., con.rs : con.re] = c
                 else:
                     raise Error(
-                        "{} constraint values were returned in {}, but expected {}.".format(
-                            len(fcon_in[iCon]), iCon, self.constraints[iCon].ncon
-                        )
+                        f"{len(fcon_in[iCon])} constraint values were returned in {iCon}, "
+                        + f"but expected {self.constraints[iCon].ncon}."
                     )
 
                 # Store constraint values for printing later
                 con.value = np.real(copy.copy(c))
             else:
-                raise Error("No constraint values were found for the constraint '%s'." % iCon)
+                raise Error(f"No constraint values were found for the constraint '{iCon}'.")
 
         # Perform scaling on the original Jacobian:
         if scaled:
@@ -1391,15 +1384,13 @@ class Optimization:
                             gobj[iObj, ss[0] : ss[1]] = tmp
                         else:
                             raise Error(
-                                (
-                                    "The shape of the objective derivative for dvGroup '{}' is the incorrect length. "
-                                    + "Expecting a shape of {} but received a shape of {}."
-                                ).format(dvGroup, (ss[1] - ss[0],), funcsSens[objKey][dvGroup].shape)
+                                f"The shape of the objective derivative for dvGroup '{dvGroup}' is the incorrect length. "
+                                + f"Expecting a shape of {(ss[1] - ss[0],)} but received a shape of {funcsSens[objKey][dvGroup].shape}."
                             )
                     else:
-                        raise Error("The dvGroup key '%s' is not valid" % dvGroup)
+                        raise Error(f"The dvGroup key '{dvGroup}' is not valid")
             else:
-                raise Error("The key for the objective gradient, '%s', was not found." % objKey)
+                raise Error(f"The key for the objective gradient, '{objKey}', was not found.")
             iObj += 1
 
         # Note that we looped over the keys in funcsSens[objKey]
@@ -1488,10 +1479,8 @@ class Optimization:
                         gotDerivative = True
                 except KeyError:
                     raise Error(
-                        (
-                            "The constraint Jacobian entry for '{}' with respect to '{}', as was defined in addConGroup(), "
-                            + "was not found in constraint Jacobian dictionary provided."
-                        ).format(con.name, dvGroup)
+                        f"The constraint Jacobian entry for '{con.name}' with respect to '{dvGroup}', "
+                        + "as was defined in addConGroup(), was not found in constraint Jacobian dictionary provided."
                     )
                 if not gotDerivative:
                     # All keys for this constraint must be returned
@@ -1510,20 +1499,16 @@ class Optimization:
                 # Now check that the Jacobian is the correct shape
                 if not (tmp["shape"][0] == con.ncon and tmp["shape"][1] == ndvs):
                     raise Error(
-                        (
-                            "The shape of the supplied constraint Jacobian for constraint {} with respect to {} is incorrect. "
-                            + "Expected an array of shape ({}, {}), but received an array of shape ({}, {})."
-                        ).format(con.name, dvGroup, con.ncon, ndvs, tmp["shape"][0], tmp["shape"][1])
+                        f"The shape of the supplied constraint Jacobian for constraint {con.name} with respect to {dvGroup} is incorrect. "
+                        + f"Expected an array of shape ({con.ncon}, {ndvs}), but received an array of shape ({tmp['shape'][0]}, {tmp['shape'][1]})."
                     )
 
                 # Now check that supplied coo matrix has same length
                 # of data array
                 if len(tmp["coo"][2]) != len(con.jac[dvGroup]["coo"][2]):
                     raise Error(
-                        (
-                            "The number of nonzero elements for constraint group '{}' with respect to {} was not the correct size. "
-                            + "The supplied Jacobian has {} nonzero entries, but must contain {} nonzero entries."
-                        ).format(con.name, dvGroup, len(tmp["coo"][2]), len(con.jac[dvGroup]["coo"][2]))
+                        f"The number of nonzero elements for constraint group '{con.name}' with respect to {dvGroup} was not the correct size. "
+                        + f"The supplied Jacobian has {len(tmp['coo'][2])} nonzero entries, but must contain {len(con.jac[dvGroup]['coo'][2])} nonzero entries."
                     )
 
                 # Include data from this Jacobian chunk
@@ -1651,8 +1636,8 @@ class Optimization:
         """
         TOL = 1.0e-6
 
-        text = "\n\nOptimization Problem -- {}\n{}\n    Objective Function: {}\n\n".format(
-            self.name, "=" * 80, self.objFun.__name__
+        text = (
+            f"\n\nOptimization Problem -- {self.name}\n{'=' * 80}\n    Objective Function: {self.objFun.__name__}\n\n"
         )
         text += "\n   Objectives\n"
 
