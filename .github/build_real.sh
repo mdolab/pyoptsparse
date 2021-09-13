@@ -8,4 +8,4 @@ if [[ $IMAGE == "private" ]]; then
 fi
 
 # install in place due to coverage
-pip install -e .[optview,testing]
+pip install .[optview,testing]
