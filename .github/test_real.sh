@@ -7,4 +7,5 @@ if [[ $IMAGE == "private" ]]; then
 fi
 
 cd tests
+cp ../.coveragerc .
 testflo --pre_announce -v --coverage --coverpkg pyoptsparse $EXTRA_FLAGS
