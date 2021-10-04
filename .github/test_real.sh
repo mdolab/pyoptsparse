@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# all tests should pass on private
+# all tests should pass on the private image
 if [[ $IMAGE == "private" ]]; then
     EXTRA_FLAGS='--disallow_skipped'
 fi
