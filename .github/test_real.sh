@@ -7,6 +7,7 @@ if [[ $IMAGE == "private" ]]; then
 fi
 
 cd tests
-# we have to copy over the coveragerc file to make sure it's 
+# we have to copy over the coveragerc file to make sure it's in the
+# same directory where codecov is run
 cp ../.coveragerc .
 testflo --pre_announce -v --coverage --coverpkg pyoptsparse $EXTRA_FLAGS
