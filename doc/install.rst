@@ -35,8 +35,9 @@ The only exception is ``numpy``, which is required as part of the build process 
 
 .. note::
   * In Linux, the python header files (python-dev) are also required.
-  * We do not support operating systems other than Linux.
-    If you want to run this on macOS or Windows, you are on your own.
+  * **We do not support operating systems other than Linux.**
+    For macOS users, the conda package may work out of the box if you do not need any non-default optimizers.
+    For Windows users, `this thread <https://github.com/mdolab/pyoptsparse/issues/273>`_ may be helpful.
 
 Installation
 ~~~~~~~~~~~~
