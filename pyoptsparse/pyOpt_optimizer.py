@@ -468,7 +468,9 @@ class Optimizer(BaseSolver):
                 self.userSensCalls += 1
 
                 # User values are stored immediately
-                self.cache["funcsSens"] = copy.deepcopy(funcsSens)
+                # deepcopy of the sens dictionary is slow, so just reference it
+                # It shouldn't be modified until the next sensitivity call.
+                self.cache["funcsSens"] = funcsSens
 
                 # Process objective gradient for optimizer
                 gobj = self.optProb.processObjectiveGradient(funcsSens)
@@ -521,7 +523,7 @@ class Optimizer(BaseSolver):
                 self.userSensCalls += 1
 
                 # User values are stored immediately
-                self.cache["funcsSens"] = copy.deepcopy(funcsSens)
+                self.cache["funcsSens"] = funcsSens
 
                 # Process objective gradient for optimizer
                 gobj = self.optProb.processObjectiveGradient(funcsSens)
