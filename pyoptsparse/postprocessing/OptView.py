@@ -747,7 +747,7 @@ class Display(OVBaseClass):
             for name in values:
                 dat[name] = self.var_data[name]
 
-        keys = dat.keys()
+        keys = list(dat.keys())
 
         num_vars = len(keys)
         num_iters = len(dat[keys[0]])
