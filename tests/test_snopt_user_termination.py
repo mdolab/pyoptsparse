@@ -84,8 +84,10 @@ class TestUserTerminationStatus(unittest.TestCase):
         }
         try:
             opt = SNOPT(options=optOptions)
-        except Error:
-            raise unittest.SkipTest("Optimizer not available: SNOPT")
+        except Error as e:
+            if 'There was an error importing' in e.message:
+                raise unittest.SkipTest("Optimizer not available: SNOPT")
+            raise e
 
         sol = opt(optProb, sens=termcomp.sens)
 
@@ -112,8 +114,10 @@ class TestUserTerminationStatus(unittest.TestCase):
         }
         try:
             opt = SNOPT(options=optOptions)
-        except Error:
-            raise unittest.SkipTest("Optimizer not available: SNOPT")
+        except Error as e:
+            if 'There was an error importing' in e.message:
+                raise unittest.SkipTest("Optimizer not available: SNOPT")
+            raise e
 
         sol = opt(optProb, sens=termcomp.sens)
 

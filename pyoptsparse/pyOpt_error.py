@@ -23,7 +23,11 @@ class Error(Exception):
                 i += len(word) + 1
         msg += " " * (79 - i) + "|\n" + "+" + "-" * 78 + "+" + "\n"
         print(msg)
-        Exception.__init__(self)
+        self.message = message
+        super().__init__(message)
+
+    def __str__(self):
+        return self.message
 
 
 class pyOptSparseWarning:
