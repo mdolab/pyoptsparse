@@ -24,7 +24,7 @@ class Error(Exception):
         msg += " " * (79 - i) + "|\n" + "+" + "-" * 78 + "+" + "\n"
         print(msg)
         self.message = msg
-        super(Error, self).__init__(message)
+        super().__init__(message)
 
     def __str__(self):
         return self.message
