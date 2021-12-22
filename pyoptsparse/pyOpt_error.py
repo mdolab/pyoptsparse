@@ -23,7 +23,7 @@ class Error(Exception):
                 i += len(word) + 1
         msg += " " * (79 - i) + "|\n" + "+" + "-" * 78 + "+" + "\n"
         print(msg)
-        self.message = msg
+        self.message = message
         super().__init__(message)
 
     def __str__(self):
