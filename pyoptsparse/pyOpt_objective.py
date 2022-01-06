@@ -2,7 +2,7 @@
 import numpy as np
 
 
-class Objective(object):
+class Objective:
     def __init__(self, name, scale=1.0):
         """
         This class holds the representation of a pyOptSparse objective.
@@ -31,6 +31,6 @@ class Objective(object):
         """
         res = "        Name        Value\n"
         res += "	 " + str(self.name).center(9)
-        res += "%12g\n" % (np.real(self.value))
+        res += f"{np.real(self.value):12g}\n"
 
         return res

@@ -29,25 +29,31 @@ Notes:
 
 *   The ``xdict`` variable is a dictionary whose keys are the names from each 
     :meth:`addVar <pyoptsparse.pyOpt_optimization.Optimization.addVar>` and 
-    :meth:`addVarGroup <pyoptsparse.pyOpt_optimization.Optimization.addVarGroup>` call. The line::
+    :meth:`addVarGroup <pyoptsparse.pyOpt_optimization.Optimization.addVarGroup>` call. The line
 
-        x = xdict['xvars']
+    .. code-block:: python
+
+        x = xdict["xvars"]
 
     retrieves an array of length 3 which are all the variables for this optimization. 
 
-*   The line::
+*   The line
 
-        conval = [0]*2
+    .. code-block:: python
+
+        conval = [0] * 2
 
     creates a list of length 2, which stores the numerical values of the two constraints.
     The ``funcs`` dictionary return must contain keys that match the constraint names from
     :meth:`addCon <pyoptsparse.pyOpt_optimization.Optimization.addCon>` and
     :meth:`addConGroup <pyoptsparse.pyOpt_optimization.Optimization.addConGroup>`
     as well as the objectives from :meth:`addObj <pyoptsparse.pyOpt_optimization.Optimization.addObj>` calls.
-    This is done in the following calls::
+    This is done in the following calls:
 
-        funcs['obj'] = -x[0]*x[1]*x[2]
-        funcs['con'] = conval
+    .. code-block:: python
+
+        funcs["obj"] = -x[0] * x[1] * x[2]
+        funcs["con"] = conval
 
 Now the optimization problem can be initialized:
 

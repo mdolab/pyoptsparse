@@ -1,5 +1,6 @@
 syntax: glob
-build/*
+build
+doc/_build
 *.pyc
 *.so
 *.out
@@ -9,5 +10,5 @@ build/*
 *.c
 *.cpp
 env
-\.vscode
-pyoptsparse/postprocessing/sub_window/test.sql
+pyoptsparse/pySNOPT/source
+pyoptsparse/pyNLPQLP/source

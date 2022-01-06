@@ -86,7 +86,7 @@ opt = OPT(args.opt, options=optOptions)
 
 # Solution
 if args.storeHistory:
-    histFileName = "%s_hs015_Hist.hst" % (args.opt.lower())
+    histFileName = f"{args.opt.lower()}_hs015_Hist.hst"
 else:
     histFileName = None
 # end

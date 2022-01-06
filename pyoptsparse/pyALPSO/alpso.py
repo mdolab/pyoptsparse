@@ -60,7 +60,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
             x0 = np.array(x0)
         elif not isinstance(x0, np.ndarray):
             pyOptSparseWarning(
-                ("Initial x must be either list or numpy.array, " "all initial positions randomly generated")
+                "Initial x must be either list or numpy.array, all initial positions randomly generated"
             )
 
     #

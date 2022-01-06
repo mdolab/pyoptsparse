@@ -11,14 +11,18 @@ If you are comfortable fixing the issue, please do so and submit a pull request.
 Coding style
 ------------
 We use `black <https://github.com/psf/black>`_ for formatting.
-Please install it following its documentation, and run it with the command line argument ``-l 120``, for example at the project root directory::
+Please install it following its documentation, and run it with the command line argument ``-l 120``, for example at the project root directory:
+
+.. prompt:: bash
 
     black . -l 120
 
 This will automatically format all Python files.
 
 We use `flake8 <https://flake8.pycqa.org/en/latest/>`_ for linting.
-Please install it following its instructions, and run it at the project root with::
+Please install it following its instructions, and run it at the project root with:
+
+.. prompt:: bash
 
     flake8 .
 
@@ -38,7 +42,9 @@ Look at the ``.rst`` files in the ``doc`` section of the repo.
 
 To build documentation locally, go to the ``doc`` folder and type ``make html``.
 Building the documentation requires ``sphinx`` and ``numpydoc``, as well as the Sphinx RTD theme.
-To install these dependencies, type::
+To install these dependencies, type
+
+.. prompt:: bash
 
     pip install sphinx numpydoc sphinx-rtd-theme
 

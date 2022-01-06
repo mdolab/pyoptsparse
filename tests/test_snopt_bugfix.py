@@ -97,15 +97,17 @@ class TestSNOPTBug(unittest.TestCase):
         test_name = "bugfix_SNOPT_test_opt"
         optOptions = {
             "Major feasibility tolerance": 1e-1,
-            "Print file": "{}.out".format(test_name),
-            "Summary file": "{}_summary.out".format(test_name),
+            "Print file": f"{test_name}.out",
+            "Summary file": f"{test_name}_summary.out",
         }
 
         # Optimizer
         try:
             opt = SNOPT(options=optOptions)
-        except Error:
-            raise unittest.SkipTest("Optimizer not available: SNOPT")
+        except Error as e:
+            if 'There was an error importing' in e.message:
+                raise unittest.SkipTest("Optimizer not available: SNOPT")
+            raise e
 
         sol = opt(optProb, sens=sens)
 
@@ -128,15 +130,17 @@ class TestSNOPTBug(unittest.TestCase):
         test_name = "bugfix_SNOPT_bug1"
         optOptions = {
             "Major feasibility tolerance": 1e-1,
-            "Print file": "{}.out".format(test_name),
-            "Summary file": "{}_summary.out".format(test_name),
+            "Print file": f"{test_name}.out",
+            "Summary file": f"{test_name}_summary.out",
         }
 
         # Optimizer
         try:
             opt = SNOPT(options=optOptions)
-        except Error:
-            raise unittest.SkipTest("Optimizer not available: SNOPT")
+        except Error as e:
+            if 'There was an error importing' in e.message:
+                raise unittest.SkipTest("Optimizer not available: SNOPT")
+            raise e
 
         opt(optProb, sens=sens)
 
@@ -169,15 +173,17 @@ class TestSNOPTBug(unittest.TestCase):
         test_name = "bugfix_SNOPT_bug_print_2con"
         optOptions = {
             "Major feasibility tolerance": 1e-1,
-            "Print file": "{}.out".format(test_name),
-            "Summary file": "{}_summary.out".format(test_name),
+            "Print file": f"{test_name}.out",
+            "Summary file": f"{test_name}_summary.out",
         }
 
         # Optimizer
         try:
             opt = SNOPT(options=optOptions)
-        except Error:
-            raise unittest.SkipTest("Optimizer not available: SNOPT")
+        except Error as e:
+            if 'There was an error importing' in e.message:
+                raise unittest.SkipTest("Optimizer not available: SNOPT")
+            raise e
 
         sol = opt(optProb, sens=sens)
 

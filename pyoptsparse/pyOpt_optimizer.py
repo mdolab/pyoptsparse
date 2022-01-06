@@ -354,10 +354,8 @@ class Optimizer(BaseSolver):
                     fail = args[1]
                 elif args is None:
                     raise Error(
-                        (
-                            "No return values from user supplied objective function. "
-                            + "The function must return 'funcs' or 'funcs, fail'"
-                        )
+                        "No return values from user supplied objective function. "
+                        + "The function must return 'funcs' or 'funcs, fail'"
                     )
                 else:
                     funcs = args
@@ -402,10 +400,8 @@ class Optimizer(BaseSolver):
                     fail = args[1]
                 elif args is None:
                     raise Error(
-                        (
-                            "No return values from user supplied objective function. "
-                            + "The function must return 'funcs' *OR* 'funcs, fail'"
-                        )
+                        "No return values from user supplied objective function. "
+                        + "The function must return 'funcs' *OR* 'funcs, fail'"
                     )
                 else:
                     funcs = args
@@ -461,10 +457,8 @@ class Optimizer(BaseSolver):
                     fail = args[1]
                 elif args is None:
                     raise Error(
-                        (
-                            "No return values from user supplied sensitivity function. "
-                            + "The function must return 'funcsSens' or 'funcsSens, fail'"
-                        )
+                        "No return values from user supplied sensitivity function. "
+                        + "The function must return 'funcsSens' or 'funcsSens, fail'"
                     )
                 else:
                     funcsSens = args
@@ -474,7 +468,9 @@ class Optimizer(BaseSolver):
                 self.userSensCalls += 1
 
                 # User values are stored immediately
-                self.cache["funcsSens"] = copy.deepcopy(funcsSens)
+                # deepcopy of the sens dictionary is slow, so just reference it
+                # It shouldn't be modified until the next sensitivity call.
+                self.cache["funcsSens"] = funcsSens
 
                 # Process objective gradient for optimizer
                 gobj = self.optProb.processObjectiveGradient(funcsSens)
@@ -516,10 +512,8 @@ class Optimizer(BaseSolver):
                     fail = args[1]
                 elif args is None:
                     raise Error(
-                        (
-                            "No return values from user supplied sensitivity function. "
-                            + "The function must 'return 'funcsSens' or 'funcsSens, fail'"
-                        )
+                        "No return values from user supplied sensitivity function. "
+                        + "The function must 'return 'funcsSens' or 'funcsSens, fail'"
                     )
                 else:
                     funcsSens = args
@@ -529,7 +523,7 @@ class Optimizer(BaseSolver):
                 self.userSensCalls += 1
 
                 # User values are stored immediately
-                self.cache["funcsSens"] = copy.deepcopy(funcsSens)
+                self.cache["funcsSens"] = funcsSens
 
                 # Process objective gradient for optimizer
                 gobj = self.optProb.processObjectiveGradient(funcsSens)
@@ -713,7 +707,7 @@ class Optimizer(BaseSolver):
                     xs.append(var.value)
 
                 else:
-                    raise Error("%s cannot handle integer or discrete design variables" % self.name)
+                    raise Error(f"{self.name} cannot handle integer or discrete design variables")
 
         blx = np.array(blx)
         bux = np.array(bux)
