@@ -46,7 +46,21 @@ class ConfigureController(object):
         # --- Populate the variable lists based on file selection ---
         self.populate_var_list()
 
-    def populate_var_list(self,):
+    def add_file(self):
+        # --- Set file dialog options ---
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+
+        # --- Open file dialog and get selected user files ---
+        file_names, _ = QtWidgets.QFileDialog.getOpenFileNames(self._view, "Open History File", "", "", options=options)
+
+        # --- Load files into the model ---
+        self._parent_model.load_files(file_names)
+
+        # --- Populate the files ---
+        self.populate_files()
+
+    def populate_var_list(self):
         for i, var in enumerate(self._plot_model.vars):
             if var.file_idx == self._view.file_list.currentRow():
                 var_item = QtWidgets.QListWidgetItem(self._view.var_list)
