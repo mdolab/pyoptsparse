@@ -11,7 +11,7 @@ from .pyOpt_optimization import Optimization
 from .types import Dict1DType, Dict2DType
 
 
-class Gradient(object):
+class Gradient:
     def __init__(self, optProb: Optimization, sensType: str, sensStep: float = None, sensMode: str = "", comm=None):
         """
         Gradient class for automatically computing gradients with finite

@@ -231,7 +231,7 @@ class SLSQP(Optimizer):
 
             for c_name in optProb.constraints:
                 c = optProb.constraints[c_name]
-                for j in range(c.ncon):
+                for _j in range(c.ncon):
                     lambdaStar_lower = w[2 * idx]
                     lambdaStar_upper = w[2 * idx + 1]
                     if abs(lambdaStar_lower) > 1e-100:

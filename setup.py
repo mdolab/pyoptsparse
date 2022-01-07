@@ -16,10 +16,8 @@ try:
 except ImportError:
     if "bdist_wheel" in sys.argv:
         print(
-            (
-                "\nThe bdist_wheel option requires the 'wheel' package to be installed.\n"
-                + "Install it using 'pip install wheel'."
-            )
+            "\nThe bdist_wheel option requires the 'wheel' package to be installed.\n"
+            + "Install it using 'pip install wheel'."
         )
         sys.exit(-1)
 else:
@@ -28,14 +26,12 @@ else:
 
 if len(sys.argv) == 1:
     print(
-        (
-            "\nTo install, run: python setup.py install --user\n\n"
-            + "To build, run: python setup.py build_ext --inplace\n\n"
-            + "For help on C-compiler options run: python setup.py build --help-compiler\n\n"
-            + "For help on Fortran-compiler options run: python setup.py build --help-fcompiler\n\n"
-            + "To specify a Fortran compiler to use run: python setup.py install --user --fcompiler=<fcompiler name>\n\n"
-            + "For further help run: python setup.py build --help"
-        )
+        "\nTo install, run: python setup.py install --user\n\n"
+        + "To build, run: python setup.py build_ext --inplace\n\n"
+        + "For help on C-compiler options run: python setup.py build --help-compiler\n\n"
+        + "For help on Fortran-compiler options run: python setup.py build --help-fcompiler\n\n"
+        + "To specify a Fortran compiler to use run: python setup.py install --user --fcompiler=<fcompiler name>\n\n"
+        + "For further help run: python setup.py build --help"
     )
     sys.exit(-1)
 
@@ -68,14 +64,8 @@ if __name__ == "__main__":
             "mdolab-baseclasses>=1.3.1",
         ],
         extras_require={
-            "optview": [
-                "dash",
-                "plotly",
-                "matplotlib",
-            ],
             "testing": ["testflo>=1.4.5"],
         },
-        package_data={"pyoptsparse": ["postprocessing/assets/*"]},
         platforms=["Linux"],
         classifiers=[
             "Development Status :: 5 - Production/Stable",
@@ -91,10 +81,4 @@ if __name__ == "__main__":
             "Topic :: Education",
         ],
         configuration=configuration,
-        entry_points={
-            "gui_scripts": [
-                "optview = pyoptsparse.postprocessing.OptView:main",
-                "optview_dash = pyoptsparse.postprocessing.OptView_dash:main",
-            ]
-        },
     )

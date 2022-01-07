@@ -3,7 +3,7 @@ from .pyOpt_error import Error
 from .pyOpt_utils import INFINITY
 
 
-class Variable(object):
+class Variable:
     def __init__(
         self,
         name: str,
@@ -82,12 +82,7 @@ class Variable(object):
         if self.type == "d":
             res += "	 "
             res += str(self.name).center(15)
-            res += "%25s%20f %14.2e %12.2e \n" % (
-                self.type,
-                self.choices[int(self.value)],
-                min(self.choices),
-                max(self.choices),
-            )
+            res += f"{self.type:>25}{self.choices[int(self.value)]:20f} {min(self.choices):14.2e} {max(self.choices):12.2e}\n"
         else:
             lower = self.lower
             upper = self.upper
@@ -98,6 +93,6 @@ class Variable(object):
 
             res += "	 "
             res += str(self.name).center(9)
-            res += "%5s	%14f %14.2e %12.2e \n" % (self.type, self.value, lower, upper)
+            res += f"{self.type:>5}	{self.value:14f} {lower:14.2e} {upper:12.2e} \n"
 
         return res

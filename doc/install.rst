@@ -3,8 +3,21 @@
 Installation Instructions
 =========================
 
+Conda
+-----
+Conda packages are available on ``conda-forge`` and can be installed via
+
+.. prompt:: bash
+
+  conda install -c conda-forge pyoptsparse
+
+This would install pyOptSparse with the built-in optimizers, as well as IPOPT.
+If you wish to use optimizers not packaged by ``conda``, e.g. SNOPT, then you must build the package from source.
+
+Building from source
+--------------------
 Requirements
-------------
+~~~~~~~~~~~~
 pyOptSparse has the following dependencies:
 
 * Python 3.7 or 3.8, though other Python 3 versions will likely work
@@ -15,25 +28,30 @@ Please make sure these are installed and available for use.
 In order to use NSGA2, SWIG (v1.3+) is also required, which can be installed via the package manager.
 If those optimizers are not needed, then you do not need to install SWIG.
 Simply comment out the corresponding lines in ``pyoptsparse/pyoptsparse/setup.py`` so that they are not compiled.
-The corresponding lines in ``pyoptsparse/__init__.py`` must be commented out as well.
+The corresponding lines in ``pyoptsparse/pyoptsparse/__init__.py`` must be commented out as well.
 
 Python dependencies are automatically handled by ``pip``, so they do not need to be installed separately.
 The only exception is ``numpy``, which is required as part of the build process and therefore must be present before installing.
 
 .. note::
   * In Linux, the python header files (python-dev) are also required.
-  * We do not support operating systems other than Linux.
-    If you want to run this on macOS or Windows, you are on your own.
+  * **We do not support operating systems other than Linux.**
+    For macOS users, the conda package may work out of the box if you do not need any non-default optimizers.
+    For Windows users, `this thread <https://github.com/mdolab/pyoptsparse/issues/273>`_ may be helpful.
 
 Installation
-------------
+~~~~~~~~~~~~
 The easiest and recommended way to install pyOptSparse is with ``pip``.
 First clone the repository into a location which is not on the ``$PYTHONPATH``, for example ``$HOME/packages/``.
-Then in the root ``pyoptsparse`` folder type::
+Then in the root ``pyoptsparse`` folder type
+
+.. prompt:: bash
 
   pip install .
 
-For those not using virtual environments, a user install may be needed::
+For those not using virtual environments, a user install may be needed
+
+.. prompt:: bash
 
   pip install . --user
 
@@ -52,7 +70,9 @@ For those who intend to use pyOptSparse with IPOPT, OpenMDAO developers provide 
 Installing OptView
 ------------------
 OptView and OptView-Dash have separate dependencies that must be installed.
-To install pyOptSparse including those dependencies, run::
+To install pyOptSparse including those dependencies, run
+
+.. prompt:: bash
 
     pip install .[optview]
 
@@ -60,11 +80,15 @@ To install pyOptSparse including those dependencies, run::
 Testing
 -------
 pyOptSparse provides a set of unit and regression tests to verify the installation.
-To run these tests, first install ``testflo`` which is a testing framework developed by the OpenMDAO team::
+To run these tests, first install ``testflo`` which is a testing framework developed by the OpenMDAO team:
+
+.. prompt:: bash
 
   pip install testflo
 
-Then, in the project root directory, type::
+Then, in the project root directory, type:
+
+.. prompt:: bash
 
   testflo . -v
 
@@ -76,7 +100,9 @@ To update pyOptSparse, first delete the ``build`` directory, then update the pac
 For stability, users are encouraged to stick to tagged releases.
 Install the package normally via ``pip``.
 
-To uninstall the package, type::
+To uninstall the package, type
+
+.. prompt:: bash
 
   pip uninstall pyoptsparse
 

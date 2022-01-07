@@ -55,8 +55,14 @@ class ConfigurePlotView(QtWidgets.QDialog):
         mid_layout.addLayout(mid_right_layout)
 
         # ==============================================================================
-        # File List - Top Right Layout
+        # File Management - Top Left Layout
         # ==============================================================================
+        # --- Add file(s) button ---
+        self.add_file_btn = Button("Add file(s)", self)
+        self.add_file_btn.clicked.connect(self._controller.add_file)
+        top_left_layout.addWidget(self.add_file_btn)
+
+        # --- File list ---
         self.file_list = QtWidgets.QListWidget()
         self.file_list.clicked.connect(self._controller.file_selected)
         top_left_layout.addWidget(self.file_list)
@@ -85,9 +91,8 @@ class ConfigurePlotView(QtWidgets.QDialog):
         # ==============================================================================
         # Button Layout - Mid right Layout
         # ==============================================================================
-        self.ok_btn = Button("Ok", self)
-        self.ok_btn.clicked.connect(self._controller.ok)
-        mid_right_layout.addWidget(self.ok_btn)
+        self.plot_btn = Button("Plot", self)
+        mid_right_layout.addWidget(self.plot_btn)
 
         self.cancel_btn = Button("Cancel", self)
         self.cancel_btn.clicked.connect(self._controller.cancel)

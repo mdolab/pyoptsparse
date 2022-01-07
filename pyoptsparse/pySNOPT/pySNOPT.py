@@ -63,7 +63,7 @@ class SNOPT(Optimizer):
             # The version_str is going to look like
             # S N O P T  7.7.5    (Oct 2020)
             # we search between "S N O P T" and "("
-            res = re.search("S N O P T(.*)\(", version_str)
+            res = re.search(r"S N O P T(.*)\(", version_str)
             if res is not None:
                 version = res.group(1).strip()
             else:
@@ -334,14 +334,14 @@ class SNOPT(Optimizer):
             if iPrint != 0 and iPrint != 6:
                 ierror = snopt.openunit(iPrint, PrintFile, "replace", "sequential")
                 if ierror != 0:
-                    raise Error("Failed to properly open %s, ierror = %3d" % (PrintFile, ierror))
+                    raise Error(f"Failed to properly open {PrintFile}, ierror = {ierror:3}")
 
             iSumm = self.getOption("iSumm")
             SummFile = os.path.join(self.getOption("Summary file"))
             if iSumm != 0 and iSumm != 6:
                 ierror = snopt.openunit(iSumm, SummFile, "replace", "sequential")
                 if ierror != 0:
-                    raise Error("Failed to properly open %s, ierror = %3d" % (SummFile, ierror))
+                    raise Error(f"Failed to properly open {SummFile}, ierror = {ierror:3}")
 
             # Calculate the length of the work arrays
             # ---------------------------------------
@@ -634,9 +634,9 @@ class SNOPT(Optimizer):
                 if name == "Problem Type":
                     snopt.snset(value, iPrint, iSumm, inform, cw, iw, rw)
                 elif name == "Print file":
-                    snopt.snset(name + " " + "%d" % iPrint, iPrint, iSumm, inform, cw, iw, rw)
+                    snopt.snset(name + " " + f"{iPrint}", iPrint, iSumm, inform, cw, iw, rw)
                 elif name == "Summary file":
-                    snopt.snset(name + " " + "%d" % iSumm, iPrint, iSumm, inform, cw, iw, rw)
+                    snopt.snset(name + " " + f"{iSumm}", iPrint, iSumm, inform, cw, iw, rw)
                 else:
                     snopt.snset(name + " " + value, iPrint, iSumm, inform, cw, iw, rw)
             elif isinstance(value, float):

@@ -58,7 +58,7 @@ class TabViewController:
         try:
             # --- Only allow 3 plots per tab ---
             if idx > 2:
-                raise ValueError
+                raise ValueError("Only 3 plots allowed per tab.")
 
             # --- Clear the plot to prepare for axis update ---
             self._model.canvas.fig.clf()
@@ -75,7 +75,7 @@ class TabViewController:
             # --- Create socket for custom widget ---
             item = QtWidgets.QListWidgetItem(self._view.plot_list)
 
-            # --- Create custom widget ---
+            # --- Create custom plot list widget ---
             plot_list_widget = PlotListWidget(self._view, self, idx)
 
             # --- Size the list row to fit custom widget ---
