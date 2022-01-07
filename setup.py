@@ -64,14 +64,8 @@ if __name__ == "__main__":
             "mdolab-baseclasses>=1.3.1",
         ],
         extras_require={
-            "optview": [
-                "dash",
-                "plotly",
-                "matplotlib",
-            ],
             "testing": ["testflo>=1.4.5"],
         },
-        package_data={"pyoptsparse": ["postprocessing/assets/*"]},
         platforms=["Linux"],
         classifiers=[
             "Development Status :: 5 - Production/Stable",
@@ -87,10 +81,4 @@ if __name__ == "__main__":
             "Topic :: Education",
         ],
         configuration=configuration,
-        entry_points={
-            "gui_scripts": [
-                "optview = pyoptsparse.postprocessing.OptView:main",
-                "optview_dash = pyoptsparse.postprocessing.OptView_dash:main",
-            ]
-        },
     )
