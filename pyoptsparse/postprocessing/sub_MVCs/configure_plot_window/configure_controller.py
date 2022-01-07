@@ -60,7 +60,7 @@ class ConfigureController(object):
         # --- Populate the files ---
         self.populate_files()
 
-    def populate_var_list(self):
+    def populate_var_list(self, file):
         for i, var in enumerate(self._plot_model.vars):
             if var.file_idx == self._view.file_list.currentRow():
                 var_item = QtWidgets.QListWidgetItem(self._view.var_list)
@@ -163,7 +163,7 @@ class ConfigureController(object):
             item.setText(new_text)
 
     def minor_iter_opt_selected(self, widget: VariableListWidget, var_idx: int):
-        if widget.bounds_opt.isChecked():
+        if widget.minor_iter_opt.isChecked():
             self._plot_model.vars[var_idx].options["minor_iter"] = True
             self._plot_model.vars[var_idx].options["major_iter"] = False
             old_text = self._view.all_vars_list.item(var_idx).text().replace(" ", "").split("|")
@@ -176,7 +176,7 @@ class ConfigureController(object):
             self._plot_model.vars[var_idx].options["major_iter"] = True
             old_text = self._view.all_vars_list.item(var_idx).text().replace(" ", "").split("|")
             item = self._view.all_vars_list.item(var_idx)
-            old_text.remove("minor iters")
+            old_text.remove("minoriters")
             new_text = " | ".join(old_text)
             item.setText(new_text)
 
@@ -185,7 +185,7 @@ class ConfigureController(object):
         self._plot_model.clear_options()
         self._view.close()
 
-    def ok(self):
+    def plot(self):
         self._plot_model.plot()
         self._parent_model.canvas.draw()
         self._view.close()

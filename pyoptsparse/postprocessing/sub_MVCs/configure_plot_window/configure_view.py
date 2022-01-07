@@ -92,6 +92,7 @@ class ConfigurePlotView(QtWidgets.QDialog):
         # Button Layout - Mid right Layout
         # ==============================================================================
         self.plot_btn = Button("Plot", self)
+        self.plot_btn.clicked.connect(self._controller.plot)
         mid_right_layout.addWidget(self.plot_btn)
 
         self.cancel_btn = Button("Cancel", self)
