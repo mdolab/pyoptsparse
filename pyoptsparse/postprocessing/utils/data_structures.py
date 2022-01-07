@@ -159,10 +159,6 @@ class File(object):
                 unscaled_list.append(unscaled_val)
                 scaled_list.append(scaled_val)
 
-            var.data["major_iter"]["unscaled"] = unscaled_list
-            var.data["major_iter"]["scaled"] = scaled_list
-
-            # TODO: Figure out how to get minor iterations from OpenMDAO case reader
             var.data["minor_iter"]["unscaled"] = unscaled_list
             var.data["minor_iter"]["scaledd"] = scaled_list
 

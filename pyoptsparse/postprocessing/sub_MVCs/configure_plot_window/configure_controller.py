@@ -44,9 +44,9 @@ class ConfigureController(object):
             self._view.var_cbox.addItem(var)
 
         # --- Populate the variable lists based on file selection ---
-        self.populate_var_list()
+        self.populate_var_list(file)
 
-    def populate_var_list(self,):
+    def populate_var_list(self, file):
         for i, var in enumerate(self._plot_model.vars):
             if var.file_idx == self._view.file_list.currentRow():
                 var_item = QtWidgets.QListWidgetItem(self._view.var_list)
@@ -54,6 +54,14 @@ class ConfigureController(object):
                 var_item.setSizeHint(var_item_widget.sizeHint())
                 self._view.var_list.addItem(var_item)
                 self._view.var_list.setItemWidget(var_item, var_item_widget)
+
+                text_list = [file.name_short, var.name]
+                for key, val in var.options.items():
+                    if val:
+                        if not key == "major_iter":
+                            text_list.append("key")
+
+                self._view.all_vars_list.addItem(f"{file.name_short} | {var.name} | scaled | bounds | minor_iter")
 
     def populate_files(self):
         for file in self._parent_model.files:
@@ -111,17 +119,59 @@ class ConfigureController(object):
     def scale_opt_selected(self, widget: VariableListWidget, var_idx: int):
         if widget.scaled_opt.isChecked():
             self._plot_model.vars[var_idx].options["scaled"] = True
-            self._view.all_vars_list[var_idx].strip(" ").split("|")
+            old_text = self._view.all_vars_list.item(var_idx).text().replace(" ", "").split("|")
+            item = self._view.all_vars_list.item(var_idx)
+            old_text.append("scaled")
+            new_text = " | ".join(old_text)
+            item.setText(new_text)
         else:
             self._plot_model.vars[var_idx].options["scaled"] = False
+            old_text = self._view.all_vars_list.item(var_idx).text().replace(" ", "").split("|")
+            item = self._view.all_vars_list.item(var_idx)
+            old_text.remove("scaled")
+            new_text = " | ".join(old_text)
+            item.setText(new_text)
 
     def bounds_opt_selected(self, widget: VariableListWidget, var_idx: int):
         if widget.bounds_opt.isChecked():
             self._plot_model.vars[var_idx].options["bounds"] = True
+            old_text = self._view.all_vars_list.item(var_idx).text().replace(" ", "").split("|")
+            item = self._view.all_vars_list.item(var_idx)
+            old_text.append("bounds")
+            new_text = " | ".join(old_text)
+            item.setText(new_text)
         else:
-            self._plot_model.vars[var_idx].options["scaled"] = False
+            self._plot_model.vars[var_idx].options["bounds"] = False
+            old_text = self._view.all_vars_list.item(var_idx).text().replace(" ", "").split("|")
+            item = self._view.all_vars_list.item(var_idx)
+            old_text.remove("bounds")
+            new_text = " | ".join(old_text)
+            item.setText(new_text)
+
+    def minor_iter_opt_selected(self, widget: VariableListWidget, var_idx: int):
+        if widget.bounds_opt.isChecked():
+            self._plot_model.vars[var_idx].options["minor_iter"] = True
+            self._plot_model.vars[var_idx].options["major_iter"] = False
+            old_text = self._view.all_vars_list.item(var_idx).text().replace(" ", "").split("|")
+            item = self._view.all_vars_list.item(var_idx)
+            old_text.append("minor iters")
+            new_text = " | ".join(old_text)
+            item.setText(new_text)
+        else:
+            self._plot_model.vars[var_idx].options["minor_iter"] = False
+            self._plot_model.vars[var_idx].options["major_iter"] = True
+            old_text = self._view.all_vars_list.item(var_idx).text().replace(" ", "").split("|")
+            item = self._view.all_vars_list.item(var_idx)
+            old_text.remove("minor iters")
+            new_text = " | ".join(old_text)
+            item.setText(new_text)
 
     def cancel(self):
         self._plot_model.clear_vars()
         self._plot_model.clear_options()
+        self._view.close()
+
+    def ok(self):
+        self._plot_model.plot()
+        self._parent_model.canvas.draw()
         self._view.close()

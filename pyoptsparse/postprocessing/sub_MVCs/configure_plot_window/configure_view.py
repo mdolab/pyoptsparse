@@ -26,6 +26,7 @@ class ConfigurePlotView(QtWidgets.QDialog):
         self.setWindowTitle(name)  # sets the GUI title
         self._controller = controller
         self._controller.set_view(self)
+        self.resize(1000, 800)
         self._initView()
 
     def _initView(self):
@@ -85,6 +86,7 @@ class ConfigurePlotView(QtWidgets.QDialog):
         # Button Layout - Mid right Layout
         # ==============================================================================
         self.ok_btn = Button("Ok", self)
+        self.ok_btn.clicked.connect(self._controller.ok)
         mid_right_layout.addWidget(self.ok_btn)
 
         self.cancel_btn = Button("Cancel", self)

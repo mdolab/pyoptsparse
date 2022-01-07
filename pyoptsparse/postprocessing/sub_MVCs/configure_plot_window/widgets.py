@@ -57,11 +57,15 @@ class VariableListWidget(QtWidgets.QWidget):
         self.bounds_opt = QtWidgets.QCheckBox("Bounds")
         self.bounds_opt.clicked.connect(self.bounds_opt_selected)
 
+        self.minor_iter_opt = QtWidgets.QCheckBox("Minor Iters")
+        self.bounds_opt.clicked.connect(self.minor_iter_opt_selected)
+
         layout = QtWidgets.QHBoxLayout()
 
         layout.addWidget(self.label, 1)
         layout.addWidget(self.scaled_opt, 1)
         layout.addWidget(self.bounds_opt, 1)
+        layout.addWidget(self.minor_iter_opt, 1)
         layout.addWidget(self.remove_button, 1)
 
         self.setLayout(layout)
@@ -74,3 +78,6 @@ class VariableListWidget(QtWidgets.QWidget):
 
     def bounds_opt_selected(self):
         self.controller.bounds_opt_selected(self, self.idx)
+
+    def minor_iter_opt_selected(self):
+        self.controller.minor_iter_opt_selected(self, self.idx)

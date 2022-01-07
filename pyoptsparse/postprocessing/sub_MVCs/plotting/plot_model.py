@@ -10,6 +10,7 @@ Model which controls individual subplots.
 # ==============================================================================
 # External Python modules
 # ==============================================================================
+import numpy as np
 
 # ==============================================================================
 # Extension modules
@@ -57,10 +58,28 @@ class PlotModel(object):
         self.axis = axis
 
     def plot(self):
-        if self.options["major_iter"]:
-            if self.options["scaled"]:
-                for y_var in self.y_vars:
-                    self.axis.plot(self.x_vars[0].data["major_iter"]["scaled"],)
+        for var in self.vars:
+            # Parse variable options for plot data
+            if var.options["scaled"] and var.options["major_iter"]:
+                key1, key2 = "major_iter", "scaled"
+            elif var.options["scaled"] and var.options["minor_iter"]:
+                key1, key2 = "minor_iter", "scaled"
+            elif not var.options["scaled"] and var.options["major_iter"]:
+                key1, key2 = "major_iter", "unscaled"
+            elif not var.options["scaled"] and var.options["minor_iter"]:
+                key1, key2 = "minor_iter", "unscaled"
+
+            print(np.arange(0, len(var.data[key1][key2]), 1))
+            print(var.data[key1][key2])
+
+            # Plot variable data
+            self.axis.plot(np.arange(0, len(var.data[key1][key2]), 1), var.data[key1][key2])
+
+            # Parse variable options for bounds data
+            if var.options["scaled"] and var.options["bounds"]:
+                pass  # plot scalaed bounds
+            elif not var.options["scaled"] and var.options["bounds"]:
+                pass  # plot unscaled bounds
 
     def refresh(self):
         """Refresh all files and variable lists"""
