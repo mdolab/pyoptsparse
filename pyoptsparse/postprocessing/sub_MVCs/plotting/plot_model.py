@@ -69,9 +69,6 @@ class PlotModel(object):
             elif not var.options["scaled"] and var.options["minor_iter"]:
                 key1, key2 = "minor_iter", "unscaled"
 
-            print(np.arange(0, len(var.data[key1][key2]), 1))
-            print(var.data[key1][key2])
-
             # Plot variable data
             self.axis.plot(np.arange(0, len(var.data[key1][key2]), 1), var.data[key1][key2])
 
