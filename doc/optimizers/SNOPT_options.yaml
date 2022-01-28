@@ -7,8 +7,11 @@ iSumm:
 Print file:
   desc: Print file name
 
-Summary file: 
+Summary file:
   desc: Summary file name
+
+Minor print level:
+  desc: Minor iterations print level
 
 Start:
   desc: This value is directly passed to the SNOPT kernel, and will be overwritten if another option, e.g. ``Cold start`` is supplied, in accordance with SNOPT options precedence.
@@ -46,7 +49,6 @@ Total integer workspace:
     If SNOPT determines that the default value is too small, the Python wrapper will overwrite the defaults with estimates for the required workspace lengths from SNOPT and initialize the optimizer for a second time.
     SNOPT might still exit with ``82``, ``83``, or ``84``, but this should automate the storage allocation for most cases.
     User-specified values are not overwritten.
-    
 
 Total real workspace:
   desc: >
@@ -55,7 +57,6 @@ Total real workspace:
     If SNOPT determines that the default value is too small, the Python wrapper will overwrite the defaults with estimates for the required workspace lengths from SNOPT and initialize the optimizer for a second time.
     SNOPT might still exit with ``82``, ``83``, or ``84``, but this should automate the storage allocation for most cases.
     User-specified values are not overwritten.
-    
 
 Save major iteration variables:
   desc: >
