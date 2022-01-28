@@ -92,6 +92,7 @@ class SNOPT(Optimizer):
             "iSumm": [int, 19],
             "Print file": [str, "SNOPT_print.out"],
             "Summary file": [str, "SNOPT_summary.out"],
+            "Minor print level": [int, 0],
             "Problem Type": [str, ["Minimize", "Maximize", "Feasible point"]],
             "Start": [str, ["Cold", "Warm"]],
             "Derivative level": [int, 3],
