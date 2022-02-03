@@ -550,6 +550,9 @@ class Optimizer(BaseSolver):
         # Put the iteration counter in the history
         hist["iter"] = self.iterCounter
 
+        # timing
+        hist["time"] = time.time() - self.startTime
+
         # Save information about major iteration counting (only matters for SNOPT).
         if self.name == "SNOPT":
             hist["isMajor"] = False  # this will be updated in _snstop if it is major
@@ -591,6 +594,8 @@ class Optimizer(BaseSolver):
                 self._setMetadata()
                 self.hist.writeData("metadata", self.metadata)
                 self.hist.writeData("optProb", self.optProb)
+
+            self.startTime = time.time()
 
         # Write history if necessary
         if self.optProb.comm.rank == 0 and writeHist and self.storeHistory:
