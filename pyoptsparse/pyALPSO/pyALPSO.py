@@ -101,6 +101,7 @@ class ALPSO(Optimizer):
         The kwargs are there such that the sens= argument can be
         supplied (but ignored here in alpso)
         """
+        self.startTime = time.time()
         # ======================================================================
         # ALPSO - Objective/Constraint Values Function
         # ======================================================================

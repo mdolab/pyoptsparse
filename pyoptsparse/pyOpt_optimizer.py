@@ -91,6 +91,7 @@ class Optimizer(BaseSolver):
 
         # Initialize metadata
         self.metadata: Dict[str, Any] = {}
+        self.startTime = None
 
     def _clearTimings(self):
         """Clear timings and call counters"""
@@ -594,8 +595,6 @@ class Optimizer(BaseSolver):
                 self._setMetadata()
                 self.hist.writeData("metadata", self.metadata)
                 self.hist.writeData("optProb", self.optProb)
-
-            self.startTime = time.time()
 
         # Write history if necessary
         if self.optProb.comm.rank == 0 and writeHist and self.storeHistory:

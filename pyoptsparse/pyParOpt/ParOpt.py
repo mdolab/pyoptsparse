@@ -1,6 +1,7 @@
 # Standard Python modules
 import datetime
 import os
+import time
 
 # External modules
 import numpy as np
@@ -133,7 +134,7 @@ class ParOpt(Optimizer):
             Flag sepcifying if sensitivities are to be stored in hist.
             This is necessay for hot-starting only.
         """
-
+        self.startTime = time.time()
         self.callCounter = 0
         self.storeSens = storeSens
 
