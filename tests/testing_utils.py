@@ -1,6 +1,6 @@
 # Standard Python modules
-import unittest
 import os
+import unittest
 
 # External modules
 import numpy as np
