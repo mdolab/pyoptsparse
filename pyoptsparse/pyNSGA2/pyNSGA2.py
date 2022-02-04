@@ -100,6 +100,7 @@ class NSGA2(Optimizer):
 
             return f, g
 
+        self.startTime = time.time()
         self.callCounter = 0
 
         if len(optProb.constraints) == 0:

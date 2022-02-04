@@ -247,13 +247,12 @@ class SNOPT(Optimizer):
             you want an optimization to cleanly finish before the
             job runs out of time.
         """
-
+        self.startTime = time.time()
         self.callCounter = 0
         self.storeSens = storeSens
 
         # Store the starting time if the keyword timeLimit is given:
         self.timeLimit = timeLimit
-        self.startTime = time.time()
 
         if len(optProb.constraints) == 0:
             # If the user *actually* has an unconstrained problem,

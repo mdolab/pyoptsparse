@@ -91,6 +91,7 @@ class Optimizer(BaseSolver):
 
         # Initialize metadata
         self.metadata: Dict[str, Any] = {}
+        self.startTime = None
 
     def _clearTimings(self):
         """Clear timings and call counters"""
@@ -549,6 +550,9 @@ class Optimizer(BaseSolver):
 
         # Put the iteration counter in the history
         hist["iter"] = self.iterCounter
+
+        # timing
+        hist["time"] = time.time() - self.startTime
 
         # Save information about major iteration counting (only matters for SNOPT).
         if self.name == "SNOPT":
