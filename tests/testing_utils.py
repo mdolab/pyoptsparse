@@ -383,6 +383,13 @@ class OptTest(unittest.TestCase):
         # getValues checks
         val = hist.getValues()
 
+        # timing checks
+        times = hist.getValues(names="time", major=False)["time"]
+        # the times should be monotonically increasing
+        self.assertTrue(np.all(np.diff(times) > 0))
+        # the final time should be close to the metadata time
+        assert_allclose(times[-1], metadata["optTime"], rtol=1e-3, atol=1e-1)
+
         # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
         if self.optName in ["SNOPT", "PSQP"]:
             val = hist.getValues(callCounters=["0", "last"], stack=True)
