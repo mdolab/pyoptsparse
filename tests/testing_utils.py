@@ -1,5 +1,6 @@
 # Standard Python modules
 import unittest
+import os
 
 # External modules
 import numpy as np
@@ -144,6 +145,9 @@ class OptTest(unittest.TestCase):
     # sens
     # lambdaStar
     # extras
+
+    def setUp(self):
+        self.histFileName = None
 
     def assert_solution_allclose(self, sol, tol, partial_x=False):
         """
@@ -432,3 +436,13 @@ class OptTest(unittest.TestCase):
         # we should have zero actual function/gradient evaluations
         self.assertEqual(self.nf, 0)
         self.assertEqual(self.ng, 0)
+
+    def tearDown(self):
+        # remove history file
+        if self.histFileName is not None and os.path.exists(self.histFileName):
+            os.remove(self.histFileName)
+        # remove output files
+        for _, suffix in OUTPUT_FILENAMES[self.optName].items():
+            fname = f"{self.id()}{suffix}"
+            if os.path.exists(fname):
+                os.remove(fname)
