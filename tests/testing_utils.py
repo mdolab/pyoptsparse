@@ -6,89 +6,27 @@ import unittest
 import numpy as np
 from numpy.testing import assert_allclose
 from pkg_resources import parse_version
+from baseclasses.testing.assertions import (
+    assert_equal,
+    assert_dict_allclose,
+)
 
 # First party modules
 from pyoptsparse import OPT, History
 from pyoptsparse.pyOpt_error import Error
 
-DEFAULT_TOL = 1e-12
-
-
-def assertEqual(a, b):
-    """
-    This replaces the assertEqual functionality provided by unittest.TestCase
-    so that we can call this outside the class
-    """
-    if not a == b:
-        raise AssertionError(f"{a} and {b} are not equal.")
-
-
-def assert_dict_allclose(actual, desired, atol=DEFAULT_TOL, rtol=DEFAULT_TOL, partial=False):
-    """
-    Simple assert for two flat dictionaries, where the values are
-    assumed to be numpy arrays
-
-    The keys are checked first to make sure that they match
-
-    Parameters
-    ----------
-    actual : 1D dictionary
-        A dictionary of str: array_like pairs
-    desired : 1D dictionary
-        A dictionary of str: array_like pairs
-    atol : float
-        Absolute tolerance
-    rtol : float
-        Relative tolerance
-    partial : bool
-        Whether the assertion allows for partial keys, i.e. when the dictionaries
-        do not have matching keys.
-        If True, we assume that ``desired`` contains a subset of the keys of ``actual``.
-
-    Raises
-    ------
-    AssertionError
-        if the values for any key do not match to the target tolerance.
-    """
-    if not partial:
-        assert set(actual.keys()) == set(desired.keys())
-    else:
-        assert set(desired.keys()).issubset(set(actual.keys()))
-    commonKeys = sorted(set(actual.keys()).intersection(set(desired.keys())))
-
-    for key in commonKeys:
-        assert_allclose(actual[key], desired[key], atol=atol, rtol=rtol, err_msg=f"Failed for key {key}")
-
-
-def assert_dict_not_allclose(actual, desired, atol=DEFAULT_TOL, rtol=DEFAULT_TOL):
-    """
-    The opposite of assert_dict_allclose
-    """
-    assertEqual(set(actual.keys()), set(desired.keys()))
-    for key in actual.keys():
-        if np.allclose(actual[key], desired[key], atol=atol, rtol=rtol):
-            raise AssertionError(f"Dictionaries are close! Got {actual} and {desired} for key {key}")
-
-
-def assert_not_allclose(actual, desired, atol=DEFAULT_TOL, rtol=DEFAULT_TOL):
-    """
-    The numpy array version
-    """
-    if np.allclose(actual, desired, atol=atol, rtol=rtol):
-        raise AssertionError(f"Arrays are close! Inputs are {actual} and {desired}")
-
 
 def assert_optProb_size(optProb, nObj, nDV, nCon):
     """Checks that nObj, nDV and nCon are correct for optProb"""
     optProb.finalize()
-    assertEqual(optProb.nObj, nObj)
-    assertEqual(optProb.nCon, nCon)
-    assertEqual(optProb.ndvs, nDV)
+    assert_equal(optProb.nObj, nObj)
+    assert_equal(optProb.nCon, nCon)
+    assert_equal(optProb.ndvs, nDV)
 
 
 def get_dict_distance(d, d2):
     """This converts a flat 1D dict to array using sorted keys, then computes the L2 distance"""
-    assertEqual(set(d.keys()), set(d2.keys()))
+    assert_equal(set(d.keys()), set(d2.keys()))
     a = []
     a2 = []
     for k in sorted(d.keys()):
