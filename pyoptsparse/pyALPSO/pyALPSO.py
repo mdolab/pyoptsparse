@@ -3,6 +3,7 @@ pyALPSO - A pyOptSparse interface to ALPSO
 work with sparse optimization problems.
 """
 # Standard Python modules
+import datetime
 import time
 
 # External modules
@@ -181,6 +182,12 @@ class ALPSO(Optimizer):
                 opt('Scaling'), opt('HoodSelf'), objconfunc)
             # fmt: on
             optTime = time.time() - t0
+
+            if self.storeHistory:
+                self.metadata["endTime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.metadata["optTime"] = optTime
+                self.hist.writeData("metadata", self.metadata)
+                self.hist.close()
 
             # Broadcast a -1 to indcate NSGA2 has finished
             self.optProb.comm.bcast(-1, root=0)
