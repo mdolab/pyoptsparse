@@ -128,6 +128,9 @@ OUTPUT_FILENAMES = {
 # these are optimizers which are installed by default
 DEFAULT_OPTIMIZERS = {"SLSQP", "PSQP", "CONMIN", "ALPSO", "NSGA2"}
 
+# Define gradient-based optimizers
+GRAD_BASED_OPTIMIZERS = {"CONMIN", "IPOPT", "NLPQLP", "ParOpt", "PSQP", "SLSQP", "SNOPT"}
+
 
 class OptTest(unittest.TestCase):
     # these must be defined prior to using this class
@@ -184,9 +187,10 @@ class OptTest(unittest.TestCase):
         # now we assert against the closest solution
         # objective
         # sol.fStar was broken for earlier versions of SNOPT
-        if self.optName == "SNOPT" and parse_version(self.optVersion) >= parse_version("7.7.7"):
-            assert_allclose(sol.fStar, self.fStar[self.sol_index], atol=tol, rtol=tol)
-        sol_objectives = np.array([sol.objectives[key].value for key in sol.objectives])
+        if self.optName == "SNOPT" and parse_version(self.optVersion) < parse_version("7.7.7"):
+            sol_objectives = np.array([sol.objectives[key].value for key in sol.objectives])
+        else:
+            sol_objectives = sol.fStar
         assert_allclose(sol_objectives, self.fStar[self.sol_index], atol=tol, rtol=tol)
         # x
         assert_dict_allclose(sol.xStar, self.xStar[self.sol_index], atol=tol, rtol=tol, partial=partial_x)
@@ -279,7 +283,7 @@ class OptTest(unittest.TestCase):
         self.nf = 0
         self.ng = 0
         if sens is None:
-            if hasattr(self, "sens"):
+            if hasattr(self, "sens") and self.optName in GRAD_BASED_OPTIMIZERS:
                 sens = self.sens
 
         if optOptions is None:
@@ -412,7 +416,8 @@ class OptTest(unittest.TestCase):
         sol = self.optimize(storeHistory=True, optOptions=optOptions, setDV=x0)
         self.assert_solution_allclose(sol, tol)
         self.assertGreater(self.nf, 0)
-        self.assertGreater(self.ng, 0)
+        if self.optName in GRAD_BASED_OPTIMIZERS:
+            self.assertGreater(self.ng, 0)
         self.check_hist_file(tol)
 
         # re-optimize with hotstart
@@ -431,7 +436,8 @@ class OptTest(unittest.TestCase):
         # this will perform a cold start
         self.optimize(storeHistory=True, hotStart="notexisting.hst", optOptions=optOptions)
         self.assertGreater(self.nf, 0)
-        self.assertGreater(self.ng, 0)
+        if self.optName in GRAD_BASED_OPTIMIZERS:
+            self.assertGreater(self.ng, 0)
         self.check_hist_file(tol)
         # final test with hotstart, this time with a different storeHistory
         sol = self.optimize(
