@@ -47,8 +47,8 @@ class TestSphere(OptTest):
         "ALPSO": {  # sphere
             "SwarmSize": 20,
             "maxOuterIter": 10,
-            'c1': 1.0,  # Cognitive Parameter
-            'c2': 1.25,  # Social Parameter
+            "c1": 1.0,  # Cognitive Parameter
+            "c2": 1.25,  # Social Parameter
             "stopCriteria": 0,  # 0: maxOuterIter, 1: convergence
             "seed": 1235,
         }
@@ -58,7 +58,7 @@ class TestSphere(OptTest):
         self.nf += 1
         x = xdict["xvars"]
 
-        funcs = {'obj': np.dot(x, x)}
+        funcs = {"obj": np.dot(x, x)}
 
         fail = False
         return funcs, fail
