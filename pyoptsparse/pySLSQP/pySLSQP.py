@@ -1,36 +1,25 @@
-# /bin/env python
 """
 pySLSQP - A variation of the pySLSQP wrapper specificially designed to
 work with sparse optimization problems.
 """
-# =============================================================================
-# SLSQP Library
-# =============================================================================
+# Compiled module
 try:
-    from . import slsqp
+    from . import slsqp  # isort: skip
 except ImportError:
     slsqp = None
-# =============================================================================
 # Standard Python modules
-# =============================================================================
+import datetime
 import os
 import time
-import datetime
 
-# =============================================================================
-# External Python modules
-# =============================================================================
+# External modules
 import numpy as np
 
-# ===========================================================================
-# Extension modules
-# ===========================================================================
-from ..pyOpt_optimizer import Optimizer
+# Local modules
 from ..pyOpt_error import Error
+from ..pyOpt_optimizer import Optimizer
 
-# =============================================================================
-# SLSQP Optimizer Class
-# =============================================================================
+
 class SLSQP(Optimizer):
     """
     SLSQP Optimizer Class - Inherited from Optimizer Abstract Class
@@ -130,7 +119,7 @@ class SLSQP(Optimizer):
             Flag sepcifying if sensitivities are to be stored in hist.
             This is necessay for hot-starting only.
         """
-
+        self.startTime = time.time()
         self.callCounter = 0
         self.storeSens = storeSens
 
@@ -242,7 +231,7 @@ class SLSQP(Optimizer):
 
             for c_name in optProb.constraints:
                 c = optProb.constraints[c_name]
-                for j in range(c.ncon):
+                for _j in range(c.ncon):
                     lambdaStar_lower = w[2 * idx]
                     lambdaStar_upper = w[2 * idx + 1]
                     if abs(lambdaStar_lower) > 1e-100:

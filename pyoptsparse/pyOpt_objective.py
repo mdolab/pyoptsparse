@@ -1,10 +1,8 @@
-#!/usr/bin/env python
+# External modules
 import numpy as np
 
-# =============================================================================
-# Objective Class
-# =============================================================================
-class Objective(object):
+
+class Objective:
     def __init__(self, name, scale=1.0):
         """
         This class holds the representation of a pyOptSparse objective.
@@ -25,15 +23,14 @@ class Objective(object):
         """
         self.name = name
         self.value = 0.0
-        self.optimum = 0.0
         self.scale = scale
 
     def __str__(self):
         """
         Structured Print of Objective
         """
-        res = "        Name        Value        Optimum\n"
+        res = "        Name        Value\n"
         res += "	 " + str(self.name).center(9)
-        res += "%12g  %12g\n" % (np.real(self.value), np.real(self.optimum))
+        res += f"{np.real(self.value):12g}\n"
 
         return res

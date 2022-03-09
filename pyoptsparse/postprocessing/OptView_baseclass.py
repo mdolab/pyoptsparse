@@ -1,5 +1,4 @@
 """
-
 Shared base class for both OptView and OptView_dash.
 This reduces code duplication by having both OptViews read from this baseclass.
 
@@ -7,47 +6,18 @@ John Jasa 2015-2019
 
 """
 
-# ======================================================================
 # Standard Python modules
-# ======================================================================
 import shelve
 
-import sys
-
-major_python_version = sys.version_info[0]
-
-if major_python_version == 2:
-    import tkFont
-    import Tkinter as Tk
-else:
-    import tkinter as Tk
-    from tkinter import font as tkFont
-
-import re
-import warnings
-
-# ======================================================================
-# External Python modules
-# ======================================================================
-import matplotlib
-
-matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import host_subplot
-import mpl_toolkits.axisartist as AA
-
-try:
-    warnings.filterwarnings("ignore", category=matplotlib.cbook.mplDeprecation)
-    warnings.filterwarnings("ignore", category=UserWarning)
-except:
-    pass
+# External modules
 import numpy as np
 from sqlitedict import SqliteDict
-import traceback
+
+# Local modules
+from ..pyOpt_error import pyOptSparseWarning
 
 
-class OVBaseClass(object):
+class OVBaseClass:
 
     """
     Container for display parameters, properties, and objects.
@@ -86,7 +56,7 @@ class OVBaseClass(object):
             try:  # This is the classic method of storing history files
                 db = shelve.open(histFileName, "r")
                 OpenMDAO = False
-            except:  # Bare except because error is not in standard Python.
+            except Exception:  # Bare except because error is not in standard Python.
                 # If the db has the 'iterations' tag, it's an OpenMDAO db.
                 db = SqliteDict(histFileName, "iterations")
                 OpenMDAO = True
@@ -104,11 +74,8 @@ class OVBaseClass(object):
 
                 # Get the number of iterations by looking at the largest number
                 # in the split string names for each entry in the db
-                if major_python_version == 3:
-                    for string in db.keys():
-                        string = string.split("|")
-                else:
-                    string = db.keys()[-1].split("|")
+                for string in db.keys():
+                    string = string.split("|")
 
                 nkey = int(string[-1])
                 self.solver_name = string[0]
@@ -147,6 +114,8 @@ class OVBaseClass(object):
                 self.nkey = nkey
 
                 # Initalize a list detailing if the iterations are major or minor
+                # 1 = major, 2 = minor, 0 = sensitivity (or duplicated info by IPOPT)
+                # The entries whose iter_type = 0 will be ignored.
                 self.iter_type = np.zeros(nkey)
 
                 # Check to see if there is bounds information in the db file.
@@ -191,6 +160,13 @@ class OVBaseClass(object):
                 else:
                     self.storedIters = False
 
+                # Raise warning for IPOPT's duplicated history
+                if db["metadata"]["optimizer"] == "IPOPT" and "iter" not in db["0"].keys():
+                    pyOptSparseWarning(
+                        "The optimization history file has duplicated entries at every iteration, and the OptView plot is not correct. "
+                        + "Re-run the optimization with a current version of pyOptSparse to generate a correct history file."
+                    )
+
                 # Save information from the history file for the funcs.
                 self.DetermineMajorIterations(db, OpenMDAO=OpenMDAO)
 
@@ -216,7 +192,10 @@ class OVBaseClass(object):
     def DetermineMajorIterations(self, db, OpenMDAO):
 
         if not OpenMDAO:
-            # Loop over each optimization iteration
+
+            previousIterCounter = -1
+
+            # Loop over each optimization call
             for i, iter_type in enumerate(self.iter_type):
 
                 # If this is an OpenMDAO file, the keys are of the format
@@ -228,22 +207,35 @@ class OVBaseClass(object):
                 # actual major iteration. In particular, one has funcs
                 # and the next has funcsSens, but they're both part of the
                 # same major iteration.
+                # For IPOPT, it saves info for four calls for every
+                # actual major iteration: objective, constraints,
+                # and sensitivities of each.
+
                 if "funcs" in db[key].keys():
+                    # check if this entry is duplicated info. Only relevant for IPOPT.
+                    # Note: old hist files don't have "iter"
+                    if "iter" in db[key].keys() and db[key]["iter"] == previousIterCounter:
+                        # duplicated info
+                        self.iter_type[i] = 0
+
                     # if we did not store major iteration info, everything's major
-                    if not self.storedIters:
+                    elif not self.storedIters:
                         self.iter_type[i] = 1
                     # this is major iteration
                     elif self.storedIters and db[key]["isMajor"]:
                         self.iter_type[i] = 1
                     else:
                         self.iter_type[i] = 2
+
+                    if "iter" in db[key].keys():
+                        previousIterCounter = db[key]["iter"]
                 else:
                     self.iter_type[i] = 0  # this is not a real iteration,
                     # just the sensitivity evaluation
 
         else:  # this is if it's OpenMDAO
             for i, iter_type in enumerate(self.iter_type):
-                key = "{}|{}".format(self.solver_name, i + 1)  # OpenMDAO uses 1-indexing
+                key = f"{self.solver_name}|{i + 1}"  # OpenMDAO uses 1-indexing
                 if i in self.deriv_keys:
                     self.iter_type[i] = 1.0
 
@@ -264,7 +256,7 @@ class OVBaseClass(object):
             # If this is an OpenMDAO file, the keys are of the format
             # 'rank0:SNOPT|1', etc
             if OpenMDAO:
-                key = "{}|{}".format(self.solver_name, i + 1)  # OpenMDAO uses 1-indexing
+                key = f"{self.solver_name}|{i + 1}"  # OpenMDAO uses 1-indexing
             else:  # Otherwise the keys are simply a number
                 key = "%d" % i
 
@@ -279,7 +271,7 @@ class OVBaseClass(object):
 
                     # Format a new_key string where we append a modifier
                     # if we have multiple history files
-                    new_key = key + "{}".format(self.histIndex)
+                    new_key = key + f"{self.histIndex}"
 
                     # If this key is not in the data dictionaries, add it
                     if new_key not in data_all:
@@ -309,7 +301,7 @@ class OVBaseClass(object):
 
                     # We'll rename each item, so we need to get the old item
                     # name and modify it
-                    item = old_item + "{}".format(self.histIndex)
+                    item = old_item + f"{self.histIndex}"
 
                     # Here we just have an open parenthesis, and then we will
                     # add o, c, or dv. Note that we could add multiple flags

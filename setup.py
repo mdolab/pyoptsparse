@@ -1,5 +1,5 @@
 import sys
-
+import re
 import setuptools  # magic import to allow us to use entry_point
 
 # Check if we have numpy:
@@ -16,10 +16,8 @@ try:
 except ImportError:
     if "bdist_wheel" in sys.argv:
         print(
-            (
-                "\nThe bdist_wheel option requires the 'wheel' package to be installed.\n"
-                + "Install it using 'pip install wheel'."
-            )
+            "\nThe bdist_wheel option requires the 'wheel' package to be installed.\n"
+            + "Install it using 'pip install wheel'."
         )
         sys.exit(-1)
 else:
@@ -28,14 +26,12 @@ else:
 
 if len(sys.argv) == 1:
     print(
-        (
-            "\nTo install, run: python setup.py install --user\n\n"
-            + "To build, run: python setup.py build_ext --inplace\n\n"
-            + "For help on C-compiler options run: python setup.py build --help-compiler\n\n"
-            + "For help on Fortran-compiler options run: python setup.py build --help-fcompiler\n\n"
-            + "To specify a Fortran compiler to use run: python setup.py install --user --fcompiler=<fcompiler name>\n\n"
-            + "For further help run: python setup.py build --help"
-        )
+        "\nTo install, run: python setup.py install --user\n\n"
+        + "To build, run: python setup.py build_ext --inplace\n\n"
+        + "For help on C-compiler options run: python setup.py build --help-compiler\n\n"
+        + "For help on Fortran-compiler options run: python setup.py build --help-fcompiler\n\n"
+        + "To specify a Fortran compiler to use run: python setup.py install --user --fcompiler=<fcompiler name>\n\n"
+        + "For further help run: python setup.py build --help"
     )
     sys.exit(-1)
 
@@ -50,9 +46,6 @@ def configuration(parent_package="", top_path=None):
 
 
 if __name__ == "__main__":
-
-    import re
-
     __version__ = re.findall(
         r"""__version__ = ["']+([0-9\.]*)["']+""",
         open("pyoptsparse/__init__.py").read(),
@@ -76,6 +69,7 @@ if __name__ == "__main__":
                 "plotly",
                 "matplotlib",
             ],
+            "testing": ["testflo>=1.4.5"],
         },
         package_data={"pyoptsparse": ["postprocessing/assets/*"]},
         platforms=["Linux"],

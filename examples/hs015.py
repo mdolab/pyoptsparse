@@ -11,9 +11,14 @@
 #  at (-0.79212, -1.26243), with final objective = 360.4.
 ##
 
-import numpy as np
+# Standard Python modules
 import argparse
-from pyoptsparse import Optimization, OPT
+
+# External modules
+import numpy as np
+
+# First party modules
+from pyoptsparse import OPT, Optimization
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--opt", help="optimizer", type=str, default="SLSQP")
@@ -81,7 +86,7 @@ opt = OPT(args.opt, options=optOptions)
 
 # Solution
 if args.storeHistory:
-    histFileName = "%s_hs015_Hist.hst" % (args.opt.lower())
+    histFileName = f"{args.opt.lower()}_hs015_Hist.hst"
 else:
     histFileName = None
 # end

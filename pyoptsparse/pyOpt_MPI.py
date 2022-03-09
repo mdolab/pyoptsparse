@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 pyOptSparse_MPI
 
@@ -7,11 +6,14 @@ mpi4py. Only the method from the COMM object that are actually used in
 pyOptSparse are included here.
 """
 
+# Standard Python modules
 import os
 import warnings
 
+# isort: off
 
-class COMM(object):
+
+class COMM:
     def __init__(self):
         self.rank = 0
         self.size = 1
@@ -36,7 +38,7 @@ class COMM(object):
         return
 
 
-class myMPI(object):
+class myMPI:
     def __init__(self):
         self.COMM_WORLD = COMM()
         self.SUM = "SUM"

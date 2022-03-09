@@ -1,19 +1,18 @@
-#!/usr/bin/env python
-# =============================================================================
-# External Python modules
-# =============================================================================
-import os
-import copy
-import numpy as np
-from .pyOpt_error import Error, pyOptSparseWarning
-from sqlitedict import SqliteDict
+# Standard Python modules
 from collections import OrderedDict
+import copy
+import os
 
-eps = np.finfo(np.float64).eps
-# =============================================================================
-# History Class
-# =============================================================================
-class History(object):
+# External modules
+import numpy as np
+from sqlitedict import SqliteDict
+
+# Local modules
+from .pyOpt_error import Error, pyOptSparseWarning
+from .pyOpt_utils import EPS
+
+
+class History:
     def __init__(self, fileName, optProb=None, temp=False, flag="r"):
         """
         This class is essentially a thin wrapper around a SqliteDict dictionary to facilitate
@@ -50,7 +49,7 @@ class History(object):
                 self.db = OrderedDict(SqliteDict(fileName))
             else:
                 raise FileNotFoundError(
-                    "The requested history file %s to open in read-only mode does not exist." % fileName
+                    f"The requested history file {fileName} to open in read-only mode does not exist."
                 )
             self._processDB()
         else:
@@ -84,7 +83,7 @@ class History(object):
         """
 
         # String key to database on disk
-        key = "%d" % callCounter
+        key = str(callCounter)
         # if the point exists, we merely update with new data
         if self.pointExists(callCounter):
             oldData = self.read(callCounter)
@@ -177,9 +176,9 @@ class History(object):
         last = int(self.db["last"])
         callCounter = None
         for i in range(last, 0, -1):
-            key = "%d" % i
+            key = str(i)
             xuser = self.optProb.processXtoVec(self.db[key]["xuser"])
-            if np.isclose(xuser, x, atol=eps, rtol=eps).all() and "funcs" in self.db[key].keys():
+            if np.isclose(xuser, x, atol=EPS, rtol=EPS).all() and "funcs" in self.db[key].keys():
                 callCounter = i
                 break
         return callCounter
@@ -218,7 +217,7 @@ class History(object):
         # remove objective and constraint keys
         self.extraFuncsNames = self.extraFuncsNames.difference(self.conNames).difference(self.objNames)
 
-        from .__init__ import __version__
+        from .__init__ import __version__  # isort: skip
 
         if self.metadata["version"] != __version__:
             pyOptSparseWarning(
@@ -566,11 +565,11 @@ class History(object):
             .union(self.objNames)
             .union(self.iterKeys)
             .union(self.extraFuncsNames)
-            .difference(set(["funcs", "funcsSens", "xuser"]))
+            .difference({"funcs", "funcsSens", "xuser"})
         )
         # cast string input into a single list
         if isinstance(names, str):
-            names = set([names])
+            names = {names}
         elif names is None:
             names = allNames
         else:
@@ -580,19 +579,17 @@ class History(object):
         # error if names isn't either a DV, con or obj
         if not names.issubset(allNames):
             raise Error(
-                "The names provided are not one of DVNames, conNames or objNames.\n\
-                The names must be a subset of {}".format(
-                    allNames
-                )
+                "The names provided are not one of DVNames, conNames or objNames.\n"
+                + f"The names must be a subset of {allNames}"
             )
         DVsAsFuncs = self.DVNames.intersection(self.conNames)
         if len(DVsAsFuncs) > 0:
             ambiguousNames = names.intersection(DVsAsFuncs)
             if len(ambiguousNames) > 0:
                 pyOptSparseWarning(
-                    "The names provided {} is ambiguous, since it is both a DV as well as an objective/constraint. It is being assumed to be a DV. If it was set up via addDVsAsFunctions, then there's nothing to worry. Otherwise, consider renaming the variable or manually editing the history file.".format(
-                        ambiguousNames
-                    )
+                    f"The names provided {ambiguousNames} is ambiguous, since it is both a DV as well as an objective/constraint. "
+                    + "It is being assumed to be a DV. If it was set up via addDVsAsFunctions, then there's nothing to worry. "
+                    + "Otherwise, consider renaming the variable or manually editing the history file."
                 )
 
         if len(names.intersection(self.iterKeys)) > 0:
@@ -631,37 +628,25 @@ class History(object):
             callCounters.append(self.read("last"))
             callCounters.remove("last")
 
+        self._previousIterCounter = -1
+        # loop over call counters, check if each counter is valid, and parse
         for i in callCounters:
-            if self.pointExists(i):
-                val = self.read(i)
-                if "funcs" in val.keys() or allowSens:  # we have function evaluation
-                    if ((major and val["isMajor"]) or not major) and not val["fail"]:
-                        conDict, objDict, DVDict = self._processIterDict(val, scale=scale)
-                        for name in names:
-                            if name == "xuser":
-                                data[name].append(self.optProb.processXtoVec(DVDict))
-                            elif name in self.DVNames:
-                                data[name].append(DVDict[name])
-                            elif name in self.conNames:
-                                data[name].append(conDict[name])
-                            elif name in self.objNames:
-                                data[name].append(objDict[name])
-                            elif name in self.extraFuncsNames:
-                                data[name].append(val["funcs"][name])
-                            else:  # must be opt
-                                data[name].append(val[name])
-                    elif val["fail"] and user_specified_callCounter:
-                        pyOptSparseWarning(
-                            ("callCounter {} contained a failed function evaluation and is skipped!").format(i)
-                        )
-                elif user_specified_callCounter:
-                    pyOptSparseWarning(
-                        (
-                            "callCounter {} did not contain a function evaluation and is skipped! Was it a gradient evaluation step?"
-                        ).format(i)
-                    )
-            elif user_specified_callCounter:
-                pyOptSparseWarning(("callCounter {} was not found and is skipped!").format(i))
+            val = self._readValidCallCounter(i, user_specified_callCounter, allowSens, major)
+            if val is not None:  # if i is valid
+                conDict, objDict, DVDict = self._processIterDict(val, scale=scale)
+                for name in names:
+                    if name == "xuser":
+                        data[name].append(self.optProb.processXtoVec(DVDict))
+                    elif name in self.DVNames:
+                        data[name].append(DVDict[name])
+                    elif name in self.conNames:
+                        data[name].append(conDict[name])
+                    elif name in self.objNames:
+                        data[name].append(objDict[name])
+                    elif name in self.extraFuncsNames:
+                        data[name].append(val["funcs"][name])
+                    else:  # must be opt
+                        data[name].append(val[name])
 
         # reshape lists into numpy arrays
         for name in names:
@@ -671,21 +656,83 @@ class History(object):
             if data[name].ndim == 1:
                 data[name] = np.expand_dims(data[name], 1)
 
+        # Raise warning for IPOPT's duplicated history
+        if self.db["metadata"]["optimizer"] == "IPOPT" and "iter" not in self.db["0"].keys():
+            pyOptSparseWarning(
+                "The optimization history of IPOPT has duplicated entries at every iteration. "
+                + "Fix the history manually, or re-run the optimization with a current version of pyOptSparse to generate a correct history file. "
+            )
         return data
+
+    def _readValidCallCounter(self, i, user_specified_callCounter, allowSens, major):
+        """
+        Checks whether a call counter is valid and read the data. The call counter is valid when it is
+            1) inside the range of the history data,
+            2) a function evaluation (i.e. not a sensitivity evaluation, except when `allowSens = True`),
+            3) not a duplicated entry,
+            4) not a failed function evaluation,
+            5) a major iteration (only when `major = True`).
+
+        Parameters
+        ----------
+        i : int
+            call counter.
+
+        user_specified_callCounter : bool
+            flag to specify whether the call counter `i` is requested by a user or not.
+
+        allowSens: bool
+            flag to specify whether gradient evaluation iterations are allowed.
+
+        major : bool
+            flag to specify whether to include only major iterations.
+
+        Returns
+        -------
+        val : dict or None
+            information corresponding to the call counter `i`.
+            If the call counter is not valid, `None` is returned instead.
+        """
+
+        if not self.pointExists(i):
+            if user_specified_callCounter:
+                # user specified a non-existent call counter
+                pyOptSparseWarning(f"callCounter {i} was not found and is skipped!")
+            return None
+        else:
+            val = self.read(i)
+
+            # check if the callCounter is of a function call
+            if not ("funcs" in val.keys() or allowSens):
+                if user_specified_callCounter:
+                    # user unintentionally specified a call counter for sensitivity
+                    pyOptSparseWarning(
+                        f"callCounter {i} did not contain a function evaluation and is skipped! "
+                        + "Was it a gradient evaluation step?"
+                    )
+                return None
+            else:
+                # exclude the duplicated history (only when we have "iter" recorded)
+                if "iter" in val.keys():
+                    duplicate_flag = val["iter"] == self._previousIterCounter
+                    self._previousIterCounter = val["iter"]  # update iterCounter for next i
+                    if duplicate_flag and not user_specified_callCounter:
+                        # this is a duplicate
+                        return None
+                # end if "iter" in val.keys()
+
+                # check major/minor iteration, and if the call failed
+                if ((major and val["isMajor"]) or not major) and not val["fail"]:
+                    return val
+                else:
+                    return None
+            # end if - ("funcs" in val.keys()
+        # end if - pointExists
 
     def __del__(self):
         try:
             self.db.close()
             if self.temp:
                 os.remove(self.fileName)
-        except:  # noqa: E722
+        except Exception:
             pass
-
-
-# ==============================================================================
-# Optimizer History Test
-# ==============================================================================
-if __name__ == "__main__":
-
-    # Test Optimizer History
-    print("Testing Optimizer History...")

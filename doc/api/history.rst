@@ -36,8 +36,10 @@ In this case, the history file would have the following layout::
     │   ├── funcs
     │   │   ├── obj
     │   │   └── con
+    │   ├── iter
     │   ├── fail
-    │   └── isMajor
+    │   ├── isMajor
+    |   └── time
     ├── 1
     │   ├── xuser
     │   │   └── xvars
@@ -46,8 +48,10 @@ In this case, the history file would have the following layout::
     │   │   │   └── xvars
     │   │   └── con
     │   │       └── xvars
+    │   ├── iter
     │   ├── fail
-    │   └── isMajor
+    │   ├── isMajor
+    |   └── time
     └── last
 
 

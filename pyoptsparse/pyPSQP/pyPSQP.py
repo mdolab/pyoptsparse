@@ -1,35 +1,24 @@
-# /bin/env python
 """
 pyPSQP - the pyPSQP wrapper
 """
-# =============================================================================
-# PSQP Library
-# =============================================================================
+# Compiled module
 try:
-    from . import psqp
+    from . import psqp  # isort: skip
 except ImportError:
     psqp = None
-# =============================================================================
 # Standard Python modules
-# =============================================================================
+import datetime
 import os
 import time
-import datetime
 
-# =============================================================================
-# External Python modules
-# =============================================================================
+# External modules
 import numpy as np
 
-# ===========================================================================
-# Extension modules
-# ===========================================================================
-from ..pyOpt_optimizer import Optimizer
+# Local modules
 from ..pyOpt_error import Error
+from ..pyOpt_optimizer import Optimizer
 
-# =============================================================================
-# PSQP Optimizer Class
-# =============================================================================
+
 class PSQP(Optimizer):
     """
     PSQP Optimizer Class - Inherited from Optimizer Abstract Class
@@ -136,7 +125,7 @@ class PSQP(Optimizer):
             Flag sepcifying if sensitivities are to be stored in hist.
             This is necessay for hot-starting only.
         """
-
+        self.startTime = time.time()
         self.callCounter = 0
         self.storeSens = storeSens
 

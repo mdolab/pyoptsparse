@@ -1,10 +1,15 @@
 # This example is taken from the OpenOpt Examples website.
 # http://trac.openopt.org/openopt/browser/PythonPackages/FuncDesigner/FuncDesigner/examples/nlpSparse.py
 
+# Standard Python modules
+import argparse
+
+# External modules
 import numpy as np
 from scipy import sparse
-import argparse
-from pyoptsparse import Optimization, OPT
+
+# First party modules
+from pyoptsparse import OPT, Optimization
 
 N = 50000
 

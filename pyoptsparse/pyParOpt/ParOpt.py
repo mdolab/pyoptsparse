@@ -1,7 +1,12 @@
-import numpy as np
-import os
+# Standard Python modules
 import datetime
+import os
+import time
 
+# External modules
+import numpy as np
+
+# isort: off
 # Attempt to import mpi4py.
 # If PYOPTSPARSE_REQUIRE_MPI is set to a recognized positive value, attempt import
 # and raise exception on failure. If set to anything else, no import is attempted.
@@ -23,9 +28,12 @@ else:
         from mpi4py import MPI
     except ImportError:
         _ParOpt = None
+# isort: on
 
-from ..pyOpt_optimizer import Optimizer
+# Local modules
 from ..pyOpt_error import Error
+from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_utils import INFINITY
 
 
 class ParOpt(Optimizer):
@@ -126,7 +134,7 @@ class ParOpt(Optimizer):
             Flag sepcifying if sensitivities are to be stored in hist.
             This is necessay for hot-starting only.
         """
-
+        self.startTime = time.time()
         self.callCounter = 0
         self.storeSens = storeSens
 
@@ -165,7 +173,7 @@ class ParOpt(Optimizer):
 
             class Problem(_ParOpt.Problem):
                 def __init__(self, ptr, n, m, xs, blx, bux):
-                    super(Problem, self).__init__(MPI.COMM_SELF, n, m)
+                    super().__init__(MPI.COMM_SELF, n, m)
                     self.ptr = ptr
                     self.n = n
                     self.m = m
@@ -180,7 +188,7 @@ class ParOpt(Optimizer):
                     # Find the average distance between lower and upper bound
                     bound_sum = 0.0
                     for i in range(len(x)):
-                        if self.blx[i] <= -1e20 or self.bux[i] >= 1e20:
+                        if self.blx[i] <= -INFINITY or self.bux[i] >= INFINITY:
                             bound_sum += 1.0
                         else:
                             bound_sum += self.bux[i] - self.blx[i]

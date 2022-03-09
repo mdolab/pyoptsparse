@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import os, sys
 
 from numpy.distutils.command import build_src
@@ -58,14 +56,14 @@ def swig_sources(self, sources, extension):
                 else:
                     typ2 = get_swig_target(source)
                     if typ != typ2:
-                        log.warn("expected %r but source %r defines %r swig target" % (typ, source, typ2))
+                        log.warn(f"expected {typ!r} but source {source!r} defines {typ2!r} swig target")
                         if typ2 == "c++":
                             log.warn("resetting swig target to c++ (some targets may have .c extension)")
                             is_cpp = True
                             target_ext = ".cpp"
                         else:
                             log.warn("assuming that %r has c++ swig target" % (source))
-                target_file = os.path.join(target_dir, "%s_wrap%s" % (name, target_ext))
+                target_file = os.path.join(target_dir, f"{name}_wrap{target_ext}")
             else:
                 log.warn("  source %s does not exist: skipping swig'ing." % (source))
                 name = ext_name
@@ -81,7 +79,7 @@ def swig_sources(self, sources, extension):
                     target_dir = os.path.dirname(base)
                     target_file = _find_swig_target(target_dir, name)
                     if not os.path.isfile(target_file):
-                        raise DistutilsSetupError("%r missing" % (target_file,))
+                        raise DistutilsSetupError(f"{target_file!r} missing")
                     log.warn("   Yes! Using %r as up-to-date target." % (target_file))
             target_dirs.append(target_dir)
             new_sources.append(target_file)
@@ -110,7 +108,7 @@ def swig_sources(self, sources, extension):
         target = swig_targets[source]
         depends = [source] + extension.depends
         if self.force or newer_group(depends, target, "newer"):
-            log.info("%s: %s" % (os.path.basename(swig) + (is_cpp and "++" or ""), source))
+            log.info("{}: {}".format(os.path.basename(swig) + (is_cpp and "++" or ""), source))
             self.spawn(swig_cmd + self.swig_opts + ["-o", target, "-outdir", py_target_dir, source])
         else:
             log.debug("  skipping '%s' swig interface (up-to-date)" % (source))

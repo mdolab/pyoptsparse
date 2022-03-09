@@ -1,36 +1,25 @@
-# /bin/env python
 """
 pyCONMIN - A variation of the pyCONMIN wrapper specificially designed to
 work with sparse optimization problems.
 """
-# =============================================================================
-# CONMIN Library
-# =============================================================================
+# Compiled module
 try:
-    from . import conmin
+    from . import conmin  # isort: skip
 except ImportError:
     conmin = None
-# =============================================================================
 # Standard Python modules
-# =============================================================================
+import datetime
 import os
 import time
-import datetime
 
-# =============================================================================
-# External Python modules
-# =============================================================================
+# External modules
 import numpy as np
 
-# ===========================================================================
-# Extension modules
-# ===========================================================================
-from ..pyOpt_optimizer import Optimizer
+# Local modules
 from ..pyOpt_error import Error
+from ..pyOpt_optimizer import Optimizer
 
-# =============================================================================
-# CONMIN Optimizer Class
-# =============================================================================
+
 class CONMIN(Optimizer):
     """
     CONMIN Optimizer Class - Inherited from Optimizer Abstract Class
@@ -121,7 +110,7 @@ class CONMIN(Optimizer):
             Flag sepcifying if sensitivities are to be stored in hist.
             This is necessay for hot-starting only.
         """
-
+        self.startTime = time.time()
         self.callCounter = 0
         self.storeSens = storeSens
 
