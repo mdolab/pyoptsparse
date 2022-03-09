@@ -484,35 +484,13 @@ class SNOPT(Optimizer):
                 pi = restartDict["pi"]
             # The snopt c interface
             timeA = time.time()
+            # fmt: off
             hs, xs, pi, rc, inform, mincw, miniw, minrw, nS, ninf, sinf, obj = snopt.snkerc(
-                start,
-                nnCon,
-                nnObj,
-                nnJac,
-                iObj,
-                ObjAdd,
-                ProbNm,
-                self._userfg_wrap,
-                snopt.snlog,
-                snopt.snlog2,
-                snopt.sqlog,
-                self._snstop,
-                Acol,
-                indA,
-                locA,
-                bl,
-                bu,
-                Names,
-                hs,
-                xs,
-                pi,
-                cu,
-                iu,
-                ru,
-                cw,
-                iw,
-                rw,
+                start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
+                self._userfg_wrap, snopt.snlog, snopt.snlog2, snopt.sqlog, self._snstop,
+                Acol, indA, locA, bl, bu, Names, hs, xs, pi, cu, iu, ru, cw, iw, rw,
             )
+            # fmt: on
             optTime = time.time() - timeA
 
             # Indicate solution finished
