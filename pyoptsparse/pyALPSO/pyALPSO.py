@@ -116,6 +116,7 @@ class ALPSO(Optimizer):
         # ======================================================================
         # ALPSO - Objective/Constraint Values Function
         # ======================================================================
+
         def objconfunc(x):
             fobj, fcon, fail = self._masterFunc(x, ["fobj", "fcon"])
             return fobj, fcon
