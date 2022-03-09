@@ -70,6 +70,7 @@ Return work arrays:
     This option is unique to the Python wrapper.
     If True, internal SNOPT work arrays are also returned at the end of the optimization.
     These arrays can be used to hot start a subsequent optimization.
+    The SNOPT option 'Sticky parameters' will also be automatically set to 'Yes' to facilitate the hot start.
 
 snSTOP function handle:
   desc: >

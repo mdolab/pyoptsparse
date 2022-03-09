@@ -156,11 +156,7 @@ class TestHS15(OptTest):
     def test_snopt_hotstart(self):
         self.optName = "SNOPT"
         self.setup_optProb()
-        optOptions = {
-            "Return work arrays": True,
-            "Sticky parameters": "Yes",
-        }
-        sol, restartDict = self.optimize(optOptions=optOptions)
+        sol, restartDict = self.optimize(optOptions={"Return work arrays": True})
         # Check Solution
         self.assert_solution_allclose(sol, 1e-12)
         # Check informs

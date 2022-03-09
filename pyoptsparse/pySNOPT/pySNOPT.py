@@ -312,6 +312,10 @@ class SNOPT(Optimizer):
         # Make sure restartDict is provided if using hot start
         if self.getOption("Start") == "Hot" and restartDict is None:
             raise Error("restartDict must be provided if using a hot start")
+        # If user requested the work arrays, then we need to set sticky parameter
+        # to make sure that the work arrays are re-usable at the next hot start
+        if self.getOption("Return work arrays"):
+            self.setOption("Sticky parameters", "Yes")
 
         sol = None
         # We make a split here: If the rank is zero we setup the
