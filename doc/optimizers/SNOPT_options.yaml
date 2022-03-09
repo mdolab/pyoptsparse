@@ -17,6 +17,7 @@ Start:
   desc: This value is directly passed to the SNOPT kernel, and will be overwritten if another option, e.g. ``Cold start`` is supplied, in accordance with SNOPT options precedence.
   Cold: Cold start
   Warm: Warm start
+  Hot: Hot start
 
 Problem Type:
   desc: >
@@ -63,3 +64,12 @@ Save major iteration variables:
     This option is unique to the Python wrapper, and takes a list of values which can be saved at each iteration to the History file.
     This specifies the list of major iteration variables to be stored in the history file.
     ``Hessian``, ``slack``, ``lambda`` and ``condZHZ`` are also supported.
+
+Return work arrays:
+  desc: >
+    If True, internal SNOPT work arrays are also returned at the end of the optimization.
+    These arrays can be used to hot start a subsequent optimization.
+
+snSTOP function handle:
+  desc: >
+    A function handle can be supplied which is called at the end of each major iteration.

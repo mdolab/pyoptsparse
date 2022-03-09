@@ -48,7 +48,13 @@ class SNOPT(Optimizer):
             }
         )
         # this is purely within pySNOPT, nothing to do with SNOPT itself
-        self.pythonOptions = CaseInsensitiveSet({"Save major iteration variables"})
+        self.pythonOptions = CaseInsensitiveSet(
+            {
+                "Save major iteration variables",
+                "Return work arrays",
+                "snSTOP function handle",
+            }
+        )
 
         informs = self._getInforms()
 
@@ -102,8 +108,7 @@ class SNOPT(Optimizer):
             "Total real workspace": [int, None],
             "Save major iteration variables": [list, ["step", "merit", "feasibility", "optimality", "penalty"]],
             "Return work arrays": [bool, False],
-            "User specified snSTOP": [bool, False],
-            "snSTOP function handle": [type(lambda: None), lambda: None],
+            "snSTOP function handle": [(type(None), type(lambda: None)), None],
         }
         return defOpts
 
@@ -206,11 +211,11 @@ class SNOPT(Optimizer):
             to be solved by the optimizer
 
         sens : str or python Function.
-            Specifiy method to compute sensitivities. The default is
+            Specify method to compute sensitivities. The default is
             None which will use SNOPT's own finite differences which
-            are vastly superiour to the pyOptSparse implementation. To
-            explictly use pyOptSparse gradient class to do the
-            derivatives with finite differenes use 'FD'. 'sens'
+            are vastly superior to the pyOptSparse implementation. To
+            explicitly use pyOptSparse gradient class to do the
+            derivatives with finite differences use 'FD'. 'sens'
             may also be 'CS' which will cause pyOptSpare to compute
             the derivatives using the complex step method. Finally,
             'sens' may be a python function handle which is expected
@@ -233,7 +238,7 @@ class SNOPT(Optimizer):
 
         hotStart : str
             File name of the history file to "replay" for the
-            optimziation.  The optimization problem used to generate
+            optimization.  The optimization problem used to generate
             the history file specified in 'hotStart' must be
             **IDENTICAL** to the currently supplied 'optProb'. By
             identical we mean, **EVERY SINGLE PARAMETER MUST BE
@@ -242,14 +247,25 @@ class SNOPT(Optimizer):
             gradient evaluations revert back to normal evaluations.
 
         storeSens : bool
-            Flag sepcifying if sensitivities are to be stored in hist.
-            This is necessay for hot-starting only.
+            Flag specifying if sensitivities are to be stored in hist.
+            This is necessary for hot-starting only.
 
         timeLimit : float
             Specify the maximum amount of time for optimizer to run.
             Must be in seconds. This can be useful on queue systems when
             you want an optimization to cleanly finish before the
             job runs out of time.
+
+        restartDict : dict
+            A dictionary containing the necessary information for hot-starting SNOPT.
+            This is typically the same dictionary returned by this function on a previous invocation.
+
+        Returns
+        -------
+        sol : Solution object
+            The optimization solution
+        restartDict : dict
+            If 'Return work arrays' is True, a dictionary of arrays is also returned
         """
         self.startTime = time.time()
         self.callCounter = 0
@@ -665,11 +681,12 @@ class SNOPT(Optimizer):
                 callCounter = self.hist._searchCallCounter(xuser_vec)
             if callCounter is not None:
                 self.hist.write(callCounter, iterDict)
+                # this adds funcs etc. to the iterDict by fetching it from the history file
                 iterDict = self.hist.read(callCounter)
-        if self.getOption("User specified snSTOP"):
+        snstop_handle = self.getOption("snSTOP function handle")
+        if snstop_handle is not None:
             if not self.storeHistory:
-                raise Error("User specified snSTOP must be used with storeHistory=True")
-            snstop_handle = self.getOption("snSTOP function handle")
+                raise Error("snSTOP function handle must be used with storeHistory=True")
             iabort = snstop_handle(iterDict)
             # if no return, assume everything went fine
             if iabort is None:
