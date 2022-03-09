@@ -180,6 +180,24 @@ class TestHS15(OptTest):
         self.assertEqual(self.nf, 1)
         self.assertEqual(self.ng, 1)
 
+    @staticmethod
+    def my_snstop(iterDict):
+        """manually terminate SNOPT after 1 major iteration"""
+        if iterDict["nMajor"] == 1:
+            return 1
+        return 0
+
+    def test_snopt_snstop(self):
+        self.optName = "SNOPT"
+        self.setup_optProb()
+        optOptions = {
+            "snSTOP function handle": self.my_snstop,
+        }
+        sol = self.optimize(optOptions=optOptions, storeHistory=True)
+        # Check informs
+        # we should get 70/74
+        self.assert_inform_equal(sol, optInform=74)
+
 
 if __name__ == "__main__":
     unittest.main()

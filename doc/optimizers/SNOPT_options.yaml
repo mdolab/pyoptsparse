@@ -67,9 +67,11 @@ Save major iteration variables:
 
 Return work arrays:
   desc: >
+    This option is unique to the Python wrapper.
     If True, internal SNOPT work arrays are also returned at the end of the optimization.
     These arrays can be used to hot start a subsequent optimization.
 
 snSTOP function handle:
   desc: >
+    This option is unique to the Python wrapper.
     A function handle can be supplied which is called at the end of each major iteration.
