@@ -8,7 +8,7 @@ import numpy as np
 from parameterized import parameterized
 
 # First party modules
-from pyoptsparse import History, Optimization
+from pyoptsparse import History, Optimization, OPT
 
 # Local modules
 from testing_utils import OptTest
@@ -152,6 +152,33 @@ class TestHS15(OptTest):
         self.assertEqual(12, objhis_len)
         for i in range(objhis_len - 1):
             self.assertNotEqual(data["obj"][i], data["obj"][i + 1])
+
+    def test_snopt_hotstart(self):
+        self.optName = "SNOPT"
+        self.setup_optProb()
+        optOptions = {
+            "Return work arrays": True,
+            "Sticky parameters": "Yes",
+        }
+        sol, restartDict = self.optimize(optOptions=optOptions)
+        # Check Solution
+        self.assert_solution_allclose(sol, 1e-12)
+        # Check informs
+        self.assert_inform_equal(sol)
+        # Check restartDict
+        self.assertEqual({"cw", "iw", "rw", "xs", "hs", "pi"}, set(restartDict.keys()))
+
+        # Now optimize again, but using the hotstart
+        self.setup_optProb()
+        self.nf = 0
+        self.ng = 0
+        opt = OPT(self.optName, options={"Start": "Hot", "Verify level": -1})
+        sol = opt(self.optProb, sens=self.sens, restartDict=restartDict)
+        # Check Solution
+        self.assert_solution_allclose(sol, 1e-12)
+        # Should only take one major iteration
+        self.assertEqual(self.nf, 1)
+        self.assertEqual(self.ng, 1)
 
 
 if __name__ == "__main__":

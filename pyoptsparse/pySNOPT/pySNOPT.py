@@ -308,6 +308,11 @@ class SNOPT(Optimizer):
                 self.optProb.jacIndices = [0]
                 self.optProb.fact = np.array([1.0])
                 self.optProb.offset = np.zeros_like(self.optProb.fact)
+
+        # Make sure restartDict is provided if using hot start
+        if self.getOption("Start") == "Hot" and restartDict is None:
+            raise Error("restartDict must be provided if using a hot start")
+
         sol = None
         # We make a split here: If the rank is zero we setup the
         # problem and run SNOPT, otherwise we go to the waiting loop:
