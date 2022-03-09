@@ -8,7 +8,7 @@ import numpy as np
 from parameterized import parameterized
 
 # First party modules
-from pyoptsparse import History, Optimization, OPT
+from pyoptsparse import OPT, History, Optimization
 
 # Local modules
 from testing_utils import OptTest
