@@ -408,7 +408,7 @@ class SNOPT(Optimizer):
             neA = len(indA)
             neGcon = neA  # The nonlinear Jacobian and A are the same
             iExit = 0
-            # set restart
+            # set the work arrays
             if restartDict is not None:
                 rw = restartDict["rw"]
                 iw = restartDict["iw"]
@@ -445,7 +445,7 @@ class SNOPT(Optimizer):
                 snopt.sninit(iPrint, iSumm, cw, iw, rw)
 
                 # snInit resets all the options to the defaults.
-                # Set them again!
+                # Set them again! this includes the work arrays
                 if restartDict is not None:
                     rw = restartDict["rw"]
                     iw = restartDict["iw"]
@@ -470,15 +470,11 @@ class SNOPT(Optimizer):
             iu = np.zeros(leniu, np.intc)
             ru = np.zeros(lenru, np.float)
             hs = np.zeros(nvar + ncon, np.intc)
-
-            Names = np.array(["        "], "c")
             pi = np.zeros(ncon, np.float)
-            inform = np.array([-1], np.intc)
-            mincw = np.array([0], np.intc)
-            miniw = np.array([0], np.intc)
-            minrw = np.array([0], np.intc)
+            Names = np.array(["        "], "c")
 
             if restartDict is not None:
+                # update the states with the information in the restartDict
                 hs = restartDict["hs"]
                 xs = restartDict["xs"]
                 pi = restartDict["pi"]
@@ -518,20 +514,6 @@ class SNOPT(Optimizer):
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, obj, xs[:nvar], multipliers=pi)
-
-        else:  # We are not on the root process so go into waiting loop:
-            self._waitLoop()
-            cw = iw = rw = xs = hs = pi = None
-
-        # Communication solution and return
-        commSol = self._communicateSolution(sol)
-        cw = self.optProb.comm.bcast(cw, root=0)
-        iw = self.optProb.comm.bcast(iw, root=0)
-        rw = self.optProb.comm.bcast(rw, root=0)
-        xs = self.optProb.comm.bcast(xs, root=0)
-        hs = self.optProb.comm.bcast(hs, root=0)
-        pi = self.optProb.comm.bcast(pi, root=0)
-        if self.getOption("Return work arrays"):
             restartDict = {
                 "cw": cw,
                 "iw": iw,
@@ -540,6 +522,15 @@ class SNOPT(Optimizer):
                 "hs": hs,
                 "pi": pi,
             }
+
+        else:  # We are not on the root process so go into waiting loop:
+            self._waitLoop()
+            restartDict = None
+
+        # Communication solution and return
+        commSol = self._communicateSolution(sol)
+        if self.getOption("Return work arrays"):
+            restartDict = self.optProb.comm.bcast(restartDict, root=0)
             return commSol, restartDict
         else:
             return commSol
@@ -628,8 +619,8 @@ class SNOPT(Optimizer):
         # fmt: on
         """
         This routine is called every major iteration in SNOPT, after solving QP but before line search
-        Currently we use it just to determine the correct major iteration counting,
-        and save some parameters in history if needed
+        We use it to determine the correct major iteration counting, and save some parameters in the history file.
+        If 'snSTOP function handle' is set to a function handle, then the callback is performed at the end of this function.
 
         returning with iabort != 0 will terminate SNOPT immediately
         """
@@ -670,6 +661,8 @@ class SNOPT(Optimizer):
                 self.hist.write(callCounter, iterDict)
                 # this adds funcs etc. to the iterDict by fetching it from the history file
                 iterDict = self.hist.read(callCounter)
+
+        # perform callback if requested
         snstop_handle = self.getOption("snSTOP function handle")
         if snstop_handle is not None:
             if not self.storeHistory:

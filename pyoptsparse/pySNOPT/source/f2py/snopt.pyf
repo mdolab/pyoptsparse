@@ -396,7 +396,7 @@ python module snopt ! in
             double precision dimension(lenrw) :: rw
             integer optional,check(len(rw)>=lenrw),depend(rw) :: lenrw=len(rw)
         end subroutine snoptc
-        subroutine snkerc(start,m,n,nej,nnames,nncon,nnobju,nnjac,iobju,objuadd,prob,userfg,snlog,snlog2,sqlog,snstop,jcol,indj,locj,bl,bu,names,hs,x,pi,rc,info,mincw,miniw,minrw,ns,ninf,sinf,obj,cu,lencu,iu,leniu,ru,lenru,cw,lencw,iw,leniw,rw,lenrw) ! in :snopt7_python:snopt7_python.f90
+        subroutine snkerc(start,m,n,nej,nnames,nncon,nnobju,nnjac,iobju,objuadd,prob,userfg,snlog,snlog2,sqlog,snstop,jcol,indj,locj,bl,bu,names,hs,x,pi,rc,info,mincw,miniw,minrw,ns,ninf,sinf,obj,cu,lencu,iu,leniu,ru,lenru,cw,lencw,iw,leniw,rw,lenrw) ! in :snopt:snoptc.f
             use snoptc__user__routines
             character*(*) intent(in) :: start
             integer, optional, intent(in), check(len(pi)>=m),depend(pi) :: m=len(pi)
