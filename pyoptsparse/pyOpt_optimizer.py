@@ -347,7 +347,9 @@ class Optimizer(BaseSolver):
         returns = []
         # Start with fobj:
         if "fobj" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all() or "funcs" not in self.cache:
+                # The previous evaluated point is different than the point requested
+                # OR this is the first recursive call to _masterFunc2 in a hot started optimization
                 timeA = time.time()
                 args = self.optProb.objFun(xuser)
                 if isinstance(args, tuple):
@@ -392,7 +394,9 @@ class Optimizer(BaseSolver):
             hist["funcs"] = self.cache["funcs"]
 
         if "fcon" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all() or "funcs" not in self.cache:
+                # The previous evaluated point is different than the point requested
+                # OR this is the first recursive call to _masterFunc2 in a hot started optimization
                 timeA = time.time()
 
                 args = self.optProb.objFun(xuser)
@@ -438,10 +442,10 @@ class Optimizer(BaseSolver):
             hist["funcs"] = self.cache["funcs"]
 
         if "gobj" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
-                # Previous evaluated point is *different* than the
-                # point requested for the derivative. Recursively call
-                # the routine with ['fobj', and 'fcon']
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all() or "funcs" not in self.cache:
+                # The previous evaluated point is different than the point requested for the derivative
+                # OR this is the first call to _masterFunc2 in a hot started optimization
+                # Recursively call the routine with ['fobj', 'fcon']
                 self._masterFunc2(x, ["fobj", "fcon"], writeHist=False)
                 # We *don't* count that extra call, since that will
                 # screw up the numbering...so we subtract the last call.
@@ -493,10 +497,10 @@ class Optimizer(BaseSolver):
                 hist["funcsSens"] = self.cache["funcsSens"]
 
         if "gcon" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
-                # Previous evaluated point is *different* than the
-                # point requested for the derivative. Recursively call
-                # the routine with ['fobj', and 'fcon']
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all() or "funcs" not in self.cache:
+                # The previous evaluated point is different than the point requested for the derivative
+                # OR this is the first call to _masterFunc2 in a hot started optimization
+                # Recursively call the routine with ['fobj', 'fcon']
                 self._masterFunc2(x, ["fobj", "fcon"], writeHist=False)
                 # We *don't* count that extra call, since that will
                 # screw up the numbering...so we subtract the last call.
