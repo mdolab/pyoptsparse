@@ -100,7 +100,7 @@ class SNOPT(Optimizer):
             "Summary file": [str, "SNOPT_summary.out"],
             "Minor print level": [int, 0],
             "Problem Type": [str, ["Minimize", "Maximize", "Feasible point"]],
-            "Start": [str, ["Cold", "Warm", "Hot"]],
+            "Start": [str, ["Cold", "Hot"]],
             "Derivative level": [int, 3],
             "Proximal iterations limit": [int, 10000],
             "Total character workspace": [int, None],
