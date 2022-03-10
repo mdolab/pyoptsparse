@@ -349,7 +349,8 @@ class Optimizer(BaseSolver):
         if "fobj" in evaluate:
             if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all() or "funcs" not in self.cache:
                 # The previous evaluated point is different than the point requested
-                # OR this is the first recursive call to _masterFunc2 in a hot started optimization
+                # OR this is a recursive call to _masterFunc2 from a gradient evaluation that occured
+                # at the beginning of a hot started optimization
                 timeA = time.time()
                 args = self.optProb.objFun(xuser)
                 if isinstance(args, tuple):
@@ -396,7 +397,8 @@ class Optimizer(BaseSolver):
         if "fcon" in evaluate:
             if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all() or "funcs" not in self.cache:
                 # The previous evaluated point is different than the point requested
-                # OR this is the first recursive call to _masterFunc2 in a hot started optimization
+                # OR this is a recursive call to _masterFunc2 from a gradient evaluation that occured
+                # at the beginning of a hot started optimization
                 timeA = time.time()
 
                 args = self.optProb.objFun(xuser)
