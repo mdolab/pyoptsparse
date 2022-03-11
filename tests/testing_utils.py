@@ -251,7 +251,7 @@ class OptTest(unittest.TestCase):
             optOptions[optionName] = f"{self.id()}{suffix}"
         return optOptions
 
-    def optimize(self, sens=None, setDV=None, optOptions=None, storeHistory=False, hotStart=None):
+    def optimize(self, sens=None, setDV=None, optOptions=None, storeHistory=False, hotStart=False):
         """
         This is the workhorse routine, which will optimize self.optProb using self.optName as the optimizer.
 
