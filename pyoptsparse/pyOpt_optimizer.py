@@ -827,6 +827,9 @@ class Optimizer(BaseSolver):
         after optimization finishes.
         """
         options = copy.deepcopy(self.options)
+        # we remove entries which can't be stored properly in the history file
+        if "snSTOP function handle" in options.keys():
+            options.pop("snSTOP function handle")
 
         from .__init__ import __version__  # importing the pyoptsparse version
 

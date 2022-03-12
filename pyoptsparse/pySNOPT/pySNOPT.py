@@ -48,7 +48,13 @@ class SNOPT(Optimizer):
             }
         )
         # this is purely within pySNOPT, nothing to do with SNOPT itself
-        self.pythonOptions = CaseInsensitiveSet({"Save major iteration variables"})
+        self.pythonOptions = CaseInsensitiveSet(
+            {
+                "Save major iteration variables",
+                "Return work arrays",
+                "snSTOP function handle",
+            }
+        )
 
         informs = self._getInforms()
 
@@ -94,13 +100,15 @@ class SNOPT(Optimizer):
             "Summary file": [str, "SNOPT_summary.out"],
             "Minor print level": [int, 0],
             "Problem Type": [str, ["Minimize", "Maximize", "Feasible point"]],
-            "Start": [str, ["Cold", "Warm"]],
+            "Start": [str, ["Cold", "Hot"]],
             "Derivative level": [int, 3],
             "Proximal iterations limit": [int, 10000],
             "Total character workspace": [int, None],
             "Total integer workspace": [int, None],
             "Total real workspace": [int, None],
             "Save major iteration variables": [list, ["step", "merit", "feasibility", "optimality", "penalty"]],
+            "Return work arrays": [bool, False],
+            "snSTOP function handle": [(type(None), type(lambda: None)), None],
         }
         return defOpts
 
@@ -190,6 +198,7 @@ class SNOPT(Optimizer):
         hotStart=None,
         storeSens=True,
         timeLimit=None,
+        restartDict=None,
     ):
         """
         This is the main routine used to solve the optimization
@@ -202,11 +211,11 @@ class SNOPT(Optimizer):
             to be solved by the optimizer
 
         sens : str or python Function.
-            Specifiy method to compute sensitivities. The default is
+            Specify method to compute sensitivities. The default is
             None which will use SNOPT's own finite differences which
-            are vastly superiour to the pyOptSparse implementation. To
-            explictly use pyOptSparse gradient class to do the
-            derivatives with finite differenes use 'FD'. 'sens'
+            are vastly superior to the pyOptSparse implementation. To
+            explicitly use pyOptSparse gradient class to do the
+            derivatives with finite differences use 'FD'. 'sens'
             may also be 'CS' which will cause pyOptSpare to compute
             the derivatives using the complex step method. Finally,
             'sens' may be a python function handle which is expected
@@ -229,7 +238,7 @@ class SNOPT(Optimizer):
 
         hotStart : str
             File name of the history file to "replay" for the
-            optimziation.  The optimization problem used to generate
+            optimization.  The optimization problem used to generate
             the history file specified in 'hotStart' must be
             **IDENTICAL** to the currently supplied 'optProb'. By
             identical we mean, **EVERY SINGLE PARAMETER MUST BE
@@ -238,14 +247,25 @@ class SNOPT(Optimizer):
             gradient evaluations revert back to normal evaluations.
 
         storeSens : bool
-            Flag sepcifying if sensitivities are to be stored in hist.
-            This is necessay for hot-starting only.
+            Flag specifying if sensitivities are to be stored in hist.
+            This is necessary for hot-starting only.
 
         timeLimit : float
             Specify the maximum amount of time for optimizer to run.
             Must be in seconds. This can be useful on queue systems when
             you want an optimization to cleanly finish before the
             job runs out of time.
+
+        restartDict : dict
+            A dictionary containing the necessary information for hot-starting SNOPT.
+            This is typically the same dictionary returned by this function on a previous invocation.
+
+        Returns
+        -------
+        sol : Solution object
+            The optimization solution
+        restartDict : dict
+            If 'Return work arrays' is True, a dictionary of arrays is also returned
         """
         self.startTime = time.time()
         self.callCounter = 0
@@ -288,6 +308,15 @@ class SNOPT(Optimizer):
                 self.optProb.jacIndices = [0]
                 self.optProb.fact = np.array([1.0])
                 self.optProb.offset = np.zeros_like(self.optProb.fact)
+
+        # Make sure restartDict is provided if using hot start
+        if self.getOption("Start") == "Hot" and restartDict is None:
+            raise Error("restartDict must be provided if using a hot start")
+        # If user requested the work arrays, then we need to set sticky parameter
+        # to make sure that the work arrays are re-usable at the next hot start
+        if self.getOption("Return work arrays"):
+            self.setOption("Sticky parameters", "Yes")
+
         sol = None
         # We make a split here: If the rank is zero we setup the
         # problem and run SNOPT, otherwise we go to the waiting loop:
@@ -379,7 +408,11 @@ class SNOPT(Optimizer):
             neA = len(indA)
             neGcon = neA  # The nonlinear Jacobian and A are the same
             iExit = 0
-
+            # set the work arrays
+            if restartDict is not None:
+                rw = restartDict["rw"]
+                iw = restartDict["iw"]
+                cw = restartDict["cw"]
             # Set the options into the SNOPT instance
             self._set_snopt_options(iPrint, iSumm, cw, iw, rw)
 
@@ -412,7 +445,11 @@ class SNOPT(Optimizer):
                 snopt.sninit(iPrint, iSumm, cw, iw, rw)
 
                 # snInit resets all the options to the defaults.
-                # Set them again!
+                # Set them again! this includes the work arrays
+                if restartDict is not None:
+                    rw = restartDict["rw"]
+                    iw = restartDict["iw"]
+                    cw = restartDict["cw"]
                 self._set_snopt_options(iPrint, iSumm, cw, iw, rw)
 
             # Setup argument list values
@@ -433,25 +470,22 @@ class SNOPT(Optimizer):
             iu = np.zeros(leniu, np.intc)
             ru = np.zeros(lenru, np.float)
             hs = np.zeros(nvar + ncon, np.intc)
-
-            Names = np.array(["        "], "c")
             pi = np.zeros(ncon, np.float)
-            rc = np.zeros(nvar + ncon, np.float)
-            inform = np.array([-1], np.intc)
-            mincw = np.array([0], np.intc)
-            miniw = np.array([0], np.intc)
-            minrw = np.array([0], np.intc)
-            nS = np.array([0], np.intc)
-            ninf = np.array([0], np.intc)
-            sinf = np.array([0.0], np.float)
+            Names = np.array(["        "], "c")
 
+            if restartDict is not None:
+                # update the states with the information in the restartDict
+                hs = restartDict["hs"]
+                xs = restartDict["xs"]
+                pi = restartDict["pi"]
             # The snopt c interface
             timeA = time.time()
             # fmt: off
-            obj = snopt.snkerc(start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
-                               self._userfg_wrap, snopt.snlog, snopt.snlog2, snopt.sqlog, self._snstop,
-                               Acol, indA, locA, bl, bu, Names, hs, xs, pi, rc, inform,
-                               mincw, miniw, minrw, nS, ninf, sinf, cu, iu, ru, cw, iw, rw)
+            hs, xs, pi, rc, inform, mincw, miniw, minrw, nS, ninf, sinf, obj = snopt.snkerc(
+                start, nnCon, nnObj, nnJac, iObj, ObjAdd, ProbNm,
+                self._userfg_wrap, snopt.snlog, snopt.snlog2, snopt.sqlog, self._snstop,
+                Acol, indA, locA, bl, bu, Names, hs, xs, pi, cu, iu, ru, cw, iw, rw,
+            )
             # fmt: on
             optTime = time.time() - timeA
 
@@ -474,21 +508,32 @@ class SNOPT(Optimizer):
                 snopt.closeunit(self.getOption("iSumm"))
 
             # Store Results
-            inform = inform.item()
             sol_inform = {}
             sol_inform["value"] = inform
             sol_inform["text"] = self.informs[inform]
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, obj, xs[:nvar], multipliers=pi)
+            restartDict = {
+                "cw": cw,
+                "iw": iw,
+                "rw": rw,
+                "xs": xs,
+                "hs": hs,
+                "pi": pi,
+            }
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
+            restartDict = None
 
         # Communication solution and return
         commSol = self._communicateSolution(sol)
-
-        return commSol
+        if self.getOption("Return work arrays"):
+            restartDict = self.optProb.comm.bcast(restartDict, root=0)
+            return commSol, restartDict
+        else:
+            return commSol
 
     def _userfg_wrap(self, mode, nnJac, x, fobj, gobj, fcon, gcon, nState, cu, iu, ru):
         """
@@ -568,14 +613,14 @@ class SNOPT(Optimizer):
         return xPen
 
     # fmt: off
-    def _snstop(self, ktcond, mjrprtlvl, minimize, n, nncon, nnobj, ns, itn, nmajor, nminor, nswap, condzhz,
-                iobj, scaleobj, objadd, fobj, fmerit, penparm, step, primalinf, dualinf, maxvi, maxvirel, hs,
-                locj, indj, jcol, scales, bl, bu, fx, fcon, gcon, gobj, ycon, pi, rc, rg, x, cu, iu, ru, cw, iw, rw):
-    # fmt: on # noqa: E115
+    def _snstop(self, ktcond, mjrprtlvl, minimize, n, nncon, nnobj, ns, itn, nmajor, nminor, nswap, condzhz, iobj, scaleobj,
+                objadd, fobj, fmerit, penparm, step, primalinf, dualinf, maxvi, maxvirel, hs, locj, indj, jcol, scales, bl, bu, fx, fcon, gcon, gobj, ycon,
+                pi, rc, rg, x, cu, iu, ru, cw, iw, rw):
+        # fmt: on
         """
         This routine is called every major iteration in SNOPT, after solving QP but before line search
-        Currently we use it just to determine the correct major iteration counting,
-        and save some parameters in history if needed
+        We use it to determine the correct major iteration counting, and save some parameters in the history file.
+        If 'snSTOP function handle' is set to a function handle, then the callback is performed at the end of this function.
 
         returning with iabort != 0 will terminate SNOPT immediately
         """
@@ -614,7 +659,20 @@ class SNOPT(Optimizer):
                 callCounter = self.hist._searchCallCounter(xuser_vec)
             if callCounter is not None:
                 self.hist.write(callCounter, iterDict)
-        iabort = 0
+                # this adds funcs etc. to the iterDict by fetching it from the history file
+                iterDict = self.hist.read(callCounter)
+
+        # perform callback if requested
+        snstop_handle = self.getOption("snSTOP function handle")
+        if snstop_handle is not None:
+            if not self.storeHistory:
+                raise Error("snSTOP function handle must be used with storeHistory=True")
+            iabort = snstop_handle(iterDict)
+            # if no return, assume everything went fine
+            if iabort is None:
+                iabort = 0
+        else:
+            iabort = 0
         return iabort
 
     def _set_snopt_options(self, iPrint: int, iSumm: int, cw: ndarray, iw: ndarray, rw: ndarray):
