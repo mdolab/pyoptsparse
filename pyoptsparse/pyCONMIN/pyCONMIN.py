@@ -188,9 +188,9 @@ class CONMIN(Optimizer):
             nn5 = 2 * nn4
 
             if ncn > 0:
-                gg = np.zeros(ncn, np.float)
+                gg = np.zeros(ncn, float)
             else:
-                gg = np.array([0], np.float)
+                gg = np.array([0], float)
 
             if self.getOption("IPRINT") >= 0 and self.getOption("IPRINT") <= 4:
                 iprint = self.getOption("IPRINT")
