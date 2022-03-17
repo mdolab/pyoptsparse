@@ -12,7 +12,6 @@ import unittest
 # External modules
 import numpy as np
 from parameterized import parameterized
-import scipy
 
 # First party modules
 from pyoptsparse import Optimization
@@ -91,7 +90,8 @@ class TestLarge(OptTest):
         self.optProb.addCon("con3", lower=4, wrt=["x", "z"])
         xJac = np.ones((self.N, 1))
         if sparse:
-            yJac = scipy.sparse.spdiags(np.ones(self.N), 0, self.N, self.N)
+            rows_cols = np.array([i for i in range(0, self.N)]).astype(int)
+            yJac = {"coo": [rows_cols, rows_cols, np.ones(self.N)], "shape": [self.N, self.N]}
         else:
             yJac = np.eye(self.N)
         self.optProb.addConGroup(

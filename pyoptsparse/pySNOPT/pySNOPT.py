@@ -398,7 +398,7 @@ class SNOPT(Optimizer):
 
             cw = np.empty((lencw, 8), dtype="|S1")
             iw = np.zeros(leniw, np.intc)
-            rw = np.zeros(lenrw, np.float)
+            rw = np.zeros(lenrw, float)
             snopt.sninit(iPrint, iSumm, cw, iw, rw)
 
             # Memory allocation
@@ -437,7 +437,7 @@ class SNOPT(Optimizer):
             if checkLenrw and minrw > lenrw:
                 lenrw = minrw
                 self.setOption("Total real workspace", lenrw)
-                rw = np.zeros(lenrw, np.float)
+                rw = np.zeros(lenrw, float)
                 lengthsChanged = True
 
             # Initialize SNOPT again if any of the lengths were overwritten
@@ -454,23 +454,23 @@ class SNOPT(Optimizer):
 
             # Setup argument list values
             start = np.array(self.getOption("Start"))
-            ObjAdd = np.array([0.0], np.float)
+            ObjAdd = np.array([0.0], float)
             ProbNm = np.array(self.optProb.name, "c")
             cdummy = -1111111  # this is a magic variable defined in SNOPT for undefined strings
             cw[51, :] = cdummy  # we set these to cdummy so that a placeholder is used in printout
             cw[52, :] = cdummy
             cw[53, :] = cdummy
             cw[54, :] = cdummy
-            xs = np.concatenate((xs, np.zeros(ncon, np.float)))
+            xs = np.concatenate((xs, np.zeros(ncon, float)))
             bl = np.concatenate((blx, blc))
             bu = np.concatenate((bux, buc))
             leniu = 2
             lenru = 3
             cu = np.empty((1, 8), dtype="|S1")
             iu = np.zeros(leniu, np.intc)
-            ru = np.zeros(lenru, np.float)
+            ru = np.zeros(lenru, float)
             hs = np.zeros(nvar + ncon, np.intc)
-            pi = np.zeros(ncon, np.float)
+            pi = np.zeros(ncon, float)
             Names = np.array(["        "], "c")
 
             if restartDict is not None:
