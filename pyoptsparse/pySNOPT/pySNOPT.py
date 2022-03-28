@@ -102,6 +102,8 @@ class SNOPT(Optimizer):
             "Problem Type": [str, ["Minimize", "Maximize", "Feasible point"]],
             "Start": [str, ["Cold", "Hot"]],
             "Derivative level": [int, 3],
+            "Iterations limit": [int, 10000000],
+            "Minor iterations limit": [int, 10000],
             "Proximal iterations limit": [int, 10000],
             "Total character workspace": [int, None],
             "Total integer workspace": [int, None],

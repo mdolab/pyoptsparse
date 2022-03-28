@@ -30,6 +30,16 @@ Derivative level:
   desc: >
     The SNOPT derivative level. Only "3" is tested, where all derivatives are provided to SNOPT.
 
+Iterations limit:
+  desc: >
+    The limit on the total number of minor iterations, summed over all major iterations.
+    This option is set to a very large number to prevent premature termination of SNOPT.
+
+Minor iterations limit:
+  desc: >
+    The limit on the number of minor iterations *for each major iteration*.
+    This option is set to a very large number to prevent premature termination of SNOPT.
+
 Proximal iterations limit:
   desc: >
     The iterations limit for solving the proximal point problem.
