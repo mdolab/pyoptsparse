@@ -12,6 +12,7 @@ only occurs here and not in the controller or views.
 # ==============================================================================
 # External Python modules
 # ==============================================================================
+from PyQt5 import QtCore
 
 # ==============================================================================
 # Extension modules
@@ -26,14 +27,17 @@ class TabModel(object):
         self.canvas = None
         self.files = []
         self.plots = []
+        self.timer = QtCore.QTimer()
 
     def refresh(self):
         """Refresh all files and variable lists"""
         pass
 
     def load_files(self, file_names: list):
-        for i, fp in enumerate(file_names):
-            self.files.append(File(fp, i))
+        for fp in file_names:
+            file = File()
+            file.load_file(fp)
+            self.files.append(file)
 
     def add_plot(self, plot):
         self.plots.append(plot)
@@ -49,7 +53,7 @@ class TabModel(object):
         for i, p in enumerate(self.plots):
             p.update_axis(self.canvas.fig.add_subplot(int(f"{n_plots}1{i+1}")))
 
-        # TODO: Replot existing plots
+        self.canvas.draw()
 
         # --- If no plots exist then draw pyOptSparse logo ---
         if not self.plots:

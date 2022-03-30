@@ -27,6 +27,9 @@ from pyoptsparse.postprocessing.sub_MVCs.plotting.plot_model import PlotModel
 from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_widgets import PlotListWidget
 from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_view import ConfigurePlotView
 from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_controller import ConfigureController
+from pyoptsparse.postprocessing.sub_MVCs.metadata_window.metadata_controller import MetadataController
+from pyoptsparse.postprocessing.sub_MVCs.metadata_window.metadata_view import MetadataView
+from pyoptsparse.postprocessing.sub_MVCs.metadata_window.metadata_model import MetadataModel
 
 
 class TabViewController:
@@ -85,7 +88,8 @@ class TabViewController:
             self._view.plot_list.addItem(item)
             self._view.plot_list.setItemWidget(item, plot_list_widget)
 
-            # TODO: Redraw all plots after updating axis
+            self.refresh_plots()
+
         except ValueError:
             # --- Show warning if more than 3 plots are added ---
             QtWidgets.QMessageBox.warning(self._view, "Subplot Value Warning", "OptView can only handle 3 subplots")
@@ -102,12 +106,40 @@ class TabViewController:
             widget.idx = i
             widget.title.setText(f"Plot {i}")
 
+        self.refresh_plots()
+
     def configure_view(self, idx: int, name: str):
         configure_plot_controller = ConfigureController(self._model, self._model.plots[idx])
         ConfigurePlotView(self._root, configure_plot_controller, name)
 
     def auto_refresh(self):
-        print("Auto Refresh")
+        if self._view.auto_refresh_togg.isChecked():
+            self._view.refresh_btn.setEnabled(False)
+            self._model.timer.start(5000)
+            self._model.timer.timeout.connect(self.refresh)
+        else:
+            self._model.timer.stop()
+            self._view.refresh_btn.setEnabled(True)
+
+    def refresh(self):
+        for file in self._model.files:
+            file.refresh()
+
+        for plot_model in self._model.plots:
+            for var in plot_model.vars:
+                var.file.get_var_data(var)
+
+        self.refresh_plots()
+
+    def refresh_plots(self):
+        for p in self._model.plots:
+            p.plot()
+
+        self._model.canvas.draw()
 
     def set_model_canvas(self, canvas):
         self._model.canvas = canvas
+
+    def meta_view(self):
+        meta_controller = MetadataController(MetadataModel(), self._model.files)
+        MetadataView(self._root, meta_controller, "Metadata Viewer")

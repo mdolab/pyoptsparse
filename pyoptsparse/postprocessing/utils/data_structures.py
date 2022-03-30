@@ -1,21 +1,18 @@
 # --- Python 3.8 ---
 """
 This module contains the custom data structures for storing variables
-and files with different backends.
-
-Current backend options are: 1) pyOptSparse history file, 2) OpenMDAO
-case recorder file.
+and files.
 """
 
 # ==============================================================================
 # Standard Python modules
 # ==============================================================================
+from pathlib import PurePath
 
 # ==============================================================================
 # External Python modules
 # ==============================================================================
-import openmdao.api as om
-from sqlite3 import OperationalError
+import numpy as np
 
 # ==============================================================================
 # Extension modules
@@ -23,23 +20,22 @@ from sqlite3 import OperationalError
 from pyoptsparse.pyOpt_history import History
 
 
-class FileError(Exception):
-    pass
-
-
-class Variable(object):
+class Variable:
     """Data structure for storing data related to each variable"""
 
-    def __init__(self, var_name: str, file_idx: int, var_idx: int = 0):
+    def __init__(self, var_name: str):
         self.name = var_name
-        self.file_idx = file_idx
-        self.vectorized = False  # Is the variable an array of values
-        self.options = {"scaled": False, "bounds": False, "major_iter": True, "minor_iter": False}
-        self.bounds = {"unscaled": {"upper": None, "lower": None}, "scaled": {"upper": None, "lower": None}}
-        self.data = {"major_iter": {"scaled": [], "unscaled": []}, "minor_iter": {"scaled": [], "unscaled": []}}
+        self.options = {"scaled": False, "bounds": False, "major_iter": False}
+        self.bounds = {"upper": None, "lower": None}
+        self.values = None
+        self.file = None
+        self.plot_options = {}
+
+    def setPlotOptions(self, **kwargs):
+        self.plot_options = kwargs
 
 
-class File(object):
+class File:
     """
     Data structure for holding files and setting the backend API for
     handling the data.
@@ -52,39 +48,26 @@ class File(object):
         Name of the file
     """
 
-    def __init__(self, file_name: str, file_idx: int):
-        self.name = file_name
-        self.name_short = file_name.split("/")[-1]
-        self.file_index = file_idx
-        self.backend = None
+    def __init__(self):
+        self.name = None
+        self.short_name = None
         self.file_reader = None
+        self.dv_names = []
+        self.con_names = []
+        self.obj_names = []
 
-        # Try to use OpenMDAO CaseReader to open, if Operational error
-        # then use pyOptSparse History class.
-        # If pyOptSparse History fails, raise file format error
-        try:
-            self.file_reader = om.CaseReader(self.name)
-            self.backend = "OpenMDAO"
-        except OperationalError:
-            self.file_reader = History(self.name)
-            self.backend = "pyOptSparse"
-        except Exception as e:
-            message = (
-                f"File '{self.name.split('/')[-1]}' could not be opened by the OpenMDAO case reader or the "
-                + "pyOptSparse History API"
-            )
-            n = len(message)
-            print("+", "-" * (n), "+")
-            print("|", " " * n, "|")
-            print("|", message, "|")
-            print("|", " " * n, "|")
-            print("+", "-" * (n), "+")
-            raise e
+    def load_file(self, file_name: str):
+        self.file_reader = History(file_name)
+        self.name = file_name
+        self.name_short = PurePath(file_name).name
+        self.dv_names = self.file_reader.getDVNames()
+        self.obj_names = self.file_reader.getObjNames()
+        self.con_names = self.file_reader.getConNames()
 
     def refresh(self):
-        pass
+        self.load_file(self.name)
 
-    def get_single_variable(self, var: Variable):
+    def get_var_data(self, var: Variable):
         """
         Gets all iterations (minor and major), bounds, and scaling
         of a single variable from either the OpenMDAO case reader or the
@@ -97,135 +80,43 @@ class File(object):
             plotting.
         """
 
-        # --- Use the case reader for OpenMDAO ---
-        if self.backend == "OpenMDAO":
-            # --- Need to sort through metadata to get bounds and scaling ---
-            try:  # Check for upper bound
-                upper_bound = self.file_reader.problem_metadata["variables"][var.name]["upper"]
-            except KeyError:
-                upper_bound = None
+        major_opt = var.options["major_iter"]
+        bound_opt = var.options["bounds"]
+        scale_opt = var.options["scaled"]
 
-            try:  # Check for lower bound
-                lower_bound = self.file_reader.problem_metadata["variables"][var.name]["lower"]
-            except KeyError:
-                lower_bound = None
+        if var.name in self.dv_names:
+            var_info = self.file_reader.getDVInfo(var.name)
+        elif var.name in self.con_names:
+            var_info = self.file_reader.getConInfo(var.name)
+        elif var.name in self.obj_names:
+            var_info = self.file_reader.getObjInfo(var.name)
+        else:
+            var_info = None
+            raise ValueError("Variable is not part of the optimization problem.")
 
-            try:  # Check for scaler
-                scaler = self.file_reader.problem_metadata["variables"][var.name]["scaler"]
-                if not scaler:  # Ensure scaler is not None
-                    scaler = 1.0
-            except KeyError:
-                scaler = 1.0
+        # If the scale option is selected, use the scale factor.  Otherwise, use all ones.
+        if isinstance(var_info["scale"], float):
+            scale = np.array([var_info["scale"]]) if scale_opt else np.ones(1)
+        else:
+            scale = np.array(var_info["scale"]) if scale_opt else np.ones(len(var_info["scale"]))
 
-            try:  # Check for adder
-                adder = self.file_reader.problem_metadata["variables"][var.name]["adder"]
-                if not adder:  # Ensure adder is not None
-                    adder = 0.0
-            except KeyError:
-                adder = 0.0
+        # The data is returned from the hist api as a dictionary where the key is
+        # the variable name and the values are the
+        data = self.file_reader.getValues(names=var.name, major=major_opt, scale=scale_opt)
+        var.values = np.array(list(data.values()))[0]
 
-            # --- Checks for bounds and scaling ---
-            # See OpenMDAO docs for scaling formula: scaled_bound = scaler * (bound + adder)
-            if upper_bound is None and lower_bound is None:  # No bounds exist
-                var.bounds = None
+        # Only get the bounds if the option is True and the requested
+        # variable is not an objective function.
+        if bound_opt and var.name not in self.obj_names:
 
-            elif upper_bound is None and lower_bound is not None:  # Only a lower bound
-                var.bounds["unscaled"]["upper"] = None
-                var.bounds["scaled"]["upper"] = None
+            upper = np.zeros(len(var_info["upper"]))  # Initialize the upper bounds
+            lower = np.zeros(len(var_info["lower"]))  # Initialize the lower bounds
 
-                var.bounds["unscaled"]["lower"] = lower_bound
-                var.bounds["scaled"]["lower"] = scaler * (lower_bound + adder)
+            var.bounds["upper"] = np.where(upper != 1e30, upper * scale, None)
+            var.bounds["lower"] = np.where(lower != 1e30, lower * scale, None)
 
-            elif lower_bound is None and upper_bound is not None:  # Only an upper bound
-                var.bounds["unscaled"]["lower"] = None
-                var.bounds["scaled"]["lower"] = None
+    def get_all_var_names(self):
+        return self.dv_names + self.con_names + self.obj_names
 
-                var.bounds["unscaled"]["upper"] = upper_bound
-                var.bounds["scaled"]["upper"] = scaler * (upper_bound + adder)
-
-            else:  # All bounds exist
-                var.bounds["unscaled"]["upper"] = upper_bound
-                var.bounds["scaled"]["upper"] = scaler * (upper_bound + adder)
-
-                var.bounds["unscaled"]["lower"] = lower_bound
-                var.bounds["scaled"]["lower"] = scaler * (lower_bound + adder)
-
-            cases = self.file_reader.get_cases("driver")
-            unscaled_list = []
-            scaled_list = []
-            for case in cases:
-                unscaled_val = case.get_val(var.name)
-                scaled_val = scaler * (unscaled_val + adder)
-                unscaled_list.append(unscaled_val)
-                scaled_list.append(scaled_val)
-
-            var.data["minor_iter"]["unscaled"] = unscaled_list
-            var.data["minor_iter"]["scaledd"] = scaled_list
-
-        # --- Use the History API for pyOptSparse ---
-        elif self.backend == "pyOptSparse":
-            major_iter_vals_unscaled = self.file_reader.getValues(names=var.name, major=True)
-            major_iter_vals_scaled = self.file_reader.getValues(names=var.name, major=True, scale=True)
-            minor_iter_vals_unscaled = self.file_reader.getValues(names=var.name, major=False, scale=False)
-            minor_iter_vals_scaled = self.file_reader.getValues(names=var.name, major=False, scale=True)
-
-            var.data["major_iter"]["unscaled"] = major_iter_vals_unscaled[var.name].flatten()
-            var.data["major_iter"]["scaled"] = major_iter_vals_scaled[var.name].flatten()
-            var.data["minor_iter"]["unscaled"] = minor_iter_vals_unscaled[var.name].flatten()
-            var.data["minor_iter"]["scaled"] = minor_iter_vals_scaled[var.name].flatten()
-
-            try:
-                info = self.file_reader.getDVInfo(var.name)
-                try:
-                    scale = float(info["scale"][0])
-                except TypeError:
-                    scale = 1.0
-                var.bounds["unscaled"]["upper"] = info["upper"][0]
-                var.bounds["unscaled"]["lower"] = info["lower"][0]
-                var.bounds["scaled"]["upper"] = info["upper"][0] * scale
-                var.bounds["scaled"]["lower"] = info["lower"][0] * scale
-            except KeyError:
-                try:
-                    info = self.file_reader.getConInfo(var.name)
-                    try:
-                        scale = float(info["scale"][0])
-                    except TypeError:
-                        scale = 1.0
-                    var.bounds["unscaled"]["upper"] = info["upper"][0]
-                    var.bounds["unscaled"]["lower"] = info["lower"][0]
-                    var.bounds["scaled"]["upper"] = info["upper"][0] * scale
-                    var.bounds["scaled"]["lower"] = info["lower"][0] * scale
-                except KeyError:
-                    info = self.file_reader.getObjInfo(var.name)
-                    var.bounds = None
-
-        return var
-
-    def get_all_variable_names(self):
-        # --- Use the case reader for OpenMDAO ---
-        if self.backend == "OpenMDAO":
-            cases = self.file_reader.get_cases()
-            obj_dict = cases[0].get_objectives()
-            con_dict = cases[0].get_constraints()
-            dv_dict = cases[0].get_design_vars()
-
-            obj_names = [i for i in obj_dict.keys()]
-            con_names = [i for i in con_dict.keys()]
-            dv_names = [i for i in dv_dict.keys()]
-            return obj_names + con_names + dv_names
-
-        # --- Use the History API for pyOptSparse ---
-        elif self.backend == "pyOptSparse":
-            con_names = self.file_reader.getConNames()
-            dv_names = self.file_reader.getDVNames()
-            obj_names = self.file_reader.getObjNames()
-            return con_names + dv_names + obj_names
-
-
-if __name__ == "__main__":
-    file_py = File("/home/lamkina/Packages/pyoptsparse/pyoptsparse/postprocessing/HISTORY.hst", 0)
-    file_om = File("/home/lamkina/Packages/pyoptsparse/pyoptsparse/postprocessing/RECORDER.sql", 1)
-
-    print(file_om.get_all_variable_names())
-    print(file_py.get_all_variable_names())
-    print(file_om.get_single_variable("dinc1", 1))
+    def get_metadata(self):
+        return self.file_reader.getMetadata()

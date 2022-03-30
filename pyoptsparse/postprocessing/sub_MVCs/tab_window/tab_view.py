@@ -67,8 +67,14 @@ class TabView(QtWidgets.QWidget):
         self.plot_btn.clicked.connect(self._controller.add_plot)
         button_layout.addWidget(self.plot_btn)
 
+        # --- Opt Problem Metadata ---
+        self.meta_btn = Button("View Metadata", self)
+        self.meta_btn.clicked.connect(self._controller.meta_view)
+        button_layout.addWidget(self.meta_btn)
+
         # --- Manually refresh history file ---
         self.refresh_btn = Button("Refresh Files", self)
+        self.refresh_btn.clicked.connect(self._controller.refresh)
         button_layout.addWidget(self.refresh_btn)
 
         # ==============================================================================
@@ -82,6 +88,7 @@ class TabView(QtWidgets.QWidget):
 
         # Create and add the switch to the layout
         self.auto_refresh_togg = Switch(self)
+        self.auto_refresh_togg.clicked.connect(self._controller.auto_refresh)
         self.auto_refresh_lbl = QtWidgets.QLabel("Auto Refresh Files")
         self.auto_refresh_lbl.setBuddy(self.auto_refresh_togg)  # This attaches the label to the switch widget
 

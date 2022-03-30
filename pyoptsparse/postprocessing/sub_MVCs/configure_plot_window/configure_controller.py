@@ -10,12 +10,12 @@ Controller for the plot configuration and add variables view
 # ==============================================================================
 # External Python modules
 # ==============================================================================
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 
 # ==============================================================================
 # Extension modules
 # ==============================================================================
-from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.widgets import VariableListWidget
+from pyoptsparse.postprocessing.sub_MVCs.widgets import FileTreeWidgetItem, VarTreeWidgetItem
 from pyoptsparse.postprocessing.utils.data_structures import Variable
 from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_model import ConfigurePlotModel
 
@@ -26,25 +26,10 @@ class ConfigureController(object):
         self._plot_model = plot_model
         self._model = ConfigurePlotModel()
         self._view = None
+        self._current_file = None
 
     def set_view(self, view):
         self._view = view
-
-    def file_selected(self):
-        # --- Clear the comboboxes and variable lists ---
-        self._view.var_cbox.clear()
-        self._view.var_list.clear()
-
-        idx = self._view.file_list.currentRow()
-        file = self._parent_model.files[idx]
-        var_names = file.get_all_variable_names()
-
-        # --- Populate the combo boxes based on file selection ---
-        for var in var_names:
-            self._view.var_cbox.addItem(var)
-
-        # --- Populate the variable lists based on file selection ---
-        self.populate_var_list(file)
 
     def add_file(self):
         # --- Set file dialog options ---
@@ -60,125 +45,79 @@ class ConfigureController(object):
         # --- Populate the files ---
         self.populate_files()
 
-    def populate_var_list(self, file):
-        for i, var in enumerate(self._plot_model.vars):
-            if var.file_idx == self._view.file_list.currentRow():
-                var_item = QtWidgets.QListWidgetItem(self._view.var_list)
-                var_item_widget = VariableListWidget(var.name, i, self._view, self)
-                var_item.setSizeHint(var_item_widget.sizeHint())
-                self._view.var_list.addItem(var_item)
-                self._view.var_list.setItemWidget(var_item, var_item_widget)
-
-                text_list = [file.name_short, var.name]
-                for key, val in var.options.items():
-                    if val:
-                        if not key == "major_iter":
-                            text_list.append("key")
-
-                self._view.all_vars_list.addItem(f"{file.name_short} | {var.name} | scaled | bounds | minor_iter")
-
     def populate_files(self):
         for file in self._parent_model.files:
-            self._view.file_list.addItem(file.name_short)
+            file_item = FileTreeWidgetItem(self._view.file_tree)
+            file_item.setFile(file)
+            file_item.setText(0, file.name_short)
+            self._view.file_tree.addTopLevelItem(file_item)
+
+        if len(self._parent_model.files) > 0:
+            self._current_file = self._parent_model.files[0]
+            self.populate_var_checkbox()
+
+    def populate_vars(self):
+        for var in self._plot_model.vars:
+            var_item = VarTreeWidgetItem(self._view.var_tree)
+            var_item.setVar(var)
+            var_item.setText(0, var.file.name_short)
+            var_item.setText(1, var.name)
+
+            var_item.setCheckState(2, QtCore.Qt.Checked if var.options["scaled"] else QtCore.Qt.Unchecked)
+            var_item.setCheckState(3, QtCore.Qt.Checked if var.options["bounds"] else QtCore.Qt.Unchecked)
+            var_item.setCheckState(4, QtCore.Qt.Checked if var.options["major_iter"] else QtCore.Qt.Unchecked)
+            self._view.var_tree.addTopLevelItem(var_item)
+
+    def file_selected(self, item, column):
+        self._current_file = item.file
+        self.populate_var_checkbox()
+
+    def populate_var_checkbox(self):
+        self._view.var_cbox.clear()
+
+        for var_name in self._current_file.get_all_var_names():
+            self._view.var_cbox.addItem(var_name)
 
     def add_var(self):
-        # --- Get selected name from the combobox ---
         var_name = self._view.var_cbox.currentText()
 
-        # --- Get the file index from the file list widget ---
-        file_idx = self._view.file_list.currentRow()
-
-        # --- Get the file at the specified index from from the parent model ---
-        file = self._parent_model.files[file_idx]
-
-        # --- Add the variable to the overall list ---
-        self._view.all_vars_list.addItem(f"{file.name_short} | {var_name}")
-
-        # --- Get a single variable from the file ---
-        var_idx = len(self._plot_model.vars)  # absolute index of the variable in the plot model
-        new_var = Variable(var_name, file_idx, var_idx)
-
-        # --- Retrieve data from the file and store in variable ---
-        file.get_single_variable(new_var)
-
-        # --- Add variable to the plot model and local model ---
+        # Create a new variable and add to the plot model
+        new_var = Variable(var_name)
+        new_var.file = self._current_file
         self._plot_model.add_var(new_var)
-        self._model.add_var(file_idx)
 
-        # --- Add the new variable to the view and set the identifier indices ---
-        var_item = QtWidgets.QListWidgetItem(self._view.var_list)
-        var_item_widget = VariableListWidget(var_name, var_idx, self._view, self)
-        var_item.setSizeHint(var_item_widget.sizeHint())
-        self._view.var_list.addItem(var_item)
-        self._view.var_list.setItemWidget(var_item, var_item_widget)
+        # Create a new variable widget item for the tree view
+        new_var_item = VarTreeWidgetItem(self._view.var_tree)
+        new_var_item.var = new_var
 
-    def remove_variable(self, var_idx: int):
-        # --- Remove variable from overall list ---
-        self._view.all_vars_list.takeItem(var_idx)
+        new_var_item.setText(0, self._current_file.name_short)
+        new_var_item.setText(1, var_name)
+        new_var_item.setCheckState(2, QtCore.Qt.Unchecked)
+        new_var_item.setCheckState(3, QtCore.Qt.Unchecked)
+        new_var_item.setCheckState(4, QtCore.Qt.Unchecked)
+        self._view.var_tree.addTopLevelItem(new_var_item)
 
-        # --- Remove variable from models ---
-        self._plot_model.remove_var(var_idx)
-        file_idx, rel_idx = self._model.remove_var(var_idx)
+    def remove_sel_var(self):
+        sel_vars = self._view.var_tree.selectedItems()
 
-        # --- Remove variable widget from the view ---
-        self._view.var_list.takeItem(rel_idx)
+        rem_idx = set()
 
-        # --- Update the list widget view ---
-        for i, val in enumerate(self._model.var_mapping):
-            if val[0] == file_idx:
-                item = self._view.var_list.item(val[1])
-                widget = self._view.var_list.itemWidget(item)
-                widget.idx = i
+        # Loop over all the selected variables and find them in the
+        # plot model. We need to check both the filename and the
+        # variable name in case the variable name exists in different
+        # files.
+        for i, plot_var in enumerate(self._plot_model.vars):
+            for sel_var in sel_vars:
+                if sel_var.var.name == plot_var.name and sel_var.var.file.name == plot_var.file.name:
+                    rem_idx.add(i)
 
-    def scale_opt_selected(self, widget: VariableListWidget, var_idx: int):
-        if widget.scaled_opt.isChecked():
-            self._plot_model.vars[var_idx].options["scaled"] = True
-            old_text = self._view.all_vars_list.item(var_idx).text().replace(" ", "").split("|")
-            item = self._view.all_vars_list.item(var_idx)
-            old_text.append("scaled")
-            new_text = " | ".join(old_text)
-            item.setText(new_text)
-        else:
-            self._plot_model.vars[var_idx].options["scaled"] = False
-            old_text = self._view.all_vars_list.item(var_idx).text().replace(" ", "").split("|")
-            item = self._view.all_vars_list.item(var_idx)
-            old_text.remove("scaled")
-            new_text = " | ".join(old_text)
-            item.setText(new_text)
+        # Remove variable from the plot
+        self._plot_model.vars = [var for i, var in enumerate(self._plot_model.vars) if i not in rem_idx]
 
-    def bounds_opt_selected(self, widget: VariableListWidget, var_idx: int):
-        if widget.bounds_opt.isChecked():
-            self._plot_model.vars[var_idx].options["bounds"] = True
-            old_text = self._view.all_vars_list.item(var_idx).text().replace(" ", "").split("|")
-            item = self._view.all_vars_list.item(var_idx)
-            old_text.append("bounds")
-            new_text = " | ".join(old_text)
-            item.setText(new_text)
-        else:
-            self._plot_model.vars[var_idx].options["bounds"] = False
-            old_text = self._view.all_vars_list.item(var_idx).text().replace(" ", "").split("|")
-            item = self._view.all_vars_list.item(var_idx)
-            old_text.remove("bounds")
-            new_text = " | ".join(old_text)
-            item.setText(new_text)
-
-    def minor_iter_opt_selected(self, widget: VariableListWidget, var_idx: int):
-        if widget.minor_iter_opt.isChecked():
-            self._plot_model.vars[var_idx].options["minor_iter"] = True
-            self._plot_model.vars[var_idx].options["major_iter"] = False
-            old_text = self._view.all_vars_list.item(var_idx).text().replace(" ", "").split("|")
-            item = self._view.all_vars_list.item(var_idx)
-            old_text.append("minor iters")
-            new_text = " | ".join(old_text)
-            item.setText(new_text)
-        else:
-            self._plot_model.vars[var_idx].options["minor_iter"] = False
-            self._plot_model.vars[var_idx].options["major_iter"] = True
-            old_text = self._view.all_vars_list.item(var_idx).text().replace(" ", "").split("|")
-            item = self._view.all_vars_list.item(var_idx)
-            old_text.remove("minoriters")
-            new_text = " | ".join(old_text)
-            item.setText(new_text)
+        # Remove variable from the tree view
+        root = self._view.var_tree.invisibleRootItem()
+        for item in sel_vars:
+            root.removeChild(item)
 
     def cancel(self):
         self._plot_model.clear_vars()
@@ -186,6 +125,14 @@ class ConfigureController(object):
         self._view.close()
 
     def plot(self):
+        # We need to iterate over the variables in the view and set the
+        # selected options in the plot variables.
+        var_it = QtWidgets.QTreeWidgetItemIterator(self._view.var_tree)
+        while var_it.value():
+            item = var_it.value()
+            item.setVarOpts()
+            var_it += 1
+
         self._plot_model.plot()
         self._parent_model.canvas.draw()
         self._view.close()

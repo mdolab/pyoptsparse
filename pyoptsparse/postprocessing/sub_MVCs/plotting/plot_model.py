@@ -23,6 +23,18 @@ class PlotModel(object):
     def __init__(self):
         self.vars = []
         self.axis = None
+        self.colors = [
+            ("Yellow", "#e29400ff"),
+            ("Blue", "#1E90FF"),
+            ("Red", "#E21A1A"),
+            ("Green", "#00a650ff"),
+            ("Maroon", "#800000ff"),
+            ("Orange", "#ff8f00"),
+            ("Purple", "#800080ff"),
+            ("Cyan", "#00A6D6"),
+            ("Black", "#000000ff"),
+            ("Grey", "#5a5758ff"),
+        ]
 
     def add_var(self, var):
         """
@@ -30,54 +42,55 @@ class PlotModel(object):
 
         Parameters
         ----------
-        var_name : str
-            Name of the variable
+        var: Variable object
+            The variable object to be added
         """
         self.vars.append(var)
 
     def remove_var(self, idx: int):
         """
-        Removes a y-variable from the data model
+        Removes a variable from the data model
 
         Parameters
         ----------
-        var_name : str
-            Name of the variable
+        idx: int
+            The index of the variable to be removed
         """
         self.vars.pop(idx)
 
     def clear_vars(self):
-        """Resets the y-variables"""
+        """Resets the variables to an empty list"""
         self.vars = []
 
     def clear_options(self):
-        self.options = {"scaled": False, "bounds": False, "major_iter": True, "minor_iter": False}
+        self.options = {"scaled": False, "bounds": False, "major_iter": True}
 
     def update_axis(self, axis):
-        self.axis.cla()
         self.axis = axis
 
+    def clear_axis(self):
+        for artist in self.axis.lines + self.axis.collections:
+            artist.remove()
+
     def plot(self):
-        for var in self.vars:
-            # Parse variable options for plot data
-            if var.options["scaled"] and var.options["major_iter"]:
-                key1, key2 = "major_iter", "scaled"
-            elif var.options["scaled"] and var.options["minor_iter"]:
-                key1, key2 = "minor_iter", "scaled"
-            elif not var.options["scaled"] and var.options["major_iter"]:
-                key1, key2 = "major_iter", "unscaled"
-            elif not var.options["scaled"] and var.options["minor_iter"]:
-                key1, key2 = "minor_iter", "unscaled"
+        self.clear_axis()
+        for i, var in enumerate(self.vars):
+            # Set some default plotting options for the variable
+            var.setPlotOptions(color=self.colors[i][1], marker=".")
+            var.file.get_var_data(var)
+            # We need to check for multi-dimensional input
+            # If multi-dim, the iters will be the number of rows in the array, a.k.a the first dimension
+            iters = np.arange(0, var.values.size, 1) if var.values.ndim == 1 else np.arange(0, var.values.shape[0], 1)
+            self.axis.plot(
+                iters, var.values, color=var.plot_options["color"], marker=var.plot_options["marker"], label=var.name
+            )
 
-            # Plot variable data
-            self.axis.plot(np.arange(0, len(var.data[key1][key2]), 1), var.data[key1][key2])
-
-            # Parse variable options for bounds data
-            if var.options["scaled"] and var.options["bounds"]:
-                pass  # plot scalaed bounds
-            elif not var.options["scaled"] and var.options["bounds"]:
-                pass  # plot unscaled bounds
-
-    def refresh(self):
-        """Refresh all files and variable lists"""
-        pass
+            if var.options["bounds"]:
+                if var.bounds["upper"] is not None:
+                    for ub in var.bounds["upper"]:
+                        if ub is not None:
+                            self.axis.axhline(y=ub, linestyle="--", color=var.plot_options["color"])
+                if var.bounds["lower"] is not None:
+                    for lb in var.bounds["lower"]:
+                        if lb is not None:
+                            self.axis.axhline(y=lb, linestyle="--", color=var.plot_options["color"])

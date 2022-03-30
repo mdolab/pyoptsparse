@@ -30,29 +30,16 @@ class ConfigurePlotView(QtWidgets.QDialog):
         self._initView()
 
     def _initView(self):
-        # --- Create top level layout ---
-        layout = QtWidgets.QVBoxLayout()
-
         # --- Create top layout
-        top_layout = QtWidgets.QHBoxLayout()
-        layout.addLayout(top_layout)
+        layout = QtWidgets.QHBoxLayout()
 
         # --- Create sub layout for files ---
-        top_left_layout = QtWidgets.QVBoxLayout()
-        top_layout.addLayout(top_left_layout, 1)
+        left_layout = QtWidgets.QVBoxLayout()
+        layout.addLayout(left_layout, 1)
 
-        # --- Create sub layout for y-variables ---
-        top_right_layout = QtWidgets.QVBoxLayout()
-        top_layout.addLayout(top_right_layout, 2)
-
-        mid_layout = QtWidgets.QHBoxLayout()
-        layout.addLayout(mid_layout)
-
-        mid_left_layout = QtWidgets.QVBoxLayout()
-        mid_layout.addLayout(mid_left_layout)
-
-        mid_right_layout = QtWidgets.QVBoxLayout()
-        mid_layout.addLayout(mid_right_layout)
+        # --- Create sub layout for variables ---
+        right_layout = QtWidgets.QVBoxLayout()
+        layout.addLayout(right_layout, 2)
 
         # ==============================================================================
         # File Management - Top Left Layout
@@ -60,13 +47,14 @@ class ConfigurePlotView(QtWidgets.QDialog):
         # --- Add file(s) button ---
         self.add_file_btn = Button("Add file(s)", self)
         self.add_file_btn.clicked.connect(self._controller.add_file)
-        top_left_layout.addWidget(self.add_file_btn)
+        left_layout.addWidget(self.add_file_btn)
 
         # --- File list ---
-        self.file_list = QtWidgets.QListWidget()
-        self.file_list.clicked.connect(self._controller.file_selected)
-        top_left_layout.addWidget(self.file_list)
-        self._controller.populate_files()  # This must be called after file list is instantiated
+        self.file_tree = QtWidgets.QTreeWidget(self)
+        self.file_tree.setColumnCount(1)
+        self.file_tree.setHeaderLabels(["File Name"])
+        self.file_tree.itemClicked.connect(self._controller.file_selected)
+        left_layout.addWidget(self.file_tree)
 
         # ==============================================================================
         # Variables - Top Right Layout
@@ -74,30 +62,35 @@ class ConfigurePlotView(QtWidgets.QDialog):
         # --- Add y-vars combobox ---
         self.var_cbox = ExtendedComboBox(self)
         self.var_cbox.setInsertPolicy(QtWidgets.QComboBox.NoInsert)
-        self.var_cbox.setToolTip("Type to search for y-variables")
+        self.var_cbox.setToolTip("Type to search for variables")
         self.var_cbox.activated.connect(self._controller.add_var)
-        top_right_layout.addWidget(self.var_cbox)
+        right_layout.addWidget(self.var_cbox)
 
         # --- Add y-vars variable list ---
-        self.var_list = QtWidgets.QListWidget(self)
-        top_right_layout.addWidget(self.var_list)
-
-        # ==============================================================================
-        # Options Layout 1 - Mid Left Layout
-        # ==============================================================================
-        self.all_vars_list = QtWidgets.QListWidget(self)
-        mid_left_layout.addWidget(self.all_vars_list)
+        self.var_tree = QtWidgets.QTreeWidget(self)
+        self.var_tree.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.var_tree.setColumnCount(5)
+        self.var_tree.setHeaderLabels(["File", "Name", "Scaled", "Bounds", "Major/Minor"])
+        right_layout.addWidget(self.var_tree)
 
         # ==============================================================================
         # Button Layout - Mid right Layout
         # ==============================================================================
         self.plot_btn = Button("Plot", self)
         self.plot_btn.clicked.connect(self._controller.plot)
-        mid_right_layout.addWidget(self.plot_btn)
+        right_layout.addWidget(self.plot_btn)
+
+        self.remove_var_btn = Button("Remove Selected", self)
+        self.remove_var_btn.clicked.connect(self._controller.remove_sel_var)
+        right_layout.addWidget(self.remove_var_btn)
 
         self.cancel_btn = Button("Cancel", self)
         self.cancel_btn.clicked.connect(self._controller.cancel)
-        mid_right_layout.addWidget(self.cancel_btn)
+        right_layout.addWidget(self.cancel_btn)
+
+        # --- Anything that needs to be done upon re-opening the window ---
+        self._controller.populate_files()
+        self._controller.populate_vars()
 
         # --- Set the main layout ---
         self.setLayout(layout)

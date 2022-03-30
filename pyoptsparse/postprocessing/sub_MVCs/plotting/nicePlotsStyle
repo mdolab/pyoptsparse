@@ -1,0 +1,26 @@
+font.family : sans-serif
+font.sans-serif : CMU Bright
+font.size : 10
+
+axes.unicode_minus : False
+axes.spines.top : False
+axes.spines.right : False
+axes.labelpad : 8.0
+
+legend.columnspacing : 0.2
+legend.frameon : False
+
+patch.edgecolor : w
+
+axes.autolimit_mode : round_numbers
+axes.xmargin : 0
+axes.ymargin : 0
+
+lines.linewidth : 2.0
+
+axes.edgecolor : 5a5758ff
+text.color : 5a5758ff
+axes.labelcolor : 5a5758ff
+axes.labelweight : 200
+xtick.color : 5a5758ff
+ytick.color : 5a5758ff

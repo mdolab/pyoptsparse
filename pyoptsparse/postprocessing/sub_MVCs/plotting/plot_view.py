@@ -7,11 +7,13 @@ View class for the matplotlib plotting canvas
 # Standard Python modules
 # ==============================================================================
 from PIL import Image
+import os
 
 # ==============================================================================
 # External Python modules
 # ==============================================================================
 import matplotlib
+import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 from PyQt5 import QtWidgets
@@ -22,6 +24,8 @@ from PyQt5 import QtWidgets
 
 # --- Set matplotlib backend settings to use Qt5 ---
 matplotlib.use("Qt5Agg")
+dir_path = os.path.dirname(os.path.realpath(__file__))
+plt.style.use(os.path.join(dir_path, "nicePlotsStyle"))
 
 
 class MplCanvas(FigureCanvasQTAgg):
