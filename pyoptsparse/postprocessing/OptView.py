@@ -455,7 +455,7 @@ class Display(OVBaseClass):
                 for i in range(2, n):
                     new_fixed_axis = par_list[i].get_grid_helper().new_fixed_axis
                     par_list[i].axis["right"] = new_fixed_axis(
-                        loc="right", axes=par_list[i], offset=(offset * i ** 1.15, 0)
+                        loc="right", axes=par_list[i], offset=(offset * i**1.15, 0)
                     )
                     par_list[i].axis["right"].toggle(all=True)
 
