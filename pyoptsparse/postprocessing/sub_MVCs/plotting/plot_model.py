@@ -21,7 +21,8 @@ class PlotModel(object):
     """Manages top-level data for the controller"""
 
     def __init__(self):
-        self.vars = []
+        self.y_vars = []
+        self.x_vars = []
         self.axis = None
         self.colors = [
             ("Yellow", "#e29400ff"),
@@ -36,7 +37,7 @@ class PlotModel(object):
             ("Grey", "#5a5758ff"),
         ]
 
-    def add_var(self, var):
+    def add_var(self, var, axis):
         """
         Adds a y-variable to the data model
 
@@ -45,7 +46,10 @@ class PlotModel(object):
         var: Variable object
             The variable object to be added
         """
-        self.vars.append(var)
+        if axis == "x":
+            self.x_vars.append(var)
+        elif axis == "y":
+            self.y_vars.append(var)
 
     def remove_var(self, idx: int):
         """
@@ -74,7 +78,7 @@ class PlotModel(object):
 
     def plot(self):
         self.clear_axis()
-        for i, var in enumerate(self.vars):
+        for i, var in enumerate(self.y_vars):
             # Set some default plotting options for the variable
             var.setPlotOptions(color=self.colors[i][1], marker=".")
             var.file.get_var_data(var)

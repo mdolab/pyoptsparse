@@ -63,6 +63,7 @@ class File:
         self.dv_names = self.file_reader.getDVNames()
         self.obj_names = self.file_reader.getObjNames()
         self.con_names = self.file_reader.getConNames()
+        self.all_names = [k for k in self.file_reader.getValues().keys()]
 
     def refresh(self):
         self.load_file(self.name)
@@ -115,8 +116,15 @@ class File:
             var.bounds["upper"] = np.where(upper != 1e30, upper * scale, None)
             var.bounds["lower"] = np.where(lower != 1e30, lower * scale, None)
 
-    def get_all_var_names(self):
-        return self.dv_names + self.con_names + self.obj_names
+    def get_all_x_var_names(self):
+        x_name_filter = ["nMajor", "nMinor"] + self.dv_names
+        return [name for name in self.all_names if name not in x_name_filter]
+
+    def get_all_y_var_names(self):
+        y_name_filter = (
+            ["step", "optimality", "feasibility", "merit", "penalty"] + self.dv_names + self.con_names + self.obj_names
+        )
+        return [name for name in self.all_names if name not in y_name_filter]
 
     def get_metadata(self):
         return self.file_reader.getMetadata()

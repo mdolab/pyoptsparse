@@ -17,14 +17,14 @@ from PyQt5 import QtWidgets, QtCore
 # ==============================================================================
 from pyoptsparse.postprocessing.sub_MVCs.widgets import FileTreeWidgetItem, VarTreeWidgetItem
 from pyoptsparse.postprocessing.utils.data_structures import Variable
-from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_model import ConfigurePlotModel
+from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_model import ConfigureModel
 
 
 class ConfigureController(object):
     def __init__(self, parent_model, plot_model):
         self._parent_model = parent_model
         self._plot_model = plot_model
-        self._model = ConfigurePlotModel()
+        self._model = ConfigureModel()
         self._view = None
         self._current_file = None
 
@@ -54,51 +54,70 @@ class ConfigureController(object):
 
         if len(self._parent_model.files) > 0:
             self._current_file = self._parent_model.files[0]
-            self.populate_var_checkbox()
+            self.populate_vars()
 
     def populate_vars(self):
-        for var in self._plot_model.vars:
+        self._view.y_var_tree.clear()
+        self._view.x_var_tree.clear()
+        self.populate_x_var_checkbox()
+        self.add_y_vars()
+        for var in self._plot_model.x_vars:
             var_item = VarTreeWidgetItem(self._view.var_tree)
             var_item.setVar(var)
             var_item.setText(0, var.file.name_short)
             var_item.setText(1, var.name)
-
-            var_item.setCheckState(2, QtCore.Qt.Checked if var.options["scaled"] else QtCore.Qt.Unchecked)
-            var_item.setCheckState(3, QtCore.Qt.Checked if var.options["bounds"] else QtCore.Qt.Unchecked)
-            var_item.setCheckState(4, QtCore.Qt.Checked if var.options["major_iter"] else QtCore.Qt.Unchecked)
-            self._view.var_tree.addTopLevelItem(var_item)
+            self._view.x_var_tree.addTopLevelItem(var_item)
 
     def file_selected(self, item, column):
         self._current_file = item.file
-        self.populate_var_checkbox()
+        self.populate_vars()
 
-    def populate_var_checkbox(self):
-        self._view.var_cbox.clear()
+    def populate_x_var_checkbox(self):
+        self._view.x_var_cbox.clear()
 
-        for var_name in self._current_file.get_all_var_names():
-            self._view.var_cbox.addItem(var_name)
+        for var_name in self._current_file.get_all_x_var_names():
+            self._view.x_var_cbox.addItem(var_name)
 
-    def add_var(self):
-        var_name = self._view.var_cbox.currentText()
+    def add_y_vars(self):
+        for name in self._current_file.get_all_y_var_names():
+            new_var = Variable(name)
+            new_var.file = self._current_file
+
+            # Create a new variable widget item for the tree view
+            new_var_item = VarTreeWidgetItem(self._view.y_var_tree)
+            new_var_item.var = new_var
+
+            new_var_item.setText(0, self._current_file.name_short)
+            new_var_item.setText(1, name)
+            new_var_item.setCheckState(2, QtCore.Qt.Unchecked)
+            new_var_item.setCheckState(3, QtCore.Qt.Unchecked)
+            self._view.y_var_tree.addTopLevelItem(new_var_item)
+
+    def add_x_var(self):
+        var_name = self._view.x_var_cbox.currentText()
 
         # Create a new variable and add to the plot model
         new_var = Variable(var_name)
         new_var.file = self._current_file
-        self._plot_model.add_var(new_var)
+        self._plot_model.add_var(new_var, "x")
 
         # Create a new variable widget item for the tree view
-        new_var_item = VarTreeWidgetItem(self._view.var_tree)
+        new_var_item = VarTreeWidgetItem(self._view.x_var_tree)
         new_var_item.var = new_var
 
         new_var_item.setText(0, self._current_file.name_short)
         new_var_item.setText(1, var_name)
-        new_var_item.setCheckState(2, QtCore.Qt.Unchecked)
-        new_var_item.setCheckState(3, QtCore.Qt.Unchecked)
-        new_var_item.setCheckState(4, QtCore.Qt.Unchecked)
-        self._view.var_tree.addTopLevelItem(new_var_item)
+        self._view.x_var_tree.addTopLevelItem(new_var_item)
+
+    def y_var_search(self, s):
+        items = self._view.y_var_tree.findItems(s, QtCore.Qt.MatchRecursive)
+        if items:
+            item = items[1]
+            print(item)
+            self._view.y_var_tree.setCurrentItem(item)
 
     def remove_sel_var(self):
-        sel_vars = self._view.var_tree.selectedItems()
+        sel_vars = self._view.y_var_tree.selectedItems()
 
         rem_idx = set()
 
@@ -115,7 +134,7 @@ class ConfigureController(object):
         self._plot_model.vars = [var for i, var in enumerate(self._plot_model.vars) if i not in rem_idx]
 
         # Remove variable from the tree view
-        root = self._view.var_tree.invisibleRootItem()
+        root = self._view.y_var_tree.invisibleRootItem()
         for item in sel_vars:
             root.removeChild(item)
 
