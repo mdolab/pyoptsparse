@@ -38,7 +38,8 @@ In this case, the history file would have the following layout::
     │   │   └── con
     │   ├── iter
     │   ├── fail
-    │   └── isMajor
+    │   ├── isMajor
+    |   └── time
     ├── 1
     │   ├── xuser
     │   │   └── xvars
@@ -49,7 +50,8 @@ In this case, the history file would have the following layout::
     │   │       └── xvars
     │   ├── iter
     │   ├── fail
-    │   └── isMajor
+    │   ├── isMajor
+    |   └── time
     └── last
 
 

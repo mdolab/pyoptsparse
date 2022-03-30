@@ -119,7 +119,7 @@ class SLSQP(Optimizer):
             Flag sepcifying if sensitivities are to be stored in hist.
             This is necessay for hot-starting only.
         """
-
+        self.startTime = time.time()
         self.callCounter = 0
         self.storeSens = storeSens
 
@@ -185,10 +185,10 @@ class SLSQP(Optimizer):
 
             # Setup argument list values
             la = max(m, 1)
-            gg = np.zeros([la], np.float)
-            df = np.zeros([n + 1], np.float)
-            dg = np.zeros([la, n + 1], np.float)
-            acc = np.array([self.getOption("ACC")], np.float)
+            gg = np.zeros([la], float)
+            df = np.zeros([n + 1], float)
+            dg = np.zeros([la, n + 1], float)
+            acc = np.array([self.getOption("ACC")], float)
             maxit = self.getOption("MAXIT")
             iprint = self.getOption("IPRINT")
             iout = self.getOption("IOUT")
@@ -205,7 +205,7 @@ class SLSQP(Optimizer):
             slsqpb = (n + 1) * (n / 2) + 2 * m + 3 * n + 3 * (n + 1) + 1
             lwM = lsq + lsi + lsei + slsqpb + n + m
             lw = np.array([lwM], np.int)
-            w = np.zeros(lw, np.float)
+            w = np.zeros(lw, float)
             ljwM = max(mineq, (n + 1) - meq)
             ljw = np.array([ljwM], np.int)
             jw = np.zeros(ljw, np.intc)

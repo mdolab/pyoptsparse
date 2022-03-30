@@ -19,9 +19,9 @@ def objfunc(xdict):
     y = xdict["y"]
     z = xdict["z"]
     funcs = {}
-    funcs["obj"] = x ** 2 + 2 * np.sum(y ** 2) + 3 * np.sum(z)
+    funcs["obj"] = x**2 + 2 * np.sum(y**2) + 3 * np.sum(z)
     funcs["con1"] = x + 1e-3 * abs(x) ** 2.05
-    funcs["con2"] = x ** 4 + np.sum(y) + np.sum(z ** 2)
+    funcs["con2"] = x**4 + np.sum(y) + np.sum(z**2)
     funcs["con3"] = x + np.sum(z)
 
     return funcs, False
@@ -41,7 +41,7 @@ def sens(xdict, funcs):
             "x": 2.05 * x * (x * x) ** 0.025,
         },
         "con2": {
-            "x": 4 * x ** 3,
+            "x": 4 * x**3,
             "y": np.ones(N),
             "z": 2 * z,
         },

@@ -91,6 +91,7 @@ class Optimizer(BaseSolver):
 
         # Initialize metadata
         self.metadata: Dict[str, Any] = {}
+        self.startTime = None
 
     def _clearTimings(self):
         """Clear timings and call counters"""
@@ -346,7 +347,10 @@ class Optimizer(BaseSolver):
         returns = []
         # Start with fobj:
         if "fobj" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all() or "funcs" not in self.cache:
+                # The previous evaluated point is different than the point requested
+                # OR this is a recursive call to _masterFunc2 from a gradient evaluation that occured
+                # at the beginning of a hot started optimization
                 timeA = time.time()
                 args = self.optProb.objFun(xuser)
                 if isinstance(args, tuple):
@@ -391,7 +395,10 @@ class Optimizer(BaseSolver):
             hist["funcs"] = self.cache["funcs"]
 
         if "fcon" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all() or "funcs" not in self.cache:
+                # The previous evaluated point is different than the point requested
+                # OR this is a recursive call to _masterFunc2 from a gradient evaluation that occured
+                # at the beginning of a hot started optimization
                 timeA = time.time()
 
                 args = self.optProb.objFun(xuser)
@@ -437,10 +444,10 @@ class Optimizer(BaseSolver):
             hist["funcs"] = self.cache["funcs"]
 
         if "gobj" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
-                # Previous evaluated point is *different* than the
-                # point requested for the derivative. Recursively call
-                # the routine with ['fobj', and 'fcon']
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all() or "funcs" not in self.cache:
+                # The previous evaluated point is different than the point requested for the derivative
+                # OR this is the first call to _masterFunc2 in a hot started optimization
+                # Recursively call the routine with ['fobj', 'fcon']
                 self._masterFunc2(x, ["fobj", "fcon"], writeHist=False)
                 # We *don't* count that extra call, since that will
                 # screw up the numbering...so we subtract the last call.
@@ -492,10 +499,10 @@ class Optimizer(BaseSolver):
                 hist["funcsSens"] = self.cache["funcsSens"]
 
         if "gcon" in evaluate:
-            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all():
-                # Previous evaluated point is *different* than the
-                # point requested for the derivative. Recursively call
-                # the routine with ['fobj', and 'fcon']
+            if not np.isclose(x, self.cache["x"], atol=EPS, rtol=EPS).all() or "funcs" not in self.cache:
+                # The previous evaluated point is different than the point requested for the derivative
+                # OR this is the first call to _masterFunc2 in a hot started optimization
+                # Recursively call the routine with ['fobj', 'fcon']
                 self._masterFunc2(x, ["fobj", "fcon"], writeHist=False)
                 # We *don't* count that extra call, since that will
                 # screw up the numbering...so we subtract the last call.
@@ -549,6 +556,9 @@ class Optimizer(BaseSolver):
 
         # Put the iteration counter in the history
         hist["iter"] = self.iterCounter
+
+        # timing
+        hist["time"] = time.time() - self.startTime
 
         # Save information about major iteration counting (only matters for SNOPT).
         if self.name == "SNOPT":
@@ -817,6 +827,9 @@ class Optimizer(BaseSolver):
         after optimization finishes.
         """
         options = copy.deepcopy(self.options)
+        # we remove entries which can't be stored properly in the history file
+        if "snSTOP function handle" in options.keys():
+            options.pop("snSTOP function handle")
 
         from .__init__ import __version__  # importing the pyoptsparse version
 

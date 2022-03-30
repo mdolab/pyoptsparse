@@ -7,13 +7,17 @@ iSumm:
 Print file:
   desc: Print file name
 
-Summary file: 
+Summary file:
   desc: Summary file name
+
+Minor print level:
+  desc: Minor iterations print level
 
 Start:
   desc: This value is directly passed to the SNOPT kernel, and will be overwritten if another option, e.g. ``Cold start`` is supplied, in accordance with SNOPT options precedence.
   Cold: Cold start
   Warm: Warm start
+  Hot: Hot start
 
 Problem Type:
   desc: >
@@ -25,6 +29,16 @@ Problem Type:
 Derivative level:
   desc: >
     The SNOPT derivative level. Only "3" is tested, where all derivatives are provided to SNOPT.
+
+Iterations limit:
+  desc: >
+    The limit on the total number of minor iterations, summed over all major iterations.
+    This option is set to a very large number to prevent premature termination of SNOPT.
+
+Minor iterations limit:
+  desc: >
+    The limit on the number of minor iterations *for each major iteration*.
+    This option is set to a very large number to prevent premature termination of SNOPT.
 
 Proximal iterations limit:
   desc: >
@@ -46,7 +60,6 @@ Total integer workspace:
     If SNOPT determines that the default value is too small, the Python wrapper will overwrite the defaults with estimates for the required workspace lengths from SNOPT and initialize the optimizer for a second time.
     SNOPT might still exit with ``82``, ``83``, or ``84``, but this should automate the storage allocation for most cases.
     User-specified values are not overwritten.
-    
 
 Total real workspace:
   desc: >
@@ -55,10 +68,21 @@ Total real workspace:
     If SNOPT determines that the default value is too small, the Python wrapper will overwrite the defaults with estimates for the required workspace lengths from SNOPT and initialize the optimizer for a second time.
     SNOPT might still exit with ``82``, ``83``, or ``84``, but this should automate the storage allocation for most cases.
     User-specified values are not overwritten.
-    
 
 Save major iteration variables:
   desc: >
     This option is unique to the Python wrapper, and takes a list of values which can be saved at each iteration to the History file.
     This specifies the list of major iteration variables to be stored in the history file.
     ``Hessian``, ``slack``, ``lambda`` and ``condZHZ`` are also supported.
+
+Return work arrays:
+  desc: >
+    This option is unique to the Python wrapper.
+    If True, internal SNOPT work arrays are also returned at the end of the optimization.
+    These arrays can be used to hot start a subsequent optimization.
+    The SNOPT option 'Sticky parameters' will also be automatically set to 'Yes' to facilitate the hot start.
+
+snSTOP function handle:
+  desc: >
+    This option is unique to the Python wrapper.
+    A function handle can be supplied which is called at the end of each major iteration.

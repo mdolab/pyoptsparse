@@ -140,7 +140,7 @@ class NLPQLP(Optimizer):
             Flag specifying if sensitivities are to be stored in hist.
             This is necessary for hot-starting only.
         """
-
+        self.startTime = time.time()
         self.callCounter = 0
         self.storeSens = storeSens
 

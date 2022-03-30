@@ -12,7 +12,6 @@ import unittest
 # External modules
 import numpy as np
 from parameterized import parameterized
-import scipy
 
 # First party modules
 from pyoptsparse import Optimization
@@ -34,9 +33,9 @@ class TestLarge(OptTest):
         y = xdict["y"]
         z = xdict["z"]
         funcs = {}
-        funcs["obj"] = x ** 2 + 2 * np.sum(y ** 2) + 3 * np.sum(z)
+        funcs["obj"] = x**2 + 2 * np.sum(y**2) + 3 * np.sum(z)
         funcs["con1"] = x + 1e-3 * abs(x) ** 2.05
-        funcs["con2"] = x ** 4 + np.sum(y) + np.sum(z ** 2)
+        funcs["con2"] = x**4 + np.sum(y) + np.sum(z**2)
         funcs["con3"] = x + np.sum(z)
 
         return funcs, False
@@ -56,7 +55,7 @@ class TestLarge(OptTest):
                 "x": 2.05 * x * (x * x) ** 0.025,
             },
             "con2": {
-                "x": 4 * x ** 3,
+                "x": 4 * x**3,
                 "y": np.ones(self.N),
                 "z": 2 * z,
             },
@@ -91,7 +90,8 @@ class TestLarge(OptTest):
         self.optProb.addCon("con3", lower=4, wrt=["x", "z"])
         xJac = np.ones((self.N, 1))
         if sparse:
-            yJac = scipy.sparse.spdiags(np.ones(self.N), 0, self.N, self.N)
+            rows_cols = np.array([i for i in range(0, self.N)]).astype(int)
+            yJac = {"coo": [rows_cols, rows_cols, np.ones(self.N)], "shape": [self.N, self.N]}
         else:
             yJac = np.eye(self.N)
         self.optProb.addConGroup(

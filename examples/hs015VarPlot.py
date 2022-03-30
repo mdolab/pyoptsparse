@@ -41,10 +41,10 @@ y = np.arange(-6.5, 3.0, delta)
 X, Y = np.meshgrid(x, y)
 
 # objective
-Z = 100 * (Y - X ** 2) ** 2 + (1 - X) ** 2
+Z = 100 * (Y - X**2) ** 2 + (1 - X) ** 2
 # and the constraint contours
 A = X * Y
-B = X + Y ** 2
+B = X + Y**2
 
 # plot the contours and constraints
 plt.figure()
