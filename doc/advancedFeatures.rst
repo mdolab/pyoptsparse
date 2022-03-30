@@ -57,7 +57,7 @@ To enable this feature, use the ``timeLimit`` option when invoking the optimizer
 
 .. code-block:: python
 
-  sol = opt(optProb, sens=sens, timeLimit=<int>,...)
+  sol = opt(optProb, sens=sens, timeLimit=24 * 3600, ...)
 
 Note that the attribute takes the maximum wall time *in seconds* as an integer number.
 
