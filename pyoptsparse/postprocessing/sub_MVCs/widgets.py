@@ -15,6 +15,7 @@ from PyQt5 import QtWidgets, QtCore
 # ==============================================================================
 # Extension modules
 # ==============================================================================
+from pyoptsparse.postprocessing.utils.button import Button
 
 
 class PlotListWidget(QtWidgets.QWidget):
@@ -78,3 +79,46 @@ class VarTreeWidgetItem(QtWidgets.QTreeWidgetItem):
         self.var.options["scaled"] = self.checkState(2) == QtCore.Qt.Checked
         self.var.options["bounds"] = self.checkState(3) == QtCore.Qt.Checked
         self.var.options["major_iter"] = self.checkState(4) == QtCore.Qt.Checked
+
+
+class VarTableWidget(QtWidgets.QTableWidget):
+    def __init__(self, parent=None):
+        super(VarTableWidget, self).__init__(parent)
+
+    def addYvarRow(self, file_item, var_item):
+        row = self.rowCount()
+        self.setRowCount(row + 1)
+        self.setItem(row, 0, file_item)
+        self.setItem(row, 1, var_item)
+
+        add_btn = Button("Add", self)
+        self.setCellWidget(row, 2, add_btn)
+
+        rem_btn = Button("Remove", self)
+        self.setCellWidget(row, 3, rem_btn)
+
+    def addXvarRow(self, file_item, var_item, row):
+        row = self.rowCount()
+        self.setRowCount(row + 1)
+        self.setItem(row, 0, file_item)
+        self.setItem(row, 1, var_item)
+
+
+class FileTableWidgetItem(QtWidgets.QTableWidgetItem):
+    def __init__(self, *args, **kwargs):
+        super(FileTableWidgetItem, self).__init__(*args, **kwargs)
+
+
+class VarTableWidgetItem(QtWidgets.QTableWidgetItem):
+    def __init__(self, *args, **kwargs):
+        super(VarTableWidgetItem, self).__init__(*args, **kwargs)
+        self.var = None
+
+    def setVar(self, var):
+        self.var = var
+
+
+class TableButtonWidget(QtWidgets.QPushButton):
+    def __init__(self, row, *args, **kwargs):
+        super(TableButtonWidget, self).__init__(*args, **kwargs)
+        self.row = row

@@ -37,7 +37,7 @@ class PlotModel(object):
             ("Grey", "#5a5758ff"),
         ]
 
-    def add_var(self, var, axis):
+    def add_var(self, var, axis, scaled_opt=False, bounds_opt=False):
         """
         Adds a y-variable to the data model
 
@@ -49,6 +49,8 @@ class PlotModel(object):
         if axis == "x":
             self.x_vars.append(var)
         elif axis == "y":
+            var.options["bounds"] = bounds_opt
+            var.options["scaled"] = scaled_opt
             self.y_vars.append(var)
 
     def remove_var(self, idx: int):

@@ -15,9 +15,11 @@ from PyQt5 import QtWidgets, QtCore
 # ==============================================================================
 # Extension modules
 # ==============================================================================
-from pyoptsparse.postprocessing.sub_MVCs.widgets import FileTreeWidgetItem, VarTreeWidgetItem
+from pyoptsparse.postprocessing.sub_MVCs.widgets import FileTreeWidgetItem, VarTableWidgetItem, FileTableWidgetItem
 from pyoptsparse.postprocessing.utils.data_structures import Variable
 from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_model import ConfigureModel
+from pyoptsparse.postprocessing.sub_MVCs.variables.y_controller import YController
+from pyoptsparse.postprocessing.sub_MVCs.variables.x_controller import XController
 
 
 class ConfigureController(object):
@@ -27,6 +29,16 @@ class ConfigureController(object):
         self._model = ConfigureModel()
         self._view = None
         self._current_file = None
+
+        self._xtable_controller = None
+        self._ytable_controller = None
+
+    def setup_var_tables(self):
+        self._xtable_controller = XController(self._view.x_table, self._plot_model, self._parent_model)
+        self._ytable_controller = YController(self._view.y_table, self._plot_model, self._parent_model)
+
+        self._view.x_table.setController(self._xtable_controller)
+        self._view.y_table.setController(self._ytable_controller)
 
     def set_view(self, view):
         self._view = view
@@ -56,102 +68,46 @@ class ConfigureController(object):
             self._current_file = self._parent_model.files[0]
             self.populate_vars()
 
-    def populate_vars(self):
-        self._view.y_var_tree.clear()
-        self._view.x_var_tree.clear()
-        self.populate_x_var_checkbox()
-        self.add_y_vars()
-        for var in self._plot_model.x_vars:
-            var_item = VarTreeWidgetItem(self._view.var_tree)
-            var_item.setVar(var)
-            var_item.setText(0, var.file.name_short)
-            var_item.setText(1, var.name)
-            self._view.x_var_tree.addTopLevelItem(var_item)
-
     def file_selected(self, item, column):
         self._current_file = item.file
         self.populate_vars()
 
+    def populate_vars(self):
+        self.populate_x_var_checkbox()
+        self._view.y_table.clear()
+        self._view.x_table.clear()
+        self._ytable_controller.populate_vars(self._current_file)
+        self._xtable_controller.populate_vars()
+
     def populate_x_var_checkbox(self):
-        self._view.x_var_cbox.clear()
+        self._view.x_cbox.clear()
 
         for var_name in self._current_file.get_all_x_var_names():
-            self._view.x_var_cbox.addItem(var_name)
-
-    def add_y_vars(self):
-        for name in self._current_file.get_all_y_var_names():
-            new_var = Variable(name)
-            new_var.file = self._current_file
-
-            # Create a new variable widget item for the tree view
-            new_var_item = VarTreeWidgetItem(self._view.y_var_tree)
-            new_var_item.var = new_var
-
-            new_var_item.setText(0, self._current_file.name_short)
-            new_var_item.setText(1, name)
-            new_var_item.setCheckState(2, QtCore.Qt.Unchecked)
-            new_var_item.setCheckState(3, QtCore.Qt.Unchecked)
-            self._view.y_var_tree.addTopLevelItem(new_var_item)
+            self._view.x_cbox.addItem(var_name)
 
     def add_x_var(self):
-        var_name = self._view.x_var_cbox.currentText()
+        self._view.x_table.clear()
+        var_name = self._view.x_cbox.currentText()
 
         # Create a new variable and add to the plot model
-        new_var = Variable(var_name)
-        new_var.file = self._current_file
-        self._plot_model.add_var(new_var, "x")
+        var = Variable(var_name)
+        var.file = self._current_file
+        self._plot_model.add_var(var, "x")
 
         # Create a new variable widget item for the tree view
-        new_var_item = VarTreeWidgetItem(self._view.x_var_tree)
-        new_var_item.var = new_var
+        file_item = FileTableWidgetItem(var.file.name_short)
+        var_item = VarTableWidgetItem(var.name)
+        var_item.var = var
 
-        new_var_item.setText(0, self._current_file.name_short)
-        new_var_item.setText(1, var_name)
-        self._view.x_var_tree.addTopLevelItem(new_var_item)
+        self._xtable_controller.add_row(file_item, var_item)
 
     def y_var_search(self, s):
-        items = self._view.y_var_tree.findItems(s, QtCore.Qt.MatchRecursive)
+        items = self._view.y_table.findItems(s, QtCore.Qt.MatchContains)
         if items:
             item = items[1]
-            print(item)
-            self._view.y_var_tree.setCurrentItem(item)
-
-    def remove_sel_var(self):
-        sel_vars = self._view.y_var_tree.selectedItems()
-
-        rem_idx = set()
-
-        # Loop over all the selected variables and find them in the
-        # plot model. We need to check both the filename and the
-        # variable name in case the variable name exists in different
-        # files.
-        for i, plot_var in enumerate(self._plot_model.vars):
-            for sel_var in sel_vars:
-                if sel_var.var.name == plot_var.name and sel_var.var.file.name == plot_var.file.name:
-                    rem_idx.add(i)
-
-        # Remove variable from the plot
-        self._plot_model.vars = [var for i, var in enumerate(self._plot_model.vars) if i not in rem_idx]
-
-        # Remove variable from the tree view
-        root = self._view.y_var_tree.invisibleRootItem()
-        for item in sel_vars:
-            root.removeChild(item)
+            self._view.y_table.setCurrentItem(item)
 
     def cancel(self):
         self._plot_model.clear_vars()
         self._plot_model.clear_options()
-        self._view.close()
-
-    def plot(self):
-        # We need to iterate over the variables in the view and set the
-        # selected options in the plot variables.
-        var_it = QtWidgets.QTreeWidgetItemIterator(self._view.var_tree)
-        while var_it.value():
-            item = var_it.value()
-            item.setVarOpts()
-            var_it += 1
-
-        self._plot_model.plot()
-        self._parent_model.canvas.draw()
         self._view.close()

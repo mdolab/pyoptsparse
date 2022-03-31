@@ -17,6 +17,8 @@ from PyQt5 import QtWidgets
 # ==============================================================================
 from pyoptsparse.postprocessing.utils.combo_box import ExtendedComboBox
 from pyoptsparse.postprocessing.utils.button import Button
+from pyoptsparse.postprocessing.sub_MVCs.variables.y_view import YTableWidget
+from pyoptsparse.postprocessing.sub_MVCs.variables.x_view import XTableWidget
 
 
 class ConfigurePlotView(QtWidgets.QDialog):
@@ -28,6 +30,10 @@ class ConfigurePlotView(QtWidgets.QDialog):
         self._controller.set_view(self)
         self.resize(1000, 800)
         self._initView()
+
+        # --- Anything that needs to be done upon re-opening the window ---
+        self._controller.populate_files()
+        self._controller.setup_var_tables()
 
     def _initView(self):
         # --- Create top layout
@@ -57,52 +63,33 @@ class ConfigurePlotView(QtWidgets.QDialog):
         left_layout.addWidget(self.file_tree)
 
         # ==============================================================================
-        # Button Layout - Bottom Left Layout
-        # ==============================================================================
-        self.plot_btn = Button("Plot", self)
-        self.plot_btn.clicked.connect(self._controller.plot)
-        left_layout.addWidget(self.plot_btn)
-
-        self.remove_var_btn = Button("Remove Selected", self)
-        self.remove_var_btn.clicked.connect(self._controller.remove_sel_var)
-        left_layout.addWidget(self.remove_var_btn)
-
-        self.cancel_btn = Button("Cancel", self)
-        self.cancel_btn.clicked.connect(self._controller.cancel)
-        left_layout.addWidget(self.cancel_btn)
-
-        # ==============================================================================
         # Y-Variables - Top Right Layout
         # ==============================================================================
         # --- Add y-vars combobox ---
-        self.y_var_query = QtWidgets.QLineEdit(self)
-        self.y_var_query.setPlaceholderText("Search...")
-        self.y_var_query.textChanged.connect(self._controller.y_var_search)
-        right_layout.addWidget(self.y_var_query)
+        self.y_query = QtWidgets.QLineEdit(self)
+        self.y_query.setPlaceholderText("Search...")
+        self.y_query.textChanged.connect(self._controller.y_var_search)
+        right_layout.addWidget(self.y_query)
 
         # --- Add y-vars variable list ---
-        self.y_var_tree = QtWidgets.QTreeWidget(self)
-        self.y_var_tree.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.y_var_tree.setColumnCount(4)
-        self.y_var_tree.setHeaderLabels(["File", "Name", "Scaled", "Bounds"])
-        right_layout.addWidget(self.y_var_tree)
+        self.y_table = YTableWidget(self)
+        self.y_table.setColumnCount(6)
+        self.y_table.setHorizontalHeaderLabels(["File", "Name", "Scaled", "Bounds", "Add", "Remove"])
+        right_layout.addWidget(self.y_table)
 
         # ==============================================================================
         # X-Variables - Middle Right Layout
         # ==============================================================================
-        self.x_var_cbox = ExtendedComboBox(self)
-        self.x_var_cbox.setInsertPolicy(QtWidgets.QComboBox.NoInsert)
-        self.x_var_cbox.setToolTip("Type to search for variables")
-        self.x_var_cbox.activated.connect(self._controller.add_x_var)
-        right_layout.addWidget(self.x_var_cbox)
+        self.x_cbox = ExtendedComboBox(self)
+        self.x_cbox.setInsertPolicy(QtWidgets.QComboBox.NoInsert)
+        self.x_cbox.setToolTip("Type to search for variables")
+        self.x_cbox.activated.connect(self._controller.add_x_var)
+        right_layout.addWidget(self.x_cbox)
 
-        self.x_var_tree = QtWidgets.QTreeWidget(self)
-        self.x_var_tree.setColumnCount(2)
-        self.x_var_tree.setHeaderLabels(["File", "Name"])
-        right_layout.addWidget(self.x_var_tree)
-
-        # --- Anything that needs to be done upon re-opening the window ---
-        self._controller.populate_files()
+        self.x_table = XTableWidget(self)
+        self.x_table.setColumnCount(2)
+        self.x_table.setHorizontalHeaderLabels(["File", "Name"])
+        right_layout.addWidget(self.x_table)
 
         # --- Set the main layout ---
         self.setLayout(layout)
