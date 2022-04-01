@@ -32,8 +32,8 @@ class ConfigurePlotView(QtWidgets.QDialog):
         self._initView()
 
         # --- Anything that needs to be done upon re-opening the window ---
-        self._controller.populate_files()
         self._controller.setup_var_tables()
+        self._controller.populate_files()
 
     def _initView(self):
         # --- Create top layout
@@ -87,8 +87,6 @@ class ConfigurePlotView(QtWidgets.QDialog):
         right_layout.addWidget(self.x_cbox)
 
         self.x_table = XTableWidget(self)
-        self.x_table.setColumnCount(2)
-        self.x_table.setHorizontalHeaderLabels(["File", "Name"])
         right_layout.addWidget(self.x_table)
 
         # --- Set the main layout ---

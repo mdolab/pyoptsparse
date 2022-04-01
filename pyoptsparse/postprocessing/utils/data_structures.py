@@ -25,7 +25,7 @@ class Variable:
 
     def __init__(self, var_name: str):
         self.name = var_name
-        self.options = {"scaled": False, "bounds": False, "major_iter": False}
+        self.options = {"scaled": False, "bounds": False, "major": True}
         self.bounds = {"upper": None, "lower": None}
         self.values = None
         self.file = None
@@ -81,7 +81,7 @@ class File:
             plotting.
         """
 
-        major_opt = var.options["major_iter"]
+        major_opt = var.options["major"]
         bound_opt = var.options["bounds"]
         scale_opt = var.options["scaled"]
 
@@ -93,38 +93,43 @@ class File:
             var_info = self.file_reader.getObjInfo(var.name)
         else:
             var_info = None
-            raise ValueError("Variable is not part of the optimization problem.")
 
-        # If the scale option is selected, use the scale factor.  Otherwise, use all ones.
-        if isinstance(var_info["scale"], float):
-            scale = np.array([var_info["scale"]]) if scale_opt else np.ones(1)
-        else:
-            scale = np.array(var_info["scale"]) if scale_opt else np.ones(len(var_info["scale"]))
+        # Only check for bounds and scaling of var info exists.
+        # i.e, the variable is part of the problem formulation and not
+        # optimality, feasibility, etc...
+        if var_info is not None:
+            if isinstance(var_info["scale"], float):
+                scale = np.array([var_info["scale"]]) if scale_opt else np.ones(1)
+            else:
+                scale = np.array(var_info["scale"]) if scale_opt else np.ones(len(var_info["scale"]))
+
+            # Only get the bounds if the option is True and the requested
+            # variable is not an objective function.
+            if bound_opt and var.name not in self.obj_names:
+
+                upper = np.zeros(len(var_info["upper"]))  # Initialize the upper bounds
+                lower = np.zeros(len(var_info["lower"]))  # Initialize the lower bounds
+
+                var.bounds["upper"] = np.where(upper != 1e30, upper * scale, None)
+                var.bounds["lower"] = np.where(lower != 1e30, lower * scale, None)
 
         # The data is returned from the hist api as a dictionary where the key is
         # the variable name and the values are the
-        data = self.file_reader.getValues(names=var.name, major=major_opt, scale=scale_opt)
-        var.values = np.array(list(data.values()))[0]
-
-        # Only get the bounds if the option is True and the requested
-        # variable is not an objective function.
-        if bound_opt and var.name not in self.obj_names:
-
-            upper = np.zeros(len(var_info["upper"]))  # Initialize the upper bounds
-            lower = np.zeros(len(var_info["lower"]))  # Initialize the lower bounds
-
-            var.bounds["upper"] = np.where(upper != 1e30, upper * scale, None)
-            var.bounds["lower"] = np.where(lower != 1e30, lower * scale, None)
+        if var.name in self.file_reader.getValues():
+            data = self.file_reader.getValues(names=var.name, major=major_opt, scale=scale_opt)
+            var.values = data[var.name]
+        else:
+            raise KeyError("Variable name not in the history.")
 
     def get_all_x_var_names(self):
-        x_name_filter = ["nMajor", "nMinor"] + self.dv_names
-        return [name for name in self.all_names if name not in x_name_filter]
+        x_name_filter = ["iter"] + self.dv_names
+        return [name for name in self.all_names if name in x_name_filter]
 
     def get_all_y_var_names(self):
         y_name_filter = (
             ["step", "optimality", "feasibility", "merit", "penalty"] + self.dv_names + self.con_names + self.obj_names
         )
-        return [name for name in self.all_names if name not in y_name_filter]
+        return [name for name in self.all_names if name in y_name_filter]
 
     def get_metadata(self):
         return self.file_reader.getMetadata()

@@ -42,6 +42,7 @@ class TabViewController:
         self._root = root
         self._model = TabModel()
         self._view = view
+        self._sub_views = []
 
     def open_files(self):
         # --- Set file dialog options ---
@@ -95,6 +96,8 @@ class TabViewController:
             QtWidgets.QMessageBox.warning(self._view, "Subplot Value Warning", "OptView can only handle 3 subplots")
 
     def remove_plot(self, idx):
+        for sub_view in self._model.sub_views:
+            sub_view.close()
         # --- Remove the plot from the model ---
         self._model.remove_plot(idx)
         self._view.plot_list.takeItem(idx)
@@ -110,7 +113,8 @@ class TabViewController:
 
     def configure_view(self, idx: int, name: str):
         configure_plot_controller = ConfigureController(self._model, self._model.plots[idx])
-        ConfigurePlotView(self._root, configure_plot_controller, name)
+        sub_view = ConfigurePlotView(self._view, configure_plot_controller, name)
+        self._model.sub_views.append(sub_view)
 
     def auto_refresh(self):
         if self._view.auto_refresh_togg.isChecked():

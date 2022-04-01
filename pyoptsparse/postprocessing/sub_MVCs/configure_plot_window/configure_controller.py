@@ -77,6 +77,12 @@ class ConfigureController(object):
         self._view.y_table.clear()
         self._view.x_table.clear()
         self._ytable_controller.populate_vars(self._current_file)
+
+        if self._plot_model.x_var is None:
+            new_var = Variable("iter")
+            new_var.file = self._current_file
+            self._plot_model.add_var(new_var, "x")
+
         self._xtable_controller.populate_vars()
 
     def populate_x_var_checkbox(self):

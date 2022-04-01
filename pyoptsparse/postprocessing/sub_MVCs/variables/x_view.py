@@ -22,8 +22,8 @@ from PyQt5 import QtWidgets
 class XTableWidget(QtWidgets.QTableWidget):
     def __init__(self, parent=None):
         super(XTableWidget, self).__init__(parent)
+        self.setColumnCount(3)
         self.setShowGrid(False)
-        self.setStyleSheet("QTableView::item {border-bottom: 1px solid #d6d9dc;}")
         self.verticalHeader().setVisible(False)
         self._controller = None
 

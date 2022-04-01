@@ -77,23 +77,27 @@ class YController:
         rem_btn.clicked.connect(self.remove_var_from_plot)
         self._view.setCellWidget(row, 5, rem_btn)
 
+        self._view.resizeColumnsToContents()
+
     def clear_vars(self):
         self._view.clear()
 
     def add_var_to_plot(self):
-        selected_var = self.parent.item(self.row, 1)
-        scaled_opt = self.parent.item(self.row, 2).checkState()
-        bounds_opt = self.parent.item(self.row, 3).checkState()
+        sender = self._view.sender()
+        selected_var = self._view.item(sender.row, 1)
+        scaled_opt = self._view.item(sender.row, 2).checkState()
+        bounds_opt = self._view.item(sender.row, 3).checkState()
 
         self._plot_model.add_var(selected_var.var, "y", scaled_opt=scaled_opt, bounds_opt=bounds_opt)
 
         self._plot_model.plot()
         self._parent_model.canvas.draw()
 
-        self.setRowColor(self.row, GREEN)
+        self.setRowColor(sender.row, GREEN)
 
     def remove_var_from_plot(self):
-        selected_var = self.parent.item(self.row, 1)
+        sender = self._view.sender()
+        selected_var = self._view.item(sender.row, 1)
         rem_idx = None
         for i, plot_var in enumerate(self._plot_model.y_vars):
             if selected_var.var.name == plot_var.name and selected_var.var.file.name == plot_var.file.name:
@@ -107,8 +111,8 @@ class YController:
         self._plot_model.plot()
         self._parent_model.canvas.draw()
 
-        self.setRowColor(self.row, WHITE)
+        self.setRowColor(sender.row, WHITE)
 
     def setRowColor(self, row, color):
-        for j in self._view.columnCount():
+        for j in range(self._view.columnCount() - 2):
             self._view.item(row, j).setBackground(color)

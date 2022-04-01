@@ -16,6 +16,7 @@ from PyQt5 import QtWidgets, QtCore
 # Extension modules
 # ==============================================================================
 from pyoptsparse.postprocessing.utils.button import Button
+from pyoptsparse.postprocessing.utils.switch import Switch
 
 
 class PlotListWidget(QtWidgets.QWidget):
@@ -118,7 +119,15 @@ class VarTableWidgetItem(QtWidgets.QTableWidgetItem):
         self.var = var
 
 
-class TableButtonWidget(QtWidgets.QPushButton):
+class TableButtonWidget(
+    QtWidgets.QPushButton,
+):
     def __init__(self, row, *args, **kwargs):
         super(TableButtonWidget, self).__init__(*args, **kwargs)
+        self.row = row
+
+
+class IterSwitchWidget(Switch):
+    def __init__(self, row: int, *args, **kwargs):
+        super(IterSwitchWidget, self).__init__(*args, **kwargs)
         self.row = row

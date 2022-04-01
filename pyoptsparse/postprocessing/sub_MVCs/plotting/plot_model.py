@@ -10,7 +10,7 @@ Model which controls individual subplots.
 # ==============================================================================
 # External Python modules
 # ==============================================================================
-import numpy as np
+import matplotlib.patheffects as patheffects
 
 # ==============================================================================
 # Extension modules
@@ -22,7 +22,7 @@ class PlotModel(object):
 
     def __init__(self):
         self.y_vars = []
-        self.x_vars = []
+        self.x_var = None
         self.axis = None
         self.colors = [
             ("Yellow", "#e29400ff"),
@@ -47,13 +47,13 @@ class PlotModel(object):
             The variable object to be added
         """
         if axis == "x":
-            self.x_vars.append(var)
+            self.x_var = var
         elif axis == "y":
             var.options["bounds"] = bounds_opt
             var.options["scaled"] = scaled_opt
             self.y_vars.append(var)
 
-    def remove_var(self, idx: int):
+    def remove_var(self, idx: int, axis: str):
         """
         Removes a variable from the data model
 
@@ -62,14 +62,15 @@ class PlotModel(object):
         idx: int
             The index of the variable to be removed
         """
-        self.vars.pop(idx)
+        if axis == "x":
+            self.x_var = None
+        elif axis == "y":
+            self.y_vars.pop(idx)
 
     def clear_vars(self):
         """Resets the variables to an empty list"""
-        self.vars = []
-
-    def clear_options(self):
-        self.options = {"scaled": False, "bounds": False, "major_iter": True}
+        self.x_var = None
+        self.y_vars = []
 
     def update_axis(self, axis):
         self.axis = axis
@@ -80,23 +81,34 @@ class PlotModel(object):
 
     def plot(self):
         self.clear_axis()
-        for i, var in enumerate(self.y_vars):
+        if self.x_var is not None:
+            self.x_var.file.get_var_data(self.x_var)
+        for i, y_var in enumerate(self.y_vars):
             # Set some default plotting options for the variable
-            var.setPlotOptions(color=self.colors[i][1], marker=".")
-            var.file.get_var_data(var)
-            # We need to check for multi-dimensional input
-            # If multi-dim, the iters will be the number of rows in the array, a.k.a the first dimension
-            iters = np.arange(0, var.values.size, 1) if var.values.ndim == 1 else np.arange(0, var.values.shape[0], 1)
+            y_var.setPlotOptions(color=self.colors[i][1], marker=".")
+            y_var.file.get_var_data(y_var)
             self.axis.plot(
-                iters, var.values, color=var.plot_options["color"], marker=var.plot_options["marker"], label=var.name
+                self.x_var.values,
+                y_var.values,
+                color=y_var.plot_options["color"],
+                marker=y_var.plot_options["marker"],
+                label=y_var.name,
             )
 
-            if var.options["bounds"]:
-                if var.bounds["upper"] is not None:
-                    for ub in var.bounds["upper"]:
+            if y_var.options["bounds"]:
+                if y_var.bounds["upper"] is not None:
+                    for ub in y_var.bounds["upper"]:
                         if ub is not None:
-                            self.axis.axhline(y=ub, linestyle="--", color=var.plot_options["color"])
-                if var.bounds["lower"] is not None:
-                    for lb in var.bounds["lower"]:
+                            self.axis.axhline(
+                                y=ub,
+                                color=y_var.plot_options["color"],
+                                path_effects=[patheffects.withTickedStroke()],
+                            )
+                if y_var.bounds["lower"] is not None:
+                    for lb in y_var.bounds["lower"]:
                         if lb is not None:
-                            self.axis.axhline(y=lb, linestyle="--", color=var.plot_options["color"])
+                            self.axis.axhline(
+                                y=lb,
+                                color=y_var.plot_options["color"],
+                                path_effects=[patheffects.withTickedStroke(angle=-135)],
+                            )

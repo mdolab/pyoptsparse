@@ -27,6 +27,7 @@ class TabModel(object):
         self.canvas = None
         self.files = []
         self.plots = []
+        self.sub_views = []
         self.timer = QtCore.QTimer()
 
     def refresh(self):
@@ -42,6 +43,12 @@ class TabModel(object):
     def add_plot(self, plot):
         self.plots.append(plot)
         self.canvas.draw()
+
+    def add_sub_view(self, view):
+        self.sub_views.append(view)
+
+    def remove_sub_view(self, idx):
+        return self.sub_views.pop(idx)
 
     def remove_plot(self, idx):
         # --- Remove the plot object and clear the figure ---
