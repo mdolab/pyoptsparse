@@ -73,8 +73,13 @@ class TabViewController:
 
             # --- Create a plot object and set its axis ---
             plot = PlotModel()
-            plot.axis = self._model.canvas.fig.add_subplot(int(f"{idx+1}1{idx+1}"), label=f"Plot {idx}")
-            self._model.add_plot(plot)
+            label = f"Plot {idx}"
+            plot.axis = self._model.canvas.fig.add_subplot(int(f"{idx+1}1{idx+1}"), label=label)
+
+            # --- Create sub view and controller ---
+            configure_plot_controller = ConfigureController(self._model, plot)
+            sub_view = ConfigurePlotView(self._view, configure_plot_controller, label)
+            self._model.add_plot(plot, sub_view)
 
             # --- Create socket for custom widget ---
             item = QtWidgets.QListWidgetItem(self._view.plot_list)
@@ -96,11 +101,13 @@ class TabViewController:
             QtWidgets.QMessageBox.warning(self._view, "Subplot Value Warning", "OptView can only handle 3 subplots")
 
     def remove_plot(self, idx):
-        for sub_view in self._model.sub_views:
-            sub_view.close()
         # --- Remove the plot from the model ---
-        self._model.remove_plot(idx)
+        sub_view = self._model.remove_plot(idx)
         self._view.plot_list.takeItem(idx)
+
+        if sub_view is not None:
+            sub_view.close()
+            sub_view.destroy()
 
         # --- Loop over custom widgets and update the index and plot number ---
         for i in range(len(self._model.plots)):
@@ -108,13 +115,12 @@ class TabViewController:
             widget = self._view.plot_list.itemWidget(item)
             widget.idx = i
             widget.title.setText(f"Plot {i}")
+            self._model.sub_views[i].setWindowTitle(f"Plot {i}")
 
         self.refresh_plots()
 
-    def configure_view(self, idx: int, name: str):
-        configure_plot_controller = ConfigureController(self._model, self._model.plots[idx])
-        sub_view = ConfigurePlotView(self._view, configure_plot_controller, name)
-        self._model.sub_views.append(sub_view)
+    def configure_view(self, idx: int):
+        self._model.sub_views[idx].show()
 
     def auto_refresh(self):
         if self._view.auto_refresh_togg.isChecked():

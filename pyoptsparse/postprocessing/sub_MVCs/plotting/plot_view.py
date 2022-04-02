@@ -23,7 +23,7 @@ from PyQt5 import QtWidgets
 # ==============================================================================
 
 # --- Set matplotlib backend settings to use Qt5 ---
-matplotlib.use("Qt5Agg")
+matplotlib.use(backend="Qt5Agg")
 dir_path = os.path.dirname(os.path.realpath(__file__))
 plt.style.use(os.path.join(dir_path, "nicePlotsStyle"))
 

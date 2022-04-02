@@ -46,7 +46,7 @@ class PlotListWidget(QtWidgets.QWidget):
         self.controller.remove_plot(self.idx)
 
     def configure(self):
-        self.controller.configure_view(self.idx, self.title.text())
+        self.controller.configure_view(self.idx)
 
 
 class FileTreeWidgetItem(QtWidgets.QTreeWidgetItem):

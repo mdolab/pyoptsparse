@@ -12,6 +12,7 @@
 # ==============================================================================
 # External Python modules
 # ==============================================================================
+from PyQt5 import QtWidgets
 
 # ==============================================================================
 # Extension modules
@@ -55,17 +56,31 @@ class XController:
         if sender.isChecked():
             # Adjust the iteration option for the x-variable
             x_var.options["major"] = False
-            x_var.file.get_var_data(x_var)
             for y_var in self._plot_model.y_vars:
                 y_var.options["major"] = False
         else:
             x_var.options["major"] = True
-            x_var.file.get_var_data(x_var)
             for y_var in self._plot_model.y_vars:
                 y_var.options["major"] = True
 
-        self._plot_model.plot()
+        flag = self._plot_model.plot()
+        if not flag:
+            msg = QtWidgets.QMessageBox(self._view)
+            msg.setWindowTitle("Variable Warning")
+            msg.setText("The x variable or y variables don't have minor iterations.\n\nReverting to major iterations.")
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg.exec_()
+
+            x_var.options["major"] = True
+            for y_var in self._plot_model.y_vars:
+                y_var.options["major"] = True
+
+            sender.setChecked(False)
+
+            self._plot_model.plot()
+
         self._parent_model.canvas.draw()
 
     def clear_vars(self):
         self._view.clear()
+        self._view.setRowCount(0)

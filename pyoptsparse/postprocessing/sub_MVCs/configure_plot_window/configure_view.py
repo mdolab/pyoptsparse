@@ -73,8 +73,6 @@ class ConfigurePlotView(QtWidgets.QDialog):
 
         # --- Add y-vars variable list ---
         self.y_table = YTableWidget(self)
-        self.y_table.setColumnCount(6)
-        self.y_table.setHorizontalHeaderLabels(["File", "Name", "Scaled", "Bounds", "Add", "Remove"])
         right_layout.addWidget(self.y_table)
 
         # ==============================================================================
@@ -91,9 +89,6 @@ class ConfigurePlotView(QtWidgets.QDialog):
 
         # --- Set the main layout ---
         self.setLayout(layout)
-
-        # --- Show the view ---
-        self.show()
 
     def _center(self):
         qr = self.frameGeometry()

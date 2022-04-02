@@ -40,19 +40,15 @@ class TabModel(object):
             file.load_file(fp)
             self.files.append(file)
 
-    def add_plot(self, plot):
+    def add_plot(self, plot, view):
         self.plots.append(plot)
-        self.canvas.draw()
-
-    def add_sub_view(self, view):
         self.sub_views.append(view)
-
-    def remove_sub_view(self, idx):
-        return self.sub_views.pop(idx)
+        self.canvas.draw()
 
     def remove_plot(self, idx):
         # --- Remove the plot object and clear the figure ---
         self.plots.pop(idx)
+        view = self.sub_views.pop(idx)
         self.canvas.fig.clf()
 
         # --- Loop over existing plots and update the axes ---
@@ -68,3 +64,5 @@ class TabModel(object):
 
         # --- Draw the canvas to show updates ---
         self.canvas.draw()
+
+        return view

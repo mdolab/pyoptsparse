@@ -47,7 +47,7 @@ class YController:
         # Find all variables that are in the plot, highlight them in
         # green, and link the table variable to the plot variable
         for plot_var in self._plot_model.y_vars:
-            for i in self._view.rowCount():
+            for i in range(self._view.rowCount()):
                 var_item = self._view.item(i, 1)
                 if var_item.var.name == plot_var.name and var_item.var.file.name == plot_var.file.name:
                     var_item.var = plot_var
@@ -69,18 +69,24 @@ class YController:
         bounds_opt_item.setCheckState(QtCore.Qt.Unchecked)
         self._view.setItem(row, 3, bounds_opt_item)
 
-        add_btn = Button(4, "Add", self._view)
+        add_btn = Button(row, "Add", self._view)
+        add_item = QtWidgets.QTableWidgetItem()
         add_btn.clicked.connect(self.add_var_to_plot)
         self._view.setCellWidget(row, 4, add_btn)
+        self._view.setItem(row, 4, add_item)
 
-        rem_btn = Button(5, "Remove", self._view)
+        rem_btn = Button(row, "Remove", self._view)
+        rem_item = QtWidgets.QTableWidgetItem()
         rem_btn.clicked.connect(self.remove_var_from_plot)
         self._view.setCellWidget(row, 5, rem_btn)
+        self._view.setItem(row, 5, rem_item)
 
+        self._view.setHorizontalHeaderLabels(["File", "Name", "Scaled", "Bounds", "Add", "Remove"])
         self._view.resizeColumnsToContents()
 
     def clear_vars(self):
         self._view.clear()
+        self._view.setRowCount(0)
 
     def add_var_to_plot(self):
         sender = self._view.sender()
@@ -105,7 +111,7 @@ class YController:
 
         # Remove variable from the plot
         if rem_idx is not None:
-            self._plot_model.remove_var(rem_idx)
+            self._plot_model.remove_var(rem_idx, "y")
 
         # Update the plot
         self._plot_model.plot()
@@ -114,5 +120,5 @@ class YController:
         self.setRowColor(sender.row, WHITE)
 
     def setRowColor(self, row, color):
-        for j in range(self._view.columnCount() - 2):
+        for j in range(self._view.columnCount()):
             self._view.item(row, j).setBackground(color)

@@ -23,8 +23,9 @@ class YTableWidget(QtWidgets.QTableWidget):
     def __init__(self, parent=None):
         super(YTableWidget, self).__init__(parent)
         self.setShowGrid(False)
-        self.setStyleSheet("QTableView::item {border-bottom: 1px solid #d6d9dc;}")
         self.verticalHeader().setVisible(False)
+        self.setColumnCount(6)
+        self.setHorizontalHeaderLabels(["File", "Name", "Scaled", "Bounds", "Add", "Remove"])
         self._controller = None
 
     def setController(self, controller):

@@ -58,6 +58,7 @@ class ConfigureController(object):
         self.populate_files()
 
     def populate_files(self):
+        self._view.file_tree.clear()
         for file in self._parent_model.files:
             file_item = FileTreeWidgetItem(self._view.file_tree)
             file_item.setFile(file)
@@ -70,12 +71,15 @@ class ConfigureController(object):
 
     def file_selected(self, item, column):
         self._current_file = item.file
+        self._plot_model.clear_vars()
+        self._plot_model.clear_axis()
+        self._parent_model.canvas.draw()
         self.populate_vars()
 
     def populate_vars(self):
         self.populate_x_var_checkbox()
-        self._view.y_table.clear()
-        self._view.x_table.clear()
+        self._ytable_controller.clear_vars()
+        self._xtable_controller.clear_vars()
         self._ytable_controller.populate_vars(self._current_file)
 
         if self._plot_model.x_var is None:
@@ -92,7 +96,7 @@ class ConfigureController(object):
             self._view.x_cbox.addItem(var_name)
 
     def add_x_var(self):
-        self._view.x_table.clear()
+        self._xtable_controller.clear_vars()
         var_name = self._view.x_cbox.currentText()
 
         # Create a new variable and add to the plot model
@@ -112,8 +116,3 @@ class ConfigureController(object):
         if items:
             item = items[1]
             self._view.y_table.setCurrentItem(item)
-
-    def cancel(self):
-        self._plot_model.clear_vars()
-        self._plot_model.clear_options()
-        self._view.close()

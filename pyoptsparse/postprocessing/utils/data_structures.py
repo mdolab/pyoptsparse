@@ -122,12 +122,15 @@ class File:
             raise KeyError("Variable name not in the history.")
 
     def get_all_x_var_names(self):
-        x_name_filter = ["iter"] + self.dv_names
+        x_name_filter = ["iter", "time"] + self.dv_names
         return [name for name in self.all_names if name in x_name_filter]
 
     def get_all_y_var_names(self):
         y_name_filter = (
-            ["step", "optimality", "feasibility", "merit", "penalty"] + self.dv_names + self.con_names + self.obj_names
+            ["step", "time", "optimality", "feasibility", "merit", "penalty"]
+            + self.dv_names
+            + self.con_names
+            + self.obj_names
         )
         return [name for name in self.all_names if name in y_name_filter]
 
