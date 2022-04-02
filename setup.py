@@ -50,7 +50,7 @@ if __name__ == "__main__":
         r"""__version__ = ["']+([0-9\.]*)["']+""",
         open("pyoptsparse/__init__.py").read(),
     )[0]
-    
+
     with open("doc/requirements.txt") as f:
         docs_require = f.read().splitlines()
 
