@@ -38,9 +38,9 @@ class TabViewController:
     response for the main view.
     """
 
-    def __init__(self, root, view):
+    def __init__(self, root, view, files=[]):
         self._root = root
-        self._model = TabModel()
+        self._model = TabModel(files)
         self._view = view
         self._sub_views = []
 

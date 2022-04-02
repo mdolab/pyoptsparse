@@ -9,11 +9,14 @@ data management, functional control, and visualization.
 # Standard Python modules
 # ==============================================================================
 import sys
+import os
+import argparse
 
 # ==============================================================================
 # External Python modules
 # ==============================================================================
 from PyQt5 import QtWidgets, QtGui, QtCore
+from click import FileError
 
 # ==============================================================================
 # Extension modules
@@ -25,12 +28,13 @@ QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
 
 class MainView(QtWidgets.QWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, files=[], **kwargs):
         super().__init__(*args, **kwargs)
         self._center()  # centers the application in the middle of the screen
         self.setWindowTitle("OptView")  # sets the GUI title
         self.setWindowIcon(QtGui.QIcon("assets/OptViewIcon.gif"))  # sets the OptView logo
         self._controller = OptViewController(self)
+        self.files = files
         self._initUI()
 
     def _initUI(self):
@@ -59,7 +63,7 @@ class MainView(QtWidgets.QWidget):
         self.tabs = QtWidgets.QTabWidget()
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self._controller.closeTab)
-        tab1 = TabView(self)
+        tab1 = TabView(files=self.files, parent=self)
 
         self.tabs.addTab(tab1, "Home")
 
@@ -75,6 +79,14 @@ class MainView(QtWidgets.QWidget):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--files", nargs="+", type=str, help="File(s) to load into OptView on startup.")
+    args = parser.parse_args()
+    for file in args.files:
+        if not os.path.exists(file):
+            raise FileNotFoundError(f"History file: {file}")
+        elif not file.endswith(".hst"):
+            raise NameError(f"File: {file} is not a readable history file.")
     app = QtWidgets.QApplication(sys.argv)
-    w = MainView()
+    w = MainView(files=args.files)
     app.exec_()

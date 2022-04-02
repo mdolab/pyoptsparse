@@ -23,12 +23,14 @@ from pyoptsparse.postprocessing.utils.data_structures import File
 class TabModel(object):
     """Manages top-level data for the controller"""
 
-    def __init__(self):
+    def __init__(self, files=[]):
         self.canvas = None
         self.files = []
         self.plots = []
         self.sub_views = []
         self.timer = QtCore.QTimer()
+
+        self.load_files(files)
 
     def refresh(self):
         """Refresh all files and variable lists"""

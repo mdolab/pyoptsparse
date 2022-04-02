@@ -22,9 +22,9 @@ from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_controller import TabVie
 
 
 class TabView(QtWidgets.QWidget):
-    def __init__(self, parent):
+    def __init__(self, files=[], parent=None):
         super(TabView, self).__init__(parent)
-        self._controller = TabViewController(parent, self)
+        self._controller = TabViewController(parent, self, files)
         self._initView()
 
     def _initView(self):
