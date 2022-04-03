@@ -1,30 +1,15 @@
-# --- Python 3.8 ---
-"""
-Controller for the sub view.  Interacts with the data models and
-handles all user input and response functionality.  Controller can
-only update the view based on user input.  If a view state is changed
-which requires a messagebox view, that view is created by the controller
-but managed seperately.
-
-State control is encapsulated within it's own controller class which
-is specific to this sub view.
-"""
-
-# ==============================================================================
 # Standard Python modules
-# ==============================================================================
+from typing import List
 
-# ==============================================================================
-# External Python modules
-# ==============================================================================
-from PyQt5 import QtWidgets
+# External modules
+from PyQt5.QtWidgets import QWidget, QFileDialog, QListWidgetItem, QMessageBox
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
-# ==============================================================================
-# Extension modules
-# ==============================================================================
+# Local modules
+from pyoptsparse.postprocessing.utils.widgets import PlotListWidget
+from pyoptsparse.postprocessing.utils.base_classes import Controller
 from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_model import TabModel
 from pyoptsparse.postprocessing.sub_MVCs.plotting.plot_model import PlotModel
-from pyoptsparse.postprocessing.utils.widgets import PlotListWidget
 from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_view import ConfigurePlotView
 from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_controller import ConfigureController
 from pyoptsparse.postprocessing.sub_MVCs.metadata_window.metadata_controller import MetadataController
@@ -32,30 +17,54 @@ from pyoptsparse.postprocessing.sub_MVCs.metadata_window.metadata_view import Me
 from pyoptsparse.postprocessing.sub_MVCs.metadata_window.metadata_model import MetadataModel
 
 
-class TabViewController:
-    """
-    Contains functionality for user input and software
-    response for the main view.
-    """
+class TabController(Controller):
+    def __init__(self, root: QWidget, file_names: List = []):
+        """
+        The controller for the tab view.
 
-    def __init__(self, root, view, file_names=[]):
+        Parameters
+        ----------
+        root : PyQt5.QtWidgets.QWidget
+            The OptView main view
+        file_names : List, optional
+            Names of files to be pre-loaded in to the model,
+            by default []
+        """
+        super(TabController, self).__init__()
         self._root = root
         self._model = TabModel(file_names=file_names)
-        self._view = view
+        self._view = None
         self._sub_views = []
 
+    def set_view(self, view: QWidget):
+        """
+        Sets the view of the controller.
+
+        Parameters
+        ----------
+        view : PyQt5.QtWidgets.QWidget
+            The view associated with this controller.
+        """
+        self._view = view
+
     def open_files(self):
+        """
+        Opens a file dialog for the user to load files into the model.
+        """
         # --- Set file dialog options ---
-        options = QtWidgets.QFileDialog.Options()
-        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
 
         # --- Open file dialog and get selected user files ---
-        file_names, _ = QtWidgets.QFileDialog.getOpenFileNames(self._view, "Open History File", "", "", options=options)
+        file_names, _ = QFileDialog.getOpenFileNames(self._view, "Open History File", "", "", options=options)
 
         # --- Load files into the model ---
         self._model.load_files(file_names)
 
     def add_plot(self):
+        """
+        Adds a plot to the tab model.
+        """
         # --- Get the number of the plot ---
         idx = len(self._model.plots)
 
@@ -82,7 +91,7 @@ class TabViewController:
             self._model.add_plot(plot, sub_view)
 
             # --- Create socket for custom widget ---
-            item = QtWidgets.QListWidgetItem(self._view.plot_list)
+            item = QListWidgetItem(self._view.plot_list)
 
             # --- Create custom plot list widget ---
             plot_list_widget = PlotListWidget(self._view, self, idx)
@@ -98,9 +107,17 @@ class TabViewController:
 
         except ValueError:
             # --- Show warning if more than 3 plots are added ---
-            QtWidgets.QMessageBox.warning(self._view, "Subplot Value Warning", "OptView can only handle 3 subplots")
+            QMessageBox.warning(self._view, "Subplot Value Warning", "OptView can only handle 3 subplots")
 
-    def remove_plot(self, idx):
+    def remove_plot(self, idx: int):
+        """
+        Removes a plot at the given index from the model.
+
+        Parameters
+        ----------
+        idx : int
+            The index of the plot to be removed.
+        """
         # --- Remove the plot from the model ---
         sub_view = self._model.remove_plot(idx)
         self._view.plot_list.takeItem(idx)
@@ -120,9 +137,22 @@ class TabViewController:
         self.refresh_plots()
 
     def configure_view(self, idx: int):
+        """
+        Opens the configuration view for the plot at the given index.
+
+        Parameters
+        ----------
+        idx : int
+            The index of the plot for which the configuration window
+            is associated.
+        """
         self._model.sub_views[idx].show()
 
     def auto_refresh(self):
+        """
+        Turns on auto refresh mode.  When activated, this function
+        will refresh the history file and the plots every 5 seconds.
+        """
         if self._view.auto_refresh_togg.isChecked():
             self._view.refresh_btn.setEnabled(False)
             self._model.timer.start(5000)
@@ -132,6 +162,10 @@ class TabViewController:
             self._view.refresh_btn.setEnabled(True)
 
     def refresh(self):
+        """
+        Performs a single refresh operation on the history file
+        and the plots.
+        """
         for file in self._model.files:
             file.refresh()
 
@@ -142,14 +176,29 @@ class TabViewController:
         self.refresh_plots()
 
     def refresh_plots(self):
+        """
+        Loops over all the plots in the model re-plots them with the
+        new data from the refreshed history file.
+        """
         for p in self._model.plots:
             p.plot()
 
         self._model.canvas.draw()
 
-    def set_model_canvas(self, canvas):
+    def set_model_canvas(self, canvas: FigureCanvasQTAgg):
+        """
+        Sets the canvas for the model.
+
+        Parameters
+        ----------
+        canvas : matplotlib.backends.backend_qt5agg.FigureCanvasQTAgg
+            The backend matplotlib canvas configured for qt5
+        """
         self._model.canvas = canvas
 
     def meta_view(self):
+        """
+        Creates a meta data controller and spawns the meta data view.
+        """
         meta_controller = MetadataController(MetadataModel(), self._model.files)
         MetadataView(self._root, meta_controller, "Metadata Viewer")

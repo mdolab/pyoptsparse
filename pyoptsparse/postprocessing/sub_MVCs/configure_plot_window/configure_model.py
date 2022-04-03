@@ -1,21 +1,14 @@
-# --- Python 3.8 ---
-"""
-Model for the configure plot window
-"""
-
-# ==============================================================================
 # Standard Python modules
-# ==============================================================================
 
-# ==============================================================================
-# External Python modules
-# ==============================================================================
-
-# ==============================================================================
 # Extension modules
-# ==============================================================================
+
+# Local modules
+from pyoptsparse.postprocessing.utils.base_classes import Model
 
 
-class ConfigureModel(object):
+class ConfigureModel(Model):
     def __init__(self):
-        pass
+        """
+        Model for the configure view and controller.
+        """
+        super(ConfigureModel, self).__init__()

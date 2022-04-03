@@ -1,39 +1,28 @@
-# --- Python 3.8 ---
-"""
-View class for the matplotlib plotting canvas
-"""
-
-# ==============================================================================
 # Standard Python modules
-# ==============================================================================
 from PIL import Image
 import os
 
-# ==============================================================================
-# External Python modules
-# ==============================================================================
+# External modules
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
-from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QWidget, QSizePolicy, QVBoxLayout
 
-# ==============================================================================
-# Extension modules
-# ==============================================================================
+# Local modules
 
-# --- Set matplotlib backend settings to use Qt5 ---
+# ======================================================================
+# Set matplotlib backend and plt style
+# ======================================================================
 matplotlib.use(backend="Qt5Agg")
 dir_path = os.path.dirname(os.path.realpath(__file__))
 plt.style.use(os.path.join(dir_path, "nicePlotsStyle"))
 
 
 class MplCanvas(FigureCanvasQTAgg):
-    """Configures a canvas using the matplotlib backend for PyQT5"""
-
-    def __init__(self, parent=None):
+    def __init__(self, parent: Figure = None):
         """
-        Initializer for the matplotlib canvas
+        Matplotlib canvas using the QTAgg backend.
 
         Parameters
         ----------
@@ -43,9 +32,11 @@ class MplCanvas(FigureCanvasQTAgg):
         super(MplCanvas, self).__init__(parent)
         self.fig = parent
 
-        self.addImage()
+        self.addImage()  # Add the pyoptparse image
 
-        FigureCanvasQTAgg.setSizePolicy(self, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        # Set the size policy so the plot can be resized with the parent
+        # view
+        FigureCanvasQTAgg.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvasQTAgg.updateGeometry(self)
 
     def addImage(self):
@@ -58,16 +49,14 @@ class MplCanvas(FigureCanvasQTAgg):
         axes.axis("off")
 
 
-class PlotView(QtWidgets.QWidget):
-    """Creates the plot view with a canvas and matplotlib toolbar"""
-
-    def __init__(self, parent=None, width: int = 10, height: int = 5, dpi: int = 100):
+class PlotView(QWidget):
+    def __init__(self, parent: QWidget = None, width: int = 10, height: int = 5, dpi: int = 100):
         """
         Constructor
 
         Parameters
         ----------
-        parent : QtWidgets.QtWidget, optional
+        parent : PyQt5.QtWidgets.QWidget, optional
             Parent Window, by default None
         width : int, optional
             Figure Width, by default 10
@@ -91,7 +80,7 @@ class PlotView(QtWidgets.QWidget):
         self.toolbar = NavigationToolbar(self.canvas, self)
 
         # Define and apply widget layout
-        layout = QtWidgets.QVBoxLayout()
+        layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.toolbar)
         layout.addWidget(self.canvas)

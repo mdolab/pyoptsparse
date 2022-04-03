@@ -1,29 +1,24 @@
-# --- Python 3.8 ---
-"""
-This module contains the custom data structures for storing variables
-and files.
-"""
-
-# ==============================================================================
 # Standard Python modules
-# ==============================================================================
 from pathlib import PurePath
 
-# ==============================================================================
-# External Python modules
-# ==============================================================================
+# External modules
 import numpy as np
 
-# ==============================================================================
-# Extension modules
-# ==============================================================================
+# Local modules
 from pyoptsparse.pyOpt_history import History
 
 
 class Variable:
-    """Data structure for storing data related to each variable"""
 
     def __init__(self, var_name: str):
+        """
+        Data structure for storing variables.
+
+        Parameters
+        ----------
+        var_name : str
+            The name of the variable.
+        """
         self.name = var_name
         self.options = {"scaled": False, "bounds": False, "major": True}
         self.bounds = {"upper": None, "lower": None}
@@ -32,23 +27,18 @@ class Variable:
         self.plot_options = {}
 
     def setPlotOptions(self, **kwargs):
+        """
+        Stores matplotlib options for this variable.
+        """
         self.plot_options = kwargs
 
 
 class File:
-    """
-    Data structure for holding files and setting the backend API for
-    handling the data.
-    - File is only accessed here to encapsulate the functionality
-
-
-    Parameters
-    ----------
-    file_name : str
-        Name of the file
-    """
-
     def __init__(self):
+        """
+        Data structure for storing and accessing pyoptparse history
+        files.
+        """
         self.name = None
         self.short_name = None
         self.file_reader = None
@@ -57,6 +47,14 @@ class File:
         self.obj_names = []
 
     def load_file(self, file_name: str):
+        """
+        Loads a file using the pyoptsparse history api.
+
+        Parameters
+        ----------
+        file_name : str
+            The name of the file.
+        """
         self.file_reader = History(file_name)
         self.name = file_name
         self.name_short = PurePath(file_name).name
@@ -66,6 +64,9 @@ class File:
         self.all_names = [k for k in self.file_reader.getValues().keys()]
 
     def refresh(self):
+        """
+        Calls load file to refresh the data.
+        """
         self.load_file(self.name)
 
     def get_var_data(self, var: Variable):
@@ -122,10 +123,16 @@ class File:
             raise KeyError("Variable name not in the history.")
 
     def get_all_x_var_names(self):
+        """
+        Returns all the possible x-variable names listed in the filter.
+        """
         x_name_filter = ["iter", "time"] + self.dv_names
         return [name for name in self.all_names if name in x_name_filter]
 
     def get_all_y_var_names(self):
+        """
+        Returns all the possible y-variable names listed in the filter
+        """
         y_name_filter = (
             ["step", "time", "optimality", "feasibility", "merit", "penalty"]
             + self.dv_names
@@ -135,4 +142,7 @@ class File:
         return [name for name in self.all_names if name in y_name_filter]
 
     def get_metadata(self):
+        """
+        Returns the metadata from the history file.
+        """
         return self.file_reader.getMetadata()

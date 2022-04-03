@@ -1,57 +1,108 @@
-#!/usr/bin/env python
-"""
-@File    :   metadata_controller.py
-@Time    :   2022/03/30
-@Desc    :   None
-"""
-
-# ==============================================================================
 # Standard Python modules
-# ==============================================================================
 
-# ==============================================================================
-# External Python modules
-# ==============================================================================
+# External modules
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QDialog, QFileDialog
 
-# ==============================================================================
-# Extension modules
-# ==============================================================================
+# Local modules
 from pyoptsparse.postprocessing.utils.widgets import FileTreeWidgetItem, OptTreeWidgetItem, OptTableWidgetItem
+from pyoptsparse.postprocessing.utils.base_classes import Model, Controller
 
 
-class MetadataController:
-    def __init__(self, model, files):
+class MetadataController(Controller):
+    def __init__(self, model: Model, parent_model: Model):
+        """
+        The controller for the metadata options view.
+
+        Parameters
+        ----------
+        model : Model
+            The metadata options model.
+        files : List
+            The list of files.
+        """
         self._view = None
         self._model = model
-        self.files = files
+        self._parent_model = parent_model
         self._current_file = None
 
-    def set_view(self, view):
+    def set_view(self, view: QDialog):
+        """
+        Sets the controller's view.
+
+        Parameters
+        ----------
+        view : PyQt5.QtWidgets.QDialog
+            The view for the controller.
+        """
         self._view = view
 
+    def add_file(self):
+        """
+        Opens a file dialog to get user input for adding a new history
+        file.
+        """
+        # --- Set file dialog options ---
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+
+        # --- Open file dialog and get selected user files ---
+        file_names, _ = QFileDialog.getOpenFileNames(self._view, "Open History File", "", "", options=options)
+
+        # --- Load files into the model ---
+        self._parent_model.load_files(file_names)
+
+        # --- Populate the files ---
+        self.populate_files()
+
     def populate_files(self):
-        for file in self.files:
+        """
+        Populates the file tree with loaded files from the tab view model.
+        """
+        for file in self._parent_model.files:
             file_item = FileTreeWidgetItem(self._view.file_tree)
             file_item.setFile(file)
             file_item.setText(0, file.name_short)
             self._view.file_tree.addTopLevelItem(file_item)
 
         if len(self.files) > 0:
-            self._current_file = self.files[0]
+            self._current_file = self._parent_model.files[0]
             self.populate_opts()
 
-    def file_selected(self, item, column):
+    def file_selected(self, item: FileTreeWidgetItem, column: int):
+        """
+        Populates the options display widgets when a new file is
+        selected.
+
+        Parameters
+        ----------
+        item : FileTreeWidgetItem
+            The selected file tree widget item
+        column : int
+            The file tree column index
+        """
         self._current_file = item.file
         self.populate_opts()
 
-    def search(self, s):
+    def search(self, s: str):
+        """
+        Searches the options for the string input.
+
+        Parameters
+        ----------
+        s : str
+            String search input.
+        """
         items = self._view.opt_prob_table.findItems(s, Qt.MatchContains)
         if items:
             item = items[0]
             self._view.opt_prob_table.setCurrentItem(item)
 
     def populate_opts(self):
+        """
+        Populates the options widgets with the history file's
+        metadata.
+        """
         self.clear_opts()
 
         metadata = self._current_file.get_metadata()

@@ -1,26 +1,23 @@
-# --- Python 3.8 ---
-"""
-Combobox view with custom autocomplete functionality for storing and
-searching for variables
-"""
-
-# ==============================================================================
 # Standard Python modules
-# ==============================================================================
 
-# ==============================================================================
-# External Python modules
-# ==============================================================================
+# External modules
 from PyQt5.QtCore import Qt, QSortFilterProxyModel
-from PyQt5.QtWidgets import QCompleter, QComboBox
+from PyQt5.QtWidgets import QCompleter, QComboBox, QWidget
 
-# ==============================================================================
-# Extension modules
-# ==============================================================================
+# Local modules
 
 
 class ExtendedComboBox(QComboBox):
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget = None):
+        """
+        Combobox view with custom autocomplete functionality for storing and
+        searching for variables
+
+        Parameters
+        ----------
+        parent : PyQt5.QtWidgets.QWidget, optional
+            The parent view, by default None
+        """
         super(ExtendedComboBox, self).__init__(parent)
 
         self.setFocusPolicy(Qt.StrongFocus)

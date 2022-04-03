@@ -1,26 +1,21 @@
-#!/usr/bin/env python
-"""
-@File    :   y_view.py
-@Time    :   2022/03/31
-@Desc    :   None
-"""
-
-# ==============================================================================
 # Standard Python modules
-# ==============================================================================
 
-# ==============================================================================
-# External Python modules
-# ==============================================================================
-from PyQt5 import QtWidgets
+# External modules
+from PyQt5.QtWidgets import QTableWidget, QDialog
 
-# ==============================================================================
 # Extension modules
-# ==============================================================================
 
 
-class YTableWidget(QtWidgets.QTableWidget):
-    def __init__(self, parent=None):
+class YTableWidget(QTableWidget):
+    def __init__(self, parent: QDialog = None):
+        """
+        Defines the y-variable table view.
+
+        Parameters
+        ----------
+        parent : PyQt5.QtWidgets.QDialog, optional
+            The parent view, by default None
+        """
         super(YTableWidget, self).__init__(parent)
         self.setShowGrid(False)
         self.verticalHeader().setVisible(False)

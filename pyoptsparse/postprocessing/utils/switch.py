@@ -1,8 +1,4 @@
 # --- Python 3.8 ---
-"""
-On/off slider switch
-Taken From: https://stackoverflow.com/questions/14780517/toggle-switch-in-qt/51023362
-"""
 
 # ==============================================================================
 # Standard Python modules
@@ -13,7 +9,7 @@ Taken From: https://stackoverflow.com/questions/14780517/toggle-switch-in-qt/510
 # ==============================================================================
 from PyQt5.QtCore import QPropertyAnimation, QRectF, QSize, Qt, pyqtProperty
 from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import QAbstractButton, QSizePolicy
+from PyQt5.QtWidgets import QAbstractButton, QSizePolicy, QWidget
 
 # ==============================================================================
 # Extension modules
@@ -21,7 +17,21 @@ from PyQt5.QtWidgets import QAbstractButton, QSizePolicy
 
 
 class Switch(QAbstractButton):
-    def __init__(self, parent=None, track_radius=10, thumb_radius=8):
+    def __init__(self, parent: QWidget = None, track_radius: int = 10, thumb_radius: int = 8):
+        """
+        On/off slider switch Widget.
+        Source code found at:
+        https://stackoverflow.com/questions/14780517/toggle-switch-in-qt/51023362
+
+        Parameters
+        ----------
+        parent : PyQt5.QtWidgets.QWidget
+            The parent view, default = None
+        track_radius : int
+            The radius of the slider track, default = 10
+        thumb_radius : int
+            The radius of the thumb slider, default = 8
+        """
         super().__init__(parent=parent)
         self.setCheckable(True)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -77,25 +87,66 @@ class Switch(QAbstractButton):
 
     @pyqtProperty(int)
     def offset(self):
+        """
+        Returns the offset.
+        """
         return self._offset
 
     @offset.setter
     def offset(self, value):
+        """
+        Sets the offset.
+
+        Parameters
+        ----------
+        value
+            Offset value.
+        """
         self._offset = value
         self.update()
 
-    def sizeHint(self):  # pylint: disable=invalid-name
-        return QSize(4 * self._track_radius + 2 * self._margin, 2 * self._track_radius + 2 * self._margin,)
+    def sizeHint(self):
+        """
+        Returns the size.
+        """
+        return QSize(
+            4 * self._track_radius + 2 * self._margin,
+            2 * self._track_radius + 2 * self._margin,
+        )
 
-    def setChecked(self, checked):
+    def setChecked(self, checked: bool):
+        """
+        Sets the widget to the checked state.
+
+        Parameters
+        ----------
+        checked : bool
+            True for checked, False for unchecked.
+        """
         super().setChecked(checked)
         self.offset = self._end_offset[checked]()
 
     def resizeEvent(self, event):
+        """
+        Handles resizing the widget.
+
+        Parameters
+        ----------
+        event
+            The event that triggered the resize call.
+        """
         super().resizeEvent(event)
         self.offset = self._end_offset[self.isChecked()]()
 
-    def paintEvent(self, event):  # pylint: disable=invalid-name, unused-argument
+    def paintEvent(self, event):
+        """
+        Handles painting the widget (setting the style).
+
+        Parameters
+        ----------
+        event
+            The event that triggered the paint call.
+        """
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing, True)
         p.setPen(Qt.NoPen)
@@ -146,7 +197,16 @@ class Switch(QAbstractButton):
             self._thumb_text[self.isChecked()],
         )
 
-    def mouseReleaseEvent(self, event):  # pylint: disable=invalid-name
+    def mouseReleaseEvent(self, event):
+        """
+        Specifies what should happen when the mouse is released while
+        using the slider.
+
+        Parameters
+        ----------
+        event
+            The mouse release event that triggered the call.
+        """
         super().mouseReleaseEvent(event)
         if event.button() == Qt.LeftButton:
             anim = QPropertyAnimation(self, b"offset", self)
@@ -155,6 +215,15 @@ class Switch(QAbstractButton):
             anim.setEndValue(self._end_offset[self.isChecked()]())
             anim.start()
 
-    def enterEvent(self, event):  # pylint: disable=invalid-name
+    def enterEvent(self, event):
+        """
+        Specifies what should happen when the enter key is pressed while
+        using the slider.
+
+        Parameters
+        ----------
+        event
+            The enter key event that triggered the call.
+        """
         self.setCursor(Qt.PointingHandCursor)
         super().enterEvent(event)

@@ -1,23 +1,14 @@
-#!/usr/bin/env python
-"""
-@File    :   metadata_model.py
-@Time    :   2022/03/30
-@Desc    :   None
-"""
-
-# ==============================================================================
 # Standard Python modules
-# ==============================================================================
 
-# ==============================================================================
-# External Python modules
-# ==============================================================================
+# External modules
 
-# ==============================================================================
-# Extension modules
-# ==============================================================================
+# Local modules
+from pyoptsparse.postprocessing.utils.base_classes import Model
 
 
-class MetadataModel:
+class MetadataModel(Model):
     def __init__(self):
-        pass
+        """
+        The metadata window model.
+        """
+        super(MetadataModel, self).__init__()

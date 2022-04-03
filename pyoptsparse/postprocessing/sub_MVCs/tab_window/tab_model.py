@@ -1,54 +1,80 @@
-# --- Python 3.8 ---
-"""
-Data structure and management class for history files.  The controller
-only has access to top level data for plotting.  Data manipulation
-only occurs here and not in the controller or views.
-"""
-
-# ==============================================================================
 # Standard Python modules
-# ==============================================================================
+from typing import List
 
-# ==============================================================================
-# External Python modules
-# ==============================================================================
-from PyQt5 import QtCore
+# External modules
+from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import QDialog
 
-# ==============================================================================
-# Extension modules
-# ==============================================================================
+# Local modules
 from pyoptsparse.postprocessing.utils.data_structures import File
+from pyoptsparse.postprocessing.utils.base_classes import Model
 
 
-class TabModel(object):
-    """Manages top-level data for the controller"""
+class TabModel(Model):
+    def __init__(self, file_names: List = []):
+        """
+        The model for the tab view.
 
-    def __init__(self, file_names=[]):
+        Parameters
+        ----------
+        file_names : List, optional
+            List of files to be pre-loaded, by default []
+        """
+        super(TabModel, self).__init__()
         self.canvas = None
         self.files = []
         self.plots = []
         self.sub_views = []
-        self.timer = QtCore.QTimer()
+        self.timer = QTimer()
 
         if file_names:
             self.load_files(file_names)
 
-    def refresh(self):
-        """Refresh all files and variable lists"""
-        pass
+    def load_files(self, file_names: List):
+        """
+        Loads files into the model.
 
-    def load_files(self, file_names: list):
+        Parameters
+        ----------
+        file_names : List
+            List of file names to be loaded.
+        """
+        curr_file_names = [file.name for file in self.files]
         for fp in file_names:
-            file = File()
-            file.load_file(fp)
-            self.files.append(file)
+            if fp not in curr_file_names:
+                file = File()
+                file.load_file(fp)
+                self.files.append(file)
 
-    def add_plot(self, plot, view):
+    def add_plot(self, plot: Model, view: QDialog):
+        """
+        Adds a plot and the corresponding sub view to the model.
+
+        Parameters
+        ----------
+        plot : Model
+            The plot model being added.
+        view : PyQt5.QtWidgets.QDialog
+            The plot configuration sub view being added.
+        """
         self.plots.append(plot)
         self.sub_views.append(view)
         self.canvas.draw()
 
-    def remove_plot(self, idx):
+    def remove_plot(self, idx: int):
+        """
+        Removes the plot and sub view at the given index.
+
+        Parameters
+        ----------
+        idx : int
+            The index of the plot being removed.
+
+        Returns
+        -------
+        PyQt5.QtWidgets.QDialog
+            The sub view associated with the plot being removed.
+        """
         # --- Remove the plot object and clear the figure ---
         self.plots.pop(idx)
         view = self.sub_views.pop(idx)

@@ -1,32 +1,45 @@
-#!/usr/bin/env python
-"""
-@File    :   y_controller.py
-@Time    :   2022/03/31
-@Desc    :   None
-"""
-
-# ==============================================================================
 # Standard Python modules
-# ==============================================================================
 
-# ==============================================================================
-# External Python modules
-# ==============================================================================
-from PyQt5 import QtWidgets
+# External modules
+from PyQt5.QtWidgets import QMessageBox, QTableWidget
 
-# ==============================================================================
-# Extension modules
-# ==============================================================================
+# Local modules
 from pyoptsparse.postprocessing.utils.widgets import VarTableWidgetItem, FileTableWidgetItem, IterSwitchWidget
+from pyoptsparse.postprocessing.utils.base_classes import Controller, Model
 
 
-class XController:
-    def __init__(self, view, plot_model, parent_model):
-        self._view = view
+class XController(Controller):
+    def __init__(self, plot_model: Model, parent_model: Model):
+        """
+        The controller for the x-variables view.
+
+        Parameters
+        ----------
+        plot_model : Model
+            The plot model where variables will be added.
+        parent_model : Model
+            The tab view model that contains the plot.
+        """
+        super(XController, self).__init__()
+        self._view = None
         self._parent_model = parent_model
         self._plot_model = plot_model
 
+    def set_view(self, view: QTableWidget):
+        """
+        Sets the view for the controller.
+
+        Parameters
+        ----------
+        view : PyQt5.QtWidgets.QTableWidget
+            The view for this controller.
+        """
+        self._view = view
+
     def populate_vars(self):
+        """
+        Adds the x-variables to the the table view.
+        """
         var = self._plot_model.x_var
         # Create a new variable widget item for the tree view
         var_item = VarTableWidgetItem(var.name)
@@ -35,7 +48,18 @@ class XController:
 
         self.add_row(file_item, var_item)
 
-    def add_row(self, file_item, var_item):
+    def add_row(self, file_item: FileTableWidgetItem, var_item: VarTableWidgetItem):
+        """
+        Adds a row to the table view formatted specifically for
+        x-variables.
+
+        Parameters
+        ----------
+        file_item : FileTableWidgetItem
+            The file table widget item being added.
+        var_item : VarTableWidgetItem
+            The variable table widget item being added.
+        """
         row = self._view.rowCount()
         self._view.setRowCount(row + 1)
         self._view.setItem(row, 0, file_item)
@@ -51,6 +75,14 @@ class XController:
         self._view.resizeRowsToContents()
 
     def iter_switch_togg(self):
+        """
+        Controls the functionality when the major/minor iteration switch
+        is toggled on/off.
+
+        In the off position, only the major iterations are included.
+        If the switch is on, we attempt to plot minor iterations unless
+        they do not exist for one or more of the x or y-variables.
+        """
         sender = self._view.sender()
         x_var = self._plot_model.x_var
         if sender.isChecked():
@@ -65,10 +97,10 @@ class XController:
 
         flag = self._plot_model.plot()
         if not flag:
-            msg = QtWidgets.QMessageBox(self._view)
+            msg = QMessageBox(self._view)
             msg.setWindowTitle("Variable Warning")
             msg.setText("The x variable or y variables don't have minor iterations.\n\nReverting to major iterations.")
-            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg.setIcon(QMessageBox.Warning)
             msg.exec_()
 
             x_var.options["major"] = True
@@ -82,5 +114,9 @@ class XController:
         self._parent_model.canvas.draw()
 
     def clear_vars(self):
+        """
+        Clears all the variables in the table view and resets the row
+        count to zero.
+        """
         self._view.clear()
         self._view.setRowCount(0)

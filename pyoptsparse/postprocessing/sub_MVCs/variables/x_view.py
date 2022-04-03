@@ -1,31 +1,35 @@
-#!/usr/bin/env python
-"""
-@File    :   x_view.py
-@Time    :   2022/03/31
-@Desc    :   None
-"""
-
-# ==============================================================================
 # Standard Python modules
-# ==============================================================================
 
-# ==============================================================================
-# External Python modules
-# ==============================================================================
-from PyQt5 import QtWidgets
+# External modules
+from PyQt5.QtWidgets import QTableWidget, QDialog
 
-# ==============================================================================
-# Extension modules
-# ==============================================================================
+# Local modules
+from pyoptsparse.postprocessing.utils.base_classes import Controller
 
 
-class XTableWidget(QtWidgets.QTableWidget):
-    def __init__(self, parent=None):
+class XTableWidget(QTableWidget):
+    def __init__(self, parent: QDialog = None):
+        """
+        Defines a x-variable table view.
+
+        Parameters
+        ----------
+        parent : PyQt5.QtWidgets.QDialog, optional
+            The parent view, by default None
+        """
         super(XTableWidget, self).__init__(parent)
         self.setColumnCount(3)
         self.setShowGrid(False)
         self.verticalHeader().setVisible(False)
         self._controller = None
 
-    def setController(self, controller):
+    def setController(self, controller: Controller):
+        """
+        Sets the controller for this view.
+
+        Parameters
+        ----------
+        controller : Controller
+            The controller for this view.
+        """
         self._controller = controller
