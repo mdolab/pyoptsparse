@@ -17,7 +17,7 @@ from PyQt5.QtCore import Qt
 # ==============================================================================
 # Extension modules
 # ==============================================================================
-from pyoptsparse.postprocessing.sub_MVCs.widgets import FileTreeWidgetItem, OptTreeWidgetItem, OptTableWidgetItem
+from pyoptsparse.postprocessing.utils.widgets import FileTreeWidgetItem, OptTreeWidgetItem, OptTableWidgetItem
 
 
 class MetadataController:

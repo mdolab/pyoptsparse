@@ -12,14 +12,14 @@
 # ==============================================================================
 # External Python modules
 # ==============================================================================
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtGui, QtWidgets
 
 # ==============================================================================
 # Extension modules
 # ==============================================================================
 from pyoptsparse.postprocessing.utils.data_structures import Variable
-from pyoptsparse.postprocessing.sub_MVCs.widgets import TableButtonWidget as Button
-from pyoptsparse.postprocessing.sub_MVCs.widgets import VarTableWidgetItem, FileTableWidgetItem
+from pyoptsparse.postprocessing.utils.widgets import TableButtonWidget as Button
+from pyoptsparse.postprocessing.utils.widgets import VarTableWidgetItem, FileTableWidgetItem, OptCheckbox
 
 
 GREEN = QtGui.QColor(0, 255, 0, 20)
@@ -60,14 +60,18 @@ class YController:
         self._view.setItem(row, 1, var_item)
 
         scaled_opt_item = QtWidgets.QTableWidgetItem()
-        scaled_opt_item.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
-        scaled_opt_item.setCheckState(QtCore.Qt.Unchecked)
+        scaled_opt_chbx = OptCheckbox(row, self._view)
+        scaled_opt_chbx.setChecked(False)
+        scaled_opt_chbx.stateChanged.connect(self.scale_opt_set)
         self._view.setItem(row, 2, scaled_opt_item)
+        self._view.setCellWidget(row, 2, scaled_opt_chbx)
 
         bounds_opt_item = QtWidgets.QTableWidgetItem()
-        bounds_opt_item.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
-        bounds_opt_item.setCheckState(QtCore.Qt.Unchecked)
+        bounds_opt_chbx = OptCheckbox(row, self._view)
+        bounds_opt_chbx.setChecked(False)
+        bounds_opt_chbx.stateChanged.connect(self.bounds_opt_set)
         self._view.setItem(row, 3, bounds_opt_item)
+        self._view.setCellWidget(row, 3, bounds_opt_chbx)
 
         add_btn = Button(row, "Add", self._view)
         add_item = QtWidgets.QTableWidgetItem()
@@ -88,13 +92,31 @@ class YController:
         self._view.clear()
         self._view.setRowCount(0)
 
+    def scale_opt_set(self):
+        sender = self._view.sender()
+        selected_item = self._view.item(sender.row, 1)
+        scaled_opt = sender.checkState()
+
+        selected_item.var.options["scaled"] = scaled_opt
+
+        self._plot_model.plot()
+        self._parent_model.canvas.draw()
+
+    def bounds_opt_set(self):
+        sender = self._view.sender()
+        selected_item = self._view.item(sender.row, 1)
+        bounds_opt = sender.checkState()
+
+        selected_item.var.options["bounds"] = bounds_opt
+
+        self._plot_model.plot()
+        self._parent_model.canvas.draw()
+
     def add_var_to_plot(self):
         sender = self._view.sender()
-        selected_var = self._view.item(sender.row, 1)
-        scaled_opt = self._view.item(sender.row, 2).checkState()
-        bounds_opt = self._view.item(sender.row, 3).checkState()
+        selected_item = self._view.item(sender.row, 1)
 
-        self._plot_model.add_var(selected_var.var, "y", scaled_opt=scaled_opt, bounds_opt=bounds_opt)
+        self._plot_model.add_var(selected_item.var, "y")
 
         self._plot_model.plot()
         self._parent_model.canvas.draw()
@@ -103,15 +125,8 @@ class YController:
 
     def remove_var_from_plot(self):
         sender = self._view.sender()
-        selected_var = self._view.item(sender.row, 1)
-        rem_idx = None
-        for i, plot_var in enumerate(self._plot_model.y_vars):
-            if selected_var.var.name == plot_var.name and selected_var.var.file.name == plot_var.file.name:
-                rem_idx = i
-
-        # Remove variable from the plot
-        if rem_idx is not None:
-            self._plot_model.remove_var(rem_idx, "y")
+        selected_item = self._view.item(sender.row, 1)
+        self._plot_model.remove_var(selected_item.var, "y")
 
         # Update the plot
         self._plot_model.plot()

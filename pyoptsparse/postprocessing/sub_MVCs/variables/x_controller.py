@@ -17,7 +17,7 @@ from PyQt5 import QtWidgets
 # ==============================================================================
 # Extension modules
 # ==============================================================================
-from pyoptsparse.postprocessing.sub_MVCs.widgets import VarTableWidgetItem, FileTableWidgetItem, IterSwitchWidget
+from pyoptsparse.postprocessing.utils.widgets import VarTableWidgetItem, FileTableWidgetItem, IterSwitchWidget
 
 
 class XController:

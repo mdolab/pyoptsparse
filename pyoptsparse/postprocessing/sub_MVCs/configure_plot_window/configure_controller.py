@@ -15,7 +15,7 @@ from PyQt5 import QtWidgets, QtCore
 # ==============================================================================
 # Extension modules
 # ==============================================================================
-from pyoptsparse.postprocessing.sub_MVCs.widgets import FileTreeWidgetItem, VarTableWidgetItem, FileTableWidgetItem
+from pyoptsparse.postprocessing.utils.widgets import FileTreeWidgetItem, VarTableWidgetItem, FileTableWidgetItem
 from pyoptsparse.postprocessing.utils.data_structures import Variable
 from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_model import ConfigureModel
 from pyoptsparse.postprocessing.sub_MVCs.variables.y_controller import YController

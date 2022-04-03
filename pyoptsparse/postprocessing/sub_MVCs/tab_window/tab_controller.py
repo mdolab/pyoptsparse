@@ -24,7 +24,7 @@ from PyQt5 import QtWidgets
 # ==============================================================================
 from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_model import TabModel
 from pyoptsparse.postprocessing.sub_MVCs.plotting.plot_model import PlotModel
-from pyoptsparse.postprocessing.sub_MVCs.widgets import PlotListWidget
+from pyoptsparse.postprocessing.utils.widgets import PlotListWidget
 from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_view import ConfigurePlotView
 from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_controller import ConfigureController
 from pyoptsparse.postprocessing.sub_MVCs.metadata_window.metadata_controller import MetadataController
@@ -38,9 +38,9 @@ class TabViewController:
     response for the main view.
     """
 
-    def __init__(self, root, view, files=[]):
+    def __init__(self, root, view, file_names=[]):
         self._root = root
-        self._model = TabModel(files)
+        self._model = TabModel(file_names=file_names)
         self._view = view
         self._sub_views = []
 

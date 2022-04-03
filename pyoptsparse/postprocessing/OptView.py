@@ -28,13 +28,13 @@ QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
 
 class MainView(QtWidgets.QWidget):
-    def __init__(self, *args, files=[], **kwargs):
+    def __init__(self, *args, file_names=[], **kwargs):
         super().__init__(*args, **kwargs)
         self._center()  # centers the application in the middle of the screen
         self.setWindowTitle("OptView")  # sets the GUI title
         self.setWindowIcon(QtGui.QIcon("assets/OptViewIcon.gif"))  # sets the OptView logo
         self._controller = OptViewController(self)
-        self.files = files
+        self.file_names = file_names
         self._initUI()
 
     def _initUI(self):
@@ -63,7 +63,7 @@ class MainView(QtWidgets.QWidget):
         self.tabs = QtWidgets.QTabWidget()
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self._controller.closeTab)
-        tab1 = TabView(files=self.files, parent=self)
+        tab1 = TabView(file_names=self.file_names, parent=self)
 
         self.tabs.addTab(tab1, "Home")
 
@@ -82,11 +82,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--files", nargs="+", type=str, help="File(s) to load into OptView on startup.")
     args = parser.parse_args()
-    for file in args.files:
-        if not os.path.exists(file):
-            raise FileNotFoundError(f"History file: {file}")
-        elif not file.endswith(".hst"):
-            raise NameError(f"File: {file} is not a readable history file.")
+    if args.files is not None:
+        for file in args.files:
+            if not os.path.exists(file):
+                raise FileNotFoundError(f"History file: {file}")
+            elif not file.endswith(".hst"):
+                raise NameError(f"File: {file} is not a readable history file.")
     app = QtWidgets.QApplication(sys.argv)
-    w = MainView(files=args.files)
+    w = MainView(file_names=args.files)
     app.exec_()

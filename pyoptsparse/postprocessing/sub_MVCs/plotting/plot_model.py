@@ -25,7 +25,7 @@ class PlotModel(object):
         self.x_var = None
         self.axis = None
 
-    def add_var(self, var, axis, scaled_opt=False, bounds_opt=False):
+    def add_var(self, var, axis):
         """
         Adds a y-variable to the data model
 
@@ -37,11 +37,11 @@ class PlotModel(object):
         if axis == "x":
             self.x_var = var
         elif axis == "y":
-            var.options["bounds"] = bounds_opt
-            var.options["scaled"] = scaled_opt
-            self.y_vars.append(var)
+            names = [y_var.name for y_var in self.y_vars]
+            if var.name not in names:
+                self.y_vars.append(var)
 
-    def remove_var(self, idx: int, axis: str):
+    def remove_var(self, selected_var, axis: str):
         """
         Removes a variable from the data model
 
@@ -53,7 +53,13 @@ class PlotModel(object):
         if axis == "x":
             self.x_var = None
         elif axis == "y":
-            self.y_vars.pop(idx)
+            rem_idx = None
+            for i, plot_var in enumerate(self.y_vars):
+                if selected_var.name == plot_var.name and selected_var.file.name == plot_var.file.name:
+                    rem_idx = i
+
+            if rem_idx is not None:
+                self.y_vars.pop(rem_idx)
 
     def clear_vars(self):
         """Resets the variables to an empty list"""

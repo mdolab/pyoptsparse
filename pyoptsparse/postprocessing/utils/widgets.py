@@ -10,7 +10,7 @@ Custom widgets for the configure plot window
 # ==============================================================================
 # External Python modules
 # ==============================================================================
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets
 
 # ==============================================================================
 # Extension modules
@@ -68,20 +68,6 @@ class OptTableWidgetItem(QtWidgets.QTableWidgetItem):
         super().__init__(*args, **kwargs)
 
 
-class VarTreeWidgetItem(QtWidgets.QTreeWidgetItem):
-    def __init__(self, *args, **kwargs):
-        self.var = None
-        super().__init__(*args, **kwargs)
-
-    def setVar(self, var):
-        self.var = var
-
-    def setVarOpts(self):
-        self.var.options["scaled"] = self.checkState(2) == QtCore.Qt.Checked
-        self.var.options["bounds"] = self.checkState(3) == QtCore.Qt.Checked
-        self.var.options["major_iter"] = self.checkState(4) == QtCore.Qt.Checked
-
-
 class VarTableWidget(QtWidgets.QTableWidget):
     def __init__(self, parent=None):
         super(VarTableWidget, self).__init__(parent)
@@ -130,4 +116,10 @@ class TableButtonWidget(
 class IterSwitchWidget(Switch):
     def __init__(self, row: int, *args, **kwargs):
         super(IterSwitchWidget, self).__init__(*args, **kwargs)
+        self.row = row
+
+
+class OptCheckbox(QtWidgets.QCheckBox):
+    def __init__(self, row, *args, **kwargs):
+        super(OptCheckbox, self).__init__(*args, **kwargs)
         self.row = row
