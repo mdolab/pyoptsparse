@@ -65,6 +65,10 @@ if __name__ == "__main__":
         ],
         extras_require={
             "testing": ["testflo>=1.4.5"],
+            "optview": [
+                "PyQt5>=5.15.6",
+                "matplotlib>=3.5.1",
+            ],
         },
         platforms=["Linux"],
         classifiers=[
