@@ -1,15 +1,14 @@
 # Standard Python modules
-from PIL import Image
 import os
 
 # External modules
+from PIL import Image
+from PyQt5.QtWidgets import QSizePolicy, QVBoxLayout, QWidget
 import matplotlib
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
-from PyQt5.QtWidgets import QWidget, QSizePolicy, QVBoxLayout
-
-# Local modules
+import matplotlib.pyplot as plt
 
 # ======================================================================
 # Set matplotlib backend and plt style

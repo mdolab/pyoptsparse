@@ -1,12 +1,10 @@
-# Standard Python modules
-
 # External modules
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog, QFileDialog
 
-# Local modules
-from pyoptsparse.postprocessing.utils.widgets import FileTreeWidgetItem, OptTreeWidgetItem, OptTableWidgetItem
-from pyoptsparse.postprocessing.utils.base_classes import Model, Controller
+# First party modules
+from pyoptsparse.postprocessing.utils.base_classes import Controller, Model
+from pyoptsparse.postprocessing.utils.widgets import FileTreeWidgetItem, OptTableWidgetItem, OptTreeWidgetItem
 
 
 class MetadataController(Controller):

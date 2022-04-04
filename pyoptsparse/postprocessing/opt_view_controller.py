@@ -2,11 +2,11 @@
 from typing import List
 
 # External modules
-from PyQt5.QtWidgets import QWidget, QInputDialog, QLineEdit
+from PyQt5.QtWidgets import QInputDialog, QLineEdit, QWidget
 
-# Local modules
-from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_view import TabView
+# First party modules
 from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_controller import TabController
+from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_view import TabView
 
 
 class OptViewController:

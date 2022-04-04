@@ -1,31 +1,10 @@
-# --- Python 3.8 ---
-"""
-Custom widgets for the configure plot window
-"""
+# External modules
+from PyQt5.QtWidgets import QCheckBox, QHBoxLayout, QLineEdit, QPushButton, QTableWidgetItem, QTreeWidgetItem, QWidget
 
-# ==============================================================================
-# Standard Python modules
-# ==============================================================================
-
-# ==============================================================================
-# External Python modules
-# ==============================================================================
-from PyQt5.QtWidgets import (
-    QLineEdit,
-    QPushButton,
-    QHBoxLayout,
-    QTreeWidgetItem,
-    QTableWidgetItem,
-    QCheckBox,
-    QWidget,
-)
-
-# ==============================================================================
-# Extension modules
-# ==============================================================================
-from pyoptsparse.postprocessing.utils.switch import Switch
+# First party modules
 from pyoptsparse.postprocessing.utils.base_classes import Controller
 from pyoptsparse.postprocessing.utils.data_structures import File, Variable
+from pyoptsparse.postprocessing.utils.switch import Switch
 
 
 class PlotListWidget(QWidget):

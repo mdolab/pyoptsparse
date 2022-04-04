@@ -1,9 +1,5 @@
-# Standard Python modules
-
-# External Python modules
+# External modules
 from PyQt5.QtWidgets import QPushButton
-
-# Extension modules
 
 
 class Button(QPushButton):

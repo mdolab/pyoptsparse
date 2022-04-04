@@ -1,8 +1,4 @@
-# Standard Python modules
-
-# External modules
-
-# Local modules
+# First party modules
 from pyoptsparse.postprocessing.utils.base_classes import Model
 
 

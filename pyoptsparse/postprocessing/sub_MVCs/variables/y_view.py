@@ -1,9 +1,5 @@
-# Standard Python modules
-
 # External modules
-from PyQt5.QtWidgets import QTableWidget, QDialog
-
-# Extension modules
+from PyQt5.QtWidgets import QDialog, QTableWidget
 
 
 class YTableWidget(QTableWidget):

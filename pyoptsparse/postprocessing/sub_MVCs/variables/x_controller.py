@@ -1,11 +1,9 @@
-# Standard Python modules
-
 # External modules
 from PyQt5.QtWidgets import QMessageBox, QTableWidget
 
-# Local modules
-from pyoptsparse.postprocessing.utils.widgets import VarTableWidgetItem, FileTableWidgetItem, IterSwitchWidget
+# First party modules
 from pyoptsparse.postprocessing.utils.base_classes import Controller, Model
+from pyoptsparse.postprocessing.utils.widgets import FileTableWidgetItem, IterSwitchWidget, VarTableWidgetItem
 
 
 class XController(Controller):

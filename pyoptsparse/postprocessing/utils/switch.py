@@ -1,19 +1,7 @@
-# --- Python 3.8 ---
-
-# ==============================================================================
-# Standard Python modules
-# ==============================================================================
-
-# ==============================================================================
-# External Python modules
-# ==============================================================================
+# External modules
 from PyQt5.QtCore import QPropertyAnimation, QRectF, QSize, Qt, pyqtProperty
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QAbstractButton, QSizePolicy, QWidget
-
-# ==============================================================================
-# Extension modules
-# ==============================================================================
 
 
 class Switch(QAbstractButton):

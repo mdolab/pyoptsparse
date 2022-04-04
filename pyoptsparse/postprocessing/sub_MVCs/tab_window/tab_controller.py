@@ -2,19 +2,19 @@
 from typing import List
 
 # External modules
-from PyQt5.QtWidgets import QWidget, QFileDialog, QListWidgetItem, QMessageBox
+from PyQt5.QtWidgets import QFileDialog, QListWidgetItem, QMessageBox, QWidget
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
-# Local modules
-from pyoptsparse.postprocessing.utils.widgets import PlotListWidget
-from pyoptsparse.postprocessing.utils.base_classes import Controller
-from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_model import TabModel
-from pyoptsparse.postprocessing.sub_MVCs.plotting.plot_model import PlotModel
-from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_view import ConfigurePlotView
+# First party modules
 from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_controller import ConfigureController
+from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_view import ConfigurePlotView
 from pyoptsparse.postprocessing.sub_MVCs.metadata_window.metadata_controller import MetadataController
-from pyoptsparse.postprocessing.sub_MVCs.metadata_window.metadata_view import MetadataView
 from pyoptsparse.postprocessing.sub_MVCs.metadata_window.metadata_model import MetadataModel
+from pyoptsparse.postprocessing.sub_MVCs.metadata_window.metadata_view import MetadataView
+from pyoptsparse.postprocessing.sub_MVCs.plotting.plot_model import PlotModel
+from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_model import TabModel
+from pyoptsparse.postprocessing.utils.base_classes import Controller
+from pyoptsparse.postprocessing.utils.widgets import PlotListWidget
 
 
 class TabController(Controller):

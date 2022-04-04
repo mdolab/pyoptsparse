@@ -5,9 +5,9 @@ from typing import List
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QDialog
 
-# Local modules
-from pyoptsparse.postprocessing.utils.data_structures import File
+# First party modules
 from pyoptsparse.postprocessing.utils.base_classes import Model
+from pyoptsparse.postprocessing.utils.data_structures import File
 
 
 class TabModel(Model):

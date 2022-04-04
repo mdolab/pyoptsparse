@@ -1,14 +1,13 @@
-# Standard Python modules
-
 # External modules
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
 from PyQt5 import QtGui
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
 
-# Local modules
-from pyoptsparse.postprocessing.utils.data_structures import Variable, File
-from pyoptsparse.postprocessing.utils.widgets import TableButtonWidget as Button
-from pyoptsparse.postprocessing.utils.widgets import VarTableWidgetItem, FileTableWidgetItem, OptCheckbox
+# First party modules
 from pyoptsparse.postprocessing.utils.base_classes import Controller, Model
+from pyoptsparse.postprocessing.utils.data_structures import File, Variable
+from pyoptsparse.postprocessing.utils.widgets import FileTableWidgetItem, OptCheckbox
+from pyoptsparse.postprocessing.utils.widgets import TableButtonWidget as Button
+from pyoptsparse.postprocessing.utils.widgets import VarTableWidgetItem
 
 # --- Color constants ---
 GREEN = QtGui.QColor(0, 255, 0, 20)

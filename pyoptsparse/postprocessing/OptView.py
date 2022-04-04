@@ -1,15 +1,13 @@
 # Standard Python modules
-import sys
-import os
 import argparse
+import os
+import sys
 from typing import List
 
 # External modules
-from PyQt5 import QtWidgets, QtGui, QtCore
-from click import FileError
+from PyQt5 import QtCore, QtGui, QtWidgets
 
-# Local modules
-from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_view import TabView
+# First party modules
 from pyoptsparse.postprocessing.opt_view_controller import OptViewController
 
 # --- Set high dpi scaling attribute for the application ---

@@ -1,10 +1,6 @@
-# Standard Python modules
-
 # External modules
-from PyQt5.QtCore import Qt, QSortFilterProxyModel
-from PyQt5.QtWidgets import QCompleter, QComboBox, QWidget
-
-# Local modules
+from PyQt5.QtCore import QSortFilterProxyModel, Qt
+from PyQt5.QtWidgets import QComboBox, QCompleter, QWidget
 
 
 class ExtendedComboBox(QComboBox):

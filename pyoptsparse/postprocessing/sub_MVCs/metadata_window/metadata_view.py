@@ -1,11 +1,9 @@
-# Standard Python modules
-
 # External modules
-from PyQt5.QtWidgets import QDialog, QWidget, QHBoxLayout, QVBoxLayout, QTreeWidget, QLineEdit, QTableWidget
+from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLineEdit, QTableWidget, QTreeWidget, QVBoxLayout, QWidget
 
-# Local modules
-from pyoptsparse.postprocessing.utils.button import Button
+# First party modules
 from pyoptsparse.postprocessing.utils.base_classes import Controller
+from pyoptsparse.postprocessing.utils.button import Button
 
 
 class MetadataView(QDialog):

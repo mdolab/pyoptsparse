@@ -1,9 +1,7 @@
-# Standard Python modules
-
 # External modules
-from PyQt5.QtWidgets import QTableWidget, QDialog
+from PyQt5.QtWidgets import QDialog, QTableWidget
 
-# Local modules
+# First party modules
 from pyoptsparse.postprocessing.utils.base_classes import Controller
 
 

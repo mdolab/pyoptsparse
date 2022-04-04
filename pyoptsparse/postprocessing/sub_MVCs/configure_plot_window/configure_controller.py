@@ -1,16 +1,14 @@
-# Standard Python modules
-
 # External modules
-from PyQt5.QtWidgets import QFileDialog, QDialog
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QDialog, QFileDialog
 
-# Local modules
-from pyoptsparse.postprocessing.utils.widgets import FileTreeWidgetItem, VarTableWidgetItem, FileTableWidgetItem
-from pyoptsparse.postprocessing.utils.data_structures import Variable
-from pyoptsparse.postprocessing.utils.base_classes import Controller, Model
+# First party modules
 from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_model import ConfigureModel
-from pyoptsparse.postprocessing.sub_MVCs.variables.y_controller import YController
 from pyoptsparse.postprocessing.sub_MVCs.variables.x_controller import XController
+from pyoptsparse.postprocessing.sub_MVCs.variables.y_controller import YController
+from pyoptsparse.postprocessing.utils.base_classes import Controller, Model
+from pyoptsparse.postprocessing.utils.data_structures import Variable
+from pyoptsparse.postprocessing.utils.widgets import FileTableWidgetItem, FileTreeWidgetItem, VarTableWidgetItem
 
 
 class ConfigureController(Controller):

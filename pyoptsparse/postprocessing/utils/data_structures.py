@@ -4,12 +4,11 @@ from pathlib import PurePath
 # External modules
 import numpy as np
 
-# Local modules
+# First party modules
 from pyoptsparse.pyOpt_history import History
 
 
 class Variable:
-
     def __init__(self, var_name: str):
         """
         Data structure for storing variables.

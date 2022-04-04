@@ -1,9 +1,7 @@
-# Standard Python modules
-
 # External modules
 import matplotlib.patheffects as patheffects
 
-# Local modules
+# First party modules
 from pyoptsparse.postprocessing.utils.base_classes import Model
 from pyoptsparse.postprocessing.utils.data_structures import Variable
 
@@ -52,9 +50,9 @@ class PlotModel(Model):
             self.x_var = None
         elif axis == "y":
             rem_idx = None
-            for i, plot_var in enumerate(self.y_vars):
+            for _i, plot_var in enumerate(self.y_vars):
                 if selected_var.name == plot_var.name and selected_var.file.name == plot_var.file.name:
-                    rem_idx = i
+                    rem_idx = _i
 
             if rem_idx is not None:
                 self.y_vars.pop(rem_idx)

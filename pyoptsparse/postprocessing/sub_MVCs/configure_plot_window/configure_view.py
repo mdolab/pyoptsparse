@@ -1,14 +1,12 @@
-# Standard Python modules
-
 # External modules
-from PyQt5.QtWidgets import QWidget, QDialog, QHBoxLayout, QVBoxLayout, QTreeWidget, QLineEdit, QComboBox
+from PyQt5.QtWidgets import QComboBox, QDialog, QHBoxLayout, QLineEdit, QTreeWidget, QVBoxLayout, QWidget
 
-# Local modules
-from pyoptsparse.postprocessing.utils.combo_box import ExtendedComboBox
-from pyoptsparse.postprocessing.utils.button import Button
-from pyoptsparse.postprocessing.utils.base_classes import Controller
-from pyoptsparse.postprocessing.sub_MVCs.variables.y_view import YTableWidget
+# First party modules
 from pyoptsparse.postprocessing.sub_MVCs.variables.x_view import XTableWidget
+from pyoptsparse.postprocessing.sub_MVCs.variables.y_view import YTableWidget
+from pyoptsparse.postprocessing.utils.base_classes import Controller
+from pyoptsparse.postprocessing.utils.button import Button
+from pyoptsparse.postprocessing.utils.combo_box import ExtendedComboBox
 
 
 class ConfigurePlotView(QDialog):
