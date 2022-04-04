@@ -51,6 +51,9 @@ if __name__ == "__main__":
         open("pyoptsparse/__init__.py").read(),
     )[0]
 
+    with open("doc/requirements.txt") as f:
+        docs_require = f.read().splitlines()
+
     setup(
         name="pyoptsparse",
         version=__version__,
@@ -69,6 +72,7 @@ if __name__ == "__main__":
                 "plotly",
                 "matplotlib",
             ],
+            "docs": docs_require,
             "testing": ["testflo>=1.4.5"],
         },
         package_data={"pyoptsparse": ["postprocessing/assets/*"]},
