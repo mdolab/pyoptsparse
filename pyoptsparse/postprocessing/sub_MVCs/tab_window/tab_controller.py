@@ -1,5 +1,4 @@
 # Standard Python modules
-from pathlib import Path
 from typing import List
 
 # External modules
@@ -57,9 +56,8 @@ class TabController(Controller):
         options |= QFileDialog.DontUseNativeDialog
 
         # --- Open file dialog and get selected user files ---
-        home_dir = str(Path.home())
         file_names, _ = QFileDialog.getOpenFileNames(
-            self._view, "Open History File", home_dir, "History File (*.hst)", options=options
+            self._view, "Open History File", "", "History File (*.hst)", options=options
         )
 
         # --- Load files into the model ---
