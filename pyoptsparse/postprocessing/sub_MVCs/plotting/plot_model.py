@@ -98,7 +98,7 @@ class PlotModel(Model):
         self.clear_axis()
         if self.x_var is not None:
             self.x_var.file.get_var_data(self.x_var)
-        for i, y_var in enumerate(self.y_vars):
+        for y_var in self.y_vars:
             # Set some default plotting options for the variable
             y_var.setPlotOptions(marker=".")
             y_var.file.get_var_data(y_var)
