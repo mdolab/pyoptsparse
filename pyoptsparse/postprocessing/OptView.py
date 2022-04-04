@@ -88,14 +88,14 @@ class MainView(QtWidgets.QWidget):
         self.move(qr.center())
 
 
-if __name__ == "__main__":
+def main():
     # Create command line arguments here
     parser = argparse.ArgumentParser()
-    parser.add_argument("--files", nargs="+", type=str, help="File(s) to load into OptView on startup.")
+    parser.add_argument("files", nargs="*", type=str, default=[], help="File(s) to load into OptView on startup.")
     args = parser.parse_args()
 
     # Check to make sure the files exist and are history files
-    if args.files is not None:
+    if args.files:
         for file in args.files:
             if not os.path.exists(file):
                 raise FileNotFoundError(f"History file: {file} doesn't exist.")

@@ -14,8 +14,7 @@ import matplotlib.pyplot as plt
 # Set matplotlib backend and plt style
 # ======================================================================
 matplotlib.use(backend="Qt5Agg")
-dir_path = os.path.dirname(os.path.realpath(__file__))
-plt.style.use(os.path.join(dir_path, "nicePlotsStyle"))
+plt.style.use(os.path.join("pyoptsparse", "postprocessing", "assets", "nicePlotsStyle"))
 
 
 class MplCanvas(FigureCanvasQTAgg):
@@ -42,7 +41,7 @@ class MplCanvas(FigureCanvasQTAgg):
         """
         Adds the pyoptsparse logo to the canvas as an axis.
         """
-        self.img = Image.open("assets/pyOptSparse_logo.png")
+        self.img = Image.open(os.path.join("pyoptsparse", "postprocessing", "assets", "pyOptSparse_logo.png"))
         axes = self.fig.add_subplot(111)
         axes.imshow(self.img, alpha=0.5)
         axes.axis("off")

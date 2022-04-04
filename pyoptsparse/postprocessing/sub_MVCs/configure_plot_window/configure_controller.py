@@ -1,3 +1,6 @@
+# Standard Python modules
+from pathlib import Path
+
 # External modules
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog, QFileDialog
@@ -72,7 +75,10 @@ class ConfigureController(Controller):
         options |= QFileDialog.DontUseNativeDialog
 
         # --- Open file dialog and get selected user files ---
-        file_names, _ = QFileDialog.getOpenFileNames(self._view, "Open History File", "", "", options=options)
+        home_dir = str(Path.home())
+        file_names, _ = QFileDialog.getOpenFileNames(
+            self._view, "Open History File", home_dir, "History File (*.hst)", options=options
+        )
 
         # --- Load files into the model ---
         self._parent_model.load_files(file_names)

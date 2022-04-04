@@ -1,4 +1,5 @@
 # Standard Python modules
+from pathlib import Path
 from typing import List
 
 # External modules
@@ -56,7 +57,10 @@ class TabController(Controller):
         options |= QFileDialog.DontUseNativeDialog
 
         # --- Open file dialog and get selected user files ---
-        file_names, _ = QFileDialog.getOpenFileNames(self._view, "Open History File", "", "", options=options)
+        home_dir = str(Path.home())
+        file_names, _ = QFileDialog.getOpenFileNames(
+            self._view, "Open History File", home_dir, "History File (*.hst)", options=options
+        )
 
         # --- Load files into the model ---
         self._model.load_files(file_names)
@@ -200,5 +204,5 @@ class TabController(Controller):
         """
         Creates a meta data controller and spawns the meta data view.
         """
-        meta_controller = MetadataController(MetadataModel(), self._model.files)
+        meta_controller = MetadataController(MetadataModel(), self._model)
         MetadataView(self._root, meta_controller, "Metadata Viewer")

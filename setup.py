@@ -1,6 +1,8 @@
 import sys
 import re
+from importlib_metadata import entry_points
 import setuptools  # magic import to allow us to use entry_point
+from setuptools import find_packages
 
 # Check if we have numpy:
 try:
@@ -70,6 +72,8 @@ if __name__ == "__main__":
                 "matplotlib>=3.5.1",
             ],
         },
+        packages=find_packages(),
+        package_data={"pyoptsparse": ["postprocessing/assets/*"]},
         platforms=["Linux"],
         classifiers=[
             "Development Status :: 5 - Production/Stable",
@@ -85,4 +89,5 @@ if __name__ == "__main__":
             "Topic :: Education",
         ],
         configuration=configuration,
+        entry_points={"gui_scripts": ["optview = pyoptsparse.postprocessing.OptView:main"]},
     )

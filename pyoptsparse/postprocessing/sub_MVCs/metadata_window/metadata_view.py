@@ -35,27 +35,30 @@ class MetadataView(QDialog):
         # --- Create layout ---
         layout = QHBoxLayout()
 
+        left_layout = QVBoxLayout()
+        layout.addLayout(left_layout)
+
+        right_layout = QVBoxLayout()
+        layout.addLayout(right_layout, 3)
+
         # ==============================================================
         # File List - Left Layout
         # ==============================================================
         # --- Add file button ---
         self.add_file_btn = Button("Add file(s)", self)
         self.add_file_btn.clicked.connect(self._controller.add_file)
-        layout.addWidget(self.add_file_btn)
+        left_layout.addWidget(self.add_file_btn)
 
         # --- File list ---
         self.file_tree = QTreeWidget(self)
         self.file_tree.setColumnCount(1)
         self.file_tree.setHeaderLabels(["File Name"])
         self.file_tree.itemClicked.connect(self._controller.file_selected)
-        layout.addWidget(self.file_tree)
+        left_layout.addWidget(self.file_tree)
 
         # ==============================================================
         # Options Table - Right Layout
         # ==============================================================
-        right_layout = QVBoxLayout()
-        layout.addLayout(right_layout, 3)
-
         self.opt_tree = QTreeWidget(self)
         self.opt_tree.setColumnCount(2)
         self.opt_tree.setHeaderLabels(["Name", "Value"])
