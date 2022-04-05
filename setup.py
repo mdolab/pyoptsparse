@@ -1,6 +1,5 @@
 import sys
 import re
-from importlib_metadata import entry_points
 import setuptools  # magic import to allow us to use entry_point
 from setuptools import find_packages
 
