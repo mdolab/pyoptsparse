@@ -7,7 +7,7 @@ CONstrained function MINimization (CONMIN) is a gradient-based optimizer that us
 Options
 -------
 .. optionstable:: pyoptsparse.pyCONMIN.pyCONMIN.CONMIN
-   :filename: optimizers/CONMIN_options.yaml
+   :filename: CONMIN_options.yaml
 
 
 API

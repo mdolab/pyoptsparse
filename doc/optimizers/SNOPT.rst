@@ -30,7 +30,7 @@ The following are a list of
 - options unique to pyOptSparse, implemented in the Python wrapper and not found in SNOPT
 
 .. optionstable:: pyoptsparse.pySNOPT.pySNOPT.SNOPT
-   :filename: optimizers/SNOPT_options.yaml
+   :filename: SNOPT_options.yaml
 
 Informs
 -------
