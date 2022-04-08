@@ -1,5 +1,6 @@
 # External modules
 import matplotlib.patheffects as patheffects
+import numpy as np
 
 # First party modules
 from pyoptsparse.postprocessing.utils.base_classes import Model
@@ -31,11 +32,10 @@ class PlotModel(Model):
         if axis == "x":
             self.x_var = var
         elif axis == "y":
-            names = [y_var.name for y_var in self.y_vars]
-            if var.name not in names:
+            if not any(var == y_var for y_var in self.y_vars):
                 self.y_vars.append(var)
 
-    def remove_var(self, selected_var: Variable, axis: str):
+    def remove_var(self, var: Variable, axis: str):
         """
         Removes a variable from the data model
 
@@ -49,13 +49,8 @@ class PlotModel(Model):
         if axis == "x":
             self.x_var = None
         elif axis == "y":
-            rem_idx = None
-            for _i, plot_var in enumerate(self.y_vars):
-                if selected_var.name == plot_var.name and selected_var.file.name == plot_var.file.name:
-                    rem_idx = _i
-
-            if rem_idx is not None:
-                self.y_vars.pop(rem_idx)
+            if any(var == y_var for y_var in self.y_vars):
+                self.y_vars.pop(self.y_vars.index(var))
 
     def clear_vars(self):
         """
@@ -86,48 +81,50 @@ class PlotModel(Model):
     def plot(self):
         """
         Plots the x and y variables currently stored in the model.
-        Steps include:
-            1) Clear the axis
-            2) Get the x-variable data from the history file
-            3) Loop over the y-variables, get their data from the history
-            file, and then add them to the plot.
-            4) Check bounds option and plot bounds if True
-            5) Reset the axis limits
-            6) Autoscale the axis
         """
         self.clear_axis()
-        if self.x_var is not None:
-            self.x_var.file.get_var_data(self.x_var)
+
         for y_var in self.y_vars:
             # Set some default plotting options for the variable
-            y_var.setPlotOptions(marker=".")
-            y_var.file.get_var_data(y_var)
-            if len(self.x_var.values) != len(y_var.values):
-                return False
+            y_var.set_plot_options(marker=".")
+
+            if self.x_var.name == "iter":
+                if self.x_var.options["major"]:
+                    x_data = self.x_var.data_major
+                else:
+                    x_data = np.arange(0, len(y_var.data_minor), 1)
+
+            if y_var.options["major"]:
+                y_data = y_var.data_major
+            else:
+                y_data = y_var.data_minor
+
+            if y_var.options["scale"]:
+                y_data = y_data * y_var.scale
+
             self.axis.plot(
-                self.x_var.values,
-                y_var.values,
-                # color=y_var.plot_options["color"],
+                x_data,
+                y_data,
                 marker=y_var.plot_options["marker"],
-                label=y_var.name,
+                label=y_var.full_name if y_var.label is None else y_var.label,
             )
 
             if y_var.options["bounds"]:
                 if y_var.bounds["upper"] is not None:
-                    for ub in y_var.bounds["upper"]:
-                        if ub is not None:
-                            self.axis.axhline(
-                                y=ub,
-                                path_effects=[patheffects.withTickedStroke()],
-                            )
+                    if y_var.options["scale"]:
+                        self.axis.axhline(y=y_var.bounds_scaled["upper"], path_effects=[patheffects.withTickedStroke()])
+                    else:
+                        self.axis.axhline(y=y_var.bounds["upper"], path_effects=[patheffects.withTickedStroke()])
+
                 if y_var.bounds["lower"] is not None:
-                    for lb in y_var.bounds["lower"]:
-                        if lb is not None:
-                            self.axis.axhline(
-                                y=lb,
-                                path_effects=[patheffects.withTickedStroke(angle=-135)],
-                            )
+                    if y_var.options["scale"]:
+                        self.axis.axhline(
+                            y=y_var.bounds_scaled["lower"], path_effects=[patheffects.withTickedStroke(angle=-135)]
+                        )
+                    else:
+                        self.axis.axhline(
+                            y=y_var.bounds["lower"], path_effects=[patheffects.withTickedStroke(angle=-135)]
+                        )
+
         self.axis.relim()
         self.axis.autoscale_view()
-
-        return True

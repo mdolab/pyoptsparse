@@ -1,4 +1,5 @@
 # External modules
+from PyQt5 import QtCore
 from PyQt5.QtWidgets import QComboBox, QDialog, QHBoxLayout, QLineEdit, QTreeWidget, QVBoxLayout, QWidget
 
 # First party modules
@@ -28,7 +29,7 @@ class ConfigurePlotView(QDialog):
         self.setWindowTitle(name)  # sets the GUI title
         self._controller = controller
         self._controller.set_view(self)
-        self.resize(1000, 800)
+        self.resize(1200, 800)
         self._initView()
 
         # --- Anything that needs to be done upon re-opening the window ---
@@ -55,6 +56,7 @@ class ConfigurePlotView(QDialog):
         # ==============================================================
         # --- Add file(s) button ---
         self.add_file_btn = Button("Add file(s)", self)
+        self.add_file_btn.setFocusPolicy(QtCore.Qt.NoFocus)
         self.add_file_btn.clicked.connect(self._controller.add_file)
         left_layout.addWidget(self.add_file_btn)
 
@@ -74,9 +76,25 @@ class ConfigurePlotView(QDialog):
         self.y_query.textChanged.connect(self._controller.y_var_search)
         right_layout.addWidget(self.y_query)
 
+        # --- Create button layout for y-variables ---
+        right_button_layout = QHBoxLayout()
+        right_layout.addLayout(right_button_layout)
+
+        # --- Add selected variables button ---
+        self.add_sel_btn = Button("Add Selected Variables")
+        self.add_sel_btn.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.add_sel_btn.clicked.connect(self._controller.add_selected_vars)
+        right_button_layout.addWidget(self.add_sel_btn)
+
+        # --- Remove selected variables button ---
+        self.rem_sel_btn = Button("Remove Selected Variables")
+        self.rem_sel_btn.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.rem_sel_btn.clicked.connect(self._controller.rem_selected_vars)
+        right_button_layout.addWidget(self.rem_sel_btn)
+
         # --- Add y-vars variable list ---
         self.y_table = YTableWidget(self)
-        right_layout.addWidget(self.y_table)
+        right_layout.addWidget(self.y_table, 5)
 
         # ==============================================================
         # X-Variables - Middle Right Layout

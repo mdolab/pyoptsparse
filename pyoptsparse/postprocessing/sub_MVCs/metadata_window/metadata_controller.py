@@ -93,10 +93,20 @@ class MetadataController(Controller):
         s : str
             String search input.
         """
-        items = self._view.opt_prob_table.findItems(s, Qt.MatchContains)
-        if items:
-            item = items[0]
-            self._view.opt_prob_table.setCurrentItem(item)
+        table = self._view.opt_prob_table
+        row_count = table.rowCount()
+        sel_items = table.findItems(s, Qt.MatchContains)
+
+        rows_to_show = set()
+        for item in sel_items:
+            rows_to_show.add(item.row())
+
+        for row in rows_to_show:
+            table.setRowHidden(row, False)
+
+        for row in range(row_count):
+            if row not in rows_to_show:
+                table.setRowHidden(row, True)
 
     def populate_opts(self):
         """

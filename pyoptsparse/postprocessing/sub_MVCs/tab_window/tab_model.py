@@ -44,6 +44,7 @@ class TabModel(Model):
             if fp not in curr_file_names:
                 file = File()
                 file.load_file(fp)
+                file.load_variables()
                 self.files.append(file)
 
     def add_plot(self, plot: Model, view: QDialog):

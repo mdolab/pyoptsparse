@@ -1,9 +1,6 @@
 # Standard Python modules
 from pathlib import PurePath
 
-# External modules
-import numpy as np
-
 # First party modules
 from pyoptsparse.pyOpt_history import History
 
@@ -19,17 +16,39 @@ class Variable:
             The name of the variable.
         """
         self.name = var_name
-        self.options = {"scaled": False, "bounds": False, "major": True}
+        self.idx = 0
+        self.full_name = None
+        self.options = {"scale": False, "bounds": False, "major": True}
         self.bounds = {"upper": None, "lower": None}
-        self.values = None
+        self.bounds_scaled = {"upper": None, "lower": None}
+        self.data_major = None
+        self.data_minor = None
         self.file = None
+        self.scale = 1.0
         self.plot_options = {}
+        self.label = None
 
-    def setPlotOptions(self, **kwargs):
+    def __eq__(self, other):
+        return self.name == other.name and self.idx == other.idx
+
+    def set_plot_options(self, **kwargs):
         """
         Stores matplotlib options for this variable.
         """
         self.plot_options = kwargs
+
+    def set_scaled_bounds(self):
+        if self.bounds["upper"] is not None:
+            self.bounds_scaled["upper"] = self.bounds["upper"] * self.scale
+
+        if self.bounds["lower"] is not None:
+            self.bounds_scaled["lower"] = self.bounds["lower"] * self.scale
+
+    def set_full_name(self):
+        self.full_name = f"{self.name}_{self.idx}"
+
+    def set_label(self, label: str):
+        self.label = label
 
 
 class File:
@@ -40,10 +59,14 @@ class File:
         """
         self.name = None
         self.short_name = None
-        self.file_reader = None
+        self.reader = None
         self.dv_names = []
         self.con_names = []
         self.obj_names = []
+        self.func_names = []
+        self.y_vars = []
+        self.x_vars = []
+        self.y_var_groups = set()
 
     def load_file(self, file_name: str):
         """
@@ -54,21 +77,84 @@ class File:
         file_name : str
             The name of the file.
         """
-        self.file_reader = History(file_name)
+        self.reader = History(file_name)
         self.name = file_name
         self.name_short = PurePath(file_name).name
-        self.dv_names = self.file_reader.getDVNames()
-        self.obj_names = self.file_reader.getObjNames()
-        self.con_names = self.file_reader.getConNames()
-        self.all_names = [k for k in self.file_reader.getValues().keys()]
+        self.dv_names = self.reader.getDVNames()
+        self.obj_names = self.reader.getObjNames()
+        self.con_names = self.reader.getConNames()
+        self.func_names = self.reader.getExtraFuncsNames()
+        self.all_names = [k for k in self.reader.getValues().keys()]
+
+    def load_variables(self):
+        self.y_vars = self.get_y_variables()
+        self.x_vars = self.get_x_variables()
 
     def refresh(self):
         """
         Calls load file to refresh the data.
         """
         self.load_file(self.name)
+        self.load_variables()
 
-    def get_var_data(self, var: Variable):
+    def get_y_variables(self):
+        y_var_names = self.get_all_y_var_names()
+        variables = []
+        for name in y_var_names:
+            self.y_var_groups.add(name)
+            data_major = self.reader.getValues(name, major=True, scale=False)[name]
+            data_minor = self.reader.getValues(name, major=False, scale=False)[name]
+            if data_major.ndim > 1:
+                for i, cols in enumerate(zip(data_major.T, data_minor.T)):
+                    var = Variable(name)
+                    var.idx = i
+                    var.data_major = cols[0]
+                    var.data_minor = cols[1] if len(cols[0]) != len(cols[1]) else None
+                    var.file = self
+                    self.set_bounds(var)
+                    self.set_scale(var)
+                    var.set_scaled_bounds()
+                    var.set_full_name()
+                    variables.append(var)
+            else:
+                var = Variable(name)
+                var.data_major = cols[0]
+                var.data_minor = cols[1] if len(cols[0]) != len(cols[1]) else None
+                var.file = self
+                self.set_bounds(var)
+                self.set_scale(var)
+                var.set_scaled_bounds()
+                var.set_full_name()
+                variables.append(var)
+
+        return variables
+
+    def get_x_variables(self):
+        x_var_names = self.get_all_x_var_names()
+        variables = []
+        for name in x_var_names:
+            data_major = self.reader.getValues(name, major=True, scale=False)[name]
+            data_minor = self.reader.getValues(name, major=False, scale=False)[name]
+            if data_major.ndim > 1:
+                for i, cols in enumerate(zip(data_major.T, data_minor.T)):
+                    var = Variable(name)
+                    var.idx = i
+                    var.data_major = cols[0]
+                    var.data_minor = cols[1] if len(cols[0]) != len(cols[1]) else None
+                    var.file = self
+                    var.set_full_name()
+                    variables.append(var)
+            else:
+                var = Variable(name)
+                var.data_major = data_major
+                var.data_minor = data_minor if len(data_minor) != len(data_major) else None
+                var.file = self
+                var.set_full_name()
+                variables.append(var)
+
+        return variables
+
+    def set_data(self, var: Variable):
         """
         Gets all iterations (minor and major), bounds, and scaling
         of a single variable from either the OpenMDAO case reader or the
@@ -81,45 +167,44 @@ class File:
             plotting.
         """
 
-        major_opt = var.options["major"]
-        bound_opt = var.options["bounds"]
-        scale_opt = var.options["scaled"]
+        data_major = self.reader.getValues(var.name, major=True, scale=False)[var.name]
+        data_minor = self.reader.getValues(var.name, major=False, scale=False)[var.name]
 
-        if var.name in self.dv_names:
-            var_info = self.file_reader.getDVInfo(var.name)
-        elif var.name in self.con_names:
-            var_info = self.file_reader.getConInfo(var.name)
-        elif var.name in self.obj_names:
-            var_info = self.file_reader.getObjInfo(var.name)
+        if data_major.ndim > 1:
+            for i, cols in enumerate(zip(data_major.T, data_minor.T)):
+                if var.idx == i:
+                    var.data_major = cols[0]
+                    var.data_minor = cols[1] if len(cols[0]) != len(cols[1]) else None
         else:
-            var_info = None
+            var.data_major = data_major
+            var.data_minor = data_minor if len(data_minor) != len(data_major) else None
 
-        # Only check for bounds and scaling of var info exists.
-        # i.e, the variable is part of the problem formulation and not
-        # optimality, feasibility, etc...
-        if var_info is not None:
-            if isinstance(var_info["scale"], float):
-                scale = np.array([var_info["scale"]]) if scale_opt else np.ones(1)
+    def set_bounds(self, var: Variable):
+        bounded_var_names = self.dv_names + self.con_names
+        var_info = None
+        if var.name in bounded_var_names:
+            if var.name in self.dv_names:
+                var_info = self.reader.getDVInfo(var.name)
             else:
-                scale = np.array(var_info["scale"]) if scale_opt else np.ones(len(var_info["scale"]))
+                var_info = self.reader.getConInfo(var.name)
 
-            # Only get the bounds if the option is True and the requested
-            # variable is not an objective function.
-            if bound_opt and var.name not in self.obj_names:
+        if var_info is not None:
+            if "lower" in var_info:
+                lower_bound = var_info["lower"][var.idx]
+                var.bounds["lower"] = lower_bound
+            if "upper" in var_info:
+                upper_bound = var_info["upper"][var.idx]
+                var.bounds["upper"] = upper_bound
 
-                upper = np.zeros(len(var_info["upper"]))  # Initialize the upper bounds
-                lower = np.zeros(len(var_info["lower"]))  # Initialize the lower bounds
-
-                var.bounds["upper"] = np.where(upper != 1e30, upper * scale, None)
-                var.bounds["lower"] = np.where(lower != 1e30, lower * scale, None)
-
-        # The data is returned from the hist api as a dictionary where the key is
-        # the variable name and the values are the
-        if var.name in self.file_reader.getValues():
-            data = self.file_reader.getValues(names=var.name, major=major_opt, scale=scale_opt)
-            var.values = data[var.name]
-        else:
-            raise KeyError("Variable name not in the history.")
+    def set_scale(self, var: Variable):
+        scaled_var_names = self.dv_names + self.con_names + self.obj_names
+        if var.name in scaled_var_names:
+            if var.name in self.obj_names:
+                var.scale = self.reader.getObjInfo(var.name)["scale"]
+            elif var.name in self.con_names:
+                var.scale = self.reader.getConInfo(var.name)["scale"]
+            elif var.name in self.dv_names:
+                var.scale = self.reader.getDVInfo(var.name)["scale"][var.idx]
 
     def get_all_x_var_names(self):
         """
@@ -144,4 +229,4 @@ class File:
         """
         Returns the metadata from the history file.
         """
-        return self.file_reader.getMetadata()
+        return self.reader.getMetadata()

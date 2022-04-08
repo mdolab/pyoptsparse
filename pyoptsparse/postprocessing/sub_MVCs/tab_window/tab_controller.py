@@ -2,7 +2,7 @@
 from typing import List
 
 # External modules
-from PyQt5.QtWidgets import QFileDialog, QListWidgetItem, QMessageBox, QWidget
+from PyQt5.QtWidgets import QFileDialog, QInputDialog, QListWidgetItem, QMessageBox, QWidget
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
 # First party modules
@@ -155,13 +155,18 @@ class TabController(Controller):
         Turns on auto refresh mode.  When activated, this function
         will refresh the history file and the plots every 5 seconds.
         """
-        if self._view.auto_refresh_togg.isChecked():
-            self._view.refresh_btn.setEnabled(False)
-            self._model.timer.start(5000)
-            self._model.timer.timeout.connect(self.refresh)
+        switch = self._view.auto_refresh_togg
+        if switch.isChecked():
+            time, ok = QInputDialog.getInt(self._view, "Refresh Time", "Enter refresh interval in seconds:")
+            if ok:
+                time = time * 1000
+                if self._view.auto_refresh_togg.isChecked():
+                    self._model.timer.start(time)
+                    self._model.timer.timeout.connect(self.refresh)
+            else:
+                switch.setChecked(False)
         else:
             self._model.timer.stop()
-            self._view.refresh_btn.setEnabled(True)
 
     def refresh(self):
         """
@@ -172,8 +177,11 @@ class TabController(Controller):
             file.refresh()
 
         for plot_model in self._model.plots:
-            for var in plot_model.vars:
-                var.file.get_var_data(var)
+            for y_var in plot_model.y_vars:
+                y_var.file.set_data(y_var)
+
+            if plot_model.x_var is not None:
+                plot_model.x_var.set_data(plot_model.x_var)
 
         self.refresh_plots()
 

@@ -16,7 +16,7 @@ class XTableWidget(QTableWidget):
             The parent view, by default None
         """
         super(XTableWidget, self).__init__(parent)
-        self.setColumnCount(3)
+        self.setColumnCount(2)
         self.setShowGrid(False)
         self.verticalHeader().setVisible(False)
         self._controller = None

@@ -70,6 +70,7 @@ class MetadataView(QDialog):
         right_layout.addWidget(self.query)
 
         self.opt_prob_table = QTableWidget(self)
+        self.opt_prob_table.setShowGrid(False)
         right_layout.addWidget(self.opt_prob_table)
 
         self._controller.populate_files()

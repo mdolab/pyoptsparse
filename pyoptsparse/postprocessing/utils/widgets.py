@@ -1,10 +1,9 @@
 # External modules
-from PyQt5.QtWidgets import QCheckBox, QHBoxLayout, QLineEdit, QPushButton, QTableWidgetItem, QTreeWidgetItem, QWidget
+from PyQt5.QtWidgets import QHBoxLayout, QLineEdit, QPushButton, QTableWidgetItem, QTreeWidgetItem, QWidget
 
 # First party modules
 from pyoptsparse.postprocessing.utils.base_classes import Controller
 from pyoptsparse.postprocessing.utils.data_structures import File, Variable
-from pyoptsparse.postprocessing.utils.switch import Switch
 
 
 class PlotListWidget(QWidget):
@@ -104,7 +103,15 @@ class VarTableWidgetItem(QTableWidgetItem):
         Custom variable table widget item.
         """
         super(VarTableWidgetItem, self).__init__(*args, **kwargs)
-        self.var = None
+        self._var = None
+        self._default_row_color = self.background()
+        self._row_color = None
+
+    def __lt__(self, other):
+        if self._var.name == other._var.name:
+            return self._var.idx < other._var.idx
+        else:
+            return self._var.name < other._var.name
 
     def setVar(self, var: Variable):
         """
@@ -115,48 +122,16 @@ class VarTableWidgetItem(QTableWidgetItem):
         var : Variable
             The variable to be added to the widget item.
         """
-        self.var = var
+        self._var = var
 
+    def getVar(self):
+        return self._var
 
-class TableButtonWidget(QPushButton):
-    def __init__(self, row: int, *args, **kwargs):
-        """
-        Custom button widget that tracks the row that contains the
-        button.
+    def setRowColor(self, color):
+        self._row_color = color
 
-        Parameters
-        ----------
-        row : int
-            The row that contains the button.
-        """
-        super(TableButtonWidget, self).__init__(*args, **kwargs)
-        self.row = row
+    def getRowColor(self):
+        return self._row_color
 
-
-class IterSwitchWidget(Switch):
-    def __init__(self, row: int, *args, **kwargs):
-        """
-        Custom switch widget for turning on/off major or minor
-        iterations.
-
-        Parameters
-        ----------
-        row : int
-            The row that contains the switch.
-        """
-        super(IterSwitchWidget, self).__init__(*args, **kwargs)
-        self.row = row
-
-
-class OptCheckbox(QCheckBox):
-    def __init__(self, row: int, *args, **kwargs):
-        """
-        Options checkbox that tracks the row that contains the checkbox.
-
-        Parameters
-        ----------
-        row : int
-            The row that contains the switch.
-        """
-        super(OptCheckbox, self).__init__(*args, **kwargs)
-        self.row = row
+    def getDefaultRowColor(self):
+        return self._default_row_color

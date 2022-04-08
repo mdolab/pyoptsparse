@@ -1,17 +1,13 @@
 # External modules
-from PyQt5 import QtGui
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
+from PyQt5 import QtCore
+from PyQt5.QtWidgets import QCheckBox, QLineEdit, QTableWidget, QTableWidgetItem
 
 # First party modules
 from pyoptsparse.postprocessing.utils.base_classes import Controller, Model
+from pyoptsparse.postprocessing.utils.button import Button
+from pyoptsparse.postprocessing.utils.colors import BLUE, GREEN
 from pyoptsparse.postprocessing.utils.data_structures import File, Variable
-from pyoptsparse.postprocessing.utils.widgets import FileTableWidgetItem, OptCheckbox
-from pyoptsparse.postprocessing.utils.widgets import TableButtonWidget as Button
 from pyoptsparse.postprocessing.utils.widgets import VarTableWidgetItem
-
-# --- Color constants ---
-GREEN = QtGui.QColor(0, 255, 0, 20)
-WHITE = QtGui.QColor(255, 255, 255)
 
 
 class YController(Controller):
@@ -52,27 +48,36 @@ class YController(Controller):
         current_file : File
             The current file selected by the user.
         """
-        for name in current_file.get_all_y_var_names():
-            var = Variable(name)
-            var.file = current_file
+        for var in current_file.y_vars:
+            self.add_row(var)
 
-            # Create a new variable widget item for the tree view
-            var_item = VarTableWidgetItem(var.name)
-            file_item = FileTableWidgetItem(var.file.name_short)
-            var_item.var = var
-
-            self.add_row(file_item, var_item)
+        self._view.sortItems(0, QtCore.Qt.AscendingOrder)
 
         # Find all variables that are in the plot, highlight them in
         # green, and link the table variable to the plot variable
-        for plot_var in self._plot_model.y_vars:
-            for i in range(self._view.rowCount()):
-                var_item = self._view.item(i, 1)
-                if var_item.var.name == plot_var.name and var_item.var.file.name == plot_var.file.name:
-                    var_item.var = plot_var
-                    self.setRowColor(i, GREEN)
+        for row in range(self._view.rowCount()):
+            var_item = self._view.item(row, 0)
+            self.set_alternating_color(var_item, row)
+            if any(var_item.getVar() == y_var for y_var in self._plot_model.y_vars):
+                var_item.setRowColor(GREEN)
+                self.set_row_color(row)
 
-    def add_row(self, file_item: FileTableWidgetItem, var_item: VarTableWidgetItem):
+    def set_alternating_color(self, item, row):
+        if row > 0:
+            item_prev = self._view.item(row - 1, 0)
+            color_prev = item_prev.getRowColor()
+
+            if color_prev == BLUE:
+                if item.getVar().name == item_prev.getVar().name:
+                    item.setRowColor(BLUE)
+                    self.set_row_color(row)
+
+            else:
+                if item.getVar().name != item_prev.getVar().name:
+                    item.setRowColor(BLUE)
+                    self.set_row_color(row)
+
+    def add_row(self, var: Variable):
         """
         Adds a row to the y-variable table view.
 
@@ -85,36 +90,54 @@ class YController(Controller):
         """
         row = self._view.rowCount()
         self._view.setRowCount(row + 1)
-        self._view.setItem(row, 0, file_item)
-        self._view.setItem(row, 1, var_item)
+
+        var_item = VarTableWidgetItem(var.name)
+        var_item.setVar(var)
+        self._view.setItem(row, 0, var_item)
+
+        idx_item = QTableWidgetItem(f"{var_item.getVar().idx}")
+        idx_item.setFlags(QtCore.Qt.ItemIsEnabled)
+        self._view.setItem(row, 1, idx_item)
+
+        label_item = QTableWidgetItem()
+        label_item.setFlags(QtCore.Qt.ItemIsEnabled)
+        label = QLineEdit(self._view)
+        self._view.setItem(row, 2, label_item)
+        self._view.setCellWidget(row, 2, label)
 
         scaled_opt_item = QTableWidgetItem()
-        scaled_opt_chbx = OptCheckbox(row, self._view)
+        scaled_opt_item.setFlags(QtCore.Qt.ItemIsEnabled)
+        scaled_opt_chbx = QCheckBox(self._view)
         scaled_opt_chbx.setChecked(False)
         scaled_opt_chbx.stateChanged.connect(self.scale_opt_set)
-        self._view.setItem(row, 2, scaled_opt_item)
-        self._view.setCellWidget(row, 2, scaled_opt_chbx)
+        self._view.setItem(row, 3, scaled_opt_item)
+        self._view.setCellWidget(row, 3, scaled_opt_chbx)
 
         bounds_opt_item = QTableWidgetItem()
-        bounds_opt_chbx = OptCheckbox(row, self._view)
+        bounds_opt_item.setFlags(QtCore.Qt.ItemIsEnabled)
+        bounds_opt_chbx = QCheckBox(self._view)
         bounds_opt_chbx.setChecked(False)
         bounds_opt_chbx.stateChanged.connect(self.bounds_opt_set)
-        self._view.setItem(row, 3, bounds_opt_item)
-        self._view.setCellWidget(row, 3, bounds_opt_chbx)
+        self._view.setItem(row, 4, bounds_opt_item)
+        self._view.setCellWidget(row, 4, bounds_opt_chbx)
 
-        add_btn = Button(row, "Add", self._view)
+        add_btn = Button("Add", self._view)
+        add_btn.setFocusPolicy(QtCore.Qt.NoFocus)
         add_item = QTableWidgetItem()
+        add_item.setFlags(QtCore.Qt.ItemIsEnabled)
         add_btn.clicked.connect(self.add_var_to_plot)
-        self._view.setCellWidget(row, 4, add_btn)
-        self._view.setItem(row, 4, add_item)
+        self._view.setItem(row, 5, add_item)
+        self._view.setCellWidget(row, 5, add_btn)
 
-        rem_btn = Button(row, "Remove", self._view)
+        rem_btn = Button("Remove", self._view)
+        rem_btn.setFocusPolicy(QtCore.Qt.NoFocus)
         rem_item = QTableWidgetItem()
+        rem_item.setFlags(QtCore.Qt.ItemIsEnabled)
         rem_btn.clicked.connect(self.remove_var_from_plot)
-        self._view.setCellWidget(row, 5, rem_btn)
-        self._view.setItem(row, 5, rem_item)
+        self._view.setItem(row, 6, rem_item)
+        self._view.setCellWidget(row, 6, rem_btn)
 
-        self._view.setHorizontalHeaderLabels(["File", "Name", "Scaled", "Bounds", "Add", "Remove"])
+        self._view.setHorizontalHeaderLabels(["Name", "Index", "Label", "Scaled", "Bounds", "Add", "Remove"])
         self._view.resizeColumnsToContents()
 
     def clear_vars(self):
@@ -129,9 +152,10 @@ class YController(Controller):
         """
         Sets the scale option for the selected variable and re-plots.
         """
-        sender = self._view.sender()
-        selected_item = self._view.item(sender.row, 1)
-        scaled_opt = sender.checkState()
+        checkbox = self._view.sender()
+        index = self._view.indexAt(checkbox.pos())
+        selected_item = self._view.item(index.row(), 0)
+        scaled_opt = checkbox.checkState()
 
         selected_item.var.options["scaled"] = scaled_opt
 
@@ -142,9 +166,10 @@ class YController(Controller):
         """
         Sets the bounds options for the selected variable and re-plots
         """
-        sender = self._view.sender()
-        selected_item = self._view.item(sender.row, 1)
-        bounds_opt = sender.checkState()
+        checkbox = self._view.sender()
+        index = self._view.indexAt(checkbox.pos())
+        selected_item = self._view.item(index.row(), 0)
+        bounds_opt = checkbox.checkState()
 
         selected_item.var.options["bounds"] = bounds_opt
 
@@ -155,34 +180,41 @@ class YController(Controller):
         """
         Adds a y-variable to the plot model and re-plots.
         """
-        sender = self._view.sender()
-        selected_item = self._view.item(sender.row, 1)
+        button = self._view.sender()
+        index = self._view.indexAt(button.pos())
+        selected_item = self._view.item(index.row(), 0)
+        var = selected_item.getVar()
+        label = self._view.cellWidget(index.row(), 2).text()
+        var.set_label(str(label))
 
-        self._plot_model.add_var(selected_item.var, "y")
+        self._plot_model.add_var(var, "y")
 
         self._plot_model.plot()
         self._parent_model.canvas.draw()
 
-        self.setRowColor(sender.row, GREEN)
+        selected_item.setRowColor(GREEN)
+        self.set_row_color(index.row())
 
     def remove_var_from_plot(self):
         """
         Removes a y-variable from the plot model and re-plots
         """
-        sender = self._view.sender()
-        selected_item = self._view.item(sender.row, 1)
-        self._plot_model.remove_var(selected_item.var, "y")
+        button = self._view.sender()
+        index = self._view.indexAt(button.pos())
+        selected_item = self._view.item(index.row(), 0)
+        self._plot_model.remove_var(selected_item.getVar(), "y")
 
-        self._view.cellWidget(sender.row, 2).setChecked(False)
-        self._view.cellWidget(sender.row, 3).setChecked(False)
+        self._view.cellWidget(index.row(), 3).setChecked(False)
+        self._view.cellWidget(index.row(), 4).setChecked(False)
 
         # Update the plot
         self._plot_model.plot()
         self._parent_model.canvas.draw()
 
-        self.setRowColor(sender.row, WHITE)
+        selected_item.setRowColor(selected_item.getDefaultRowColor())
+        self.set_row_color(index.row())
 
-    def setRowColor(self, row: int, color: QtGui.QColor):
+    def set_row_color(self, row: int):
         """
         Sets a given row to a specific color.
 
@@ -193,5 +225,6 @@ class YController(Controller):
         color : QtGui.QColor
             The color for the row.
         """
+        color = self._view.item(row, 0).getRowColor()
         for j in range(self._view.columnCount()):
             self._view.item(row, j).setBackground(color)

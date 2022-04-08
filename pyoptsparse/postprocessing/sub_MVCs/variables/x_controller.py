@@ -3,7 +3,8 @@ from PyQt5.QtWidgets import QMessageBox, QTableWidget
 
 # First party modules
 from pyoptsparse.postprocessing.utils.base_classes import Controller, Model
-from pyoptsparse.postprocessing.utils.widgets import FileTableWidgetItem, IterSwitchWidget, VarTableWidgetItem
+from pyoptsparse.postprocessing.utils.switch import Switch
+from pyoptsparse.postprocessing.utils.widgets import VarTableWidgetItem
 
 
 class XController(Controller):
@@ -41,12 +42,11 @@ class XController(Controller):
         var = self._plot_model.x_var
         # Create a new variable widget item for the tree view
         var_item = VarTableWidgetItem(var.name)
-        file_item = FileTableWidgetItem(var.file.name_short)
         var_item.var = var
 
-        self.add_row(file_item, var_item)
+        self.add_row(var_item)
 
-    def add_row(self, file_item: FileTableWidgetItem, var_item: VarTableWidgetItem):
+    def add_row(self, var_item: VarTableWidgetItem):
         """
         Adds a row to the table view formatted specifically for
         x-variables.
@@ -60,15 +60,19 @@ class XController(Controller):
         """
         row = self._view.rowCount()
         self._view.setRowCount(row + 1)
-        self._view.setItem(row, 0, file_item)
-        self._view.setItem(row, 1, var_item)
+        self._view.setItem(row, 0, var_item)
 
-        iter_switch = IterSwitchWidget(row, self._view)
+        iter_switch = Switch(self._view)
         iter_switch.clicked.connect(self.iter_switch_togg)
         iter_switch.setToolTip("Turn on for minor iterations, off for major iterations")
-        self._view.setCellWidget(row, 2, iter_switch)
+        self._view.setCellWidget(row, 1, iter_switch)
 
-        self._view.setHorizontalHeaderLabels(["File", "Name", "Minor/Major"])
+        # Turn off the switch if the x-variable doesn't allow for
+        # minor iterations.
+        if var_item.var.data_minor is None and var_item.var.name != "iter":
+            iter_switch.setEnabled(False)
+
+        self._view.setHorizontalHeaderLabels(["Name", "Major <-> Minor"])
         self._view.resizeColumnsToContents()
         self._view.resizeRowsToContents()
 
@@ -81,34 +85,34 @@ class XController(Controller):
         If the switch is on, we attempt to plot minor iterations unless
         they do not exist for one or more of the x or y-variables.
         """
-        sender = self._view.sender()
+        switch = self._view.sender()
         x_var = self._plot_model.x_var
-        if sender.isChecked():
-            # Adjust the iteration option for the x-variable
-            x_var.options["major"] = False
+
+        if switch.isChecked():
+            flag = False
             for y_var in self._plot_model.y_vars:
-                y_var.options["major"] = False
+                if y_var.data_minor is not None:
+                    y_var.options["major"] = False
+                else:
+                    flag = True
+
+            if not flag:
+                x_var.options["major"] = False
+            else:
+                msg_title = "Minor Iterations Warning"
+                msg_text = (
+                    "One of the y-variables does not support minor iterations.\n\nSwitching back to major iterations."
+                )
+                QMessageBox.warning(self._view, msg_title, msg_text)
+                switch.setChecked(False)
+
         else:
+            switch.setChecked(False)
             x_var.options["major"] = True
             for y_var in self._plot_model.y_vars:
                 y_var.options["major"] = True
 
-        flag = self._plot_model.plot()
-        if not flag:
-            msg = QMessageBox(self._view)
-            msg.setWindowTitle("Variable Warning")
-            msg.setText("The x variable or y variables don't have minor iterations.\n\nReverting to major iterations.")
-            msg.setIcon(QMessageBox.Warning)
-            msg.exec_()
-
-            x_var.options["major"] = True
-            for y_var in self._plot_model.y_vars:
-                y_var.options["major"] = True
-
-            sender.setChecked(False)
-
-            self._plot_model.plot()
-
+        self._plot_model.plot()
         self._parent_model.canvas.draw()
 
     def clear_vars(self):

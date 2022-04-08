@@ -7,8 +7,8 @@ from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_model i
 from pyoptsparse.postprocessing.sub_MVCs.variables.x_controller import XController
 from pyoptsparse.postprocessing.sub_MVCs.variables.y_controller import YController
 from pyoptsparse.postprocessing.utils.base_classes import Controller, Model
-from pyoptsparse.postprocessing.utils.data_structures import Variable
-from pyoptsparse.postprocessing.utils.widgets import FileTableWidgetItem, FileTreeWidgetItem, VarTableWidgetItem
+from pyoptsparse.postprocessing.utils.colors import GREEN
+from pyoptsparse.postprocessing.utils.widgets import FileTreeWidgetItem, VarTableWidgetItem
 
 
 class ConfigureController(Controller):
@@ -131,9 +131,9 @@ class ConfigureController(Controller):
         self._ytable_controller.populate_vars(self._current_file)
 
         if self._plot_model.x_var is None:
-            new_var = Variable("iter")
-            new_var.file = self._current_file
-            self._plot_model.add_var(new_var, "x")
+            for x_var in self._current_file.x_vars:
+                if x_var.name == "iter":
+                    self._plot_model.add_var(x_var, "x")
 
         self._xtable_controller.populate_vars()
 
@@ -143,8 +143,8 @@ class ConfigureController(Controller):
         """
         self._view.x_cbox.clear()
 
-        for var_name in self._current_file.get_all_x_var_names():
-            self._view.x_cbox.addItem(var_name)
+        for var in self._current_file.x_vars:
+            self._view.x_cbox.addItem(var.full_name)
 
     def add_x_var(self):
         """
@@ -154,16 +154,15 @@ class ConfigureController(Controller):
         var_name = self._view.x_cbox.currentText()
 
         # Create a new variable and add to the plot model
-        var = Variable(var_name)
-        var.file = self._current_file
-        self._plot_model.add_var(var, "x")
+        for x_var in self._current_file.x_vars:
+            if x_var.full_name == var_name:
+                self._plot_model.add_var(x_var, "x")
 
-        # Create a new variable widget item for the tree view
-        file_item = FileTableWidgetItem(var.file.name_short)
-        var_item = VarTableWidgetItem(var.name)
-        var_item.var = var
+                # Create a new variable widget item for the tree view
+                var_item = VarTableWidgetItem(x_var.full_name)
+                var_item.var = x_var
 
-        self._xtable_controller.add_row(file_item, var_item)
+        self._xtable_controller.add_row(var_item)
 
     def y_var_search(self, s: str):
         """
@@ -174,7 +173,47 @@ class ConfigureController(Controller):
         s : str
             User string search input.
         """
-        items = self._view.y_table.findItems(s, Qt.MatchContains)
-        if items:
-            item = items[0]
-            self._view.y_table.setCurrentItem(item)
+        table = self._view.y_table
+        row_count = table.rowCount()
+        sel_items = table.findItems(s, Qt.MatchContains)
+
+        rows_to_show = set()
+        for item in sel_items:
+            rows_to_show.add(item.row())
+
+        for row in rows_to_show:
+            table.setRowHidden(row, False)
+
+        for row in range(row_count):
+            if row not in rows_to_show:
+                table.setRowHidden(row, True)
+
+    def add_selected_vars(self):
+        items = self._view.y_table.selectedItems()
+        for item in items:
+            if item.column() == 0:
+                label = self._view.y_table.cellWidget(item.row(), 2).text()
+                item.getVar().set_label(str(label))
+                self._plot_model.add_var(item.getVar(), "y")
+
+                item.setRowColor(GREEN)
+                self._ytable_controller.set_row_color(item.row())
+
+        self._plot_model.plot()
+        self._parent_model.canvas.draw()
+
+    def rem_selected_vars(self):
+        items = self._view.y_table.selectedItems()
+        for item in items:
+            if item.column() == 0:
+                self._plot_model.remove_var(item.getVar(), "y")
+
+                self._view.y_table.cellWidget(item.row(), 3).setChecked(False)
+                self._view.y_table.cellWidget(item.row(), 4).setChecked(False)
+
+                item.setRowColor(item.getDefaultRowColor())
+                self._ytable_controller.set_row_color(item.row())
+
+        # Update the plot
+        self._plot_model.plot()
+        self._parent_model.canvas.draw()
