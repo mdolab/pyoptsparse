@@ -185,7 +185,8 @@ class YController(Controller):
         selected_item = self._view.item(index.row(), 0)
         var = selected_item.getVar()
         label = self._view.cellWidget(index.row(), 2).text()
-        var.set_label(str(label))
+        if str(label) != "":
+            var.set_label(str(label))
 
         self._plot_model.add_var(var, "y")
 

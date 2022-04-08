@@ -193,7 +193,8 @@ class ConfigureController(Controller):
         for item in items:
             if item.column() == 0:
                 label = self._view.y_table.cellWidget(item.row(), 2).text()
-                item.getVar().set_label(str(label))
+                if str(label) != "":
+                    item.getVar().set_label(str(label))
                 self._plot_model.add_var(item.getVar(), "y")
 
                 item.setRowColor(GREEN)
