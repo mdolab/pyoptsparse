@@ -1,6 +1,6 @@
 # External modules
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QHBoxLayout, QLabel, QListWidget, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QHBoxLayout, QLabel, QListWidget, QTreeWidget, QVBoxLayout, QWidget
 
 # First party modules
 from pyoptsparse.postprocessing.sub_MVCs.plotting.plot_view import PlotView
@@ -25,6 +25,7 @@ class TabView(QWidget):
         self._controller = controller
         self._controller.set_view(self)
         self._initView()
+        self._controller.populate_files()
 
     def _initView(self):
         """
@@ -42,23 +43,27 @@ class TabView(QWidget):
         bottom_layout = QHBoxLayout()
         layout.addLayout(bottom_layout)
 
-        # --- Create sublayout for plot list ---
-        plot_list_layout = QVBoxLayout()
-        bottom_layout.addLayout(plot_list_layout)
-
-        # --- Create sublayout for buttons ---
-        button_layout = QVBoxLayout()
-        bottom_layout.addLayout(button_layout)
-
         # ==============================================================
-        # File Layout - Left most column of Sub Layout
+        # Plot List - Left most column of Sub Layout
         # ==============================================================
         self.plot_list = QListWidget(self)
-        plot_list_layout.addWidget(self.plot_list)
+        bottom_layout.addWidget(self.plot_list, 3)
+
+        # ==============================================================
+        # File List - Middle column of Sub Layout
+        # ==============================================================
+        self.file_tree = QTreeWidget(self)
+        self.file_tree.setColumnCount(1)
+        self.file_tree.setHeaderLabels(["File Name"])
+        bottom_layout.addWidget(self.file_tree, 1)
 
         # ==============================================================
         # Button Layout - Sub-layout column for buttons
         # ==============================================================
+        # --- Create sublayout for buttons ---
+        button_layout = QVBoxLayout()
+        bottom_layout.addLayout(button_layout, 1)
+
         # --- Add file ---
         self.add_file_btn = Button("Add file(s)", self)
         self.add_file_btn.clicked.connect(self._controller.open_files)

@@ -157,7 +157,7 @@ class YController(Controller):
         selected_item = self._view.item(index.row(), 0)
         scaled_opt = checkbox.checkState()
 
-        selected_item.var.options["scaled"] = scaled_opt
+        selected_item.getVar().options["scaled"] = scaled_opt
 
         self._plot_model.plot()
         self._parent_model.canvas.draw()
@@ -171,7 +171,7 @@ class YController(Controller):
         selected_item = self._view.item(index.row(), 0)
         bounds_opt = checkbox.checkState()
 
-        selected_item.var.options["bounds"] = bounds_opt
+        selected_item.getVar().options["bounds"] = bounds_opt
 
         self._plot_model.plot()
         self._parent_model.canvas.draw()

@@ -14,7 +14,7 @@ from pyoptsparse.postprocessing.sub_MVCs.metadata_window.metadata_view import Me
 from pyoptsparse.postprocessing.sub_MVCs.plotting.plot_model import PlotModel
 from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_model import TabModel
 from pyoptsparse.postprocessing.utils.base_classes import Controller
-from pyoptsparse.postprocessing.utils.widgets import PlotListWidget
+from pyoptsparse.postprocessing.utils.widgets import FileTreeWidgetItem, PlotListWidget
 
 
 class TabController(Controller):
@@ -62,6 +62,16 @@ class TabController(Controller):
 
         # --- Load files into the model ---
         self._model.load_files(file_names)
+
+        self.populate_files()
+
+    def populate_files(self):
+        self._view.file_tree.clear()
+        for file in self._model.files:
+            file_item = FileTreeWidgetItem(self._view.file_tree)
+            file_item.setFile(file)
+            file_item.setText(0, file.name_short)
+            self._view.file_tree.addTopLevelItem(file_item)
 
     def add_plot(self):
         """
@@ -148,6 +158,7 @@ class TabController(Controller):
             The index of the plot for which the configuration window
             is associated.
         """
+        self._model.sub_views[idx]._controller.populate_files()
         self._model.sub_views[idx].show()
 
     def auto_refresh(self):

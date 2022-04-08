@@ -110,20 +110,30 @@ class PlotModel(Model):
             )
 
             if y_var.options["bounds"]:
+                label = y_var.full_name + ":upper_bound" if y_var.label is None else y_var.label + ":upper_bound"
                 if y_var.bounds["upper"] is not None:
                     if y_var.options["scale"]:
-                        self.axis.axhline(y=y_var.bounds_scaled["upper"], path_effects=[patheffects.withTickedStroke()])
-                    else:
-                        self.axis.axhline(y=y_var.bounds["upper"], path_effects=[patheffects.withTickedStroke()])
-
-                if y_var.bounds["lower"] is not None:
-                    if y_var.options["scale"]:
                         self.axis.axhline(
-                            y=y_var.bounds_scaled["lower"], path_effects=[patheffects.withTickedStroke(angle=-135)]
+                            y=y_var.bounds_scaled["upper"], path_effects=[patheffects.withTickedStroke()], label=label
                         )
                     else:
                         self.axis.axhline(
-                            y=y_var.bounds["lower"], path_effects=[patheffects.withTickedStroke(angle=-135)]
+                            y=y_var.bounds["upper"], path_effects=[patheffects.withTickedStroke()], label=label
+                        )
+
+                if y_var.bounds["lower"] is not None:
+                    label = y_var.full_name + ":lower_bound" if y_var.label is None else y_var.label + ":lower_bound"
+                    if y_var.options["scale"]:
+                        self.axis.axhline(
+                            y=y_var.bounds_scaled["lower"],
+                            path_effects=[patheffects.withTickedStroke(angle=-135)],
+                            label=label,
+                        )
+                    else:
+                        self.axis.axhline(
+                            y=y_var.bounds["lower"],
+                            path_effects=[patheffects.withTickedStroke(angle=-135)],
+                            label=label,
                         )
 
         self.axis.relim()
