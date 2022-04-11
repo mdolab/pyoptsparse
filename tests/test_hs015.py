@@ -50,7 +50,9 @@ class TestHS15(OptTest):
         "CONMIN": 1e-10,
         "PSQP": 5e-12,
     }
-    optOptions = {}
+    optOptions = {
+        "SLSQP": {"ACC": 1e-8},
+    }
 
     def objfunc(self, xdict):
         self.nf += 1
