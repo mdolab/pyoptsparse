@@ -458,6 +458,13 @@ class Optimization:
             arguments must be given to specify the constant portion of
             the constraint Jacobian.
 
+            The intercept term of linear constraints must be supplied as
+            part of the bound information. The linear constraint 'LB <= Ax + b <= UB'
+            is equivalent to 'LB - b <= Ax <= UB - b', and pyOptSparse requires
+            the latter form. In this case, the arguments should be:
+
+            jac = {"dvName" : A, ...}, lower = LB - b, and upper = UB - b.
+
         wrt : iterable (list, set, OrderedDict, array etc)
             'wrt' stand for stands for 'With Respect To'. This
             specifies for what dvs have non-zero Jacobian values
@@ -465,7 +472,7 @@ class Optimization:
 
         jac : dictionary
             For linear and sparse non-linear constraints, the constraint
-            Jacobian must be passed in. The structure is jac dictionary
+            Jacobian must be passed in. The structure of jac dictionary
             is as follows:
 
             {'dvName1':<matrix1>, 'dvName2', <matrix1>, ...}
