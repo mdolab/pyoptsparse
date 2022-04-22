@@ -826,7 +826,7 @@ class Optimizer(BaseSolver):
         of the optimization. endTime should be directly appended to the dictionary
         after optimization finishes.
         """
-        options = copy.deepcopy(self.options)
+        options = copy.copy(self.options)
         # we remove entries which can't be stored properly in the history file
         if "snSTOP function handle" in options.keys():
             options.pop("snSTOP function handle")
