@@ -425,7 +425,7 @@ class Optimization:
         wrt: Optional[Union[str, Iterable[str]]] = None,
         jac=None,
     ):
-        """Add a group of variables into a variable set. This is the main
+        r"""Add a group of variables into a variable set. This is the main
         function used for adding variables to pyOptSparse.
 
         Parameters
@@ -454,16 +454,18 @@ class Optimization:
 
         linear : bool
             Flag to specify if this constraint is linear. If the
-            constraint is linear, both the 'wrt' and 'jac' keyword
+            constraint is linear, both the ``wrt`` and ``jac`` keyword
             arguments must be given to specify the constant portion of
             the constraint Jacobian.
 
             The intercept term of linear constraints must be supplied as
-            part of the bound information. The linear constraint 'LB <= Ax + b <= UB'
-            is equivalent to 'LB - b <= Ax <= UB - b', and pyOptSparse requires
+            part of the bound information. The linear constraint :math:`g_L \leq Ax + b \leq g_U`
+            is equivalent to :math:`g_L - b \leq Ax \leq g_U - b`, and pyOptSparse requires
             the latter form. In this case, the arguments should be:
 
-            jac = {"dvName" : A, ...}, lower = LB - b, and upper = UB - b.
+            .. code-block::
+
+                jac = {"dvName" : A, ...}, lower = gL - b, upper = gU - b
 
         wrt : iterable (list, set, OrderedDict, array etc)
             'wrt' stand for stands for 'With Respect To'. This
@@ -475,14 +477,16 @@ class Optimization:
             Jacobian must be passed in. The structure of jac dictionary
             is as follows:
 
-            {'dvName1':<matrix1>, 'dvName2', <matrix1>, ...}
+            .. code-block::
+
+                {'dvName1':matrix1, 'dvName2', matrix1, ...}
 
             They keys of the Jacobian must correspond to the dvGroups
             given in the wrt keyword argument. The dimensions of each
             "chunk" of the constraint Jacobian must be consistent. For
-            example, <matrix1> must have a shape of (nCon, nDvs) where
+            example, ``matrix1`` must have a shape of (nCon, nDvs) where
             nDVs is the total number of design variables in
-            dvName1. <matrix1> may be a dense numpy array or it may be
+            dvName1. ``matrix1`` may be a dense numpy array or it may be
             scipy sparse matrix. However, it is *HIGHLY* recommended
             that sparse constraints are supplied to pyOptSparse using
             the pyOptSparse's simplified sparse matrix format. The
@@ -494,9 +498,11 @@ class Optimization:
             The three simplified pyOptSparse sparse matrix formats are
             summarized below:
 
-            mat = {'coo':[row, col, data], 'shape':[nrow, ncols]} # A coo matrix
-            mat = {'csr':[rowp, colind, data], 'shape':[nrow, ncols]} # A csr matrix
-            mat = {'coo':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
+            .. code-block::
+
+                mat = {'coo':[row, col, data], 'shape':[nrow, ncols]} # A coo matrix
+                mat = {'csr':[rowp, colind, data], 'shape':[nrow, ncols]} # A csr matrix
+                mat = {'coo':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
 
             Note that for nonlinear constraints (linear=False), the
             values themselves in the matrices in jac do not matter,
