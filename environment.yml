@@ -8,7 +8,7 @@ dependencies:
   - compilers
   - pkg-config
   - openblas
-  - libpgmath
+  - libpgmath   # [win]
 # testing
   - r-nsga2r
   - parameterized
