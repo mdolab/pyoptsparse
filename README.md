@@ -39,6 +39,36 @@ Please see the [documentation](https://mdolab-pyoptsparse.readthedocs-hosted.com
 Testing is done with the `testflo` package developed by the openMDAO team, which can be installed via `pip install testflo`.
 To run the tests, simply type `testflo .` in the root directory.
 
+## Meson Build Instructions
+The build instructions assume [conda](https://docs.conda.io/en/latest/miniconda.html) is installed.
+
+For a Windows build, Visual Studio 2017 C/C++ Build Tools should be installed as well.
+
+First setup conda environment:
+```shell
+conda create -n pyos-build -y
+conda activate pyos-build
+
+conda config --env --add channels conda-forge
+conda config --env --set channel_priority strict
+conda env update -f environment.yml
+```
+
+Next run a build script for your use case: locally install to ``installdir`` in this repo or to your conda environment.
+```shell
+# Unix-like
+sh build.sh
+# or
+sh build_local.sh
+
+# Windows
+build.bat
+# or
+build_local.bat
+```
+Paid optimizers are disabled by default; the appropriate code in their respective ``meson.build`` files
+must be commented out in order to work.
+
 ## Citation
 If you use pyOptSparse, please see [this page](https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/citation.html) for citation information.
 A list of works that have used pyOptSparse can be found [here](https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/citation.html#applications)
