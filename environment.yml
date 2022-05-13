@@ -10,7 +10,6 @@ dependencies:
   - openblas
   - libpgmath   # [win]
 # testing
-  - r-nsga2r
   - parameterized
   - testflo
   - scipy >1.2
