@@ -13,3 +13,6 @@ env
 pyoptsparse/pySNOPT/source
 pyoptsparse/pyNLPQLP/source
 *.egg-info
+/installdir/
+
+.idea/

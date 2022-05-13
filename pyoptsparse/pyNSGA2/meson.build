@@ -1,0 +1,46 @@
+swig = find_program('swig', required: false)
+
+if swig.found()
+    nsga2_source = custom_target('nsga2_wrap.c',
+                                input : ['source/swig/nsga2.i'],
+                                output : ['nsga2_wrap.c'],
+                                command: ['swig', '-o', 'pyoptsparse/pyNSGA2/nsga2_wrap.c', '-python', '@INPUT@']
+                                )
+
+    py3.extension_module('_nsga2',
+                    'source/allocate.c',
+                    'source/auxiliary.c',
+                    'source/crossover.c',
+                    'source/crowddist.c',
+                    'source/decode.c',
+                    'source/dominance.c',
+                    'source/eval.c',
+                    'source/fillnds.c',
+                    'source/initialize.c',
+                    'source/list.c',
+                    'source/merge.c',
+                    'source/mutation.c',
+                    'source/nsga2.c',
+                    'source/rand.c',
+                    'source/rank.c',
+                    'source/report.c',
+                    'source/sort.c',
+                    'source/tourselect.c',
+                    nsga2_source,
+                    include_directories: 'source',
+                    dependencies : py3_dep,
+                    subdir: 'pyoptsparse/pyNSGA2',
+                    link_language: 'c',
+                    install : true)
+endif
+
+python_sources = [
+    '__init__.py',
+    'pyNSGA2.py',
+]
+
+py3.install_sources(
+  python_sources,
+  pure: false,
+  subdir: 'pyoptsparse/pyNSGA2'
+)

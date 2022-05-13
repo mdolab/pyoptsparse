@@ -1,0 +1,18 @@
+dependencies:
+# build
+  - python >=3.9
+  - numpy >=1.16
+  - ipopt >=1.13
+  - swig
+  - meson >=0.46
+  - compilers
+  - pkg-config
+  - openblas
+  - libpgmath
+# testing
+  - r-nsga2r
+  - parameterized
+  - testflo
+  - scipy >1.2
+  - mdolab-baseclasses >=1.3.1
+  - sqlitedict >=1.6
