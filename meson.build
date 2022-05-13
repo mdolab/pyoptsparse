@@ -10,12 +10,7 @@ project(
   default_options: [
     'buildtype=debugoptimized',
     'c_std=c99',
-    'cpp_std=c++14',  # TODO: use c++11 if 14 is not available
-    # TODO: the below -Wno flags are all needed to silence warnings in
-    # f2py-generated code. This should be fixed in f2py itself.
-    #'c_args=-Wno-unused-function -Wno-conversion -Wno-misleading-indentation -Wno-incompatible-pointer-types',
-    'fortran_args=-Wno-conversion',
-    #'fortran_std=legacy',
+    'cpp_std=c++14',
     'blas=openblas',
     'lapack=openblas'
   ],
@@ -23,11 +18,6 @@ project(
 
 cc = meson.get_compiler('c')
 cpp = meson.get_compiler('cpp')
-# This argument is called -Wno-unused-but-set-variable by GCC, however Clang
-# doesn't recognize that.
-if cc.has_argument('-Wno-unused-but-set-variable')
-  add_global_arguments('-Wno-unused-but-set-variable', language : 'c')
-endif
 
 # We need -lm for all C code (assuming it uses math functions, which is safe to
 # assume for SciPy). For C++ it isn't needed, because libstdc++/libc++ is
@@ -44,7 +34,5 @@ add_languages('fortran', native: false)
 py_mod = import('python')
 py3 = py_mod.find_installation()
 py3_dep = py3.dependency()
-message(py3.path())
-message(py3.get_install_dir())
 
 subdir('pyoptsparse')

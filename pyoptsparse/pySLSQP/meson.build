@@ -33,6 +33,7 @@ py3.extension_module('slsqp',
 python_sources = [
     '__init__.py',
     'pySLSQP.py',
+    'LICENSE'
 ]
 
 py3.install_sources(

@@ -30,6 +30,7 @@ py3.extension_module('conmin',
 python_sources = [
     '__init__.py',
     'pyCONMIN.py',
+    'LICENSE'
 ]
 
 py3.install_sources(

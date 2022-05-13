@@ -3,6 +3,7 @@ python_sources = [
     'alpso.py',
     'alpso_ext.py',
     'pyALPSO.py',
+    'LICENSE'
 ]
 
 py3.install_sources(

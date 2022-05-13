@@ -22,6 +22,7 @@ py3.extension_module('psqp',
 python_sources = [
     '__init__.py',
     'pyPSQP.py',
+    'LICENSE'
 ]
 
 py3.install_sources(

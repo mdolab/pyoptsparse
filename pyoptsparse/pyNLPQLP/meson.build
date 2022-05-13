@@ -17,6 +17,7 @@
 python_sources = [
     '__init__.py',
     'pyNLPQLP.py',
+    'LICENSE'
 ]
 
 py3.install_sources(

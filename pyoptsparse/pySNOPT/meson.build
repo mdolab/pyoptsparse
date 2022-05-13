@@ -18,6 +18,7 @@
 python_sources = [
     '__init__.py',
     'pySNOPT.py',
+    'LICENSE'
 ]
 
 py3.install_sources(

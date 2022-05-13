@@ -37,6 +37,7 @@ endif
 python_sources = [
     '__init__.py',
     'pyNSGA2.py',
+    'LICENSE'
 ]
 
 py3.install_sources(
