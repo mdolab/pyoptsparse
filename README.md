@@ -51,7 +51,12 @@ conda activate pyos-build
 
 conda config --env --add channels conda-forge
 conda config --env --set channel_priority strict
+
+# Unix-like
 conda env update -f environment.yml
+
+# Windows
+conda env update -f dev-environment.yml
 ```
 
 Next run a build script for your use case: locally install to ``installdir`` in this repo or to your conda environment.
