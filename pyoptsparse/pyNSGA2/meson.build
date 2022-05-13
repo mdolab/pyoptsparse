@@ -4,10 +4,10 @@ if swig.found()
     nsga2_source = custom_target('nsga2_wrap.c',
                                 input : ['source/swig/nsga2.i'],
                                 output : ['nsga2_wrap.c'],
-                                command: ['swig', '-o', 'pyoptsparse/pyNSGA2/nsga2_wrap.c', '-python', '@INPUT@']
+                                command: ['swig', '-o', 'pyoptsparse/pyNSGA2/nsga2_wrap.c', '-python', '-interface', 'nsga2', '@INPUT@']
                                 )
 
-    py3.extension_module('_nsga2',
+    py3.extension_module('nsga2',
                     'source/allocate.c',
                     'source/auxiliary.c',
                     'source/crossover.c',

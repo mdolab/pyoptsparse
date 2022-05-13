@@ -4,9 +4,9 @@ work with sparse optimization problems.
 """
 # Compiled module
 try:
-    from . import _nsga2  # isort: skip
+    from . import nsga2  # isort: skip
 except ImportError:
-    _nsga2 = None
+    nsga2 = None
 # Standard Python modules
 import time
 
@@ -31,9 +31,9 @@ class NSGA2(Optimizer):
         informs = self._getInforms()
         super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
 
-        if _nsga2 is None:
+        if nsga2 is None:
             if raiseError:
-                raise Error("There was an error importing the compiled _nsga2 module")
+                raise Error("There was an error importing the compiled nsga2 module")
 
     @staticmethod
     def _getInforms():
@@ -85,7 +85,7 @@ class NSGA2(Optimizer):
         Notes
         -----
         The kwargs are there such that the sens= argument can be
-        supplied (but ignored here in _nsga2)
+        supplied (but ignored here in nsga2)
         """
 
         # ======================================================================
@@ -139,20 +139,20 @@ class NSGA2(Optimizer):
             self.optProb.fact = fact
             self.optProb.offset = buc
 
-        g = _nsga2.new_doubleArray(m)
+        g = nsga2.new_doubleArray(m)
         len_ff = len(np.atleast_1d(ff))
-        f = _nsga2.new_doubleArray(len_ff)
+        f = nsga2.new_doubleArray(len_ff)
 
         if self.optProb.comm.rank == 0:
             # Variables Handling
             n = len(xs)
-            x = _nsga2.new_doubleArray(n)
-            xl = _nsga2.new_doubleArray(n)
-            xu = _nsga2.new_doubleArray(n)
+            x = nsga2.new_doubleArray(n)
+            xl = nsga2.new_doubleArray(n)
+            xu = nsga2.new_doubleArray(n)
             for i in range(n):
-                _nsga2.doubleArray_setitem(x, i, xs[i])
-                _nsga2.doubleArray_setitem(xl, i, blx[i])
-                _nsga2.doubleArray_setitem(xu, i, bux[i])
+                nsga2.doubleArray_setitem(x, i, xs[i])
+                nsga2.doubleArray_setitem(xl, i, blx[i])
+                nsga2.doubleArray_setitem(xu, i, bux[i])
 
             # Setup argument list values
             nfeval = 0
@@ -168,10 +168,10 @@ class NSGA2(Optimizer):
                 seed = time.time()
 
             # Run NSGA-II
-            _nsga2.set_pyfunc(objconfunc)
+            nsga2.set_pyfunc(objconfunc)
             t0 = time.time()
             # fmt: off
-            _nsga2.nsga2(n, m, len_ff, f, x, g, nfeval, xl, xu, opt('PopSize'), opt('maxGen'),
+            nsga2.nsga2(n, m, len_ff, f, x, g, nfeval, xl, xu, opt('PopSize'), opt('maxGen'),
                         opt('pCross_real'), opt('pMut_real'), opt('eta_c'), opt('eta_m'),
                         opt('pCross_bin'), opt('pMut_bin'), printout, seed, opt('xinit'))
             # fmt: on
@@ -187,7 +187,7 @@ class NSGA2(Optimizer):
 
             xstar = [0.0] * n
             for i in range(n):
-                xstar[i] = _nsga2.doubleArray_getitem(x, i)
+                xstar[i] = nsga2.doubleArray_getitem(x, i)
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xstar)
