@@ -3,10 +3,9 @@
 # Standard Python modules
 import sys
 import unittest
-
-# External modules
 import warnings
 
+# External modules
 import numpy as np
 from parameterized import parameterized
 from sqlitedict import SqliteDict
