@@ -58,18 +58,35 @@ conda env update -f environment.yml
 # Windows
 conda env update -f dev-environment.yml
 ```
-
-Next run a build script for your use case: locally install to ``installdir`` in this repo or to your conda environment.
+Assign compilers for platform; other options may work but these are tested and succeed:
 ```shell
-# Unix-like
-sh build.sh
-# or
-sh build_local.sh
+# Linux
+export CC=gcc
+export FC=gfortran
+export CC_LD=bfd
+
+# OSX
+export CC=clang
+export FC=gfortran
+export CC_LD=ld
 
 # Windows
-build.bat
-# or
-build_local.bat
+set CC=cl
+set FC=flang
+set CC_LD=link
+```
+
+Build and install to desired directory by setting``installdir``  to absolute path:
+```shell
+# Unix-like
+export installdir="$PWD/installdir"
+meson setup build --prefix="$installdir"
+ninja -C build install
+
+# Windows
+set installdir=%cd%/installdir
+meson setup build --prefix="%installdir%"
+ninja -C build install
 ```
 Paid optimizers are disabled by default; the appropriate code in their respective ``meson.build`` files
 must be commented out in order to work.
