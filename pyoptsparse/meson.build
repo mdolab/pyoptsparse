@@ -59,3 +59,24 @@ subdir('pyPSQP')
 subdir('pyALPSO')
 subdir('pyParOpt')
 subdir('postprocessing')
+
+# test imports
+envdata = environment()
+python_paths = [join_paths(meson.current_build_dir(), '..')]
+envdata.append('PYTHONPATH', python_paths)
+
+progs = [['SLSQP',  'pySLSQP',  'slsqp'],
+         ['CONMIN', 'pyCONMIN', 'conmin'],
+         ['PSQP',   'pyPSQP',   'psqp'],
+         ['NSGA2',  'pyNSGA2',  'nsga2']]
+
+
+foreach p : progs
+  import_command = 'from pyoptsparse.' + p[1] + ' import '+p[2]+'; print('+p[2]+'.__file__)'
+  test(
+    'import test for '+p[0],
+    import('python').find_installation('python'),
+    args: ['-c', import_command],
+    env: envdata
+  )
+endforeach
