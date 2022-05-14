@@ -16,3 +16,4 @@ omit =
     */setup.py
     */pyALPSO/alpso.py
     */pyALPSO/alpso_ext.py
+    */pyIPOPT/find_python_path.py
