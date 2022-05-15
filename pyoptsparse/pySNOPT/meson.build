@@ -8,6 +8,9 @@ else
 endif
 
 if HAS_SNOPT
+  c = run_command('source' / 'grab-all-fortran-files.py', check: true)
+  snopt_source_files = c.stdout().strip().split('\n')
+
   snopt_source = custom_target('snoptmodule.c',
     input : ['source/f2py/snopt.pyf'],
     output : ['snoptmodule.c'],
@@ -16,14 +19,14 @@ if HAS_SNOPT
   )
 
   py3.extension_module('snopt',
-    'source/closeunit.f',
-    'source/openunit.f',
     snopt_source,
     fortranobject_c,
+    snopt_source_files,
     include_directories: [inc_np, inc_f2py],
     dependencies : py3_dep,
     subdir: 'pyoptsparse/pySNOPT',
-    install : true
+    install : true,
+    fortran_args: '-ffixed-line-length-80'
   )
 endif
 
