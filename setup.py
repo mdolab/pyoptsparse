@@ -8,11 +8,7 @@ import setuptools  # magic import to allow us to use entry_point
 
 def run_meson_build():
     # set compilers for specific platforms
-    if sys.platform == "linux":
-        os.environ["CC"] = "gcc"
-        os.environ["FC"] = "gfortran"
-        os.environ["CC_LD"] = "bfd"
-    elif sys.platform == "win32":
+    if sys.platform == "win32":
         os.environ["CC"] = "cl"
         os.environ["FC"] = "flang"
         os.environ["CC_LD"] = "link"
@@ -20,6 +16,10 @@ def run_meson_build():
         os.environ["CC"] = "clang"
         os.environ["FC"] = "gfortran"
         os.environ["CC_LD"] = "ld"
+    # elif sys.platform == "linux":
+        # os.environ["CC"] = "gcc"
+        # os.environ["FC"] = "gfortran"
+        # os.environ["CC_LD"] = "bfd"
 
     # check if ipopt dir is specified
     ipopt_dir_opt = ""
