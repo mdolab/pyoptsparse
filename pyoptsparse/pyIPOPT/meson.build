@@ -1,11 +1,3 @@
-# This is done like this so conda-build succeeds
-py_path = run_command(py3,
-  [
-    'find_python_path.py'
-  ],
-  check: true
-).stdout().strip()
-
 fs = import('fs')
 
 if get_option('ipopt_dir') != '' or fs.is_dir('Ipopt')
