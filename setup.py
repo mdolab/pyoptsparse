@@ -1,64 +1,95 @@
-import sys
+import os
 import re
+import shutil
+import sys
+
 import setuptools  # magic import to allow us to use entry_point
 
-# Check if we have numpy:
-try:
-    from numpy.distutils.misc_util import Configuration
-    import numpy.distutils.core
-    from numpy.distutils.core import setup
-except ImportError:
-    raise ImportError("pyOptSparse requires numpy")
 
-# HACK to make bdist_wheel command usable when using numpy.distutils.core.setup
-try:
-    from wheel import bdist_wheel
-except ImportError:
-    if "bdist_wheel" in sys.argv:
-        print(
-            "\nThe bdist_wheel option requires the 'wheel' package to be installed.\n"
-            + "Install it using 'pip install wheel'."
-        )
-        sys.exit(-1)
-else:
-    numpy.distutils.core.numpy_cmdclass["bdist_wheel"] = bdist_wheel.bdist_wheel
+def run_meson_build():
+    # set compilers for specific platforms
+    if sys.platform == 'linux':
+        os.environ['CC'] = 'gcc'
+        os.environ['FC'] = 'gfortran'
+        os.environ['CC_LD'] = 'bfd'
+    elif sys.platform == 'win32':
+        os.environ['CC'] = 'cl'
+        os.environ['FC'] = 'flang'
+        os.environ['CC_LD'] = 'link'
+    elif sys.platform == 'darwin':
+        os.environ['CC'] = 'clang'
+        os.environ['FC'] = 'gfortran'
+        os.environ['CC_LD'] = 'ld'
 
-
-if len(sys.argv) == 1:
-    print(
-        "\nTo install, run: python setup.py install --user\n\n"
-        + "To build, run: python setup.py build_ext --inplace\n\n"
-        + "For help on C-compiler options run: python setup.py build --help-compiler\n\n"
-        + "For help on Fortran-compiler options run: python setup.py build --help-fcompiler\n\n"
-        + "To specify a Fortran compiler to use run: python setup.py install --user --fcompiler=<fcompiler name>\n\n"
-        + "For further help run: python setup.py build --help"
-    )
-    sys.exit(-1)
+    # check if ipopt dir is specified
+    ipopt_dir_opt = ''
+    if 'IPOPT_DIR' in os.environ:
+        ipopt_dir = os.environ["IPOPT_DIR"]
+        ipopt_dir_opt = f'-Dipopt_dir="{ipopt_dir}"'
+    os.system(f"meson setup meson_build --prefix"
+              f"={os.path.join(os.getcwd(), 'staging_dir')}"
+              f" {ipopt_dir_opt}")
+    os.system(f"ninja -C meson_build install")
+    use_local_install_dir()
+    copy_shared_libraries()
 
 
-def configuration(parent_package="", top_path=None):
-    config = Configuration(None, parent_package, top_path)
-    config.set_options(
-        ignore_setup_xxx_py=True, assume_default_configuration=True, delegate_options_to_subpackages=True, quiet=True
-    )
-    config.add_subpackage("pyoptsparse")
-    return config
+def use_local_install_dir():
+    installation = ""
+    for root, dirs, files in os.walk('staging_dir'):
+        for dir in dirs:
+
+            # move pyoptsparse to just under staging_dir
+            if dir.endswith('pyoptsparse'):
+                installation = os.path.join(root, dir)
+    new_installation = os.path.join('staging_dir', 'pyoptsparse')
+    shutil.move(installation, new_installation)
+    shutil.rmtree(os.path.join('staging_dir', 'lib'))
+
+
+def copy_shared_libraries():
+    so_files = []
+    for root, dirs, files in os.walk('staging_dir'):
+        for file in files:
+
+            # move pyoptsparse to just under staging_dir
+            if file.endswith('.so'):
+                file_path = os.path.join(root, file)
+                new_path = str(file_path)
+                match = re.search(staging_dir, new_path)
+                new_path = new_path[match.span()[1] + 1:]
+                shutil.copy(file_path, new_path)
 
 
 if __name__ == "__main__":
-    __version__ = re.findall(
-        r"""__version__ = ["']+([0-9\.]*)["']+""",
-        open("pyoptsparse/__init__.py").read(),
-    )[0]
+    # This is where the meson build system will install to, it is then
+    # used as the sources for setuptools
+    staging_dir = "staging_dir"
 
-    with open("doc/requirements.txt") as f:
+    doc_path = os.path.join(staging_dir, "doc")
+
+    # this keeps the meson build system from running more than once
+    if "dist" not in str(os.path.abspath(__file__)) and not os.path.isdir(staging_dir):
+        run_meson_build()
+        shutil.copytree("doc", doc_path)
+
+    req_txt = os.path.join(doc_path, "requirements.txt")
+    with open(req_txt) as f:
+        print(f"THIS IS REQ PATH: {req_txt}")
         docs_require = f.read().splitlines()
 
-    setup(
+    init_file = os.path.join(staging_dir, "pyoptsparse", "__init__.py")
+    __version__ = re.findall(
+        r"""__version__ = ["']+([0-9\.]*)["']+""",
+        open(init_file).read(),
+    )[0]
+
+    setuptools.setup(
         name="pyoptsparse",
         version=__version__,
         description="Python package for formulating and solving nonlinear constrained optimization problems",
         long_description="pyOptSparse is a Python package for formulating and solving nonlinear constrained optimization problems",
+        platforms=["Linux"],
         keywords="optimization",
         install_requires=[
             "sqlitedict>=1.6",
@@ -75,8 +106,6 @@ if __name__ == "__main__":
             "docs": docs_require,
             "testing": ["testflo>=1.4.5"],
         },
-        package_data={"pyoptsparse": ["postprocessing/assets/*"]},
-        platforms=["Linux"],
         classifiers=[
             "Development Status :: 5 - Production/Stable",
             "Environment :: Console",
@@ -90,7 +119,14 @@ if __name__ == "__main__":
             "Topic :: Software Development",
             "Topic :: Education",
         ],
-        configuration=configuration,
+        package_dir={"pyoptsparse": os.path.join(staging_dir, "pyoptsparse"),
+                     "doc": os.path.join(staging_dir, "doc")},
+        # packages=setuptools.find_packages(where=staging_dir),
+        python_requires=">=3.9",
+        package_data={
+            "pyoptsparse": ["*.so", "*.lib", "assets/*"],
+            "doc": ["*"],
+        },
         entry_points={
             "gui_scripts": [
                 "optview = pyoptsparse.postprocessing.OptView:main",

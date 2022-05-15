@@ -13,6 +13,8 @@ env
 pyoptsparse/pySNOPT/source
 pyoptsparse/pyNLPQLP/source
 *.egg-info
-/installdir/
 
 .idea/
+/meson_build/
+/dist/
+/staging_dir/

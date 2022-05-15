@@ -6,28 +6,40 @@ py_path = run_command(py3,
   check: true
 ).stdout().strip()
 
+# The following first tries
 if is_windows
+    ipopt_dirs = []
+    ipopt_idir = ''
+    if get_option('ipopt_dir') != ''
+        ipopt_dirs = [get_option('ipopt_dir') / 'Library'/ 'lib']
+        ipopt_idir = get_option('ipopt_dir') / 'include' / 'coin-or'
+    endif
     ipopt_dep = cc.find_library('ipopt-3', required: false)
 else
-    ipopt_dep = dependency('ipopt', required: false)
+    ipopt_dirs = []
+    ipopt_idir = ''
+    if get_option('ipopt_dir') != ''
+        ipopt_dirs = [get_option('ipopt_dir') / 'lib']
+        ipopt_idir = get_option('ipopt_dir') / 'include' / 'coin-or'
+    endif
+    ipopt_dep = cc.find_library('ipopt', required: false, dirs: ipopt_dirs)
 endif
 
 if ipopt_dep.found()
+    fs = import('fs')
 
-    if is_windows
-        coinor_inc = include_directories(py_path / 'Library' / 'include' / 'coin-or')
-    else
-        coinor_inc = include_directories(py_path / '..' / 'include' / 'coin-or')
+    if fs.is_dir(ipopt_idir)
+
+        ipopt_inc = include_directories(ipopt_idir)
+        py3.extension_module('pyipoptcore',
+                        'src/callback.c',
+                        'src/pyipoptcoremodule.c',
+                        include_directories: [inc_np, 'src', ipopt_inc],
+                        dependencies : [py3_dep, ipopt_dep],
+                        subdir: 'pyoptsparse/pyIPOPT',
+                        link_language: 'c',
+                        install : true)
     endif
-
-    py3.extension_module('pyipoptcore',
-                    'src/callback.c',
-                    'src/pyipoptcoremodule.c',
-                    include_directories: [inc_np, 'src', coinor_inc],
-                    dependencies : [py3_dep, ipopt_dep],
-                    subdir: 'pyoptsparse/pyIPOPT',
-                    link_language: 'c',
-                    install : true)
 endif
 
 python_sources = [
