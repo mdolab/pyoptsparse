@@ -17,9 +17,9 @@ def run_meson_build():
         os.environ["FC"] = "gfortran"
         os.environ["CC_LD"] = "ld"
     # elif sys.platform == "linux":
-        # os.environ["CC"] = "gcc"
-        # os.environ["FC"] = "gfortran"
-        # os.environ["CC_LD"] = "bfd"
+    # os.environ["CC"] = "gcc"
+    # os.environ["FC"] = "gfortran"
+    # os.environ["CC_LD"] = "bfd"
 
     # check if ipopt dir is specified
     ipopt_dir_opt = ""
@@ -119,7 +119,7 @@ if __name__ == "__main__":
         ],
         package_dir={"pyoptsparse": os.path.join(staging_dir, "pyoptsparse"), "doc": os.path.join(staging_dir, "doc")},
         # packages=setuptools.find_packages(where=staging_dir),
-        python_requires=">=3.9",
+        python_requires=">=3.8",
         package_data={
             "pyoptsparse": ["*.so", "*.lib", "assets/*"],
             "doc": ["*"],
