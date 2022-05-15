@@ -13,7 +13,13 @@ incdir_numpy = run_command(py3,
 
 inc_np = include_directories(incdir_numpy)
 
-incdir_f2py = incdir_numpy / '..' / '..' / 'f2py' / 'src'
+incdir_f2py = run_command(py3,
+  [
+    '-c',
+    'import os; os.chdir(".."); import numpy.f2py; print(numpy.f2py.get_include())'
+  ],
+  check : true
+).stdout().strip()
 inc_f2py = include_directories(incdir_f2py)
 fortranobject_c = incdir_f2py / 'fortranobject.c'
 
@@ -63,7 +69,7 @@ subdir('postprocessing')
 # test imports
 envdata = environment()
 python_paths = [join_paths(meson.current_build_dir(), '..')]
-envdata.append('PYTHONPATH', python_paths)
+envdata.prepend('PYTHONPATH', python_paths)
 
 progs = [['SLSQP',  'pySLSQP',  'slsqp'],
          ['CONMIN', 'pyCONMIN', 'conmin'],
