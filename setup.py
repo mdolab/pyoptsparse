@@ -104,7 +104,7 @@ if __name__ == "__main__":
         keywords="optimization",
         install_requires=[
             "sqlitedict>=1.6",
-            "oldest-supported-numpy",
+            "numpy>=1.16",
             "scipy>1.2",
             "mdolab-baseclasses>=1.3.1",
         ],
