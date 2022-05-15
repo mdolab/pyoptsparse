@@ -1,3 +1,3 @@
 [build-system]
-requires = ["setuptools>=42", "meson>=0.46", "numpy>=1.16", "ninja", "pkgconfig"]
+requires = ["setuptools>=42", "meson>=0.46", "numpy>=1.16", "ninja"]
 build-backend = "setuptools.build_meta"
