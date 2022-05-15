@@ -1,18 +1,23 @@
-import sys
+# Standard Python modules
 import re
+import sys
+
+# External modules
 import setuptools  # magic import to allow us to use entry_point
 from setuptools import find_packages
 
 # Check if we have numpy:
 try:
-    from numpy.distutils.misc_util import Configuration
+    # External modules
     import numpy.distutils.core
     from numpy.distutils.core import setup
+    from numpy.distutils.misc_util import Configuration
 except ImportError:
     raise ImportError("pyOptSparse requires numpy")
 
 # HACK to make bdist_wheel command usable when using numpy.distutils.core.setup
 try:
+    # External modules
     from wheel import bdist_wheel
 except ImportError:
     if "bdist_wheel" in sys.argv:
@@ -66,10 +71,7 @@ if __name__ == "__main__":
         ],
         extras_require={
             "testing": ["testflo>=1.4.5"],
-            "optview": [
-                "PyQt5>=5.15.6",
-                "matplotlib>=3.5.1",
-            ],
+            "optview": ["PyQt5>=5.15.6", "matplotlib>=3.5.1", "qdarkstyle>=3.0.3"],
         },
         packages=find_packages(),
         package_data={"pyoptsparse": ["postprocessing/assets/*"]},
