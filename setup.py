@@ -56,8 +56,6 @@ def run_meson_build():
     sysargs = meson_call.split(" ")
     meson_main(sysargs)
 
-    copy_shared_libraries()
-
 
 def copy_shared_libraries():
     for root, dirs, files in os.walk(staging_dir):
@@ -82,6 +80,7 @@ if __name__ == "__main__":
         cwd = os.getcwd()
         run_meson_build()
         os.chdir(cwd)
+        copy_shared_libraries()
 
     docs_require = ""
     req_txt = os.path.join("doc", "requirements.txt")
