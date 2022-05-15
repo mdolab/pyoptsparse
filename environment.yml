@@ -8,6 +8,8 @@ dependencies:
   - compilers
   - pkg-config
   - openblas
+  - pip
+  - setuptools
 # testing
   - parameterized
   - testflo

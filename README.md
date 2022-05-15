@@ -40,56 +40,22 @@ Testing is done with the `testflo` package developed by the openMDAO team, which
 To run the tests, simply type `testflo .` in the root directory.
 
 ## Meson Build Instructions
-The build instructions assume [conda](https://docs.conda.io/en/latest/miniconda.html) is installed.
+The build instructions are the same as before, using setuptools as the backend. Two main differences:
+- NumPy is no longer needed before running `pip install .`, it is installed as build dependency like everything else. Only
+`setuptools` and `pip` are required prior and of course appropriate compilers for your platform
+- Paid optimizers are disabled by default; the appropriate code in their respective ``meson.build`` files
+must be commented out in order to work. I know this is not the desired behavior but I don't have any way of testing the 
+build system for paid optimizers
 
-For a Windows build, Visual Studio 2017 C/C++ Build Tools should be installed as well.
+### Windows Builds
+Windows builds now should work pretty easily. I've found `conda` to be the most painless approach. `win-environment.yml` 
+should provide all necessary dependencies for a successful build. The environment assumes Visual Studio 2017 Build Tools
+for C/C++ to be installed on the system. I recommend running `meson` directly for now rather than `setuptools` because I
+haven't tested it yet that way.
 
-First setup conda environment:
-```shell
-conda create -n pyos-build -y
-conda activate pyos-build
-
-conda config --env --add channels conda-forge
-conda config --env --set channel_priority strict
-
-# Unix-like
-conda env update -f environment.yml
-
-# Windows
-conda env update -f dev-environment.yml
-```
-Assign compilers for platform; other options may work but these are tested and succeed:
-```shell
-# Linux
-export CC=gcc
-export FC=gfortran
-export CC_LD=bfd
-
-# OSX
-export CC=clang
-export FC=gfortran
-export CC_LD=ld
-
-# Windows
-set CC=cl
-set FC=flang
-set CC_LD=link
-```
-
-Build and install to desired directory by setting``installdir``  to absolute path:
-```shell
-# Unix-like
-export installdir="$PWD/installdir"
-meson setup build --prefix="$installdir"
-ninja -C build install
-
-# Windows
-set installdir=%cd%/installdir
-meson setup build --prefix="%installdir%"
-ninja -C build install
-```
-Paid optimizers are disabled by default; the appropriate code in their respective ``meson.build`` files
-must be commented out in order to work.
+### MacOS/Linux Conda Environment
+I've also provided `environment.yml` for Mac and Linux to bootstrap a build environment using conda. With this environment
+`meson` can be run directly without `setuptools`. Although `setuptools` will work as well.
 
 ## Citation
 If you use pyOptSparse, please see [this page](https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/citation.html) for citation information.

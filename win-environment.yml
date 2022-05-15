@@ -9,6 +9,8 @@ dependencies:
   - pkg-config
   - openblas
   - libpgmath   # [win]
+  - pip
+  - setuptools
 # testing
   - parameterized
   - testflo
