@@ -8,27 +8,25 @@ import setuptools  # magic import to allow us to use entry_point
 
 def run_meson_build():
     # set compilers for specific platforms
-    if sys.platform == 'linux':
-        os.environ['CC'] = 'gcc'
-        os.environ['FC'] = 'gfortran'
-        os.environ['CC_LD'] = 'bfd'
-    elif sys.platform == 'win32':
-        os.environ['CC'] = 'cl'
-        os.environ['FC'] = 'flang'
-        os.environ['CC_LD'] = 'link'
-    elif sys.platform == 'darwin':
-        os.environ['CC'] = 'clang'
-        os.environ['FC'] = 'gfortran'
-        os.environ['CC_LD'] = 'ld'
+    if sys.platform == "linux":
+        os.environ["CC"] = "gcc"
+        os.environ["FC"] = "gfortran"
+        os.environ["CC_LD"] = "bfd"
+    elif sys.platform == "win32":
+        os.environ["CC"] = "cl"
+        os.environ["FC"] = "flang"
+        os.environ["CC_LD"] = "link"
+    elif sys.platform == "darwin":
+        os.environ["CC"] = "clang"
+        os.environ["FC"] = "gfortran"
+        os.environ["CC_LD"] = "ld"
 
     # check if ipopt dir is specified
-    ipopt_dir_opt = ''
-    if 'IPOPT_DIR' in os.environ:
+    ipopt_dir_opt = ""
+    if "IPOPT_DIR" in os.environ:
         ipopt_dir = os.environ["IPOPT_DIR"]
         ipopt_dir_opt = f'-Dipopt_dir="{ipopt_dir}"'
-    os.system(f"meson setup meson_build --prefix"
-              f"={os.path.join(os.getcwd(), 'staging_dir')}"
-              f" {ipopt_dir_opt}")
+    os.system(f"meson setup meson_build --prefix" f"={os.path.join(os.getcwd(), 'staging_dir')}" f" {ipopt_dir_opt}")
     os.system(f"ninja -C meson_build install")
     use_local_install_dir()
     copy_shared_libraries()
@@ -36,28 +34,28 @@ def run_meson_build():
 
 def use_local_install_dir():
     installation = ""
-    for root, dirs, files in os.walk('staging_dir'):
+    for root, dirs, files in os.walk("staging_dir"):
         for dir in dirs:
 
             # move pyoptsparse to just under staging_dir
-            if dir.endswith('pyoptsparse'):
+            if dir.endswith("pyoptsparse"):
                 installation = os.path.join(root, dir)
-    new_installation = os.path.join('staging_dir', 'pyoptsparse')
+    new_installation = os.path.join("staging_dir", "pyoptsparse")
     shutil.move(installation, new_installation)
-    shutil.rmtree(os.path.join('staging_dir', 'lib'))
+    shutil.rmtree(os.path.join("staging_dir", "lib"))
 
 
 def copy_shared_libraries():
     so_files = []
-    for root, dirs, files in os.walk('staging_dir'):
+    for root, dirs, files in os.walk("staging_dir"):
         for file in files:
 
             # move pyoptsparse to just under staging_dir
-            if file.endswith('.so'):
+            if file.endswith(".so"):
                 file_path = os.path.join(root, file)
                 new_path = str(file_path)
                 match = re.search(staging_dir, new_path)
-                new_path = new_path[match.span()[1] + 1:]
+                new_path = new_path[match.span()[1] + 1 :]
                 shutil.copy(file_path, new_path)
 
 
@@ -119,8 +117,7 @@ if __name__ == "__main__":
             "Topic :: Software Development",
             "Topic :: Education",
         ],
-        package_dir={"pyoptsparse": os.path.join(staging_dir, "pyoptsparse"),
-                     "doc": os.path.join(staging_dir, "doc")},
+        package_dir={"pyoptsparse": os.path.join(staging_dir, "pyoptsparse"), "doc": os.path.join(staging_dir, "doc")},
         # packages=setuptools.find_packages(where=staging_dir),
         python_requires=">=3.9",
         package_data={
