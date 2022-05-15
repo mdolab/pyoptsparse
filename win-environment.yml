@@ -7,7 +7,6 @@ dependencies:
   - meson >=0.46
   - compilers
   - pkg-config
-  - openblas
   - libpgmath   # [win]
   - pip
   - setuptools
