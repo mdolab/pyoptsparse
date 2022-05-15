@@ -85,7 +85,7 @@ The following are the options which are set by default within pyOptSparse.
 All other options take the default value with IPOPT unless specified by the user.
 
 .. optionstable:: pyoptsparse.pyIPOPT.pyIPOPT.IPOPT
-   :filename: optimizers/IPOPT_options.yaml
+   :filename: IPOPT_options.yaml
 
 
 Informs
