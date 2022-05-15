@@ -56,7 +56,7 @@ def copy_shared_libraries():
                 file_path = os.path.join(root, file)
                 new_path = str(file_path)
                 match = re.search(staging_dir, new_path)
-                new_path = new_path[match.span()[1] + 1:]
+                new_path = new_path[match.span()[1] + 1 :]
                 shutil.copy(file_path, new_path)
 
 
@@ -114,7 +114,7 @@ if __name__ == "__main__":
             "Topic :: Software Development",
             "Topic :: Education",
         ],
-        package_dir={"": '.'},
+        package_dir={"": "."},
         packages=setuptools.find_packages(where="."),
         package_data={
             "": ["*.so", "*.lib", "assets/*"],
