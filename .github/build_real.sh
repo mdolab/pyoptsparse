@@ -7,5 +7,5 @@ if [[ $IMAGE == "private" ]]; then
     cp -r $HOME/SNOPT/* pyoptsparse/pySNOPT/source
 fi
 
-export CPATH="/usr/include/coin:/usr/include/coin-or:$CPATH"
+export IPOPT_DIR="pyoptsparse/pyIPOPT/Ipopt"
 pip install .[optview,testing]
