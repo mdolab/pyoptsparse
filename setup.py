@@ -69,9 +69,11 @@ if __name__ == "__main__":
     if "dist" not in str(os.path.abspath(__file__)) and not os.path.isdir(staging_dir):
         run_meson_build()
 
+    docs_require = ""
     req_txt = os.path.join("doc", "requirements.txt")
-    with open(req_txt) as f:
-        docs_require = f.read().splitlines()
+    if os.path.isfile(req_txt):
+        with open(req_txt) as f:
+            docs_require = f.read().splitlines()
 
     init_file = os.path.join("pyoptsparse", "__init__.py")
     __version__ = re.findall(
