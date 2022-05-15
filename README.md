@@ -39,23 +39,41 @@ Please see the [documentation](https://mdolab-pyoptsparse.readthedocs-hosted.com
 Testing is done with the `testflo` package developed by the openMDAO team, which can be installed via `pip install testflo`.
 To run the tests, simply type `testflo .` in the root directory.
 
-## Meson Build Instructions
-The build instructions are the same as before, using setuptools as the backend. Two main differences:
-- NumPy is no longer needed before running `pip install .`, it is installed as build dependency like everything else. Only
+## Building From Source in a Conda Environment
+The build instructions with the new meson build system are the same as before, using setuptools as the backend with the exception that
+`numpy` is no longer needed before running `pip install .`, it is installed as build dependency like everything else. Only
 `setuptools` and `pip` are required prior and of course appropriate compilers for your platform
-- Paid optimizers are disabled by default; the appropriate code in their respective ``meson.build`` files
-must be commented out in order to work. I know this is not the desired behavior but I don't have any way of testing the 
-build system for paid optimizers
 
-### Windows Builds
-Windows builds now should work pretty easily. I've found `conda` to be the most painless approach. `win-environment.yml` 
-should provide all necessary dependencies for a successful build. The environment assumes Visual Studio 2017 Build Tools
-for C/C++ to be installed on the system. I recommend running `meson` directly for now rather than `setuptools` because I
-haven't tested it yet that way.
+Building from a conda environment is slightly different as all the build dependencies are expected to be in the conda
+environment unless there is no package available for it. Since the `pip install .` method does dependency checks on packages
+that don't necessarily match the names in a conda environment it will try to download deps from PyPi or just flat out fail.
 
-### MacOS/Linux Conda Environment
-I've also provided `environment.yml` for Mac and Linux to bootstrap a build environment using conda. With this environment
-`meson` can be run directly without `setuptools`. Although `setuptools` will work as well.
+So the build and install for a conda environment is:
+```shell
+# Setup env
+## OSX/Linux
+conda env create -n pyos-build -f environment.yml
+## Windows
+conda env create -n pyos-build -f win-environment.yml
+
+# activate
+conda activate pyos-build
+
+# point to ipopt
+## OSX/Linux
+export IPOPT_DIR="$CONDA_PREFIX"
+## Windows
+set IPOPT_DIR=%CONDA_PREFIX%
+
+# build wheel
+python -m build -n -x .
+
+# install wheel
+pip install --no-deps --no-index --find-links dist pyoptsparse
+```
+
+Note that for Windows, it is expected that Visual Studio 2017 C/C++ Build Tools are installed before running the above 
+commands.
 
 ## Citation
 If you use pyOptSparse, please see [this page](https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/citation.html) for citation information.

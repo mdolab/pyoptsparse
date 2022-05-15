@@ -18,3 +18,9 @@ pyoptsparse/pyNLPQLP/source
 /meson_build/
 /dist/
 /staging_dir/
+
+*.lib
+
+*.pdb
+
+*.pyd

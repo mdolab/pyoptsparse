@@ -5,10 +5,8 @@ if get_option('ipopt_dir') != '' or fs.is_dir('Ipopt')
     if is_windows
         ipopt_dirs = []
         ipopt_idir = ''
-        ipopt_dirs = [get_option('ipopt_dir') / 'Library'/ 'lib']
-        ipopt_idir = get_option('ipopt_dir') / 'include' / 'coin-or'
-
-        ipopt_dep = cc.find_library('ipopt-3', required: false)
+        ipopt_dirs = [get_option('ipopt_dir') / 'Library' / 'lib']
+        ipopt_idir = get_option('ipopt_dir') /  'Library' / 'include' / 'coin-or'
     else
         ipopt_dirs = []
         ipopt_idir = ''
@@ -35,7 +33,11 @@ if get_option('ipopt_dir') != '' or fs.is_dir('Ipopt')
         endif
     endif
 
-    ipopt_dep = cc.find_library('ipopt', required: true, dirs: ipopt_dirs)
+    if is_windows
+        ipopt_dep = cc.find_library('ipopt-3', required: true, dirs: ipopt_dirs)
+    else
+        ipopt_dep = cc.find_library('ipopt', required: true, dirs: ipopt_dirs)
+    endif
     if fs.is_dir(ipopt_idir)
         ipopt_inc = include_directories(ipopt_idir)
     else

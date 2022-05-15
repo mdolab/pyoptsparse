@@ -63,7 +63,7 @@ def copy_shared_libraries():
         for file in files:
 
             # move pyoptsparse to just under staging_dir
-            if file.endswith(".so"):
+            if file.endswith((".so", ".lib", ".pyd", ".pdb", ".dylib")):
                 file_path = os.path.join(root, file)
                 new_path = str(file_path)
                 match = re.search(staging_dir, new_path)
@@ -133,7 +133,7 @@ if __name__ == "__main__":
         package_dir={"": "."},
         packages=setuptools.find_packages(where="."),
         package_data={
-            "": ["*.so", "*.lib", "assets/*"],
+            "": ["*.so", "*.lib", "*.pyd", "*.pdb", "*.dylib", "assets/*"],
         },
         python_requires=">=3.8",
         entry_points={

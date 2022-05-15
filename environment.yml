@@ -1,6 +1,6 @@
 dependencies:
 # build
-  - python >=3.9
+  - python >=3.8
   - numpy >=1.16
   - ipopt >=1.13
   - swig
@@ -9,6 +9,7 @@ dependencies:
   - pkg-config
   - pip
   - setuptools
+  - build
 # testing
   - parameterized
   - testflo
