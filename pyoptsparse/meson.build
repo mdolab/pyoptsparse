@@ -2,9 +2,6 @@
 is_windows = host_machine.system() == 'windows'
 is_msvc = is_windows and cc.get_id() == 'msvc'
 
-blas = dependency(get_option('blas'))
-lapack = dependency(get_option('lapack'))
-
 # NumPy include directory - needed in all submodules
 incdir_numpy = run_command(py3,
   [

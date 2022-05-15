@@ -11,8 +11,6 @@ project(
     'buildtype=debugoptimized',
     'c_std=c99',
     'cpp_std=c++14',
-    'blas=openblas',
-    'lapack=openblas'
   ],
 )
 

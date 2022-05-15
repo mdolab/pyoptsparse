@@ -1,6 +1,2 @@
-option('blas', type: 'string', value: 'openblas',
-        description: 'option for BLAS library switching')
-option('lapack', type: 'string', value: 'openblas',
-        description: 'option for LAPACK library switching')
 option('ipopt_dir', type: 'string', value: '',
         description: 'Top-level dir for ipopt')
