@@ -2,14 +2,16 @@
 from typing import List
 
 # External modules
-from PyQt5.QtWidgets import QInputDialog, QLineEdit, QWidget
+from PyQt5.QtWidgets import QApplication, QInputDialog, QLineEdit, QWidget
+import qdarkstyle
 
 # First party modules
-from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_controller import TabController
-from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_view import TabView
+from pyoptsparse.postprocessing.sub_windows.tab_window.tab_controller import TabController
+from pyoptsparse.postprocessing.sub_windows.tab_window.tab_view import TabView
+from pyoptsparse.postprocessing.utils.base_classes import Controller
 
 
-class OptViewController:
+class OptViewController(Controller):
     def __init__(self, view: QWidget):
         """
         Main OptView controller.  Communicates between the main view and
@@ -20,7 +22,9 @@ class OptViewController:
         view : PyQt5.QtWidgets.QWidget
             MainView instance.
         """
+        super(OptViewController, self).__init__()
         self._view = view
+        self._dark_mode = False
 
     def addTab(self, interactive: bool = True, tab_name: str = "Home", file_names: List = []):
         """
@@ -42,3 +46,11 @@ class OptViewController:
             The index of the current tab.
         """
         self._view.tabs.removeTab(current_index)
+
+    def toggleDarkMode(self):
+        app = QApplication.instance()
+        if not self._dark_mode:
+            self._dark_mode = True
+            app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+        else:
+            app.setStyleSheet("")

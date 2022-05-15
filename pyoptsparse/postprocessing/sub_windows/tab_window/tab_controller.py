@@ -6,13 +6,13 @@ from PyQt5.QtWidgets import QFileDialog, QInputDialog, QListWidgetItem, QMessage
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
 # First party modules
-from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_controller import ConfigureController
-from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_view import ConfigurePlotView
-from pyoptsparse.postprocessing.sub_MVCs.metadata_window.metadata_controller import MetadataController
-from pyoptsparse.postprocessing.sub_MVCs.metadata_window.metadata_model import MetadataModel
-from pyoptsparse.postprocessing.sub_MVCs.metadata_window.metadata_view import MetadataView
-from pyoptsparse.postprocessing.sub_MVCs.plotting.plot_model import PlotModel
-from pyoptsparse.postprocessing.sub_MVCs.tab_window.tab_model import TabModel
+from pyoptsparse.postprocessing.sub_windows.configure_plot_window.configure_controller import ConfigureController
+from pyoptsparse.postprocessing.sub_windows.configure_plot_window.configure_view import ConfigurePlotView
+from pyoptsparse.postprocessing.sub_windows.metadata_window.metadata_controller import MetadataController
+from pyoptsparse.postprocessing.sub_windows.metadata_window.metadata_model import MetadataModel
+from pyoptsparse.postprocessing.sub_windows.metadata_window.metadata_view import MetadataView
+from pyoptsparse.postprocessing.sub_windows.plotting.plot_model import PlotModel
+from pyoptsparse.postprocessing.sub_windows.tab_window.tab_model import TabModel
 from pyoptsparse.postprocessing.utils.base_classes import Controller
 from pyoptsparse.postprocessing.utils.widgets import FileTreeWidgetItem, PlotListWidget
 
@@ -70,7 +70,7 @@ class TabController(Controller):
         for file in self._model.files:
             file_item = FileTreeWidgetItem(self._view.file_tree)
             file_item.setFile(file)
-            file_item.setText(0, file.name_short)
+            file_item.setText(0, file.short_name)
             self._view.file_tree.addTopLevelItem(file_item)
 
     def add_plot(self):
@@ -158,7 +158,6 @@ class TabController(Controller):
             The index of the plot for which the configuration window
             is associated.
         """
-        self._model.sub_views[idx]._controller.populate_files()
         self._model.sub_views[idx].show()
 
     def auto_refresh(self):
@@ -170,10 +169,13 @@ class TabController(Controller):
         if switch.isChecked():
             time, ok = QInputDialog.getInt(self._view, "Refresh Time", "Enter refresh interval in seconds:")
             if ok:
-                time = time * 1000
-                if self._view.auto_refresh_togg.isChecked():
-                    self._model.timer.start(time)
-                    self._model.timer.timeout.connect(self.refresh)
+                if time:
+                    time = time * 1000
+                else:
+                    time = 5000
+
+                self._model.timer.start(time)
+                self._model.timer.timeout.connect(self.refresh)
             else:
                 switch.setChecked(False)
         else:
@@ -188,11 +190,12 @@ class TabController(Controller):
             file.refresh()
 
         for plot_model in self._model.plots:
-            for y_var in plot_model.y_vars:
-                y_var.file.set_data(y_var)
+            for y_var in plot_model.y_vars.values():
+                y_var.file._set_data(y_var)
 
-            if plot_model.x_var is not None:
-                plot_model.x_var.set_data(plot_model.x_var)
+            x_var = plot_model.x_var
+            if x_var is not None:
+                x_var.file._set_data(x_var)
 
         self.refresh_plots()
 

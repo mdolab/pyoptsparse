@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QHBoxLayout, QLabel, QListWidget, QTreeWidget, QVBoxLayout, QWidget
 
 # First party modules
-from pyoptsparse.postprocessing.sub_MVCs.plotting.plot_view import PlotView
+from pyoptsparse.postprocessing.sub_windows.plotting.plot_view import PlotView
 from pyoptsparse.postprocessing.utils.base_classes import Controller
 from pyoptsparse.postprocessing.utils.button import Button
 from pyoptsparse.postprocessing.utils.switch import Switch

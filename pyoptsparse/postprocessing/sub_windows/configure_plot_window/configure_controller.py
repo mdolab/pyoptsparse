@@ -3,9 +3,9 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog, QFileDialog
 
 # First party modules
-from pyoptsparse.postprocessing.sub_MVCs.configure_plot_window.configure_model import ConfigureModel
-from pyoptsparse.postprocessing.sub_MVCs.variables.x_controller import XController
-from pyoptsparse.postprocessing.sub_MVCs.variables.y_controller import YController
+from pyoptsparse.postprocessing.sub_windows.configure_plot_window.configure_model import ConfigureModel
+from pyoptsparse.postprocessing.sub_windows.variables.x_controller import XController
+from pyoptsparse.postprocessing.sub_windows.variables.y_controller import YController
 from pyoptsparse.postprocessing.utils.base_classes import Controller, Model
 from pyoptsparse.postprocessing.utils.colors import GREEN
 from pyoptsparse.postprocessing.utils.widgets import FileTreeWidgetItem, VarTableWidgetItem
@@ -92,7 +92,7 @@ class ConfigureController(Controller):
         for file in self._parent_model.files:
             file_item = FileTreeWidgetItem(self._view.file_tree)
             file_item.setFile(file)
-            file_item.setText(0, file.name_short)
+            file_item.setText(0, file.short_name)
             self._view.file_tree.addTopLevelItem(file_item)
 
         if len(self._parent_model.files) > 0:
@@ -131,11 +131,14 @@ class ConfigureController(Controller):
         self._ytable_controller.populate_vars(self._current_file)
 
         if self._plot_model.x_var is None:
-            for x_var in self._current_file.x_vars:
-                if x_var.name == "iter":
-                    self._plot_model.add_var(x_var, "x")
+            x_var = self._current_file.x_vars["iter"]
+            self._view.x_cbox.setCurrentText(x_var.full_name)
+            self._plot_model.add_var(x_var, "x")
 
-        self._xtable_controller.populate_vars()
+            var_item = VarTableWidgetItem(x_var.name)
+            var_item.var = x_var
+
+            self._xtable_controller.add_row(var_item)
 
     def populate_x_var_combobox(self):
         """
@@ -143,7 +146,7 @@ class ConfigureController(Controller):
         """
         self._view.x_cbox.clear()
 
-        for var in self._current_file.x_vars:
+        for var in self._current_file.x_vars.values():
             self._view.x_cbox.addItem(var.full_name)
 
     def add_x_var(self):
@@ -153,15 +156,10 @@ class ConfigureController(Controller):
         self._xtable_controller.clear_vars()
         var_name = self._view.x_cbox.currentText()
 
-        # Create a new variable and add to the plot model
-        for x_var in self._current_file.x_vars:
-            if x_var.full_name == var_name:
-                self._plot_model.add_var(x_var, "x")
-
-                # Create a new variable widget item for the tree view
-                var_item = VarTableWidgetItem(x_var.full_name)
-                var_item.var = x_var
-
+        x_var = self._current_file.x_vars[var_name]
+        self._plot_model.add_var(x_var, "x")
+        var_item = VarTableWidgetItem(x_var.full_name)
+        var_item.var = x_var
         self._xtable_controller.add_row(var_item)
 
     def y_var_search(self, s: str):

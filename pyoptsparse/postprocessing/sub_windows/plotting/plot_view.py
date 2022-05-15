@@ -1,6 +1,5 @@
 # Standard Python modules
 import os
-import pkg_resources
 
 # External modules
 from PIL import Image
@@ -8,8 +7,13 @@ from PyQt5.QtWidgets import QSizePolicy, QVBoxLayout, QWidget
 import matplotlib
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.backends.qt_editor import figureoptions
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+import pkg_resources
+
+# First party modules
+from pyoptsparse.postprocessing.sub_windows.plotting.mpl_figureoptions import figure_edit
 
 # ======================================================================
 # Set matplotlib backend and plt style
@@ -17,6 +21,7 @@ import matplotlib.pyplot as plt
 ASSET_PATH = pkg_resources.resource_filename("pyoptsparse", os.path.join("postprocessing", "assets"))
 matplotlib.use(backend="Qt5Agg")
 plt.style.use(os.path.join(ASSET_PATH, "nicePlotsStyle"))
+figureoptions.figure_edit = figure_edit
 
 
 class MplCanvas(FigureCanvasQTAgg):

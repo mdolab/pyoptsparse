@@ -35,17 +35,6 @@ class XController(Controller):
         """
         self._view = view
 
-    def populate_vars(self):
-        """
-        Adds the x-variables to the the table view.
-        """
-        var = self._plot_model.x_var
-        # Create a new variable widget item for the tree view
-        var_item = VarTableWidgetItem(var.name)
-        var_item.var = var
-
-        self.add_row(var_item)
-
     def add_row(self, var_item: VarTableWidgetItem):
         """
         Adds a row to the table view formatted specifically for
@@ -90,7 +79,7 @@ class XController(Controller):
 
         if switch.isChecked():
             flag = False
-            for y_var in self._plot_model.y_vars:
+            for y_var in self._plot_model.y_vars.values():
                 if y_var.data_minor is not None:
                     y_var.options["major"] = False
                 else:
@@ -109,7 +98,7 @@ class XController(Controller):
         else:
             switch.setChecked(False)
             x_var.options["major"] = True
-            for y_var in self._plot_model.y_vars:
+            for y_var in self._plot_model.y_vars.values():
                 y_var.options["major"] = True
 
         self._plot_model.plot()

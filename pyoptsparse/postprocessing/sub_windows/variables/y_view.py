@@ -15,8 +15,8 @@ class YTableWidget(QTableWidget):
         super(YTableWidget, self).__init__(parent)
         self.setShowGrid(False)
         self.verticalHeader().setVisible(False)
-        self.setColumnCount(7)
-        self.setHorizontalHeaderLabels(["Name", "Index", "Label", "Scaled", "Bounds", "Add", "Remove"])
+        self.setColumnCount(6)
+        self.setHorizontalHeaderLabels(["Name", "Index", "Scaled", "Bounds", "Add", "Remove"])
         self._controller = None
 
     def setController(self, controller):

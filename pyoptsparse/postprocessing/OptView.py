@@ -52,9 +52,14 @@ class MainView(QtWidgets.QWidget):
         # --- Add file sub-directory with sub-actions ---
         file_menu = menu_bar.addMenu("File")
 
-        new_window_action = QtWidgets.QAction("New Tab", self)
-        new_window_action.triggered.connect(lambda: self._controller.addTab(interactive=True))
-        file_menu.addAction(new_window_action)
+        self.new_tab_action = QtWidgets.QAction("New Tab", self)
+        self.new_tab_action.triggered.connect(lambda: self._controller.addTab(interactive=True))
+        file_menu.addAction(self.new_tab_action)
+
+        self.dark_mode_action = QtWidgets.QAction("Dark Mode", self, checkable=True)
+        self.dark_mode_action.setStatusTip("Toggle Dark/Light Mode")
+        self.dark_mode_action.triggered.connect(self._controller.toggleDarkMode)
+        file_menu.addAction(self.dark_mode_action)
 
         exit_action = QtWidgets.QAction("Exit", self)
         exit_action.triggered.connect(QtWidgets.qApp.quit)
@@ -104,7 +109,11 @@ def main():
 
     # Setup the app and the UI
     app = QtWidgets.QApplication(sys.argv)
-    w = MainView(file_names=args.files)
+    app.setStyle("Fusion")
+    palette = QtGui.QPalette()
+    app.setPalette(palette)
+
+    MainView(file_names=args.files)
 
     # This launches the app
-    app.exec_()
+    sys.exit(app.exec_())

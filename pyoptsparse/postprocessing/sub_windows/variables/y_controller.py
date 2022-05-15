@@ -1,6 +1,6 @@
 # External modules
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QCheckBox, QLineEdit, QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QCheckBox, QTableWidget, QTableWidgetItem
 
 # First party modules
 from pyoptsparse.postprocessing.utils.base_classes import Controller, Model
@@ -40,7 +40,7 @@ class YController(Controller):
 
     def populate_vars(self, current_file: File):
         """
-        Populates the y-variable tabe view with all the y-variables
+        Populates the y-variable table view with all the y-variables
         in the current file.
 
         Parameters
@@ -48,7 +48,7 @@ class YController(Controller):
         current_file : File
             The current file selected by the user.
         """
-        for var in current_file.y_vars:
+        for var in current_file.y_vars.values():
             self.add_row(var)
 
         self._view.sortItems(0, QtCore.Qt.AscendingOrder)
@@ -99,45 +99,39 @@ class YController(Controller):
         idx_item.setFlags(QtCore.Qt.ItemIsEnabled)
         self._view.setItem(row, 1, idx_item)
 
-        label_item = QTableWidgetItem()
-        label_item.setFlags(QtCore.Qt.ItemIsEnabled)
-        label = QLineEdit(self._view)
-        self._view.setItem(row, 2, label_item)
-        self._view.setCellWidget(row, 2, label)
-
         scaled_opt_item = QTableWidgetItem()
         scaled_opt_item.setFlags(QtCore.Qt.ItemIsEnabled)
         scaled_opt_chbx = QCheckBox(self._view)
         scaled_opt_chbx.setChecked(False)
         scaled_opt_chbx.stateChanged.connect(self.scale_opt_set)
-        self._view.setItem(row, 3, scaled_opt_item)
-        self._view.setCellWidget(row, 3, scaled_opt_chbx)
+        self._view.setItem(row, 2, scaled_opt_item)
+        self._view.setCellWidget(row, 2, scaled_opt_chbx)
 
         bounds_opt_item = QTableWidgetItem()
         bounds_opt_item.setFlags(QtCore.Qt.ItemIsEnabled)
         bounds_opt_chbx = QCheckBox(self._view)
         bounds_opt_chbx.setChecked(False)
         bounds_opt_chbx.stateChanged.connect(self.bounds_opt_set)
-        self._view.setItem(row, 4, bounds_opt_item)
-        self._view.setCellWidget(row, 4, bounds_opt_chbx)
+        self._view.setItem(row, 3, bounds_opt_item)
+        self._view.setCellWidget(row, 3, bounds_opt_chbx)
 
         add_btn = Button("Add", self._view)
         add_btn.setFocusPolicy(QtCore.Qt.NoFocus)
         add_item = QTableWidgetItem()
         add_item.setFlags(QtCore.Qt.ItemIsEnabled)
         add_btn.clicked.connect(self.add_var_to_plot)
-        self._view.setItem(row, 5, add_item)
-        self._view.setCellWidget(row, 5, add_btn)
+        self._view.setItem(row, 4, add_item)
+        self._view.setCellWidget(row, 4, add_btn)
 
         rem_btn = Button("Remove", self._view)
         rem_btn.setFocusPolicy(QtCore.Qt.NoFocus)
         rem_item = QTableWidgetItem()
         rem_item.setFlags(QtCore.Qt.ItemIsEnabled)
         rem_btn.clicked.connect(self.remove_var_from_plot)
-        self._view.setItem(row, 6, rem_item)
-        self._view.setCellWidget(row, 6, rem_btn)
+        self._view.setItem(row, 5, rem_item)
+        self._view.setCellWidget(row, 5, rem_btn)
 
-        self._view.setHorizontalHeaderLabels(["Name", "Index", "Label", "Scaled", "Bounds", "Add", "Remove"])
+        self._view.setHorizontalHeaderLabels(["Name", "Index", "Scaled", "Bounds", "Add", "Remove"])
         self._view.resizeColumnsToContents()
 
     def clear_vars(self):
@@ -184,9 +178,9 @@ class YController(Controller):
         index = self._view.indexAt(button.pos())
         selected_item = self._view.item(index.row(), 0)
         var = selected_item.getVar()
-        label = self._view.cellWidget(index.row(), 2).text()
-        if str(label) != "":
-            var.set_label(str(label))
+
+        if not self._plot_model.x_var.options["major"]:
+            var.options["major"] = False
 
         self._plot_model.add_var(var, "y")
 

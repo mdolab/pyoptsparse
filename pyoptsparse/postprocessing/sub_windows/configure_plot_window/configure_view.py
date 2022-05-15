@@ -3,8 +3,8 @@ from PyQt5 import QtCore
 from PyQt5.QtWidgets import QComboBox, QDialog, QHBoxLayout, QLineEdit, QTreeWidget, QVBoxLayout, QWidget
 
 # First party modules
-from pyoptsparse.postprocessing.sub_MVCs.variables.x_view import XTableWidget
-from pyoptsparse.postprocessing.sub_MVCs.variables.y_view import YTableWidget
+from pyoptsparse.postprocessing.sub_windows.variables.x_view import XTableWidget
+from pyoptsparse.postprocessing.sub_windows.variables.y_view import YTableWidget
 from pyoptsparse.postprocessing.utils.base_classes import Controller
 from pyoptsparse.postprocessing.utils.button import Button
 from pyoptsparse.postprocessing.utils.combo_box import ExtendedComboBox

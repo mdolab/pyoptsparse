@@ -13,7 +13,7 @@ class PlotModel(Model):
         Model for each plot in the tab view.
         """
         super(PlotModel, self).__init__()
-        self.y_vars = []
+        self.y_vars = {}
         self.x_var = None
         self.axis = None
 
@@ -32,8 +32,8 @@ class PlotModel(Model):
         if axis == "x":
             self.x_var = var
         elif axis == "y":
-            if not any(var == y_var for y_var in self.y_vars):
-                self.y_vars.append(var)
+            if var.full_name not in self.y_vars:
+                self.y_vars[var.full_name] = var
 
     def remove_var(self, var: Variable, axis: str):
         """
@@ -49,15 +49,15 @@ class PlotModel(Model):
         if axis == "x":
             self.x_var = None
         elif axis == "y":
-            if any(var == y_var for y_var in self.y_vars):
-                self.y_vars.pop(self.y_vars.index(var))
+            if var.full_name in self.y_vars:
+                del self.y_vars[var.full_name]
 
     def clear_vars(self):
         """
         Clears the x and y variable data
         """
         self.x_var = None
-        self.y_vars = []
+        self.y_vars = {}
 
     def update_axis(self, axis):
         """
@@ -84,10 +84,7 @@ class PlotModel(Model):
         """
         self.clear_axis()
 
-        for y_var in self.y_vars:
-            # Set some default plotting options for the variable
-            y_var.set_plot_options(marker=".")
-
+        for y_var in self.y_vars.values():
             if self.x_var.name == "iter":
                 if self.x_var.options["major"]:
                     x_data = self.x_var.data_major
@@ -105,33 +102,33 @@ class PlotModel(Model):
             self.axis.plot(
                 x_data,
                 y_data,
-                marker=y_var.plot_options["marker"],
+                marker=".",
                 label=y_var.full_name if y_var.label is None else y_var.label,
             )
 
             if y_var.options["bounds"]:
                 label = y_var.full_name + ":upper_bound" if y_var.label is None else y_var.label + ":upper_bound"
-                if y_var.bounds["upper"] is not None:
+                if y_var.bounds.upper is not None:
                     if y_var.options["scale"]:
                         self.axis.axhline(
-                            y=y_var.bounds_scaled["upper"], path_effects=[patheffects.withTickedStroke()], label=label
+                            y=y_var.scaled_bounds.upper, path_effects=[patheffects.withTickedStroke()], label=label
                         )
                     else:
                         self.axis.axhline(
-                            y=y_var.bounds["upper"], path_effects=[patheffects.withTickedStroke()], label=label
+                            y=y_var.bounds.upper, path_effects=[patheffects.withTickedStroke()], label=label
                         )
 
-                if y_var.bounds["lower"] is not None:
+                if y_var.bounds.lower is not None:
                     label = y_var.full_name + ":lower_bound" if y_var.label is None else y_var.label + ":lower_bound"
                     if y_var.options["scale"]:
                         self.axis.axhline(
-                            y=y_var.bounds_scaled["lower"],
+                            y=y_var.scaled_bounds.lower,
                             path_effects=[patheffects.withTickedStroke(angle=-135)],
                             label=label,
                         )
                     else:
                         self.axis.axhline(
-                            y=y_var.bounds["lower"],
+                            y=y_var.bounds.lower,
                             path_effects=[patheffects.withTickedStroke(angle=-135)],
                             label=label,
                         )

@@ -62,7 +62,7 @@ class MetadataController(Controller):
         for file in self._parent_model.files:
             file_item = FileTreeWidgetItem(self._view.file_tree)
             file_item.setFile(file)
-            file_item.setText(0, file.name_short)
+            file_item.setText(0, file.short_name)
             self._view.file_tree.addTopLevelItem(file_item)
 
         if len(self._parent_model.files) > 0:
@@ -115,7 +115,7 @@ class MetadataController(Controller):
         """
         self.clear_opts()
 
-        metadata = self._current_file.get_metadata()
+        metadata = self._current_file.metadata
         for key, val in metadata.items():
             if key != "optOptions":
                 item = OptTreeWidgetItem(self._view.opt_tree)
