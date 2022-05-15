@@ -1,9 +1,22 @@
+import copy
 import os
 import re
 import shutil
 import sys
 
 import setuptools  # magic import to allow us to use entry_point
+
+from mesonbuild.mesonmain import run as meson_run
+
+
+def meson_main(sysargs):
+    # Always resolve the command path so Ninja can find it for regen, tests, etc.
+    if "meson.exe" in sys.executable:
+        assert os.path.isabs(sys.executable)
+        launcher = sys.executable
+    else:
+        launcher = os.path.realpath(sysargs[0])
+    return meson_run(sysargs[1:], launcher)
 
 
 def run_meson_build():
@@ -27,27 +40,24 @@ def run_meson_build():
         ipopt_dir = os.environ["IPOPT_DIR"]
         ipopt_dir_opt = f'-Dipopt_dir="{ipopt_dir}"'
     prefix = os.path.join(os.getcwd(), staging_dir)
-    os.system(f"meson setup meson_build --prefix" f"={prefix}" f" {ipopt_dir_opt}")
-    os.system(f"ninja -C meson_build install")
-    use_local_install_dir()
-    copy_shared_libraries()
+    purelibdir = "."
 
+    # configure
+    meson_path = shutil.which("meson")
+    meson_call = (
+        f"{meson_path} setup meson_build --prefix={prefix} "
+        f"-Dpython.purelibdir={purelibdir} -Dpython.platlibdir={purelibdir} {ipopt_dir_opt}"
+    )
+    sysargs = meson_call.split(" ")[:-1]
+    meson_main(sysargs)
 
-def use_local_install_dir():
-    installation = ""
-    for root, dirs, files in os.walk(staging_dir):
-        for dir in dirs:
-
-            # move pyoptsparse to just under staging_dir
-            if dir.endswith("pyoptsparse"):
-                installation = os.path.join(root, dir)
-    new_installation = os.path.join(staging_dir, "pyoptsparse")
-    shutil.move(installation, new_installation)
-    shutil.rmtree(os.path.join(staging_dir, "lib"))
+    # build
+    meson_call = f"{meson_path} install -C meson_build"
+    sysargs = meson_call.split(" ")
+    meson_main(sysargs)
 
 
 def copy_shared_libraries():
-    so_files = []
     for root, dirs, files in os.walk(staging_dir):
         for file in files:
 
@@ -67,7 +77,10 @@ if __name__ == "__main__":
 
     # this keeps the meson build system from running more than once
     if "dist" not in str(os.path.abspath(__file__)) and not os.path.isdir(staging_dir):
+        cwd = os.getcwd()
         run_meson_build()
+        os.chdir(cwd)
+        copy_shared_libraries()
 
     docs_require = ""
     req_txt = os.path.join("doc", "requirements.txt")
