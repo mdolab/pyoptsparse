@@ -1,10 +1,8 @@
-import copy
 import os
 import re
 import shutil
 import sys
-
-import setuptools  # magic import to allow us to use entry_point
+import setuptools
 
 from mesonbuild.mesonmain import run as meson_run
 
@@ -46,7 +44,7 @@ def run_meson_build():
     meson_path = shutil.which("meson")
     meson_call = (
         f"{meson_path} setup meson_build --prefix={prefix} "
-        f"-Dpython.purelibdir={purelibdir} -Dpython.platlibdir={purelibdir} {ipopt_dir_opt}"
+        + f"-Dpython.purelibdir={purelibdir} -Dpython.platlibdir={purelibdir} {ipopt_dir_opt}"
     )
     sysargs = meson_call.split(" ")
     sysargs = [arg for arg in sysargs if arg != ""]
@@ -59,7 +57,7 @@ def run_meson_build():
 
 
 def copy_shared_libraries():
-    for root, dirs, files in os.walk(staging_dir):
+    for root, _dirs, files in os.walk(staging_dir):
         for file in files:
 
             # move pyoptsparse to just under staging_dir
