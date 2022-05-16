@@ -20,7 +20,7 @@ if HAS_SNOPT
     'source/NLPQLP.F',
     'source/QL.F',
     nlpqlp_source,
-    fortranobject_c,
+    '../fortranobject.c',
     include_directories: [inc_np, inc_f2py],
     dependencies : py3_dep,
     subdir: 'pyoptsparse/pyNLPQLP',

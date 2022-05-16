@@ -11,6 +11,18 @@ incdir_numpy = run_command(py3,
   check: true
 ).stdout().strip()
 
+# Meson prefixes filenames of intermediate compiled objects with their filepath. This poses a problem for conda builds
+# since conda ensures the host environment directory has 255 characters so the meson object filenames then exceed 255
+# characters. To remedy this, the fortranobject.c file from numpy is copied into pyoptsparse so that the meson build
+# uses a relative path, rather than an absolute path, thus reducing the auto generated object filename
+run_command(py3,
+  [
+    '-c',
+    'import os; os.chdir(".."); import shutil; import numpy; inc = numpy.get_include(); shutil.copy(os.path.join(inc, "..", "..", "f2py", "src", "fortranobject.c"), "pyoptsparse")'
+  ],
+  check: true
+)
+
 inc_np = include_directories(incdir_numpy)
 
 
@@ -24,7 +36,6 @@ inc_np = include_directories(incdir_numpy)
 #).stdout().strip()
 incdir_f2py = incdir_numpy / '..' / '..' / 'f2py' / 'src'
 inc_f2py = include_directories(incdir_f2py)
-fortranobject_c = incdir_f2py / 'fortranobject.c'
 
 # Don't use the deprecated NumPy C API. Define this to a fixed version instead of
 # NPY_API_VERSION in order not to break compilation for released SciPy versions
@@ -84,7 +95,7 @@ foreach p : progs
   import_command = 'from pyoptsparse.' + p[1] + ' import '+p[2]+'; print('+p[2]+'.__file__)'
   test(
     'import test for '+p[0],
-    import('python').find_installation('python'),
+    py3,
     args: ['-c', import_command],
     env: envdata
   )

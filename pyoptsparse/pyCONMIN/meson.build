@@ -21,11 +21,12 @@ py3.extension_module('conmin',
                     'source/conmin.f',
                     'source/closeunit.f',
                 conmin_source,
-                fortranobject_c,
+                '../fortranobject.c',
                 include_directories: [inc_np, inc_f2py],
                 dependencies : py3_dep,
                 subdir: 'pyoptsparse/pyCONMIN',
-                install : true)
+                install : true,
+                build_rpath: '')
 
 python_sources = [
     '__init__.py',
