@@ -38,7 +38,7 @@ def run_meson_build():
     ipopt_dir_opt = ""
     if "IPOPT_DIR" in os.environ:
         ipopt_dir = os.environ["IPOPT_DIR"]
-        ipopt_dir_opt = f'-Dipopt_dir={ipopt_dir}'
+        ipopt_dir_opt = f"-Dipopt_dir={ipopt_dir}"
     prefix = os.path.join(os.getcwd(), staging_dir)
     purelibdir = "."
 
