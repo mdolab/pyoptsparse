@@ -1,12 +1,14 @@
 # External modules
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QHBoxLayout, QLabel, QListWidget, QTreeWidget, QVBoxLayout, QWidget
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import QAbstractItemView, QHBoxLayout, QLabel, QShortcut, QTreeWidget, QVBoxLayout, QWidget
 
 # First party modules
 from pyoptsparse.postprocessing.sub_windows.plotting.plot_view import PlotView
 from pyoptsparse.postprocessing.utils.base_classes import Controller
 from pyoptsparse.postprocessing.utils.button import Button
 from pyoptsparse.postprocessing.utils.switch import Switch
+from pyoptsparse.postprocessing.utils.widgets import PlotList
 
 
 class TabView(QWidget):
@@ -44,9 +46,28 @@ class TabView(QWidget):
         layout.addLayout(bottom_layout)
 
         # ==============================================================
+        # Keyboard Shortcuts
+        # ==============================================================
+        self.add_file_action = QShortcut(QKeySequence("Ctrl+o"), self)
+        self.add_plot_action = QShortcut(QKeySequence("Ctrl+p"), self)
+        self.figure_options_action = QShortcut(QKeySequence("Ctrl+f"), self)
+        self.tight_layout_action = QShortcut(QKeySequence("Ctrl+t"), self)
+        self.save_figure_action = QShortcut(QKeySequence("Ctrl+s"), self)
+        self.figure_home_action = QShortcut(QKeySequence("Ctrl+Shift+h"), self)
+
+        self.add_file_action.activated.connect(self._controller.open_files)
+        self.add_plot_action.activated.connect(self._controller.add_plot)
+        self.figure_options_action.activated.connect(self._controller.mpl_figure_options)
+        self.tight_layout_action.activated.connect(self._controller.mpl_tight_layout)
+        self.save_figure_action.activated.connect(self._controller.mpl_save)
+        self.figure_home_action.activated.connect(self._controller.mpl_home)
+
+        # ==============================================================
         # Plot List - Left most column of Sub Layout
         # ==============================================================
-        self.plot_list = QListWidget(self)
+        self.plot_list = PlotList(self, self._controller)
+        self.plot_list.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.plot_list.setDragDropMode(QAbstractItemView.InternalMove)
         bottom_layout.addWidget(self.plot_list, 3)
 
         # ==============================================================

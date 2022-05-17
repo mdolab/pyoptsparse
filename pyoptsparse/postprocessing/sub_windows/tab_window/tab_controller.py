@@ -110,6 +110,7 @@ class TabController(Controller):
 
             # --- Size the list row to fit custom widget ---
             item.setSizeHint(plot_list_widget.sizeHint())
+            item.setToolTip("Click and drag to re-order plots.")
 
             # --- Add the item and custom widget to the list ---
             self._view.plot_list.addItem(item)
@@ -146,6 +147,17 @@ class TabController(Controller):
             widget.title.setText(f"Plot {i}")
             self._model.sub_views[i].setWindowTitle(f"Plot {i}")
 
+        self.refresh_plots()
+
+    def reorder_plots(self):
+        mapping = []
+        for i in range(self._view.plot_list.count()):
+            item = self._view.plot_list.item(i)
+            widget = self._view.plot_list.itemWidget(item)
+            mapping.append(widget.idx)
+            widget.idx = i
+
+        self._model.reorder(mapping)
         self.refresh_plots()
 
     def configure_view(self, idx: int):
@@ -226,3 +238,56 @@ class TabController(Controller):
         """
         meta_controller = MetadataController(MetadataModel(), self._model)
         MetadataView(self._root, meta_controller, "Metadata Viewer")
+
+    def move_plot_up(self):
+        item = self._view.plot_list.currentItem()
+        row = self._view.plot_list.currentRow()
+        if item is not None:
+            widget = self._view.plot_list.itemWidget(item)
+            if row > 0:
+                self._model.swap(row, row - 1)
+
+                # --- Create socket for custom widget ---
+                new_item = item.clone()
+
+                self._view.plot_list.insertItem(row - 1, new_item)
+                self._view.plot_list.setItemWidget(new_item, widget)
+                widget.idx = row - 1
+
+                self._view.plot_list.takeItem(row + 1)
+                self._view.plot_list.setCurrentRow(row - 1)
+
+                self.refresh_plots()
+
+    def move_plot_down(self):
+        item = self._view.plot_list.currentItem()
+        row = self._view.plot_list.currentRow()
+        if item is not None:
+            widget = self._view.plot_list.itemWidget(item)
+            if row < self._view.plot_list.count() - 1:
+                self._model.swap(row, row + 1)
+
+                # --- Create socket for custom widget ---
+                new_item = item.clone()
+
+                self._view.plot_list.insertItem(row + 2, new_item)
+                self._view.plot_list.setItemWidget(new_item, widget)
+                widget.idx = row + 1
+
+                self._view.plot_list.takeItem(row)
+                self._view.plot_list.setCurrentRow(row + 1)
+
+                self.refresh_plots()
+
+    def mpl_figure_options(self):
+        self._view.plot_view.toolbar.edit_parameters()
+
+    def mpl_tight_layout(self):
+        self._view.plot_view.canvas.fig.tight_layout()
+        self.refresh_plots()
+
+    def mpl_save(self):
+        self._view.plot_view.toolbar.save_figure()
+
+    def mpl_home(self):
+        self._view.plot_view.toolbar.home()

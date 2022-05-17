@@ -81,9 +81,7 @@ class TabModel(Model):
         self.canvas.fig.clf()
 
         # --- Loop over existing plots and update the axes ---
-        n_plots = len(self.plots)
-        for i, p in enumerate(self.plots):
-            p.update_axis(self.canvas.fig.add_subplot(int(f"{n_plots}1{i+1}")))
+        self.update_axes()
 
         self.canvas.draw()
 
@@ -95,3 +93,21 @@ class TabModel(Model):
         self.canvas.draw()
 
         return view
+
+    def reorder(self, mapping):
+        self.plots[:] = [self.plots[i] for i in mapping]
+        self.sub_views = [self.sub_views[i] for i in mapping]
+
+        self.update_axes()
+
+    def swap(self, idx1, idx2):
+        self.plots[idx1], self.plots[idx2] = self.plots[idx2], self.plots[idx1]
+        self.sub_views[idx1], self.sub_views[idx2] = self.sub_views[idx2], self.sub_views[idx1]
+
+        self.update_axes()
+
+    def update_axes(self):
+        num_plots = len(self.plots)
+        self.canvas.fig.clf()
+        for i, p in enumerate(self.plots):
+            p.update_axis(self.canvas.fig.add_subplot(int(f"{num_plots}1{i+1}"), label=f"Plot {i}"))

@@ -34,6 +34,7 @@ class MainView(QtWidgets.QWidget):
         self._center()  # centers the application in the middle of the screen
         self.setWindowTitle("OptView")  # sets the GUI title
         self.setWindowIcon(QtGui.QIcon("assets/OptViewIcon.gif"))  # sets the OptView logo
+        self.resize(1200, 800)
         self._initUI()  # Initialize the UI
 
     def _initUI(self):

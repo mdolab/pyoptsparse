@@ -1,9 +1,42 @@
 # External modules
-from PyQt5.QtWidgets import QHBoxLayout, QLineEdit, QPushButton, QTableWidgetItem, QTreeWidgetItem, QWidget
+from PyQt5.QtGui import QDropEvent, QKeySequence
+from PyQt5.QtWidgets import (
+    QHBoxLayout,
+    QLineEdit,
+    QListWidget,
+    QPushButton,
+    QShortcut,
+    QTableWidgetItem,
+    QTreeWidgetItem,
+    QWidget,
+)
 
 # First party modules
 from pyoptsparse.postprocessing.utils.base_classes import Controller
 from pyoptsparse.postprocessing.utils.data_structures import File, Variable
+
+
+class PlotList(QListWidget):
+    def __init__(self, parent: QWidget = None, controller: Controller = None) -> None:
+        super(PlotList, self).__init__(parent)
+
+        self.controller = controller
+
+        self.plot_up_action = QShortcut(QKeySequence("Ctrl+Up"), self)
+        self.plot_down_action = QShortcut(QKeySequence("Ctrl+Down"), self)
+
+        self.plot_up_action.activated.connect(self.movePlotUp)
+        self.plot_down_action.activated.connect(self.movePlotDown)
+
+    def dropEvent(self, event: QDropEvent) -> None:
+        super(PlotList, self).dropEvent(event)
+        self.controller.reorder_plots()
+
+    def movePlotUp(self) -> None:
+        self.controller.move_plot_up()
+
+    def movePlotDown(self) -> None:
+        self.controller.move_plot_down()
 
 
 class PlotListWidget(QWidget):
