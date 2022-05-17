@@ -1,11 +1,11 @@
 psqp_source = custom_target('psqpmodule.c',
                             input : ['source/f2py/psqp.pyf'],
                             output : ['psqpmodule.c', 'psqp-f2pywrappers.f'],
-                            command: [py3, '-m', 'numpy.f2py', '@INPUT@',
+                            command: [py3_command, '-m', 'numpy.f2py', '@INPUT@',
                             '--lower', '--build-dir', 'pyoptsparse/pyPSQP', '--no-wrap-functions']
                             )
 
-py3.extension_module('psqp',
+py3_target.extension_module('psqp',
                 'source/closeunit.f',
                 'source/mqsubs.f',
                 'source/openunit.f',
@@ -25,7 +25,7 @@ python_sources = [
     'LICENSE'
 ]
 
-py3.install_sources(
+py3_target.install_sources(
   python_sources,
   pure: false,
   subdir: 'pyoptsparse/pyPSQP'

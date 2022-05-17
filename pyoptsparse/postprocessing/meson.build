@@ -7,7 +7,7 @@ python_sources = [
     'view_saved_figure.py'
 ]
 
-py3.install_sources(
+py3_target.install_sources(
   python_sources,
   pure: true,
   subdir: 'pyoptsparse/postprocessing'
@@ -20,7 +20,7 @@ asset_sources = [
     'assets/logo.png'
 ]
 
-py3.install_sources(
+py3_target.install_sources(
   asset_sources,
   pure: true,
   subdir: 'pyoptsparse/postprocessing/assets'

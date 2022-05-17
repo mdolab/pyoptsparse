@@ -29,8 +29,15 @@ endif
 add_languages('fortran', native: false)
 
 # https://mesonbuild.com/Python-module.html
+# Here we differentiate from the python used by meson, py3_command, and that python target, py3_target. This is useful
+# when cross compiling like on conda-forge
 py_mod = import('python')
-py3 = py_mod.find_installation()
-py3_dep = py3.dependency()
+py3_command = py_mod.find_installation()
+if get_option('python_target') != ''
+    py3_target = py_mod.find_installation(get_option('python_target'))
+else
+    py3_target = py3_command
+endif
+py3_dep = py3_target.dependency()
 
 subdir('pyoptsparse')

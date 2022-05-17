@@ -1,2 +1,6 @@
 option('ipopt_dir', type: 'string', value: '',
         description: 'Top-level dir for ipopt')
+option('incdir_numpy', type: 'string', value: '',
+    description: 'Include dir for numpy')
+option('python_target', type: 'string', value: '',
+    description: 'Target python path')

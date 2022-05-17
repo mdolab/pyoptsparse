@@ -3,7 +3,7 @@ python_sources = [
     'ParOpt.py',
 ]
 
-py3.install_sources(
+py3_target.install_sources(
   python_sources,
   pure: true,
   subdir: 'pyoptsparse/pyParOpt'

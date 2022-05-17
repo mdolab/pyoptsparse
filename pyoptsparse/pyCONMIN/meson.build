@@ -2,11 +2,11 @@ conmin_source = custom_target('conminmodule.c',
                             input : ['source/f2py/conmin.pyf',
                                     ],
                             output : ['conminmodule.c', 'conmin-f2pywrappers.f'],
-                            command: [py3, '-m', 'numpy.f2py', '@INPUT@',
+                            command: [py3_command, '-m', 'numpy.f2py', '@INPUT@',
                             '--lower', '--build-dir', 'pyoptsparse/pyCONMIN']
                             )
 
-py3.extension_module('conmin',
+py3_target.extension_module('conmin',
                     'source/openunit.f',
                     'source/cnmn00.f',
                     'source/cnmn01.f',
@@ -34,7 +34,7 @@ python_sources = [
     'LICENSE'
 ]
 
-py3.install_sources(
+py3_target.install_sources(
   python_sources,
   pure: false,
   subdir: 'pyoptsparse/pyCONMIN'

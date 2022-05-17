@@ -1,11 +1,11 @@
 slsqp_source = custom_target('slsqpmodule.c',
                             input : ['source/f2py/slsqp.pyf'],
                             output : ['slsqpmodule.c'],
-                            command: [py3, '-m', 'numpy.f2py', '@INPUT@',
+                            command: [py3_command, '-m', 'numpy.f2py', '@INPUT@',
                             '--lower', '--build-dir', 'pyoptsparse/pySLSQP']
                             )
 
-py3.extension_module('slsqp',
+py3_target.extension_module('slsqp',
                 'source/closeunit.f',
                 'source/daxpy.f',
                 'source/dcopy.f',
@@ -36,7 +36,7 @@ python_sources = [
     'LICENSE'
 ]
 
-py3.install_sources(
+py3_target.install_sources(
   python_sources,
   pure: false,
   subdir: 'pyoptsparse/pySLSQP'

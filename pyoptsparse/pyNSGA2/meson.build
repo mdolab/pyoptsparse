@@ -7,7 +7,7 @@ if swig.found()
                                 command: ['swig', '-o', 'pyoptsparse/pyNSGA2/nsga2_wrap.c', '-python', '-interface', 'nsga2', '@INPUT@']
                                 )
 
-    py3.extension_module('nsga2',
+    py3_target.extension_module('nsga2',
                     'source/allocate.c',
                     'source/auxiliary.c',
                     'source/crossover.c',
@@ -40,7 +40,7 @@ python_sources = [
     'LICENSE'
 ]
 
-py3.install_sources(
+py3_target.install_sources(
   python_sources,
   pure: false,
   subdir: 'pyoptsparse/pyNSGA2'

@@ -11,11 +11,11 @@ if HAS_SNOPT
   nlpqlp_source = custom_target('nlpqlpmodule.c',
     input : ['source/f2py/nlpqlp.pyf'],
     output : ['nlpqlpmodule.c'],
-    command: [py3, '-m', 'numpy.f2py', '@INPUT@',
+    command: [py3_command, '-m', 'numpy.f2py', '@INPUT@',
     '--lower', '--build-dir', 'pyoptsparse/pyNLPQLP']
   )
 
-  py3.extension_module('nlpqlp',
+  py3_target.extension_module('nlpqlp',
     'source/wrapper.F90',
     'source/NLPQLP.F',
     'source/QL.F',
@@ -34,7 +34,7 @@ python_sources = [
     'LICENSE'
 ]
 
-py3.install_sources(
+py3_target.install_sources(
   python_sources,
   pure: false,
   subdir: 'pyoptsparse/pyNLPQLP'

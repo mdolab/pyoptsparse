@@ -3,22 +3,25 @@ is_windows = host_machine.system() == 'windows'
 is_msvc = is_windows and cc.get_id() == 'msvc'
 
 # NumPy include directory - needed in all submodules
-incdir_numpy = run_command(py3,
-  [
-    '-c',
-    'import os; os.chdir(".."); import numpy; print(numpy.get_include())'
-  ],
-  check: true
-).stdout().strip()
+incdir_numpy = get_option('incdir_numpy')
+if incdir_numpy == ''
+    incdir_numpy = run_command(py3_command,
+      [
+        '-c',
+        'import os; os.chdir(".."); import numpy; print(numpy.get_include())'
+      ],
+      check: true
+    ).stdout().strip()
+endif
 
 # Meson prefixes filenames of intermediate compiled objects with their filepath. This poses a problem for conda builds
 # since conda ensures the host environment directory has 255 characters so the meson object filenames then exceed 255
 # characters. To remedy this, the fortranobject.c file from numpy is copied into pyoptsparse so that the meson build
 # uses a relative path, rather than an absolute path, thus reducing the auto generated object filename
-run_command(py3,
+run_command(py3_command,
   [
     '-c',
-    'import os; os.chdir(".."); import shutil; import numpy; inc = numpy.get_include(); shutil.copy(os.path.join(inc, "..", "..", "f2py", "src", "fortranobject.c"), "pyoptsparse")'
+    'import os; os.chdir(".."); import shutil; shutil.copy(os.path.join("' + incdir_numpy + '", "..", "..", "f2py", "src", "fortranobject.c"), "pyoptsparse")'
   ],
   check: true
 )
@@ -27,7 +30,7 @@ inc_np = include_directories(incdir_numpy)
 
 
 # TODO: pyoptsparse supports numpy>=1.16 but numpy.f2py.get_include() wasnt added until later, raise numpy version?
-#incdir_f2py = run_command(py3,
+#incdir_f2py = run_command(py3_target,
 #  [
 #    '-c',
 #    'import os; os.chdir(".."); import numpy.f2py; print(numpy.f2py.get_include())'
@@ -41,7 +44,7 @@ inc_f2py = include_directories(incdir_f2py)
 # NPY_API_VERSION in order not to break compilation for released SciPy versions
 # when NumPy introduces a new deprecation. Use in a meson.build file::
 #
-#   py3.extension_module('_name',
+#   py3_target.extension_module('_name',
 #     'source_fname',
 #     numpy_nodepr_api)
 #
@@ -63,7 +66,7 @@ python_sources = [
     'types.py'
 ]
 
-py3.install_sources(
+py3_target.install_sources(
   python_sources,
   pure: true,
   subdir: 'pyoptsparse'
@@ -95,7 +98,7 @@ foreach p : progs
   import_command = 'from pyoptsparse.' + p[1] + ' import '+p[2]+'; print('+p[2]+'.__file__)'
   test(
     'import test for '+p[0],
-    py3,
+    py3_command,
     args: ['-c', import_command],
     env: envdata
   )

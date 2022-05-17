@@ -14,11 +14,11 @@ if HAS_SNOPT
   snopt_source = custom_target('snoptmodule.c',
     input : ['source/f2py/snopt.pyf'],
     output : ['snoptmodule.c'],
-    command: [py3, '-m', 'numpy.f2py', '@INPUT@',
+    command: [py3_command, '-m', 'numpy.f2py', '@INPUT@',
     '--lower', '--build-dir', 'pyoptsparse/pySNOPT']
   )
 
-  py3.extension_module('snopt',
+  py3_target.extension_module('snopt',
     snopt_source,
     fortranobject_c,
     snopt_source_files,
@@ -36,7 +36,7 @@ python_sources = [
     'LICENSE'
 ]
 
-py3.install_sources(
+py3_target.install_sources(
   python_sources,
   pure: false,
   subdir: 'pyoptsparse/pySNOPT'

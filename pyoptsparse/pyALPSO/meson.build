@@ -6,7 +6,7 @@ python_sources = [
     'LICENSE'
 ]
 
-py3.install_sources(
+py3_target.install_sources(
   python_sources,
   pure: true,
   subdir: 'pyoptsparse/pyALPSO'
