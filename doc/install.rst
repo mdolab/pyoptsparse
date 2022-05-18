@@ -139,7 +139,7 @@ First, we need to create the ``conda`` environment. Environment yml files are pr
 
 .. code-block:: shell
 
-    conda env create -n pyos-build
+    conda create -y -n pyos-build
     conda activate pyos-build
     conda config --env --add channels conda-forge
     conda config --env --set channel_priority strict
@@ -163,9 +163,9 @@ Finally, build the wheel and install it using pip:
 .. code-block:: shell
 
     # Windows needs specific compiler flags to work
-    CC=cl
-    FC=flang
-    CC_LD=link
+    set CC=cl
+    set FC=flang
+    set CC_LD=link
 
     # build wheel
     python -m build -n -x .

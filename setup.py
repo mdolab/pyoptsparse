@@ -29,7 +29,7 @@ def run_meson_build():
     # check if meson extra args are specified
     meson_args = ""
     if "MESON_ARGS" in os.environ:
-        meson_args = os.environ['MESON_ARGS']
+        meson_args = os.environ["MESON_ARGS"]
     # check to make sure ipopt dir isnt specified twice
     if "-Dipopt_dir" in meson_args and ipopt_dir_opt != "":
         raise RuntimeError("IPOPT_DIR environment variable is set and '-Dipopt_dir' in MESON_ARGS")
