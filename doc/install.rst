@@ -162,6 +162,11 @@ Finally, build the wheel and install it using pip:
 
 .. code-block:: shell
 
+    # Windows needs specific compiler flags to work
+    CC=cl
+    FC=flang
+    CC_LD=link
+
     # build wheel
     python -m build -n -x .
 
