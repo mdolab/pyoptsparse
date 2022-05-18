@@ -39,42 +39,6 @@ Please see the [documentation](https://mdolab-pyoptsparse.readthedocs-hosted.com
 Testing is done with the `testflo` package developed by the openMDAO team, which can be installed via `pip install testflo`.
 To run the tests, simply type `testflo .` in the root directory.
 
-## Building From Source in a Conda Environment
-The build instructions with the new meson build system are the same as before, using setuptools as the backend with the exception that
-`numpy` is no longer needed before running `pip install .`, it is installed as build dependency like everything else. Only
-`setuptools` and `pip` are required prior and of course appropriate compilers for your platform
-
-Building from a conda environment is slightly different as all the build dependencies are expected to be in the conda
-environment unless there is no package available for it. Since the `pip install .` method does dependency checks on packages
-that don't necessarily match the names in a conda environment it will try to download deps from PyPi or just flat out fail.
-
-So the build and install for a conda environment is:
-```shell
-# Setup env
-## OSX/Linux
-conda env create -n pyos-build -f environment.yml
-## Windows
-conda env create -n pyos-build -f win-environment.yml
-
-# activate
-conda activate pyos-build
-
-# point to ipopt
-## OSX/Linux
-export IPOPT_DIR="$CONDA_PREFIX"
-## Windows
-set IPOPT_DIR=%CONDA_PREFIX%
-
-# build wheel
-python -m build -n -x .
-
-# install wheel
-pip install --no-deps --no-index --find-links dist pyoptsparse
-```
-
-Note that for Windows, it is expected that Visual Studio 2017 C/C++ Build Tools are installed before running the above 
-commands.
-
 ## Citation
 If you use pyOptSparse, please see [this page](https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/citation.html) for citation information.
 A list of works that have used pyOptSparse can be found [here](https://mdolab-pyoptsparse.readthedocs-hosted.com/en/latest/citation.html#applications)

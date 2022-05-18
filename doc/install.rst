@@ -36,8 +36,7 @@ The only exception is ``numpy``, which is required as part of the build process 
 .. note::
   * In Linux, the python header files (python-dev) are also required.
   * **We do not support operating systems other than Linux.**
-    For macOS users, the conda package may work out of the box if you do not need any non-default optimizers.
-    For Windows users, `this thread <https://github.com/mdolab/pyoptsparse/issues/273>`_ may be helpful.
+    For macOS users, the conda package may work out of the box if you do not need any non-default optimizers. For Windows users, a conda package is on the way, if it's not already in the repos. This comes with the same disclaimer as the macOS conda package. Alternatively, follow the :ref:`conda build instructions<conda build instruction>` below as this will work on any platform.
 
 Installation
 ~~~~~~~~~~~~
@@ -63,7 +62,14 @@ It is also possible to install pyOptSparse by calling ``python setup.py install`
   Some optimizers are proprietary and their sources are not distributed with pyOptSparse.
   To use them, please follow the instructions on specific optimizer pages.
   
-For those who intend to use pyOptSparse with IPOPT, OpenMDAO developers provide a `bash script <https://github.com/OpenMDAO/build_pyoptsparse>`_ that simplifies the installation of the optimizer with different linear solvers.
+For those who intend to use pyOptSparse with IPOPT, OpenMDAO developers provide a `bash script <https://github.com/OpenMDAO/build_pyoptsparse>`_ that simplifies the installation of the optimizer with different linear solvers. With IPOPT installed, set the environment variable ``IPOPT_DIR`` to the path of the IPOPT installation. The installation directory structure is expected to look like the following:
+
+.. code-block:: text
+
+    path/to/installation
+    ├── include
+    │   ├── coin-or(or coin works too)
+    ├── lib
 
 .. _install_optview:
 
@@ -121,3 +127,43 @@ To uninstall the package, type
   to anything other than those values. This can come in handy, for example, if your ``MPI`` installation
   is not functioning properly, but you still need to run serial code.
 
+.. _conda build instruction:
+
+Conda Build Instructions
+~~~~~~~~~~~~~~~~~~~~~~~~
+Motivated by work done to get a Windows build working, the following instructions explain building and installing PyOptSparse in a conda environment. This has the advantaged that ``conda`` can be used to install all the necessary dependencies in an isolated and reproducible environment. With how finicky Windows can be with ABI compatibility among various compilers, this is the recommended approach. The guide will work on any platform, however.
+
+The only build requirement for the build is a working ``conda`` installation as all compilers and dependencies are pulled from the ``conda-forge`` repos, with the exception of a Windows build, which requires Visual Studio 2017 C++ Build Tools.
+
+First, we need to create the ``conda`` environment. Environment yml files are provided in the ``pyoptspars`` repo:
+
+.. code-block:: shell
+
+    conda env create -n pyos-build
+    conda activate pyos-build
+    conda config --env --add channels conda-forge
+    conda config --env --set channel_priority strict
+
+    # OSX/Linux
+    conda env update -f doc/environment.yml
+    # Windows
+    conda env update -f doc\win-environment.yml
+
+Next, we need to tell the compiler where to find IPOPT:
+
+.. code-block:: shell
+
+    # OSX/Linux
+    export IPOPT_DIR="$CONDA_PREFIX"
+    # Windows
+    set IPOPT_DIR=%CONDA_PREFIX%
+
+Finally, build the wheel and install it using pip:
+
+.. code-block:: shell
+
+    # build wheel
+    python -m build -n -x .
+
+    # install wheel
+    pip install --no-deps --no-index --find-links dist pyoptsparse
