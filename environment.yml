@@ -2,7 +2,7 @@ dependencies:
 # build
   - python >=3.8
   - numpy >=1.16
-  - ipopt >=1.13
+  - ipopt
   - swig
   - meson >=0.60
   - compilers
