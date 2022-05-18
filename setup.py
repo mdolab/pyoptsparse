@@ -40,11 +40,19 @@ def run_meson_build():
     prefix = os.path.join(os.getcwd(), staging_dir)
     purelibdir = "."
 
+    # check if meson extra args are specified
+    meson_args = ""
+    if "MESON_ARGS" in os.environ:
+        meson_args = os.environ['MESON_ARGS']
+    # check to make sure ipopt dir isnt specified twice
+    if "-Dipopt_dir" in meson_args and ipopt_dir_opt != "":
+        raise RuntimeError("IPOPT_DIR environment variable is set and '-Dipopt_dir' in MESON_ARGS")
+
     # configure
     meson_path = shutil.which("meson")
     meson_call = (
         f"{meson_path} setup meson_build --prefix={prefix} "
-        + f"-Dpython.purelibdir={purelibdir} -Dpython.platlibdir={purelibdir} {ipopt_dir_opt}"
+        + f"-Dpython.purelibdir={purelibdir} -Dpython.platlibdir={purelibdir} {ipopt_dir_opt} {meson_args}"
     )
     sysargs = meson_call.split(" ")
     sysargs = [arg for arg in sysargs if arg != ""]
