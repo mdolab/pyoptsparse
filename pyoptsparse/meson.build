@@ -5,7 +5,7 @@ is_msvc = is_windows and cc.get_id() == 'msvc'
 # NumPy include directory - needed in all submodules
 incdir_numpy = get_option('incdir_numpy')
 if incdir_numpy == ''
-    incdir_numpy = run_command(py3_command,
+    incdir_numpy = run_command(py3_target,
       [
         '-c',
         'import os; os.chdir(".."); import numpy; print(numpy.get_include())'
