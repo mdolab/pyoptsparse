@@ -18,20 +18,6 @@ def meson_main(sysargs):
 
 
 def run_meson_build():
-    # set compilers for specific platforms
-    if sys.platform == "win32":
-        os.environ["CC"] = "cl"
-        os.environ["FC"] = "flang"
-        os.environ["CC_LD"] = "link"
-    elif sys.platform == "darwin":
-        os.environ["CC"] = "clang"
-        os.environ["FC"] = "gfortran"
-        os.environ["CC_LD"] = "ld"
-    # elif sys.platform == "linux":
-    # os.environ["CC"] = "gcc"
-    # os.environ["FC"] = "gfortran"
-    # os.environ["CC_LD"] = "bfd"
-
     # check if ipopt dir is specified
     ipopt_dir_opt = ""
     if "IPOPT_DIR" in os.environ:
