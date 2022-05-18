@@ -2,40 +2,32 @@ fs = import('fs')
 
 if get_option('ipopt_dir') != '' or fs.is_dir('Ipopt')
 
-    if is_windows
-        ipopt_dirs = []
-        ipopt_idir = ''
-        ipopt_dirs = [get_option('ipopt_dir') / 'Library' / 'lib']
-        ipopt_idir = get_option('ipopt_dir') /  'Library' / 'include' / 'coin-or'
-    else
-        ipopt_dirs = []
-        ipopt_idir = ''
+    ipopt_dirs = []
+    ipopt_idir = ''
 
-        # Ipopt installs differently on some systems (i.e. Fedora)
-        if fs.is_dir(get_option('ipopt_dir') / 'lib')
-            ipopt_dirs = [get_option('ipopt_dir') / 'lib']
-        elif fs.is_dir(get_option('ipopt_dir') / 'lib64')
-            ipopt_dirs = [get_option('ipopt_dir') / 'lib64']
-        endif
-
-        if fs.is_dir(get_option('ipopt_dir') / 'include' / 'coin-or')
-            ipopt_idir = get_option('ipopt_dir') / 'include' / 'coin-or'
-        elif fs.is_dir(get_option('ipopt_dir') / 'include' / 'coin')
-            ipopt_idir = get_option('ipopt_dir') / 'include' / 'coin'
-        elif not fs.is_dir('Ipopt')
-            error('IPOPT include directory not found in: ', get_option('ipopt_dir') / 'include')
-        endif
-
-        # We also include the special case for Azure
-        if fs.is_dir('Ipopt')
-            ipopt_dirs = ['Ipopt' / 'lib']
-            ipopt_idir = 'Ipopt' / 'include' / 'coin-or'
-        endif
+    # Ipopt installs differently on some systems (i.e. Fedora)
+    if fs.is_dir(get_option('ipopt_dir') / 'lib')
+        ipopt_dirs = [get_option('ipopt_dir') / 'lib']
+    elif fs.is_dir(get_option('ipopt_dir') / 'lib64')
+        ipopt_dirs = [get_option('ipopt_dir') / 'lib64']
     endif
 
-    if is_windows
-        ipopt_dep = cc.find_library('ipopt-3', required: true, dirs: ipopt_dirs)
-    else
+    if fs.is_dir(get_option('ipopt_dir') / 'include' / 'coin-or')
+        ipopt_idir = get_option('ipopt_dir') / 'include' / 'coin-or'
+    elif fs.is_dir(get_option('ipopt_dir') / 'include' / 'coin')
+        ipopt_idir = get_option('ipopt_dir') / 'include' / 'coin'
+    elif not fs.is_dir('Ipopt')
+        error('IPOPT include directory not found in: ', get_option('ipopt_dir') / 'include')
+    endif
+
+    # We also include the special case for Azure
+    if fs.is_dir('Ipopt')
+        ipopt_dirs = ['Ipopt' / 'lib']
+        ipopt_idir = 'Ipopt' / 'include' / 'coin-or'
+    endif
+
+    ipopt_dep = cc.find_library('ipopt-3', required: false, dirs: ipopt_dirs)   # only relevant on windows
+    if not ipopt_dep.found()
         ipopt_dep = cc.find_library('ipopt', required: true, dirs: ipopt_dirs)
     endif
     if fs.is_dir(ipopt_idir)
