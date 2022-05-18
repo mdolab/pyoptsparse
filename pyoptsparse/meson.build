@@ -13,6 +13,7 @@ if incdir_numpy == ''
       check: true
     ).stdout().strip()
 endif
+incdir_numpy = '''@0@'''.format(incdir_numpy)
 
 # Meson prefixes filenames of intermediate compiled objects with their filepath. This poses a problem for conda builds
 # since conda ensures the host environment directory has 255 characters so the meson object filenames then exceed 255
@@ -21,7 +22,7 @@ endif
 run_command(py3_command,
   [
     '-c',
-    'import os; os.chdir(".."); import shutil; shutil.copy(os.path.join("' + incdir_numpy + '", "..", "..", "f2py", "src", "fortranobject.c"), "pyoptsparse")'
+    'import os; os.chdir(".."); import shutil; shutil.copy(os.path.join(r"' + incdir_numpy + '", "..", "..", "f2py", "src", "fortranobject.c"), "pyoptsparse")'
   ],
   check: true
 )
