@@ -1,6 +1,6 @@
 # External modules
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QFileDialog
+from PyQt5.QtWidgets import QFileDialog
 
 # First party modules
 from pyoptsparse.postprocessing.sub_windows.configure_plot_window.configure_model import ConfigureModel
@@ -29,7 +29,6 @@ class ConfigureController(Controller):
         self._parent_model = parent_model
         self._plot_model = plot_model
         self._model = ConfigureModel()
-        self._view = None
         self._current_file = None
 
         self._xtable_controller = None
@@ -50,17 +49,6 @@ class ConfigureController(Controller):
 
         self._xtable_controller.set_view(self._view.x_table)
         self._ytable_controller.set_view(self._view.y_table)
-
-    def set_view(self, view: QDialog):
-        """
-        Sets the view for the controller.
-
-        Parameters
-        ----------
-        view : PyQt5.QtWidgets.QDialog
-            The configure plot view to link to this controller.
-        """
-        self._view = view
 
     def add_file(self):
         """

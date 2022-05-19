@@ -1,6 +1,6 @@
 # External modules
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QFileDialog
+from PyQt5.QtWidgets import QFileDialog
 
 # First party modules
 from pyoptsparse.postprocessing.utils.base_classes import Controller, Model
@@ -19,21 +19,9 @@ class MetadataController(Controller):
         files : List
             The list of files.
         """
-        self._view = None
         self._model = model
         self._parent_model = parent_model
         self._current_file = None
-
-    def set_view(self, view: QDialog):
-        """
-        Sets the controller's view.
-
-        Parameters
-        ----------
-        view : PyQt5.QtWidgets.QDialog
-            The view for the controller.
-        """
-        self._view = view
 
     def add_file(self):
         """

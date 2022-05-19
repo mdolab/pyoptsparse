@@ -33,19 +33,7 @@ class TabController(Controller):
         super(TabController, self).__init__()
         self._root = root
         self._model = TabModel(file_names=file_names)
-        self._view = None
         self._sub_views = []
-
-    def set_view(self, view: QWidget):
-        """
-        Sets the view of the controller.
-
-        Parameters
-        ----------
-        view : PyQt5.QtWidgets.QWidget
-            The view associated with this controller.
-        """
-        self._view = view
 
     def open_files(self):
         """

@@ -25,7 +25,7 @@ class TabView(QWidget):
         """
         super(TabView, self).__init__(parent)
         self._controller = controller
-        self._controller.set_view(self)
+        self._controller.view = self
         self._initView()
         self._controller.populate_files()
 

@@ -24,7 +24,7 @@ class MetadataView(QDialog):
         self._center()
         self.setWindowTitle(name)
         self._controller = controller
-        self._controller.set_view(self)
+        self._controller.view = self
         self.resize(1000, 800)
         self._initView()
 

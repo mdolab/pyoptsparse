@@ -28,7 +28,7 @@ class ConfigurePlotView(QDialog):
         self._center()  # centers the application in the middle of the screen
         self.setWindowTitle(name)  # sets the GUI title
         self._controller = controller
-        self._controller.set_view(self)
+        self._controller.view = self
         self.resize(1200, 800)
         self._initView()
 
