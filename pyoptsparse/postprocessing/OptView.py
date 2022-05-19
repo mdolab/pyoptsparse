@@ -5,16 +5,18 @@ import sys
 from typing import List
 
 # External modules
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon, QPalette
+from PyQt5.QtWidgets import QAction, QApplication, QMenuBar, QTabWidget, QVBoxLayout, QWidget, qApp
 
 # First party modules
 from pyoptsparse.postprocessing.opt_view_controller import OptViewController
 
 # --- Set high dpi scaling attribute for the application ---
-QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 
 
-class MainView(QtWidgets.QWidget):
+class MainView(QWidget):
     def __init__(self, *args, file_names: List = [], **kwargs):
         """
         OptView - A GUI designed to assist viewing optimization problems
@@ -26,14 +28,15 @@ class MainView(QtWidgets.QWidget):
         file_names : List, optional
             List of file names to load on startup, by default []
         """
-        super().__init__(*args, **kwargs)
+        super(MainView, self).__init__(*args, **kwargs)
         # Set the controller for the main OptView window
-        self._controller = OptViewController(self)
+        self._controller = OptViewController()
+        self._controller.view = self
         self.file_names = file_names
 
         self._center()  # centers the application in the middle of the screen
         self.setWindowTitle("OptView")  # sets the GUI title
-        self.setWindowIcon(QtGui.QIcon("assets/OptViewIcon.gif"))  # sets the OptView logo
+        self.setWindowIcon(QIcon("assets/OptViewIcon.gif"))  # sets the OptView logo
         self.resize(1200, 800)
         self._initUI()  # Initialize the UI
 
@@ -42,29 +45,34 @@ class MainView(QtWidgets.QWidget):
         Initializes the user inteface for the MainView widget.
         """
         # --- Set the main layout ---
-        self.layout = QtWidgets.QVBoxLayout()
+        self.layout = QVBoxLayout()
 
         # ==============================================================
         # Menu Bar - First item added to top-level layout
         # ==============================================================
         # --- Add the menu bar object ---
-        menu_bar = QtWidgets.QMenuBar(self)
+        menu_bar = QMenuBar(self)
 
         # --- Add file sub-directory with sub-actions ---
         file_menu = menu_bar.addMenu("File")
 
-        self.new_tab_action = QtWidgets.QAction("New Tab", self)
+        self.new_tab_action = QAction("New Tab...", self)
         self.new_tab_action.triggered.connect(lambda: self._controller.addTab(interactive=True))
         file_menu.addAction(self.new_tab_action)
 
-        self.dark_mode_action = QtWidgets.QAction("Dark Mode", self, checkable=True)
+        self.dark_mode_action = QAction("Dark Mode", self, checkable=True)
         self.dark_mode_action.setStatusTip("Toggle Dark/Light Mode")
         self.dark_mode_action.triggered.connect(self._controller.toggleDarkMode)
         file_menu.addAction(self.dark_mode_action)
 
-        exit_action = QtWidgets.QAction("Exit", self)
-        exit_action.triggered.connect(QtWidgets.qApp.quit)
-        file_menu.addAction(exit_action)
+        self.settings_action = QAction("OptView Settings...", self)
+        self.settings_action.setStatusTip("View/Configure OptView settings")
+        self.settings_action.triggered.connect(self._controller.configure_settings)
+        file_menu.addAction(self.settings_action)
+
+        self.exit_action = QAction("Close", self)
+        self.exit_action.triggered.connect(qApp.quit)
+        file_menu.addAction(self.exit_action)
 
         self.layout.addWidget(menu_bar)
 
@@ -72,7 +80,7 @@ class MainView(QtWidgets.QWidget):
         # TabView - The central widget that contains the tabs
         # ==============================================================
         # --- Create the tab control framework ---
-        self.tabs = QtWidgets.QTabWidget()
+        self.tabs = QTabWidget()
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self._controller.closeTab)
 
@@ -109,9 +117,9 @@ def main():
                 raise NameError(f"File: {file} is not a readable history file.")
 
     # Setup the app and the UI
-    app = QtWidgets.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     app.setStyle("Fusion")
-    palette = QtGui.QPalette()
+    palette = QPalette()
     app.setPalette(palette)
 
     MainView(file_names=args.files)
