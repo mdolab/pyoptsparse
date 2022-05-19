@@ -1,7 +1,9 @@
 # External modules
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QDropEvent, QKeySequence
 from PyQt5.QtWidgets import (
     QHBoxLayout,
+    QLabel,
     QLineEdit,
     QListWidget,
     QPushButton,
@@ -14,6 +16,29 @@ from PyQt5.QtWidgets import (
 # First party modules
 from pyoptsparse.postprocessing.utils.base_classes import Controller
 from pyoptsparse.postprocessing.utils.data_structures import File, Variable
+from pyoptsparse.postprocessing.utils.switch import Switch
+
+
+class DarkModeListWidget(QWidget):
+    def __init__(self, parent: QWidget = None, controller: Controller = None) -> None:
+        super(DarkModeListWidget, self).__init__(parent)
+
+        self.controller = controller
+
+        layout = QHBoxLayout()
+
+        self.label = QLabel(self, text="Dark Mode")
+        self.switch = Switch(self)
+        self.label.setBuddy(self.label)
+        self.switch.clicked.connect(self.toggleDarkMode)
+
+        layout.addWidget(self.label, stretch=1)
+        layout.addWidget(self.switch, alignment=Qt.AlignLeft, stretch=6)
+
+        self.setLayout(layout)
+
+    def toggleDarkMode(self):
+        self.controller.toggle_dark_mode()
 
 
 class PlotList(QListWidget):
