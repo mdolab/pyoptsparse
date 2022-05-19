@@ -2,38 +2,40 @@ fs = import('fs')
 
 if get_option('ipopt_dir') != '' or fs.is_dir('Ipopt')
 
-    ipopt_dirs = []
+    ipopt_dir = ''
+
+    if get_option('ipopt_dir') != ''
+        ipopt_dir = get_option('ipopt_dir')
+    elif fs.is_dir('Ipopt')
+        ipopt_dir = fs.is_dir('Ipopt')
+    endif
+
+    ipopt_lib = []
     ipopt_idir = ''
 
     # Ipopt installs differently on some systems (i.e. Fedora)
-    if fs.is_dir(get_option('ipopt_dir') / 'lib')
-        ipopt_dirs = [get_option('ipopt_dir') / 'lib']
-    elif fs.is_dir(get_option('ipopt_dir') / 'lib64')
-        ipopt_dirs = [get_option('ipopt_dir') / 'lib64']
+    if fs.is_dir(ipopt_dir / 'lib')
+        ipopt_lib = [ipopt_dir / 'lib']
+    elif fs.is_dir(ipopt_dir / 'lib64')
+        ipopt_lib = [ipopt_dir / 'lib64']
     endif
 
-    if fs.is_dir(get_option('ipopt_dir') / 'include' / 'coin-or')
-        ipopt_idir = get_option('ipopt_dir') / 'include' / 'coin-or'
-    elif fs.is_dir(get_option('ipopt_dir') / 'include' / 'coin')
-        ipopt_idir = get_option('ipopt_dir') / 'include' / 'coin'
-    elif not fs.is_dir('Ipopt')
-        error('IPOPT include directory not found in: ', get_option('ipopt_dir') / 'include')
+
+    if fs.is_dir(ipopt_dir / 'include' / 'coin-or')
+        ipopt_idir = ipopt_dir / 'include' / 'coin-or'
+    elif fs.is_dir(ipopt_dir / 'include' / 'coin')
+        ipopt_idir = ipopt_dir / 'include' / 'coin'
     endif
 
-    # We also include the special case for Azure
-    if fs.is_dir('Ipopt')
-        ipopt_dirs = ['Ipopt' / 'lib']
-        ipopt_idir = 'Ipopt' / 'include' / 'coin-or'
-    endif
-
-    ipopt_dep = cc.find_library('ipopt-3', required: false, dirs: ipopt_dirs)   # only relevant on windows
+    ipopt_dep = cc.find_library('ipopt-3', required: false, dirs: ipopt_lib)   # only relevant on windows
     if not ipopt_dep.found()
-        ipopt_dep = cc.find_library('ipopt', required: true, dirs: ipopt_dirs)
+        ipopt_dep = cc.find_library('ipopt', required: true, dirs: ipopt_lib)
     endif
+
     if fs.is_dir(ipopt_idir)
         ipopt_inc = include_directories(ipopt_idir)
     else
-        error('IPOPT include directory not found: ', ipopt_inc)
+        error('IPOPT include directory not found: ', ipopt_dir)
     endif
 
     py3_target.extension_module('pyipoptcore',
