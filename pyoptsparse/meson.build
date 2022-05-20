@@ -15,7 +15,7 @@ if incdir_numpy == ''
 endif
 incdir_numpy = '''@0@'''.format(incdir_numpy)
 
-# Meson prefixes filenames of intermediate compiled objects with their filepath. This poses a problem for conda builds
+# HACK: Meson prefixes filenames of intermediate compiled objects with their filepath. This poses a problem for conda builds
 # since conda ensures the host environment directory has 255 characters so the meson object filenames then exceed 255
 # characters. To remedy this, the fortranobject.c file from numpy is copied into pyoptsparse so that the meson build
 # uses a relative path, rather than an absolute path, thus reducing the auto generated object filename

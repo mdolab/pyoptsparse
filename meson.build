@@ -1,3 +1,5 @@
+# Much of this is from SciPy
+
 project(
   'pyoptsparse',
   'c', 'cpp',

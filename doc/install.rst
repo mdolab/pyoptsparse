@@ -61,7 +61,7 @@ It is also possible to install pyOptSparse by calling ``python setup.py install`
 .. note::
   Some optimizers are proprietary and their sources are not distributed with pyOptSparse.
   To use them, please follow the instructions on specific optimizer pages.
-  
+
 For those who intend to use pyOptSparse with IPOPT, OpenMDAO developers provide a `bash script <https://github.com/OpenMDAO/build_pyoptsparse>`_ that simplifies the installation of the optimizer with different linear solvers. With IPOPT installed, set the environment variable ``IPOPT_DIR`` to the path of the IPOPT installation. The installation directory structure is expected to look like the following:
 
 .. code-block:: text
@@ -127,15 +127,16 @@ To uninstall the package, type
   to anything other than those values. This can come in handy, for example, if your ``MPI`` installation
   is not functioning properly, but you still need to run serial code.
 
-.. _conda build instruction:
-
 Conda Build Instructions
 ~~~~~~~~~~~~~~~~~~~~~~~~
-Motivated by work done to get a Windows build working, the following instructions explain building and installing PyOptSparse in a conda environment. This has the advantaged that ``conda`` can be used to install all the necessary dependencies in an isolated and reproducible environment. With how finicky Windows can be with ABI compatibility among various compilers, this is the recommended approach. The guide will work on any platform, however.
+Motivated by work done to get a Windows build working, the following instructions explain building and installing pyOptSparse in a conda environment.
+This has the advantaged that ``conda`` can be used to install all the necessary dependencies in an isolated and reproducible environment.
+With how finicky Windows can be with ABI compatibility among various compilers, this is the recommended approach. The guide will work on any platform, however.
 
 The only build requirement for the build is a working ``conda`` installation as all compilers and dependencies are pulled from the ``conda-forge`` repos, with the exception of a Windows build, which requires Visual Studio 2017 C++ Build Tools.
 
-First, we need to create the ``conda`` environment. Environment yml files are provided in the ``pyoptspars`` repo:
+First, we need to create the ``conda`` environment.
+Environment yml files are provided in the ``pyoptspars`` repo:
 
 .. code-block:: shell
 
