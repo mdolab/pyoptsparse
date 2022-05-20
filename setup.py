@@ -56,10 +56,13 @@ def copy_shared_libraries():
         for file in files:
             # move pyoptsparse to just under staging_dir
             if file.endswith((".so", ".lib", ".pyd", ".pdb", ".dylib")):
+                if ".so.p" in root or ".pyd.p" in root:  # excludes intermediate object files
+                    continue
                 file_path = os.path.join(root, file)
                 new_path = str(file_path)
                 match = re.search(staging_dir, new_path)
                 new_path = new_path[match.span()[1] + 1:]
+                print(f"Copying build file {file_path} -> {new_path}")
                 shutil.copy(file_path, new_path)
 
 
