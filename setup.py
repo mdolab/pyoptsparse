@@ -130,7 +130,7 @@ if __name__ == "__main__":
         package_data={
             "": ["*.so", "*.lib", "*.pyd", "*.pdb", "*.dylib", "assets/*", "LICENSE"],
         },
-        python_requires=">=3.8",
+        python_requires=">=3.7",
         entry_points={
             "gui_scripts": [
                 "optview = pyoptsparse.postprocessing.OptView:main",
