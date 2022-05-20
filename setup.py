@@ -61,7 +61,7 @@ def copy_shared_libraries():
                 file_path = os.path.join(root, file)
                 new_path = str(file_path)
                 match = re.search(staging_dir, new_path)
-                new_path = new_path[match.span()[1] + 1:]
+                new_path = new_path[match.span()[1] + 1 :]
                 print(f"Copying build file {file_path} -> {new_path}")
                 shutil.copy(file_path, new_path)
 
