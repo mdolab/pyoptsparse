@@ -45,16 +45,16 @@ if get_option('ipopt_dir') != '' or fs.is_dir('Ipopt')
                     dependencies : [py3_dep, ipopt_dep],
                     subdir: 'pyoptsparse/pyIPOPT',
                     link_language: 'c',
-                    install : true)
+                    install : false)
 endif
 
-python_sources = [
-    '__init__.py',
-    'pyIPOPT.py',
-]
-
-py3_target.install_sources(
-  python_sources,
-  pure: false,
-  subdir: 'pyoptsparse/pyIPOPT'
-)
+#python_sources = [
+#    '__init__.py',
+#    'pyIPOPT.py',
+#]
+#
+#py3_target.install_sources(
+#  python_sources,
+#  pure: false,
+#  subdir: 'pyoptsparse/pyIPOPT'
+#)

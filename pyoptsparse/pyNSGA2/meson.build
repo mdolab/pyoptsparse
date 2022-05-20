@@ -31,17 +31,17 @@ if swig.found()
                     dependencies : py3_dep,
                     subdir: 'pyoptsparse/pyNSGA2',
                     link_language: 'c',
-                    install : true)
+                    install : false)
 endif
 
-python_sources = [
-    '__init__.py',
-    'pyNSGA2.py',
-    'LICENSE'
-]
-
-py3_target.install_sources(
-  python_sources,
-  pure: false,
-  subdir: 'pyoptsparse/pyNSGA2'
-)
+#python_sources = [
+#    '__init__.py',
+#    'pyNSGA2.py',
+#    'LICENSE'
+#]
+#
+#py3_target.install_sources(
+#  python_sources,
+#  pure: false,
+#  subdir: 'pyoptsparse/pyNSGA2'
+#)

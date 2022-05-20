@@ -28,16 +28,16 @@ py3_target.extension_module('slsqp',
                 include_directories: [inc_np, inc_f2py],
                 dependencies : py3_dep,
                 subdir: 'pyoptsparse/pySLSQP',
-                install : true)
+                install : false)
 
-python_sources = [
-    '__init__.py',
-    'pySLSQP.py',
-    'LICENSE'
-]
+#python_sources = [
+#    '__init__.py',
+#    'pySLSQP.py',
+#    'LICENSE'
+#]
 
-py3_target.install_sources(
-  python_sources,
-  pure: false,
-  subdir: 'pyoptsparse/pySLSQP'
-)
+#py3_target.install_sources(
+#  python_sources,
+#  pure: false,
+#  subdir: 'pyoptsparse/pySLSQP'
+#)

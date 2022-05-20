@@ -1,7 +1,3 @@
-# Platform detection
-is_windows = host_machine.system() == 'windows'
-is_msvc = is_windows and cc.get_id() == 'msvc'
-
 # NumPy include directory - needed in all submodules
 incdir_numpy = get_option('incdir_numpy')
 if incdir_numpy == ''
@@ -13,6 +9,7 @@ if incdir_numpy == ''
       check: true
     ).stdout().strip()
 endif
+# this creates a raw string which is useful for Windows use of '\' for paths
 incdir_numpy = '''@0@'''.format(incdir_numpy)
 
 # HACK: Meson prefixes filenames of intermediate compiled objects with their filepath. This poses a problem for conda builds
@@ -52,27 +49,27 @@ inc_f2py = include_directories(incdir_f2py)
 #
 # numpy_nodepr_api = '-DNPY_NO_DEPRECATED_API=NPY_1_9_API_VERSION'
 
-python_sources = [
-    '__init__.py',
-    'pyOpt_MPI.py',
-    'pyOpt_constraint.py',
-    'pyOpt_error.py',
-    'pyOpt_gradient.py',
-    'pyOpt_history.py',
-    'pyOpt_objective.py',
-    'pyOpt_optimization.py',
-    'pyOpt_optimizer.py',
-    'pyOpt_solution.py',
-    'pyOpt_utils.py',
-    'pyOpt_variable.py',
-    'types.py'
-]
+#python_sources = [
+#    '__init__.py',
+#    'pyOpt_MPI.py',
+#    'pyOpt_constraint.py',
+#    'pyOpt_error.py',
+#    'pyOpt_gradient.py',
+#    'pyOpt_history.py',
+#    'pyOpt_objective.py',
+#    'pyOpt_optimization.py',
+#    'pyOpt_optimizer.py',
+#    'pyOpt_solution.py',
+#    'pyOpt_utils.py',
+#    'pyOpt_variable.py',
+#    'types.py'
+#]
 
-py3_target.install_sources(
-  python_sources,
-  pure: true,
-  subdir: 'pyoptsparse'
-)
+#py3_target.install_sources(
+#  python_sources,
+#  pure: true,
+#  subdir: 'pyoptsparse'
+#)
 
 subdir('pySNOPT')
 subdir('pyIPOPT')
@@ -81,9 +78,9 @@ subdir('pyCONMIN')
 subdir('pyNLPQLP')
 subdir('pyNSGA2')
 subdir('pyPSQP')
-subdir('pyALPSO')
-subdir('pyParOpt')
-subdir('postprocessing')
+#subdir('pyALPSO')
+#subdir('pyParOpt')
+#subdir('postprocessing')
 
 # test imports
 envdata = environment()

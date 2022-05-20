@@ -3,11 +3,9 @@
 project(
   'pyoptsparse',
   'c', 'cpp',
-  # Note that the git commit hash cannot be added dynamically here (it is added
-  # in the dynamically generated and installed `scipy/version.py` though - see
-  # tools/version_utils.py
-  version: '2.8.2',
-  license: 'GPL-3',
+# unnecessary metadata commented out until Meson supports PEP517 and installation with pip
+#  version: 'x.x.x',
+#  license: 'GPL-3',
   meson_version: '>= 0.60',
   default_options: [
     'buildtype=debugoptimized',

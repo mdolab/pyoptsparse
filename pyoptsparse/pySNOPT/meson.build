@@ -25,19 +25,19 @@ if HAS_SNOPT
     include_directories: [inc_np, inc_f2py],
     dependencies : py3_dep,
     subdir: 'pyoptsparse/pySNOPT',
-    install : true,
+    install : false,
     fortran_args: '-ffixed-line-length-80'
   )
 endif
 
-python_sources = [
-    '__init__.py',
-    'pySNOPT.py',
-    'LICENSE'
-]
+#python_sources = [
+#    '__init__.py',
+#    'pySNOPT.py',
+#    'LICENSE'
+#]
 
-py3_target.install_sources(
-  python_sources,
-  pure: false,
-  subdir: 'pyoptsparse/pySNOPT'
-)
+#py3_target.install_sources(
+#  python_sources,
+#  pure: false,
+#  subdir: 'pyoptsparse/pySNOPT'
+#)

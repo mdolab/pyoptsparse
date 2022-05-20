@@ -25,17 +25,17 @@ py3_target.extension_module('conmin',
                 include_directories: [inc_np, inc_f2py],
                 dependencies : py3_dep,
                 subdir: 'pyoptsparse/pyCONMIN',
-                install : true,
+                install : false,
                 build_rpath: '')
 
-python_sources = [
-    '__init__.py',
-    'pyCONMIN.py',
-    'LICENSE'
-]
-
-py3_target.install_sources(
-  python_sources,
-  pure: false,
-  subdir: 'pyoptsparse/pyCONMIN'
-)
+#python_sources = [
+#    '__init__.py',
+#    'pyCONMIN.py',
+#    'LICENSE'
+#]
+#
+#py3_target.install_sources(
+#  python_sources,
+#  pure: false,
+#  subdir: 'pyoptsparse/pyCONMIN'
+#)

@@ -37,7 +37,7 @@ def run_meson_build():
     # configure
     meson_path = shutil.which("meson")
     meson_call = (
-        f"{meson_path} setup meson_build --prefix={prefix} "
+        f"{meson_path} setup {staging_dir} --prefix={prefix} "
         + f"-Dpython.purelibdir={purelibdir} -Dpython.platlibdir={purelibdir} {ipopt_dir_opt} {meson_args}"
     )
     sysargs = meson_call.split(" ")
@@ -45,28 +45,28 @@ def run_meson_build():
     meson_main(sysargs)
 
     # build
-    meson_call = f"{meson_path} install -C meson_build"
+    meson_call = f"{meson_path} compile -C {staging_dir}"
     sysargs = meson_call.split(" ")
     meson_main(sysargs)
 
 
 def copy_shared_libraries():
-    for root, _dirs, files in os.walk(staging_dir):
+    build_path = os.path.join(staging_dir, "pyoptsparse")
+    for root, _dirs, files in os.walk(build_path):
         for file in files:
-
             # move pyoptsparse to just under staging_dir
             if file.endswith((".so", ".lib", ".pyd", ".pdb", ".dylib")):
                 file_path = os.path.join(root, file)
                 new_path = str(file_path)
                 match = re.search(staging_dir, new_path)
-                new_path = new_path[match.span()[1] + 1 :]
+                new_path = new_path[match.span()[1] + 1:]
                 shutil.copy(file_path, new_path)
 
 
 if __name__ == "__main__":
     # This is where the meson build system will install to, it is then
     # used as the sources for setuptools
-    staging_dir = "staging_dir"
+    staging_dir = "meson_build"
 
     # this keeps the meson build system from running more than once
     if "dist" not in str(os.path.abspath(__file__)) and not os.path.isdir(staging_dir):
@@ -125,7 +125,7 @@ if __name__ == "__main__":
         package_dir={"": "."},
         packages=setuptools.find_packages(where="."),
         package_data={
-            "": ["*.so", "*.lib", "*.pyd", "*.pdb", "*.dylib", "assets/*"],
+            "": ["*.so", "*.lib", "*.pyd", "*.pdb", "*.dylib", "assets/*", "LICENSE"],
         },
         python_requires=">=3.8",
         entry_points={

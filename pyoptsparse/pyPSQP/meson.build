@@ -17,16 +17,16 @@ py3_target.extension_module('psqp',
                 include_directories: [inc_np, inc_f2py],
                 dependencies : py3_dep,
                 subdir: 'pyoptsparse/pyPSQP',
-                install : true)
+                install : false)
 
-python_sources = [
-    '__init__.py',
-    'pyPSQP.py',
-    'LICENSE'
-]
-
-py3_target.install_sources(
-  python_sources,
-  pure: false,
-  subdir: 'pyoptsparse/pyPSQP'
-)
+#python_sources = [
+#    '__init__.py',
+#    'pyPSQP.py',
+#    'LICENSE'
+#]
+#
+#py3_target.install_sources(
+#  python_sources,
+#  pure: false,
+#  subdir: 'pyoptsparse/pyPSQP'
+#)
