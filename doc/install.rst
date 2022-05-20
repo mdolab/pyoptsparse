@@ -36,7 +36,10 @@ The only exception is ``numpy``, which is required as part of the build process 
 .. note::
   * In Linux, the python header files (python-dev) are also required.
   * **We do not support operating systems other than Linux.**
-    For macOS users, the conda package may work out of the box if you do not need any non-default optimizers. For Windows users, a conda package is on the way, if it's not already in the repos. This comes with the same disclaimer as the macOS conda package. Alternatively, follow the :ref:`conda build instructions<conda build instruction>` below as this will work on any platform.
+    For macOS users, the conda package may work out of the box if you do not need any non-default optimizers.
+    For Windows users, a conda package is on the way, if it's not already in the repos.
+    This comes with the same disclaimer as the macOS conda package.
+    Alternatively, follow the :ref:`conda build instructions<conda build instruction>` below as this will work on any platform.
 
 Installation
 ~~~~~~~~~~~~
@@ -126,6 +129,8 @@ To uninstall the package, type
   If you explicitly do not wish to use ``mpi4py``, set the environment variable ``PYOPTSPARSE_REQUIRE_MPI``
   to anything other than those values. This can come in handy, for example, if your ``MPI`` installation
   is not functioning properly, but you still need to run serial code.
+
+.. _conda build instruction:
 
 Conda Build Instructions
 ~~~~~~~~~~~~~~~~~~~~~~~~
