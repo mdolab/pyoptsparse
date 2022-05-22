@@ -3,7 +3,6 @@
 # Standard Python modules
 import sys
 import unittest
-import warnings
 
 # External modules
 import numpy as np
@@ -152,15 +151,8 @@ class TestRosenbrock(OptTest):
 
     @parameterized.expand(["IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "ParOpt"])
     def test_optimization(self, optName):
-        try:
-            self._test_optimization(optName)
-        except AssertionError as e:
-            if optName == "IPOPT" and sys.platform == "win32":
-                warnings.warn(f"IPOPT fails on Windows with: \n{str(e)}")
-            else:
-                raise AssertionError(str(e))
-
-    def _test_optimization(self, optName):
+        if optName == "IPOPT" and sys.platform == "win32":
+            raise unittest.SkipTest()
         self.optName = optName
         self.setup_optProb()
         optOptions = self.optOptions.pop(optName, None)
