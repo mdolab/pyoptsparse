@@ -34,9 +34,6 @@
 */
 
 #include "hook.h"
-#ifndef _WIN64
-#include <unistd.h>  // is this needed? not platform independent, compiles successfully w/out
-#endif
 
 void logger(const char *fmt, ...)
 {
