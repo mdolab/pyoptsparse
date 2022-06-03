@@ -134,7 +134,7 @@ With how finicky Windows can be with ABI compatibility among various compilers, 
 The only build requirement for the build is a working ``conda`` installation as all compilers and dependencies are pulled from the ``conda-forge`` repos, with the exception of a Windows build, which requires Visual Studio 2017 C++ Build Tools.
 
 First, we need to create the ``conda`` environment.
-Environment yml files are provided in the ``pyoptspars`` repo:
+An environment yml file is provided in the ``pyoptsparse`` repo:
 
 .. code-block:: shell
 
@@ -146,7 +146,8 @@ Environment yml files are provided in the ``pyoptspars`` repo:
     # OSX/Linux
     conda env update -f doc/environment.yml
     # Windows
-    conda env update -f doc\win-environment.yml
+    conda env update -f doc\environment.yml
+    conda install libpgmath
 
 Next, we need to tell the compiler where to find IPOPT:
 
@@ -155,7 +156,7 @@ Next, we need to tell the compiler where to find IPOPT:
     # OSX/Linux
     export IPOPT_DIR="$CONDA_PREFIX"
     # Windows
-    set IPOPT_DIR=%CONDA_PREFIX%
+    set IPOPT_DIR=%CONDA_PREFIX%\Library
 
 Finally, build the wheel and install it using pip:
 
