@@ -144,9 +144,9 @@ An environment yml file is provided in the ``pyoptsparse`` repo:
     conda config --env --set channel_priority strict
 
     # OSX/Linux
-    conda env update -f doc/environment.yml
+    conda env update -f .github/environment.yml
     # Windows
-    conda env update -f doc\environment.yml
+    conda env update -f .github\environment.yml
     conda install libpgmath
 
 Next, we need to tell the compiler where to find IPOPT:
