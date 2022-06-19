@@ -32,7 +32,7 @@ jobs:
         run: |
           conda activate pyos-build
           export IPOPT_DIR=${CONDA_PREFIX}\\Library
-          export CC=cl
+          export CC=msvc
           export FC=flang
           export CC_LD=link
           python -m build -n -x .
@@ -40,6 +40,6 @@ jobs:
       - name: Run tests
         shell: bash -l {0}
         run: |
-          call conda activate pyos-build
+          conda activate pyos-build
           cd tests
           testflo -n 1 .
