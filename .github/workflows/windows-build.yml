@@ -14,30 +14,30 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-    - name: Create environment
-      run: |
-        C:\Miniconda\condabin\conda.bat activate base
-        conda config --add channels conda-forge && conda config --set channel_priority strict
-        conda create --yes --name pyos-build
-    - name: Install mamba and update environment
-      run: |
-        conda activate pyos-build
-        conda install -y mamba
-        mamba env update --file .github/environment.yml
-        mamba install -y libpgmath
-    - name: Build and install pyoptsparse
-      run: |
-        set IPOPT_DIR=%CONDA_PREFIX%\Library
-        set CC=cl
-        set FC=flang
-        set CC_LD=link
-        python -m build -n -x .
-        pip install --no-deps --no-index --find-links dist pyoptsparse
-    - name: Run tests
-      run: |
-        cd tests
-        testflo -n 1 .
+    - uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: 3.8
+          mamba-version: "*"
+          channels: conda-forge,defaults
+          channel-priority: strict
+          activate-environment: anaconda-client-env
+          environment-file: .github/environment.yml
+          steps:
+            - name: Install libpgmath
+                shell: cmd /C CALL {0}
+                run: >-
+                  mamba install libpgmath
+            - name: Build and install pyoptsparse
+                shell: cmd /C CALL {0}
+                run: |
+                  set IPOPT_DIR=%CONDA_PREFIX%\Library
+                  set CC=cl
+                  set FC=flang
+                  set CC_LD=link
+                  python -m build -n -x .
+                  pip install --no-deps --no-index --find-links dist pyoptsparse
+            - name: Run tests
+                shell: cmd /C CALL {0}
+                run: |
+                  cd tests
+                  testflo -n 1 .
