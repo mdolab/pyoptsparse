@@ -31,15 +31,14 @@ jobs:
         shell: bash -l {0}
         run: |
           conda activate pyos-build
-          export IPOPT_DIR=${CONDA_PREFIX}\\Library
-          export CC=msvc
-          export FC=flang
-          export CC_LD=link
-          python -m build -n -x .
-          pip install --no-deps --no-index --find-links dist pyoptsparse
-      - name: Run tests
-        shell: bash -l {0}
-        run: |
-          conda activate pyos-build
-          cd tests
-          testflo -n 1 .
+          cl 
+#          export FC=flang
+#          export CC_LD=link
+#          python -m build -n -x .
+#          pip install --no-deps --no-index --find-links dist pyoptsparse
+#      - name: Run tests
+#        shell: bash -l {0}
+#        run: |
+#          conda activate pyos-build
+#          cd tests
+#          testflo -n 1 .
