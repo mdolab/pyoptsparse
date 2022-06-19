@@ -28,17 +28,18 @@ jobs:
           conda activate pyos-build
           mamba install libpgmath
       - name: Build and install pyoptsparse
+        shell: cmd /C CALL {0}
+        run: |
+          call conda activate pyos-build
+          set IPOPT_DIR=%CONDA_PREFIX%\Library
+          set CC=cl
+          set FC=flang
+          set CC_LD=link
+          python -m build -n -x .
+          pip install --no-deps --no-index --find-links dist pyoptsparse
+      - name: Run tests
         shell: bash -l {0}
         run: |
           conda activate pyos-build
-          cl 
-#          export FC=flang
-#          export CC_LD=link
-#          python -m build -n -x .
-#          pip install --no-deps --no-index --find-links dist pyoptsparse
-#      - name: Run tests
-#        shell: bash -l {0}
-#        run: |
-#          conda activate pyos-build
-#          cd tests
-#          testflo -n 1 .
+          cd tests
+          testflo -n 1 .
