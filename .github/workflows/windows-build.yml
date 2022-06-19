@@ -1,0 +1,43 @@
+name: PyOptSparse Windows Actions
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Create environment
+      run: |
+        call C:\Miniconda\condabin\conda.bat activate base
+        conda config --add channels conda-forge && conda config --set channel_priority strict
+        conda create --yes --name pyos-build
+    - name: Install mamba and update environment
+      run: |
+        call conda activate pyos-build
+        call conda install -y mamba
+        call mamba env update --file .github/environment.yml
+        call mamba install -y libpgmath
+    - name: Build and install pyoptsparse
+      run: |
+        set IPOPT_DIR=%CONDA_PREFIX%\Library
+        set CC=cl
+        set FC=flang
+        set CC_LD=link
+        python -m build -n -x .
+        pip install --no-deps --no-index --find-links dist pyoptsparse
+    - name: Run tests
+      run: |
+        cd tests
+        testflo -n 1 .
