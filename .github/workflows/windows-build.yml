@@ -20,15 +20,15 @@ jobs:
         python-version: 3.8
     - name: Create environment
       run: |
-        call C:\Miniconda\condabin\conda.bat activate base
+        C:\Miniconda\condabin\conda.bat activate base
         conda config --add channels conda-forge && conda config --set channel_priority strict
         conda create --yes --name pyos-build
     - name: Install mamba and update environment
       run: |
-        call conda activate pyos-build
-        call conda install -y mamba
-        call mamba env update --file .github/environment.yml
-        call mamba install -y libpgmath
+        conda activate pyos-build
+        conda install -y mamba
+        mamba env update --file .github/environment.yml
+        mamba install -y libpgmath
     - name: Build and install pyoptsparse
       run: |
         set IPOPT_DIR=%CONDA_PREFIX%\Library
