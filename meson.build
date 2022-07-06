@@ -14,6 +14,8 @@ project(
   ],
 )
 
+fortranobject_c = '../fortranobject.c'
+
 cc = meson.get_compiler('c')
 cpp = meson.get_compiler('cpp')
 
