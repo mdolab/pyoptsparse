@@ -1,13 +1,13 @@
 fs = import('fs')
 if fs.is_file('source' / 'NLPQLP.F')
   message('NLPQLP source code found!')
-  HAS_SNOPT = true
+  HAS_NLPQLP = true
 else
   message('NLPQLP not found!')
-  HAS_SNOPT = false
+  HAS_NLPQLP = false
 endif
 
-if HAS_SNOPT
+if HAS_NLPQLP
   nlpqlp_source = custom_target('nlpqlpmodule.c',
     input : ['source/f2py/nlpqlp.pyf'],
     output : ['nlpqlpmodule.c'],
