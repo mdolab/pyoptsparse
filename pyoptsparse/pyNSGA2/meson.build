@@ -32,6 +32,8 @@ if swig.found()
                     subdir: 'pyoptsparse/pyNSGA2',
                     link_language: 'c',
                     install : false)
+else
+    message('SWIG was not found, therefore NSGA2 will not be built.')
 endif
 
 #python_sources = [
