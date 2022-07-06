@@ -83,22 +83,22 @@ subdir('pyPSQP')
 #subdir('postprocessing')
 
 # test imports
-envdata = environment()
-python_paths = [join_paths(meson.current_build_dir(), '..')]
-envdata.prepend('PYTHONPATH', python_paths)
+# envdata = environment()
+# python_paths = [join_paths(meson.current_build_dir(), '..')]
+# envdata.prepend('PYTHONPATH', python_paths)
 
-progs = [['SLSQP',  'pySLSQP',  'slsqp'],
-         ['CONMIN', 'pyCONMIN', 'conmin'],
-         ['PSQP',   'pyPSQP',   'psqp'],
-         ['NSGA2',  'pyNSGA2',  'nsga2']]
+# progs = [['SLSQP',  'pySLSQP',  'slsqp'],
+#          ['CONMIN', 'pyCONMIN', 'conmin'],
+#          ['PSQP',   'pyPSQP',   'psqp'],
+#          ['NSGA2',  'pyNSGA2',  'nsga2']]
 
 
-foreach p : progs
-  import_command = 'from pyoptsparse.' + p[1] + ' import '+p[2]+'; print('+p[2]+'.__file__)'
-  test(
-    'import test for '+p[0],
-    py3_command,
-    args: ['-c', import_command],
-    env: envdata
-  )
-endforeach
+# foreach p : progs
+#   import_command = 'from pyoptsparse.' + p[1] + ' import '+p[2]+'; print('+p[2]+'.__file__)'
+#   test(
+#     'import test for '+p[0],
+#     py3_command,
+#     args: ['-c', import_command],
+#     env: envdata
+#   )
+# endforeach
