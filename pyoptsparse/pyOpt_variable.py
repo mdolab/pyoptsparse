@@ -21,7 +21,7 @@ class Variable:
 
         See Also
         --------
-        Optimization.addVarGroup : for the full documentation
+        pyoptsparse.pyOpt_optimization.Optimization.addVarGroup : for the full documentation
         """
         self.name = name
         self.type = varType
