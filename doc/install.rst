@@ -129,40 +129,62 @@ Conda Build Instructions
 ~~~~~~~~~~~~~~~~~~~~~~~~
 The following instructions explain how to build and install pyOptSparse in a conda environment.
 This has the advantage that ``conda`` can be used to install all the necessary dependencies in an isolated and reproducible environment.
-Considering how finicky Windows can be with ABI compatibility among various compilers, this is the recommended approach. The guide will work on any platform, however.
+Considering how finicky Windows can be with ABI compatibility among various compilers, this is the recommended approach.
+The guide will work on any platform, however.
 
 The only build requirement for the build is a working ``conda`` installation as all compilers and dependencies are pulled from the ``conda-forge`` repos, with the exception of a Windows build, which requires Visual Studio 2017 C++ Build Tools.
 
 First, we need to create the ``conda`` environment.
 An ``environment.yml`` file is provided in the ``pyoptsparse`` repo:
 
-.. code-block:: shell
+.. tabs::
+
+  .. code-tab:: bash Linux/OSX
 
     conda create -y -n pyos-build
     conda activate pyos-build
     conda config --env --add channels conda-forge
     conda config --env --set channel_priority strict
 
-    # OSX/Linux
     conda env update -f .github/environment.yml
-    # Windows
+    
+  .. code-tab:: batch Windows
+
+    conda create -y -n pyos-build
+    conda activate pyos-build
+    conda config --env --add channels conda-forge
+    conda config --env --set channel_priority strict
+
     conda env update -f .github\environment.yml
     conda install libpgmath
 
 Next, we need to tell the compiler where to find IPOPT:
 
-.. code-block:: shell
+.. tabs::
 
-    # OSX/Linux
+  .. code-tab:: bash Linux/OSX
+
     export IPOPT_DIR="$CONDA_PREFIX"
-    # Windows
+
+  .. code-tab:: batch Windows
+
     set IPOPT_DIR=%CONDA_PREFIX%\Library
 
 Finally, build the wheel and install it using pip:
 
-.. code-block:: shell
+.. tabs::
 
-    # Windows needs specific compiler flags to work
+  .. code-tab:: bash Linux/OSX
+
+    # build wheel
+    python -m build -n -x .
+
+    # install wheel
+    pip install --no-deps --no-index --find-links dist pyoptsparse
+
+  .. code-tab:: batch Windows
+
+    # set specific compiler flags
     set CC=cl
     set FC=flang
     set CC_LD=link
