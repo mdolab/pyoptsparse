@@ -127,14 +127,14 @@ To uninstall the package, type
 
 Conda Build Instructions
 ~~~~~~~~~~~~~~~~~~~~~~~~
-Motivated by work done to get a Windows build working, the following instructions explain building and installing pyOptSparse in a conda environment.
-This has the advantaged that ``conda`` can be used to install all the necessary dependencies in an isolated and reproducible environment.
-With how finicky Windows can be with ABI compatibility among various compilers, this is the recommended approach. The guide will work on any platform, however.
+The following instructions explain how to build and install pyOptSparse in a conda environment.
+This has the advantage that ``conda`` can be used to install all the necessary dependencies in an isolated and reproducible environment.
+Considering how finicky Windows can be with ABI compatibility among various compilers, this is the recommended approach. The guide will work on any platform, however.
 
 The only build requirement for the build is a working ``conda`` installation as all compilers and dependencies are pulled from the ``conda-forge`` repos, with the exception of a Windows build, which requires Visual Studio 2017 C++ Build Tools.
 
 First, we need to create the ``conda`` environment.
-An environment yml file is provided in the ``pyoptsparse`` repo:
+An ``environment.yml`` file is provided in the ``pyoptsparse`` repo:
 
 .. code-block:: shell
 

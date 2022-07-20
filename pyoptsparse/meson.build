@@ -39,15 +39,9 @@ inc_np = include_directories(incdir_numpy)
 incdir_f2py = incdir_numpy / '..' / '..' / 'f2py' / 'src'
 inc_f2py = include_directories(incdir_f2py)
 
-# Don't use the deprecated NumPy C API. Define this to a fixed version instead of
-# NPY_API_VERSION in order not to break compilation for released SciPy versions
-# when NumPy introduces a new deprecation. Use in a meson.build file::
-#
-#   py3_target.extension_module('_name',
-#     'source_fname',
-#     numpy_nodepr_api)
-#
-# numpy_nodepr_api = '-DNPY_NO_DEPRECATED_API=NPY_1_9_API_VERSION'
+
+# TODO: this is kept in here so that when meson becomes pep517-compliant
+# we can uncomment these to have meson install the source files
 
 #python_sources = [
 #    '__init__.py',
