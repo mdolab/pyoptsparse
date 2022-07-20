@@ -59,13 +59,20 @@ For those not using virtual environments, a user install may be needed
 
 If you plan to modify pyOptSparse, installing with the developer option, i.e. with ``-e``, will save you from re-installing each time you modify the Python code.
 
-It is also possible to install pyOptSparse by calling ``python setup.py install``, but this is not recommended.
-
 .. note::
   Some optimizers are proprietary and their sources are not distributed with pyOptSparse.
   To use them, please follow the instructions on specific optimizer pages.
 
 For those who intend to use pyOptSparse with IPOPT, OpenMDAO developers provide a `bash script <https://github.com/OpenMDAO/build_pyoptsparse>`_ that simplifies the installation of the optimizer with different linear solvers.
+
+Specifying compilers
+~~~~~~~~~~~~~~~~~~~~
+To specify a non-default compiler (e.g. ``/usr/bin/gcc``), meson recognizes certain `special environment variables <https://mesonbuild.com/Reference-tables.html#compiler-and-linker-selection-variables>`__.
+For example, to specify the Intel fortran compiler, simply run
+
+.. prompt:: bash
+
+  FC=$(which ifort) pip install .
 
 .. _install_optview:
 
@@ -126,7 +133,7 @@ To uninstall the package, type
 .. _conda build instruction:
 
 Conda Build Instructions
-~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
 The following instructions explain how to build and install pyOptSparse in a conda environment.
 This has the advantage that ``conda`` can be used to install all the necessary dependencies in an isolated and reproducible environment.
 Considering how finicky Windows can be with ABI compatibility among various compilers, this is the recommended approach.
@@ -147,8 +154,8 @@ An ``environment.yml`` file is provided in the ``pyoptsparse`` repo:
     conda config --env --set channel_priority strict
 
     conda env update -f .github/environment.yml
-    
-  .. code-tab:: batch Windows
+
+  .. code-tab:: powershell Windows
 
     conda create -y -n pyos-build
     conda activate pyos-build
@@ -166,7 +173,7 @@ Next, we need to tell the compiler where to find IPOPT:
 
     export IPOPT_DIR="$CONDA_PREFIX"
 
-  .. code-tab:: batch Windows
+  .. code-tab:: powershell Windows
 
     set IPOPT_DIR=%CONDA_PREFIX%\Library
 
@@ -182,7 +189,7 @@ Finally, build the wheel and install it using pip:
     # install wheel
     pip install --no-deps --no-index --find-links dist pyoptsparse
 
-  .. code-tab:: batch Windows
+  .. code-tab:: powershell Windows
 
     # set specific compiler flags
     set CC=cl
