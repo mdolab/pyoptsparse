@@ -34,7 +34,7 @@ Python dependencies are automatically handled by ``pip``, so they do not need to
 The only exception is ``numpy``, which is required as part of the build process and therefore must be present before installing.
 
 .. note::
-  * In Linux, the python header files (python-dev) are also required.
+  * In Linux, the python header files (``python-dev``) are also required.
   * **We do not support operating systems other than Linux.**
     For macOS users, the conda package may work out of the box if you do not need any non-default optimizers.
     For Windows users, a conda package is on the way, if it's not already in the repos.
@@ -60,19 +60,17 @@ For those not using virtual environments, a user install may be needed
 If you plan to modify pyOptSparse, installing with the developer option, i.e. with ``-e``, will save you from re-installing each time you modify the Python code.
 
 .. note::
-  Some optimizers are proprietary and their sources are not distributed with pyOptSparse.
+  Some optimizers are proprietary, and their sources are not distributed with pyOptSparse.
   To use them, please follow the instructions on specific optimizer pages.
-
-For those who intend to use pyOptSparse with IPOPT, OpenMDAO developers provide a `bash script <https://github.com/OpenMDAO/build_pyoptsparse>`_ that simplifies the installation of the optimizer with different linear solvers.
 
 Specifying compilers
 ~~~~~~~~~~~~~~~~~~~~
-To specify a non-default compiler (e.g. ``/usr/bin/gcc``), meson recognizes certain `special environment variables <https://mesonbuild.com/Reference-tables.html#compiler-and-linker-selection-variables>`__.
-For example, to specify the Intel fortran compiler, simply run
+To specify a non-default compiler (e.g. something other than ``/usr/bin/gcc``), meson recognizes certain `special environment variables <https://mesonbuild.com/Reference-tables.html#compiler-and-linker-selection-variables>`__.
+For example, to specify the Intel compilers, simply run
 
 .. prompt:: bash
 
-  FC=$(which ifort) pip install .
+  FC=$(which ifort) CC=$(which icc) pip install .
 
 .. _install_optview:
 
