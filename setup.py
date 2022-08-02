@@ -1,20 +1,8 @@
 import os
 import re
 import shutil
-import sys
 import setuptools
-
-from mesonbuild.mesonmain import run as meson_run
-
-
-def meson_main(sysargs):
-    # Always resolve the command path so Ninja can find it for regen, tests, etc.
-    if "meson.exe" in sys.executable:
-        assert os.path.isabs(sys.executable)
-        launcher = sys.executable
-    else:
-        launcher = os.path.realpath(sysargs[0])
-    return meson_run(sysargs[1:], launcher)
+import subprocess
 
 
 def run_meson_build():
@@ -42,12 +30,24 @@ def run_meson_build():
     )
     sysargs = meson_call.split(" ")
     sysargs = [arg for arg in sysargs if arg != ""]
-    meson_main(sysargs)
+    p1 = subprocess.run(sysargs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    setup_log = os.path.join(staging_dir, "setup.log")
+    with open(setup_log, "wb") as f:
+        f.write(p1.stdout)
+    if p1.returncode != 0:
+        raise OSError(sysargs, f"The meson setup command failed! Check the log at {setup_log} for more information.")
 
     # build
     meson_call = f"{meson_path} compile -C {staging_dir}"
     sysargs = meson_call.split(" ")
-    meson_main(sysargs)
+    p2 = subprocess.run(sysargs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    compile_log = os.path.join(staging_dir, "compile.log")
+    with open(compile_log, "wb") as f:
+        f.write(p2.stdout)
+    if p2.returncode != 0:
+        raise OSError(
+            sysargs, f"The meson compile command failed! Check the log at {compile_log} for more information."
+        )
 
 
 def copy_shared_libraries():
