@@ -103,7 +103,7 @@ to run all tests.
 
 Update or Uninstall
 -------------------
-To update pyOptSparse, first delete the ``build`` directory, then update the package using ``git``.
+To update pyOptSparse, first delete the ``meson_build`` directory, then update the package using ``git``.
 For stability, users are encouraged to stick to tagged releases.
 Install the package normally via ``pip``.
 
