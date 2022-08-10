@@ -1,0 +1,41 @@
+trigger:
+  - main
+
+pr:
+  - main
+
+pool:
+  vmImage: windows-latest
+
+jobs:
+  - job: Windows
+    steps:
+    - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
+      displayName: Add conda to PATH
+
+    - script: conda config --add channels conda-forge && conda config --set channel_priority strict
+      displayName: Set channel priority
+
+    - script: conda create --yes --name pyos-build
+      displayName: Create environment
+
+    - script: |
+        call activate pyos-build
+        call conda install -y mamba
+        call mamba env update --file .github/environment.yml
+        call mamba install -y libpgmath
+      displayName: Install mamba and update environment
+
+    - script: |
+        set IPOPT_DIR=%CONDA_PREFIX%\Library
+        set CC=cl
+        set FC=flang
+        set CC_LD=link
+        python -m build -n -x .
+        pip install --no-deps --no-index --find-links dist pyoptsparse
+      displayName: Build and install pyoptsparse
+
+    - script: |
+        cd tests
+        testflo -n 1 .
+      displayName: Run tests

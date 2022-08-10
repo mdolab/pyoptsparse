@@ -34,7 +34,6 @@
 */
 
 #include "hook.h"
-#include <unistd.h>
 
 void logger(const char *fmt, ...)
 {

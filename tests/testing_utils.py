@@ -453,10 +453,18 @@ class OptTest(unittest.TestCase):
 
     def tearDown(self):
         # remove history file
+        # we use try/except because on Win32 sometimes the files cannot be removed
+        # because the optimizer is still holding permissions
         if self.histFileName is not None and os.path.exists(self.histFileName):
-            os.remove(self.histFileName)
+            try:
+                os.remove(self.histFileName)
+            except OSError:
+                pass
         # remove output files
         for _, suffix in OUTPUT_FILENAMES[self.optName].items():
             fname = f"{self.id()}{suffix}"
             if os.path.exists(fname):
-                os.remove(fname)
+                try:
+                    os.remove(fname)
+                except OSError:
+                    pass

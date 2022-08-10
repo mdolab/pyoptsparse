@@ -6,9 +6,21 @@ Advanced Features
 .. Parallel Execution
 .. ------------------
 
+MPI handling
+------------
+pyOptSparse can optionally run in parallel if a suitable ``mpi4py`` installation exists.
+This will be automatically detected and imported at run-time.
+
+If you only want to run in parallel, you can force pyOptSparse to do so by setting the environment variable
+``PYOPTSPARSE_REQUIRE_MPI`` to any one of these values: ``['always', '1', 'true', 'yes']``
+If a suitable ``mpi4py`` is not available, an exception will be raised and the run terminated.
+
+If you explicitly do not wish to use ``mpi4py``, set the environment variable ``PYOPTSPARSE_REQUIRE_MPI`` to anything other than those values.
+This can come in handy, for example, if your ``MPI`` installation is not functioning properly, but you still need to run serial code.
+
 Storing Optimization History
 ----------------------------
-pyOptSparse includes an :ref:`history` class that stores all the relevant optimization information an SQL database.
+pyOptSparse includes a :ref:`history` class that stores all the relevant optimization information an SQL database.
 This database is updated at every optimization iteration, and can be accessed via both the API described in the linked section, and via :ref:`optview`.
 By default, the history file is NOT written.
 To turn the history recording on, use the ``storeHistory`` attribute when invoking the optimization run, e.g.:

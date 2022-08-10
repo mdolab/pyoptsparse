@@ -1,64 +1,101 @@
-import sys
+import os
 import re
-import setuptools  # magic import to allow us to use entry_point
+import shutil
+import setuptools
+import subprocess
 
-# Check if we have numpy:
-try:
-    from numpy.distutils.misc_util import Configuration
-    import numpy.distutils.core
-    from numpy.distutils.core import setup
-except ImportError:
-    raise ImportError("pyOptSparse requires numpy")
 
-# HACK to make bdist_wheel command usable when using numpy.distutils.core.setup
-try:
-    from wheel import bdist_wheel
-except ImportError:
-    if "bdist_wheel" in sys.argv:
-        print(
-            "\nThe bdist_wheel option requires the 'wheel' package to be installed.\n"
-            + "Install it using 'pip install wheel'."
+def run_meson_build():
+    # check if ipopt dir is specified
+    ipopt_dir_opt = ""
+    if "IPOPT_DIR" in os.environ:
+        ipopt_dir = os.environ["IPOPT_DIR"]
+        ipopt_dir_opt = f"-Dipopt_dir={ipopt_dir}"
+    prefix = os.path.join(os.getcwd(), staging_dir)
+    purelibdir = "."
+
+    # check if meson extra args are specified
+    meson_args = ""
+    if "MESON_ARGS" in os.environ:
+        meson_args = os.environ["MESON_ARGS"]
+    # check to make sure ipopt dir isnt specified twice
+    if "-Dipopt_dir" in meson_args and ipopt_dir_opt != "":
+        raise RuntimeError("IPOPT_DIR environment variable is set and '-Dipopt_dir' in MESON_ARGS")
+
+    # configure
+    meson_path = shutil.which("meson")
+    meson_call = (
+        f"{meson_path} setup {staging_dir} --prefix={prefix} "
+        + f"-Dpython.purelibdir={purelibdir} -Dpython.platlibdir={purelibdir} {ipopt_dir_opt} {meson_args}"
+    )
+    sysargs = meson_call.split(" ")
+    sysargs = [arg for arg in sysargs if arg != ""]
+    p1 = subprocess.run(sysargs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    setup_log = os.path.join(staging_dir, "setup.log")
+    with open(setup_log, "wb") as f:
+        f.write(p1.stdout)
+    if p1.returncode != 0:
+        raise OSError(sysargs, f"The meson setup command failed! Check the log at {setup_log} for more information.")
+
+    # build
+    meson_call = f"{meson_path} compile -C {staging_dir}"
+    sysargs = meson_call.split(" ")
+    p2 = subprocess.run(sysargs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    compile_log = os.path.join(staging_dir, "compile.log")
+    with open(compile_log, "wb") as f:
+        f.write(p2.stdout)
+    if p2.returncode != 0:
+        raise OSError(
+            sysargs, f"The meson compile command failed! Check the log at {compile_log} for more information."
         )
-        sys.exit(-1)
-else:
-    numpy.distutils.core.numpy_cmdclass["bdist_wheel"] = bdist_wheel.bdist_wheel
 
 
-if len(sys.argv) == 1:
-    print(
-        "\nTo install, run: python setup.py install --user\n\n"
-        + "To build, run: python setup.py build_ext --inplace\n\n"
-        + "For help on C-compiler options run: python setup.py build --help-compiler\n\n"
-        + "For help on Fortran-compiler options run: python setup.py build --help-fcompiler\n\n"
-        + "To specify a Fortran compiler to use run: python setup.py install --user --fcompiler=<fcompiler name>\n\n"
-        + "For further help run: python setup.py build --help"
-    )
-    sys.exit(-1)
-
-
-def configuration(parent_package="", top_path=None):
-    config = Configuration(None, parent_package, top_path)
-    config.set_options(
-        ignore_setup_xxx_py=True, assume_default_configuration=True, delegate_options_to_subpackages=True, quiet=True
-    )
-    config.add_subpackage("pyoptsparse")
-    return config
+def copy_shared_libraries():
+    build_path = os.path.join(staging_dir, "pyoptsparse")
+    for root, _dirs, files in os.walk(build_path):
+        for file in files:
+            # move pyoptsparse to just under staging_dir
+            if file.endswith((".so", ".lib", ".pyd", ".pdb", ".dylib")):
+                if ".so.p" in root or ".pyd.p" in root:  # excludes intermediate object files
+                    continue
+                file_path = os.path.join(root, file)
+                new_path = str(file_path)
+                match = re.search(staging_dir, new_path)
+                new_path = new_path[match.span()[1] + 1 :]
+                print(f"Copying build file {file_path} -> {new_path}")
+                shutil.copy(file_path, new_path)
 
 
 if __name__ == "__main__":
+    # This is where the meson build system will install to, it is then
+    # used as the sources for setuptools
+    staging_dir = "meson_build"
+
+    # this keeps the meson build system from running more than once
+    if "dist" not in str(os.path.abspath(__file__)) and not os.path.isdir(staging_dir):
+        cwd = os.getcwd()
+        run_meson_build()
+        os.chdir(cwd)
+        copy_shared_libraries()
+
+    docs_require = ""
+    req_txt = os.path.join("doc", "requirements.txt")
+    if os.path.isfile(req_txt):
+        with open(req_txt) as f:
+            docs_require = f.read().splitlines()
+
+    init_file = os.path.join("pyoptsparse", "__init__.py")
     __version__ = re.findall(
         r"""__version__ = ["']+([0-9\.]*)["']+""",
-        open("pyoptsparse/__init__.py").read(),
+        open(init_file).read(),
     )[0]
 
-    with open("doc/requirements.txt") as f:
-        docs_require = f.read().splitlines()
-
-    setup(
+    setuptools.setup(
         name="pyoptsparse",
         version=__version__,
         description="Python package for formulating and solving nonlinear constrained optimization problems",
         long_description="pyOptSparse is a Python package for formulating and solving nonlinear constrained optimization problems",
+        platforms=["Linux"],
         keywords="optimization",
         install_requires=[
             "sqlitedict>=1.6",
@@ -73,10 +110,8 @@ if __name__ == "__main__":
                 "matplotlib",
             ],
             "docs": docs_require,
-            "testing": ["testflo>=1.4.5"],
+            "testing": ["testflo>=1.4.5", "parameterized"],
         },
-        package_data={"pyoptsparse": ["postprocessing/assets/*"]},
-        platforms=["Linux"],
         classifiers=[
             "Development Status :: 5 - Production/Stable",
             "Environment :: Console",
@@ -90,7 +125,12 @@ if __name__ == "__main__":
             "Topic :: Software Development",
             "Topic :: Education",
         ],
-        configuration=configuration,
+        package_dir={"": "."},
+        packages=setuptools.find_packages(where="."),
+        package_data={
+            "": ["*.so", "*.lib", "*.pyd", "*.pdb", "*.dylib", "assets/*", "LICENSE"],
+        },
+        python_requires=">=3.7",
         entry_points={
             "gui_scripts": [
                 "optview = pyoptsparse.postprocessing.OptView:main",
