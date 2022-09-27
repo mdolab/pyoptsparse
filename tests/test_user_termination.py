@@ -13,7 +13,7 @@ import numpy as np
 from parameterized import parameterized
 
 # First party modules
-from pyoptsparse import Optimization, OPT
+from pyoptsparse import OPT, Optimization
 from pyoptsparse.pyOpt_error import Error
 
 
@@ -73,9 +73,8 @@ def setup_optProb(termcomp):
 
     con_jac = {"x": np.array(-1.0), "y": np.array(1.0)}
 
-    optProb.addConGroup(
-        "con", 1, lower=-15.0, upper=-15.0, wrt=["x", "y"], linear=True, jac=con_jac
-    )
+    optProb.addConGroup("con", 1, lower=-15.0, upper=-15.0, wrt=["x", "y"],
+                        linear=True, jac=con_jac)
 
     return optProb
 

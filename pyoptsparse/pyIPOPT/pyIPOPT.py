@@ -183,9 +183,7 @@ class IPOPT(Optimizer):
 
         if self.optProb.nCon > 0:
             # We need to reorder this full Jacobian...so get ordering:
-            indices, blc, buc, fact = self.optProb.getOrdering(
-                ["ne", "ni", "le", "li"], oneSided=False
-            )
+            indices, blc, buc, fact = self.optProb.getOrdering(["ne", "ni", "le", "li"], oneSided=False)
             self.optProb.jacIndices = indices
             self.optProb.fact = fact
             self.optProb.offset = np.zeros(len(indices))
@@ -274,9 +272,7 @@ class IPOPT(Optimizer):
             optTime = time.time() - timeA
 
             if self.storeHistory:
-                self.metadata["endTime"] = datetime.datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )
+                self.metadata["endTime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 self.metadata["optTime"] = optTime
                 self.hist.writeData("metadata", self.metadata)
                 self.hist.close()
