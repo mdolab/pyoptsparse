@@ -1,7 +1,9 @@
 """
-Tests that pyoptsparse allows a objective or gradient function to return a "2" as its fail status.
-This status is passed to pySNOPT, which returns a -2 fail status, indicating that termination has
-been requested by the user.
+Tests that pyoptsparse allows an objective or gradient function to return a "2"
+as its fail status.  This status is returned to the Optimizer indicating that
+termination has been requested by the user.
+
+The proper response of the pyIPOPT and pySNOPT optimizers are tested.
 """
 # Standard Python modules
 import unittest
@@ -61,9 +63,21 @@ class TerminateComp:
         return funcsSens, fail
 
 
-con_jac = {}
-con_jac["x"] = np.array(-1.0)
-con_jac["y"] = np.array(1.0)
+def setup_optProb(termcomp):
+    optProb = Optimization("Paraboloid", termcomp.objfunc)
+
+    optProb.addVarGroup("x", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
+    optProb.addVarGroup("y", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
+
+    optProb.addObj("obj")
+
+    con_jac = {"x": np.array(-1.0), "y": np.array(1.0)}
+
+    optProb.addConGroup(
+        "con", 1, lower=-15.0, upper=-15.0, wrt=["x", "y"], linear=True, jac=con_jac
+    )
+
+    return optProb
 
 
 class TestUserTerminationStatus(unittest.TestCase):
@@ -86,14 +100,7 @@ class TestUserTerminationStatus(unittest.TestCase):
     @parameterized.expand(["IPOPT", "SNOPT"])
     def test_obj(self, optName):
         termcomp = TerminateComp(max_obj=2)
-        optProb = Optimization("Paraboloid", termcomp.objfunc)
-
-        optProb.addVarGroup("x", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
-        optProb.addVarGroup("y", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
-
-        optProb.addObj("obj")
-
-        optProb.addConGroup("con", 1, lower=-15.0, upper=-15.0, wrt=["x", "y"], linear=True, jac=con_jac)
+        optProb = setup_optProb(termcomp)
 
         optOptions = self.optOptions[optName]
         for key, val in optOptions.items():
@@ -116,14 +123,7 @@ class TestUserTerminationStatus(unittest.TestCase):
     @parameterized.expand(["IPOPT", "SNOPT"])
     def test_sens(self, optName):
         termcomp = TerminateComp(max_sens=3)
-        optProb = Optimization("Paraboloid", termcomp.objfunc)
-
-        optProb.addVarGroup("x", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
-        optProb.addVarGroup("y", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
-
-        optProb.addObj("obj")
-
-        optProb.addConGroup("con", 1, lower=-15.0, upper=-15.0, wrt=["x", "y"], linear=True, jac=con_jac)
+        optProb = setup_optProb(termcomp)
 
         optOptions = self.optOptions[optName]
         for key, val in optOptions.items():

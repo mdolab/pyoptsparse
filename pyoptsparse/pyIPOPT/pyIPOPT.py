@@ -239,8 +239,8 @@ class IPOPT(Optimizer):
                         self.userRequestedTermination = True
                     return gcon.copy()
 
-            # Define intermediate callback
-            # If this method returns false, Ipopt will terminate with the User_Requested_Stop status.
+            # Define intermediate callback. If this method returns false,
+            # Ipopt will terminate with the User_Requested_Stop status.
             def eval_intermediate_callback(*args, **kwargs):
                 if self.userRequestedTermination is True:
                     return False
