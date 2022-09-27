@@ -90,7 +90,14 @@ class IPOPT(Optimizer):
         return defOpts
 
     def __call__(
-        self, optProb, sens=None, sensStep=None, sensMode=None, storeHistory=None, hotStart=None, storeSens=True
+        self,
+        optProb,
+        sens=None,
+        sensStep=None,
+        sensMode=None,
+        storeHistory=None,
+        hotStart=None,
+        storeSens=True,
     ):
         """
         This is the main routine used to solve the optimization
@@ -176,7 +183,9 @@ class IPOPT(Optimizer):
 
         if self.optProb.nCon > 0:
             # We need to reorder this full Jacobian...so get ordering:
-            indices, blc, buc, fact = self.optProb.getOrdering(["ne", "ni", "le", "li"], oneSided=False)
+            indices, blc, buc, fact = self.optProb.getOrdering(
+                ["ne", "ni", "le", "li"], oneSided=False
+            )
             self.optProb.jacIndices = indices
             self.optProb.fact = fact
             self.optProb.offset = np.zeros(len(indices))
@@ -197,7 +206,10 @@ class IPOPT(Optimizer):
 
             # Now what we need for IPOPT is precisely the .row and
             # .col attributes of the fullJacobian array
-            matStruct = (jac["coo"][IROW].copy().astype("int_"), jac["coo"][ICOL].copy().astype("int_"))
+            matStruct = (
+                jac["coo"][IROW].copy().astype("int_"),
+                jac["coo"][ICOL].copy().astype("int_"),
+            )
 
             # Define the 4 call back functions that ipopt needs:
             def eval_f(x, user_data=None):
@@ -240,7 +252,18 @@ class IPOPT(Optimizer):
             nnzh = 0
 
             nlp = pyipoptcore.create(
-                len(xs), blx, bux, ncon, blc, buc, nnzj, nnzh, eval_f, eval_grad_f, eval_g, eval_jac_g
+                len(xs),
+                blx,
+                bux,
+                ncon,
+                blc,
+                buc,
+                nnzj,
+                nnzh,
+                eval_f,
+                eval_grad_f,
+                eval_g,
+                eval_jac_g,
             )
 
             nlp.set_intermediate_callback(eval_intermediate_callback)
@@ -251,7 +274,9 @@ class IPOPT(Optimizer):
             optTime = time.time() - timeA
 
             if self.storeHistory:
-                self.metadata["endTime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.metadata["endTime"] = datetime.datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
                 self.metadata["optTime"] = optTime
                 self.hist.writeData("metadata", self.metadata)
                 self.hist.close()

@@ -8,9 +8,10 @@ import unittest
 
 # External modules
 import numpy as np
+from parameterized import parameterized
 
 # First party modules
-from pyoptsparse import SNOPT, Optimization, IPOPT
+from pyoptsparse import Optimization, OPT
 from pyoptsparse.pyOpt_error import Error
 
 
@@ -67,7 +68,23 @@ con_jac["y"] = np.array(1.0)
 
 class TestUserTerminationStatus(unittest.TestCase):
 
-    def test_obj_SNOPT(self):
+    optOptions = {
+        "IPOPT": {
+            "output_file": "{}.out",
+        },
+        "SNOPT": {
+            "Print file": "{}.out",
+            "Summary file": "{}_summary.out",
+        },
+    }
+
+    optExitCode = {
+        "IPOPT": 5,
+        "SNOPT": 71,
+    }
+
+    @parameterized.expand(["IPOPT", "SNOPT"])
+    def test_obj(self, optName):
         termcomp = TerminateComp(max_obj=2)
         optProb = Optimization("Paraboloid", termcomp.objfunc)
 
@@ -78,16 +95,15 @@ class TestUserTerminationStatus(unittest.TestCase):
 
         optProb.addConGroup("con", 1, lower=-15.0, upper=-15.0, wrt=["x", "y"], linear=True, jac=con_jac)
 
-        test_name = "SNOPT_user_termination_obj"
-        optOptions = {
-            "Print file": f"{test_name}.out",
-            "Summary file": f"{test_name}_summary.out",
-        }
+        optOptions = self.optOptions[optName]
+        for key, val in optOptions.items():
+            optOptions[key] = val.format(f"{optName}_user_terminate_obj")
+
         try:
-            opt = SNOPT(options=optOptions)
+            opt = OPT(optName, options=optOptions)
         except Error as e:
             if "There was an error importing" in e.message:
-                raise unittest.SkipTest("Optimizer not available: SNOPT")
+                raise unittest.SkipTest(f"Optimizer not available: {optName}")
             raise e
 
         sol = opt(optProb, sens=termcomp.sens)
@@ -95,9 +111,10 @@ class TestUserTerminationStatus(unittest.TestCase):
         self.assertEqual(termcomp.obj_count, 3)
 
         # Exit code for user requested termination.
-        self.assertEqual(sol.optInform["value"], 71)
+        self.assertEqual(sol.optInform["value"], self.optExitCode[optName])
 
-    def test_sens_SNOPT(self):
+    @parameterized.expand(["IPOPT", "SNOPT"])
+    def test_sens(self, optName):
         termcomp = TerminateComp(max_sens=3)
         optProb = Optimization("Paraboloid", termcomp.objfunc)
 
@@ -108,13 +125,12 @@ class TestUserTerminationStatus(unittest.TestCase):
 
         optProb.addConGroup("con", 1, lower=-15.0, upper=-15.0, wrt=["x", "y"], linear=True, jac=con_jac)
 
-        test_name = "SNOPT_user_termination_sens"
-        optOptions = {
-            "Print file": f"{test_name}.out",
-            "Summary file": f"{test_name}_summary.out",
-        }
+        optOptions = self.optOptions[optName]
+        for key, val in optOptions.items():
+            optOptions[key] = val.format(f"{optName}_user_terminate_sens")
+
         try:
-            opt = SNOPT(options=optOptions)
+            opt = OPT(optName, options=optOptions)
         except Error as e:
             if "There was an error importing" in e.message:
                 raise unittest.SkipTest("Optimizer not available: SNOPT")
@@ -125,65 +141,7 @@ class TestUserTerminationStatus(unittest.TestCase):
         self.assertEqual(termcomp.sens_count, 4)
 
         # Exit code for user requested termination.
-        self.assertEqual(sol.optInform["value"], 71)
-
-    def test_obj_IPOPT(self):
-        termcomp = TerminateComp(max_obj=2)
-        optProb = Optimization("Paraboloid", termcomp.objfunc)
-
-        optProb.addVarGroup("x", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
-        optProb.addVarGroup("y", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
-
-        optProb.addObj("obj")
-
-        optProb.addConGroup("con", 1, lower=-15.0, upper=-15.0, wrt=["x", "y"], linear=True, jac=con_jac)
-
-        test_name = "IPOPT_user_termination_obj"
-        optOptions = {
-            "output_file": f"{test_name}.out",
-        }
-        try:
-            opt = IPOPT(options=optOptions)
-        except Error as e:
-            if "There was an error importing" in e.message:
-                raise unittest.SkipTest("Optimizer not available: IPOPT")
-            raise e
-
-        sol = opt(optProb, sens=termcomp.sens)
-
-        self.assertEqual(termcomp.obj_count, 3)
-
-        # Exit code for user requested termination.
-        self.assertEqual(sol.optInform["value"], 5)
-
-    def test_sens_IPOPT(self):
-        termcomp = TerminateComp(max_sens=3)
-        optProb = Optimization("Paraboloid", termcomp.objfunc)
-
-        optProb.addVarGroup("x", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
-        optProb.addVarGroup("y", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
-
-        optProb.addObj("obj")
-
-        optProb.addConGroup("con", 1, lower=-15.0, upper=-15.0, wrt=["x", "y"], linear=True, jac=con_jac)
-
-        test_name = "IPOPT_user_termination_sens"
-        optOptions = {
-            "output_file": f"{test_name}.out",
-        }
-        try:
-            opt = IPOPT(options=optOptions)
-        except Error as e:
-            if "There was an error importing" in e.message:
-                raise unittest.SkipTest("Optimizer not available: IPOPT")
-            raise e
-
-        sol = opt(optProb, sens=termcomp.sens)
-
-        self.assertEqual(termcomp.sens_count, 4)
-
-        # Exit code for user requested termination.
-        self.assertEqual(sol.optInform["value"], 5)
+        self.assertEqual(sol.optInform["value"], self.optExitCode[optName])
 
 
 if __name__ == "__main__":
