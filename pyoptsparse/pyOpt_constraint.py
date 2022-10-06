@@ -29,7 +29,7 @@ class Constraint:
 
         See Also
         --------
-        Optimization.addConGroup : for the full documentation
+        pyoptsparse.pyOpt_optimization.Optimization.addConGroup : for the full documentation
         """
         self.name = name
         self.ncon = nCon

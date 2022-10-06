@@ -663,6 +663,9 @@ class SNOPT(Optimizer):
                 self.hist.write(callCounter, iterDict)
                 # this adds funcs etc. to the iterDict by fetching it from the history file
                 iterDict = self.hist.read(callCounter)
+                # update funcs with any additional entries that may be added
+                if "funcs" in self.cache.keys():
+                    iterDict["funcs"].update(self.cache["funcs"])
 
         # perform callback if requested
         snstop_handle = self.getOption("snSTOP function handle")
