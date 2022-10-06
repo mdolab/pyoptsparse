@@ -14,12 +14,13 @@ from PyQt5.QtWidgets import (
 )
 
 # First party modules
-from pyoptsparse.postprocessing.utils.base_classes import Controller
+from pyoptsparse.postprocessing.baseclasses.controller import Controller
+from pyoptsparse.postprocessing.baseclasses.view import View
 from pyoptsparse.postprocessing.utils.data_structures import File, Variable
 from pyoptsparse.postprocessing.utils.switch import Switch
 
 
-class DarkModeListWidget(QWidget):
+class DarkModeListWidget(QWidget, View):
     def __init__(self, parent: QWidget = None, controller: Controller = None) -> None:
         super(DarkModeListWidget, self).__init__(parent)
 
@@ -41,7 +42,7 @@ class DarkModeListWidget(QWidget):
         self.controller.toggle_dark_mode()
 
 
-class PlotList(QListWidget):
+class PlotList(QListWidget, View):
     def __init__(self, parent: QWidget = None, controller: Controller = None) -> None:
         super(PlotList, self).__init__(parent)
 
@@ -49,6 +50,9 @@ class PlotList(QListWidget):
 
         self.plot_up_action = QShortcut(QKeySequence("Ctrl+Up"), self)
         self.plot_down_action = QShortcut(QKeySequence("Ctrl+Down"), self)
+
+        self.controller.add_shortcut(self.plot_up_action, "Moves a subplot up.")
+        self.controller.add_shortcut(self.plot_down_action, "Moves a subplot down.")
 
         self.plot_up_action.activated.connect(self.movePlotUp)
         self.plot_down_action.activated.connect(self.movePlotDown)
@@ -64,7 +68,7 @@ class PlotList(QListWidget):
         self.controller.move_plot_down()
 
 
-class PlotListWidget(QWidget):
+class PlotListWidget(QWidget, View):
     def __init__(self, parent: QWidget = None, controller: Controller = None, idx: int = 0):
         """
         Custom list widget that adds functionality for configuring and

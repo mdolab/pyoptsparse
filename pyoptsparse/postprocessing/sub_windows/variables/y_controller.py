@@ -3,7 +3,8 @@ from PyQt5 import QtCore
 from PyQt5.QtWidgets import QCheckBox, QTableWidget, QTableWidgetItem
 
 # First party modules
-from pyoptsparse.postprocessing.utils.base_classes import Controller, Model
+from pyoptsparse.postprocessing.baseclasses.controller import Controller
+from pyoptsparse.postprocessing.baseclasses.model import Model
 from pyoptsparse.postprocessing.utils.button import Button
 from pyoptsparse.postprocessing.utils.colors import BLUE, GREEN
 from pyoptsparse.postprocessing.utils.data_structures import File, Variable

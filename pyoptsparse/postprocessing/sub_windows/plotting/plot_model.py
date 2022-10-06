@@ -3,7 +3,7 @@ import matplotlib.patheffects as patheffects
 import numpy as np
 
 # First party modules
-from pyoptsparse.postprocessing.utils.base_classes import Model
+from pyoptsparse.postprocessing.baseclasses.model import Model
 from pyoptsparse.postprocessing.utils.data_structures import Variable
 
 

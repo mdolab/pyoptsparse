@@ -1,8 +1,11 @@
 # Standard Python modules
 from typing import Dict
 
+# External modules
+from PyQt5.QtWidgets import QShortcut
+
 # First party modules
-from pyoptsparse.postprocessing.utils.base_classes import Model
+from pyoptsparse.postprocessing.baseclasses.model import Model
 
 
 class SettingsModel(Model):
@@ -12,12 +15,7 @@ class SettingsModel(Model):
 
     @property
     def shortcuts(self) -> Dict:
-        return self._shortcuts()
+        return self._shortcuts
 
-    def edit_shortcut(self, key, val):
-        self.verify_key_command(val)
-        if key in self._shortcuts:
-            self._shortcuts[key] = val
-
-    def verify_key_command(self, command):
-        pass
+    def add_shortcut(self, shortcut: QShortcut, desc=str):
+        self._shortcuts[shortcut.key().toString()] = desc

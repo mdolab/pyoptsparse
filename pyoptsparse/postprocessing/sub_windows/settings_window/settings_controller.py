@@ -1,6 +1,13 @@
+# Standard Python modules
+import os
+
+# External modules
+import pkg_resources
+
 # First party modules
-from pyoptsparse.postprocessing.sub_windows.settings_window.settings_model import SettingsModel
-from pyoptsparse.postprocessing.utils.base_classes import Controller
+from pyoptsparse.postprocessing.baseclasses.controller import Controller
+
+ASSET_PATH = pkg_resources.resource_filename("pyoptsparse", os.path.join("postprocessing", "assets"))
 
 
 class SettingsController(Controller):
@@ -17,7 +24,6 @@ class SettingsController(Controller):
             by default []
         """
         super(SettingsController, self).__init__()
-        self._model = SettingsModel()
         self._appearance_view = None
         self._keyshort_view = None
         self._rc_param_view = None
@@ -46,9 +52,16 @@ class SettingsController(Controller):
     def rc_param_view(self, view):
         self._rc_param_view = view
 
-    def populate(self):
-        for task, command in self._model._shortcuts():
-            pass
+    def populate_rc_params(self):
+        with open(os.path.join(ASSET_PATH, "nicePlotsStyle"), "r") as file:
+            for line in file:
+                if line != "\n":
+                    self._rc_param_view.param_list.addItem(line)
+
+    def populate_shortcuts(self):
+        print(self._settings_model.shortcuts)
+        for key, val in self._settings_model.shortcuts.items():
+            self._keyshort_view.shortcut_list.addItem(f"{key}: {val}")
 
     def toggle_dark_mode(self):
         pass

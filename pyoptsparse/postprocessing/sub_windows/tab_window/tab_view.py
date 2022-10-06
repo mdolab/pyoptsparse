@@ -4,14 +4,15 @@ from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QAbstractItemView, QHBoxLayout, QLabel, QShortcut, QTreeWidget, QVBoxLayout, QWidget
 
 # First party modules
+from pyoptsparse.postprocessing.baseclasses.controller import Controller
+from pyoptsparse.postprocessing.baseclasses.view import View
 from pyoptsparse.postprocessing.sub_windows.plotting.plot_view import PlotView
-from pyoptsparse.postprocessing.utils.base_classes import Controller
 from pyoptsparse.postprocessing.utils.button import Button
 from pyoptsparse.postprocessing.utils.switch import Switch
 from pyoptsparse.postprocessing.utils.widgets import PlotList
 
 
-class TabView(QWidget):
+class TabView(QWidget, View):
     def __init__(self, parent: QWidget = None, controller: Controller = None):
         """
         The view for new tabs.
@@ -54,6 +55,13 @@ class TabView(QWidget):
         self.tight_layout_action = QShortcut(QKeySequence("Ctrl+t"), self)
         self.save_figure_action = QShortcut(QKeySequence("Ctrl+s"), self)
         self.figure_home_action = QShortcut(QKeySequence("Ctrl+Shift+h"), self)
+
+        self._controller.add_shortcut(self.add_file_action, "Opens the add file menu.")
+        self._controller.add_shortcut(self.add_plot_action, "Add a subplot to the figure.")
+        self._controller.add_shortcut(self.figure_options_action, "Opens the figure options menu.")
+        self._controller.add_shortcut(self.tight_layout_action, "Applies the tight layout format to the figure.")
+        self._controller.add_shortcut(self.save_figure_action, "Opens the save figure menu.")
+        self._controller.add_shortcut(self.figure_home_action, "Resets the figure to the default home view.")
 
         self.add_file_action.activated.connect(self._controller.open_files)
         self.add_plot_action.activated.connect(self._controller.add_plot)

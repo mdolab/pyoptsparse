@@ -6,17 +6,17 @@ from typing import List
 
 # External modules
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon, QPalette
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QApplication, QMenuBar, QTabWidget, QVBoxLayout, QWidget, qApp
 
 # First party modules
+from pyoptsparse.postprocessing.baseclasses.view import View
 from pyoptsparse.postprocessing.opt_view_controller import OptViewController
 
-# --- Set high dpi scaling attribute for the application ---
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 
 
-class MainView(QWidget):
+class MainView(QWidget, View):
     def __init__(self, *args, file_names: List = [], **kwargs):
         """
         OptView - A GUI designed to assist viewing optimization problems
@@ -119,8 +119,6 @@ def main():
     # Setup the app and the UI
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
-    palette = QPalette()
-    app.setPalette(palette)
 
     MainView(file_names=args.files)
 

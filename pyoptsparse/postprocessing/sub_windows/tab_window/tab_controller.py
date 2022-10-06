@@ -13,7 +13,7 @@ from pyoptsparse.postprocessing.sub_windows.metadata_window.metadata_model impor
 from pyoptsparse.postprocessing.sub_windows.metadata_window.metadata_view import MetadataView
 from pyoptsparse.postprocessing.sub_windows.plotting.plot_model import PlotModel
 from pyoptsparse.postprocessing.sub_windows.tab_window.tab_model import TabModel
-from pyoptsparse.postprocessing.utils.base_classes import Controller
+from pyoptsparse.postprocessing.baseclasses.controller import Controller
 from pyoptsparse.postprocessing.utils.widgets import FileTreeWidgetItem, PlotListWidget
 
 

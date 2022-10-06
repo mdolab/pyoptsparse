@@ -2,11 +2,12 @@
 from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLineEdit, QTableWidget, QTreeWidget, QVBoxLayout, QWidget
 
 # First party modules
-from pyoptsparse.postprocessing.utils.base_classes import Controller
+from pyoptsparse.postprocessing.baseclasses.controller import Controller
 from pyoptsparse.postprocessing.utils.button import Button
+from pyoptsparse.postprocessing.baseclasses.view import View
 
 
-class MetadataView(QDialog):
+class MetadataView(QDialog, View):
     def __init__(self, parent: QWidget, controller: Controller, name: str):
         """
         The view for the displaying metadata options.

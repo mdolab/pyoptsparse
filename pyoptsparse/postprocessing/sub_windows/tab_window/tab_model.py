@@ -6,7 +6,7 @@ from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QDialog
 
 # First party modules
-from pyoptsparse.postprocessing.utils.base_classes import Model
+from pyoptsparse.postprocessing.baseclasses.model import Model
 from pyoptsparse.postprocessing.utils.data_structures import File
 
 

@@ -10,7 +10,7 @@ from pyoptsparse.postprocessing.sub_windows.settings_window.settings_controller 
 from pyoptsparse.postprocessing.sub_windows.settings_window.settings_view import SettingsView
 from pyoptsparse.postprocessing.sub_windows.tab_window.tab_controller import TabController
 from pyoptsparse.postprocessing.sub_windows.tab_window.tab_view import TabView
-from pyoptsparse.postprocessing.utils.base_classes import Controller
+from pyoptsparse.postprocessing.baseclasses.controller import Controller
 
 
 class OptViewController(Controller):
@@ -26,6 +26,7 @@ class OptViewController(Controller):
         """
         super(OptViewController, self).__init__()
         self._dark_mode = False
+        self._settings_controller = SettingsController()
 
     def addTab(self, interactive: bool = True, tab_name: str = "Home", file_names: List = []):
         """
@@ -57,4 +58,6 @@ class OptViewController(Controller):
             app.setStyleSheet("")
 
     def configure_settings(self):
-        SettingsView(parent=self.view, controller=SettingsController())
+        SettingsView(parent=self.view, controller=self._settings_controller)
+        self._settings_controller.populate_rc_params()
+        self._settings_controller.populate_shortcuts()

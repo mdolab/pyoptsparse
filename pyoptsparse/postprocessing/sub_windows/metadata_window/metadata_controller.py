@@ -3,7 +3,8 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QFileDialog
 
 # First party modules
-from pyoptsparse.postprocessing.utils.base_classes import Controller, Model
+from pyoptsparse.postprocessing.baseclasses.controller import Controller
+from pyoptsparse.postprocessing.baseclasses.model import Model
 from pyoptsparse.postprocessing.utils.widgets import FileTreeWidgetItem, OptTableWidgetItem, OptTreeWidgetItem
 
 

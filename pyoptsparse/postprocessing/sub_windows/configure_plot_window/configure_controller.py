@@ -6,7 +6,8 @@ from PyQt5.QtWidgets import QFileDialog
 from pyoptsparse.postprocessing.sub_windows.configure_plot_window.configure_model import ConfigureModel
 from pyoptsparse.postprocessing.sub_windows.variables.x_controller import XController
 from pyoptsparse.postprocessing.sub_windows.variables.y_controller import YController
-from pyoptsparse.postprocessing.utils.base_classes import Controller, Model
+from pyoptsparse.postprocessing.baseclasses.controller import Controller
+from pyoptsparse.postprocessing.baseclasses.model import Model
 from pyoptsparse.postprocessing.utils.colors import GREEN
 from pyoptsparse.postprocessing.utils.widgets import FileTreeWidgetItem, VarTableWidgetItem
 

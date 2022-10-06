@@ -14,6 +14,7 @@ import pkg_resources
 
 # First party modules
 from pyoptsparse.postprocessing.sub_windows.plotting.mpl_figureoptions import figure_edit
+from pyoptsparse.postprocessing.baseclasses.view import View
 
 # ======================================================================
 # Set matplotlib backend and plt style
@@ -54,7 +55,7 @@ class MplCanvas(FigureCanvasQTAgg):
         axes.axis("off")
 
 
-class PlotView(QWidget):
+class PlotView(QWidget, View):
     def __init__(self, parent: QWidget = None, width: int = 10, height: int = 5, dpi: int = 100):
         """
         Constructor

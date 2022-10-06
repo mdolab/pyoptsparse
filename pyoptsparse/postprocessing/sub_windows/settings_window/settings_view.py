@@ -1,21 +1,14 @@
 # External modules
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
-    QDialog,
-    QListWidget,
-    QListWidgetItem,
-    QTabWidget,
-    QVBoxLayout,
-    QWidget,
-    QDialogButtonBox,
-)
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QListWidget, QListWidgetItem, QTabWidget, QVBoxLayout, QWidget
 
 # First party modules
-from pyoptsparse.postprocessing.utils.base_classes import Controller
+from pyoptsparse.postprocessing.baseclasses.controller import Controller
+from pyoptsparse.postprocessing.baseclasses.view import View
 from pyoptsparse.postprocessing.utils.widgets import DarkModeListWidget
 
 
-class SettingsView(QDialog):
+class SettingsView(QDialog, View):
     def __init__(self, parent: QWidget = None, controller: Controller = None):
         super(SettingsView, self).__init__(parent)
         self._controller = controller
@@ -51,7 +44,7 @@ class SettingsView(QDialog):
         self.show()
 
 
-class AppearanceSettingsView(QWidget):
+class AppearanceSettingsView(QWidget, View):
     def __init__(self, parent: QDialog = None, controller: Controller = None):
         super(AppearanceSettingsView, self).__init__(parent)
         self._controller = controller
@@ -75,7 +68,7 @@ class AppearanceSettingsView(QWidget):
         self.setLayout(layout)
 
 
-class KeyboardShortuctsView(QWidget):
+class KeyboardShortuctsView(QWidget, View):
     def __init__(self, parent: QDialog = None, controller: Controller = None):
         super(KeyboardShortuctsView, self).__init__(parent)
         self._controller = controller
@@ -84,10 +77,14 @@ class KeyboardShortuctsView(QWidget):
         self._initUI()
 
     def _initUI(self):
-        pass
+        layout = QVBoxLayout()
+        self.shortcut_list = QListWidget(self)
+        layout.addWidget(self.shortcut_list)
+
+        self.setLayout(layout)
 
 
-class MplRcParametersView(QWidget):
+class MplRcParametersView(QWidget, View):
     def __init__(self, parent: QDialog = None, controller: Controller = None):
         super(MplRcParametersView, self).__init__(parent)
 
@@ -97,4 +94,8 @@ class MplRcParametersView(QWidget):
         self._initUI()
 
     def _initUI(self):
-        pass
+        layout = QVBoxLayout()
+        self.param_list = QListWidget(self)
+        layout.addWidget(self.param_list)
+
+        self.setLayout(layout)

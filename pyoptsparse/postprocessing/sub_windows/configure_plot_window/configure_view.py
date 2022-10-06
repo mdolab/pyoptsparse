@@ -3,14 +3,15 @@ from PyQt5 import QtCore
 from PyQt5.QtWidgets import QComboBox, QDialog, QHBoxLayout, QLineEdit, QTreeWidget, QVBoxLayout, QWidget
 
 # First party modules
+from pyoptsparse.postprocessing.baseclasses.controller import Controller
 from pyoptsparse.postprocessing.sub_windows.variables.x_view import XTableWidget
 from pyoptsparse.postprocessing.sub_windows.variables.y_view import YTableWidget
-from pyoptsparse.postprocessing.utils.base_classes import Controller
 from pyoptsparse.postprocessing.utils.button import Button
 from pyoptsparse.postprocessing.utils.combo_box import ExtendedComboBox
+from pyoptsparse.postprocessing.baseclasses.view import View
 
 
-class ConfigurePlotView(QDialog):
+class ConfigurePlotView(QDialog, View):
     def __init__(self, parent: QWidget, controller: Controller, name: str):
         """
         The view for the plot configuration window.

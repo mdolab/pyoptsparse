@@ -1,5 +1,5 @@
 # First party modules
-from pyoptsparse.postprocessing.utils.base_classes import Model
+from pyoptsparse.postprocessing.baseclasses.model import Model
 
 
 class MetadataModel(Model):

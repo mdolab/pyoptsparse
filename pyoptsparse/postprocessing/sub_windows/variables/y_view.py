@@ -1,8 +1,9 @@
 # External modules
 from PyQt5.QtWidgets import QDialog, QTableWidget
+from pyoptsparse.postprocessing.baseclasses.view import View
 
 
-class YTableWidget(QTableWidget):
+class YTableWidget(QTableWidget, View):
     def __init__(self, parent: QDialog = None):
         """
         Defines the y-variable table view.

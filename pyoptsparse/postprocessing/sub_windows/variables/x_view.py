@@ -2,10 +2,11 @@
 from PyQt5.QtWidgets import QDialog, QTableWidget
 
 # First party modules
-from pyoptsparse.postprocessing.utils.base_classes import Controller
+from pyoptsparse.postprocessing.baseclasses.controller import Controller
+from pyoptsparse.postprocessing.baseclasses.view import View
 
 
-class XTableWidget(QTableWidget):
+class XTableWidget(QTableWidget, View):
     def __init__(self, parent: QDialog = None):
         """
         Defines a x-variable table view.
