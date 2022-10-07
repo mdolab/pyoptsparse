@@ -101,6 +101,39 @@ Then, in the project root directory, type:
 
 to run all tests.
 
+If there are failed tests, or tests were skipped involving optimizers that should be installed, then refer to the debugging section below.
+
+Debugging Installation Problems
+-------------------------------
+You may encounter issues such as
+
+.. code-block::
+
+  There was an error importing the compiled slsqp module
+
+The first thing to do is to do a clean install.
+This involves the following steps:
+
+#. Uninstall the package via ``pip``
+#. If you did a developer install (with ``-e``), check if there are ``.so`` files in the subdirectories, e.g. ``pyoptsparse/pySLSQP``.
+   If so, manually delete all ``.so`` files.
+#. Remove the ``meson_build`` directory if present.
+#. Run ``pip install`` again and test the installation.
+
+
+If the issue persists, there is probably a linking or runtime issue.
+This can be verified by manually importing the compiled library that's causing the issue, for example with:
+
+.. code-block::
+
+  from pyoptsparse.pySLSQP import slsqp
+
+
+If this throws a ``missing symbol`` error, then there is likely a linking issue at compile time.
+If, on the other hand, this throws a ``error while loading shared libraries``, then it's probably a runtime issue with a shared library.
+Check to make sure that the ``$LD_LIBRARY_PATH`` is set correctly, for example when running IPOPT.
+
+
 Update or Uninstall
 -------------------
 To update pyOptSparse, first delete the ``meson_build`` directory, then update the package using ``git``.
