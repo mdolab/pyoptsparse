@@ -3,13 +3,10 @@ import os
 import unittest
 
 # External modules
+from baseclasses.testing.assertions import assert_dict_allclose, assert_equal
 import numpy as np
 from numpy.testing import assert_allclose
 from pkg_resources import parse_version
-from baseclasses.testing.assertions import (
-    assert_equal,
-    assert_dict_allclose,
-)
 
 # First party modules
 from pyoptsparse import OPT, History
