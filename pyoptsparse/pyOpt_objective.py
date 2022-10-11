@@ -19,7 +19,7 @@ class Objective:
 
         See Also
         --------
-        Optimization.addObj : for the full documentation
+        pyoptsparse.pyOpt_optimization.Optimization.addObj : for the full documentation
         """
         self.name = name
         self.value = 0.0

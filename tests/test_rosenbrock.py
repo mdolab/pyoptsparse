@@ -1,11 +1,13 @@
 """Test solution of Rosenbrock problem"""
 
 # Standard Python modules
+import sys
 import unittest
 
 # External modules
 import numpy as np
 from parameterized import parameterized
+from sqlitedict import SqliteDict
 
 # First party modules
 from pyoptsparse import History, Optimization
@@ -118,8 +120,39 @@ class TestRosenbrock(OptTest):
         self.assertEqual(data["slack"].shape, (1, 1))
         self.assertEqual(data["lambda"].shape, (1, 1))
 
+    def test_snopt_hotstart_starting_from_grad(self):
+        self.optName = "SNOPT"
+        self.setup_optProb()
+        histName = f"{self.id()}.hst"
+
+        # Optimize without hot start and store the history
+        self.optimize(storeHistory=histName, hotStart=False)
+
+        # Load the history dictionary
+        hist = SqliteDict(histName)
+
+        # Delete the last two keys in the dictionary
+        lastKey = hist["last"]
+        for i in range(2):
+            del hist[str(int(lastKey) - i)]
+        hist.commit()
+
+        # Optimize starting from the modified history file
+        # The first call will be a gradient evaluation
+        self.optimize(storeHistory=False, hotStart=histName)
+
+        # Check that we had two function evaluations
+        # The first is from a recursive call and the second is the 'last' call we deleted
+        self.assertEqual(self.nf, 2)
+
+        # Also check that we had two gradient evaluations
+        # The first is from a call we deleted and the second is the call after 'last'
+        self.assertEqual(self.ng, 2)
+
     @parameterized.expand(["IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "ParOpt"])
     def test_optimization(self, optName):
+        if optName == "IPOPT" and sys.platform == "win32":
+            raise unittest.SkipTest()
         self.optName = optName
         self.setup_optProb()
         optOptions = self.optOptions.pop(optName, None)

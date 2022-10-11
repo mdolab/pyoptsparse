@@ -66,6 +66,9 @@ OUTPUT_FILENAMES = {
 # these are optimizers which are installed by default
 DEFAULT_OPTIMIZERS = {"SLSQP", "PSQP", "CONMIN", "ALPSO", "NSGA2"}
 
+# Define gradient-based optimizers
+GRAD_BASED_OPTIMIZERS = {"CONMIN", "IPOPT", "NLPQLP", "ParOpt", "PSQP", "SLSQP", "SNOPT"}
+
 
 class OptTest(unittest.TestCase):
     # these must be defined prior to using this class
@@ -122,9 +125,10 @@ class OptTest(unittest.TestCase):
         # now we assert against the closest solution
         # objective
         # sol.fStar was broken for earlier versions of SNOPT
-        if self.optName == "SNOPT" and parse_version(self.optVersion) >= parse_version("7.7.7"):
-            assert_allclose(sol.fStar, self.fStar[self.sol_index], atol=tol, rtol=tol)
-        sol_objectives = np.array([sol.objectives[key].value for key in sol.objectives])
+        if self.optName == "SNOPT" and parse_version(self.optVersion) < parse_version("7.7.7"):
+            sol_objectives = np.array([sol.objectives[key].value for key in sol.objectives])
+        else:
+            sol_objectives = sol.fStar
         assert_allclose(sol_objectives, self.fStar[self.sol_index], atol=tol, rtol=tol)
         # x
         assert_dict_allclose(sol.xStar, self.xStar[self.sol_index], atol=tol, rtol=tol, partial=partial_x)
@@ -185,7 +189,7 @@ class OptTest(unittest.TestCase):
             optOptions[optionName] = f"{self.id()}{suffix}"
         return optOptions
 
-    def optimize(self, sens=None, setDV=None, optOptions=None, storeHistory=False, hotStart=None):
+    def optimize(self, sens=None, setDV=None, optOptions=None, storeHistory=False, hotStart=False):
         """
         This is the workhorse routine, which will optimize self.optProb using self.optName as the optimizer.
 
@@ -217,7 +221,7 @@ class OptTest(unittest.TestCase):
         self.nf = 0
         self.ng = 0
         if sens is None:
-            if hasattr(self, "sens"):
+            if hasattr(self, "sens") and self.optName in GRAD_BASED_OPTIMIZERS:
                 sens = self.sens
 
         if optOptions is None:
@@ -326,7 +330,8 @@ class OptTest(unittest.TestCase):
         # the times should be monotonically increasing
         self.assertTrue(np.all(np.diff(times) > 0))
         # the final time should be close to the metadata time
-        assert_allclose(times[-1], metadata["optTime"], rtol=1e-3, atol=1e-1)
+        # we only specify a relatively loose atol because of variations in overhead cost between machines
+        assert_allclose(times[-1], metadata["optTime"], atol=1.0)
 
         # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
         if self.optName in ["SNOPT", "PSQP"]:
@@ -350,7 +355,8 @@ class OptTest(unittest.TestCase):
         sol = self.optimize(storeHistory=True, optOptions=optOptions, setDV=x0)
         self.assert_solution_allclose(sol, tol)
         self.assertGreater(self.nf, 0)
-        self.assertGreater(self.ng, 0)
+        if self.optName in GRAD_BASED_OPTIMIZERS:
+            self.assertGreater(self.ng, 0)
         self.check_hist_file(tol)
 
         # re-optimize with hotstart
@@ -369,7 +375,8 @@ class OptTest(unittest.TestCase):
         # this will perform a cold start
         self.optimize(storeHistory=True, hotStart="notexisting.hst", optOptions=optOptions)
         self.assertGreater(self.nf, 0)
-        self.assertGreater(self.ng, 0)
+        if self.optName in GRAD_BASED_OPTIMIZERS:
+            self.assertGreater(self.ng, 0)
         self.check_hist_file(tol)
         # final test with hotstart, this time with a different storeHistory
         sol = self.optimize(
@@ -384,10 +391,18 @@ class OptTest(unittest.TestCase):
 
     def tearDown(self):
         # remove history file
+        # we use try/except because on Win32 sometimes the files cannot be removed
+        # because the optimizer is still holding permissions
         if self.histFileName is not None and os.path.exists(self.histFileName):
-            os.remove(self.histFileName)
+            try:
+                os.remove(self.histFileName)
+            except OSError:
+                pass
         # remove output files
         for _, suffix in OUTPUT_FILENAMES[self.optName].items():
             fname = f"{self.id()}{suffix}"
             if os.path.exists(fname):
-                os.remove(fname)
+                try:
+                    os.remove(fname)
+                except OSError:
+                    pass

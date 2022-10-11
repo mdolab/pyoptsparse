@@ -3,6 +3,7 @@ pyALPSO - A pyOptSparse interface to ALPSO
 work with sparse optimization problems.
 """
 # Standard Python modules
+import datetime
 import time
 
 # External modules
@@ -81,7 +82,7 @@ class ALPSO(Optimizer):
         }
         return defOpts
 
-    def __call__(self, optProb, storeHistory=None, **kwargs):
+    def __call__(self, optProb, storeHistory=None, hotStart=None, **kwargs):
         """
         This is the main routine used to solve the optimization
         problem.
@@ -96,6 +97,16 @@ class ALPSO(Optimizer):
             File name of the history file into which the history of
             this optimization will be stored
 
+        hotStart : str
+            File name of the history file to "replay" for the
+            optimization.  The optimization problem used to generate
+            the history file specified in 'hotStart' must be
+            **IDENTICAL** to the currently supplied 'optProb'. By
+            identical we mean, **EVERY SINGLE PARAMETER MUST BE
+            IDENTICAL**. As soon as he requested evaluation point
+            from ALPSO does not match the history and function
+            evaluations revert back to normal evaluations.
+
         Notes
         -----
         The kwargs are there such that the sens= argument can be
@@ -105,6 +116,7 @@ class ALPSO(Optimizer):
         # ======================================================================
         # ALPSO - Objective/Constraint Values Function
         # ======================================================================
+
         def objconfunc(x):
             fobj, fcon, fail = self._masterFunc(x, ["fobj", "fcon"])
             return fobj, fcon
@@ -114,7 +126,7 @@ class ALPSO(Optimizer):
         self.optProb = optProb
         self.optProb.finalize()
         # Set history/hotstart/coldstart
-        self._setHistory(storeHistory, None)
+        self._setHistory(storeHistory, hotStart)
         self._setInitialCacheValues()
 
         if len(optProb.constraints) == 0:
@@ -171,6 +183,12 @@ class ALPSO(Optimizer):
                 opt('Scaling'), opt('HoodSelf'), objconfunc)
             # fmt: on
             optTime = time.time() - t0
+
+            if self.storeHistory:
+                self.metadata["endTime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.metadata["optTime"] = optTime
+                self.hist.writeData("metadata", self.metadata)
+                self.hist.close()
 
             # Broadcast a -1 to indcate NSGA2 has finished
             self.optProb.comm.bcast(-1, root=0)
