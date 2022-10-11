@@ -11,13 +11,18 @@
 #  at (-0.79212, -1.26243), with final objective = 360.4.
 ##
 
-import numpy as np
+# Standard Python modules
 import argparse
-from pyoptsparse import Optimization, OPT
+
+# External modules
+import numpy as np
+
+# First party modules
+from pyoptsparse import OPT, Optimization
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--opt", help="optimizer", type=str, default="SLSQP")
-parser.add_argument("--storeHistory", help="option to store history", type=int, default=0)
+parser.add_argument("--storeHistory", help="option to store history", action="store_true")
 args = parser.parse_args()
 optOptions = {}
 
@@ -37,15 +42,22 @@ def objfunc(xdict):
 
 def sens(xdict, funcs):
     x = xdict["xvars"]
-    funcsSens = {}
-    funcsSens["obj", "xvars"] = [
-        2 * 100 * (x[1] - x[0] ** 2) * (-2 * x[0]) - 2 * (1 - x[0]),
-        2 * 100 * (x[1] - x[0] ** 2),
-    ]
-    funcsSens["con", "xvars"] = [[x[1], x[0]], [1, 2 * x[1]]]
+    funcsSens = {
+        "obj": {
+            "xvars": [
+                2 * 100 * (x[1] - x[0] ** 2) * (-2 * x[0]) - 2 * (1 - x[0]),
+                2 * 100 * (x[1] - x[0] ** 2),
+            ]
+        },
+        "con": {
+            "xvars": [
+                [x[1], x[0]],
+                [1, 2 * x[1]],
+            ]
+        },
+    }
 
     fail = False
-
     return funcsSens, fail
 
 
@@ -74,7 +86,7 @@ opt = OPT(args.opt, options=optOptions)
 
 # Solution
 if args.storeHistory:
-    histFileName = "%s_hs015_Hist.hst" % (args.opt.lower())
+    histFileName = f"{args.opt.lower()}_hs015_Hist.hst"
 else:
     histFileName = None
 # end

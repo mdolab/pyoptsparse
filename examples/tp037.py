@@ -1,5 +1,7 @@
 # rst begin import
-from pyoptsparse import Optimization, OPT
+# First party modules
+from pyoptsparse import SLSQP, Optimization
+
 
 # rst begin objfunc
 def objfunc(xdict):
@@ -38,7 +40,7 @@ print(optProb)
 # rst begin OPT
 # Optimizer
 optOptions = {"IPRINT": -1}
-opt = OPT("SLSQP", options=optOptions)
+opt = SLSQP(options=optOptions)
 
 # rst begin solve
 # Solve

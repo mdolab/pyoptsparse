@@ -1,5 +1,6 @@
 syntax: glob
-build/*
+build
+doc/_build
 *.pyc
 *.so
 *.out
@@ -8,3 +9,18 @@ build/*
 *.gz
 *.c
 *.cpp
+env
+pyoptsparse/pySNOPT/source
+pyoptsparse/pyNLPQLP/source
+*.egg-info
+
+.idea/
+/meson_build/
+/dist/
+/staging_dir/
+
+*.lib
+
+*.pdb
+
+*.pyd

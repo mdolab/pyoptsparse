@@ -1,11 +1,15 @@
 # This example is taken from the OpenOpt Examples website.
 # http://trac.openopt.org/openopt/browser/PythonPackages/FuncDesigner/FuncDesigner/examples/nlpSparse.py
 
-import numpy as np
-from numpy import arange
-from scipy import sparse
+# Standard Python modules
 import argparse
-from pyoptsparse import Optimization, OPT
+
+# External modules
+import numpy as np
+from scipy import sparse
+
+# First party modules
+from pyoptsparse import OPT, Optimization
 
 N = 50000
 
@@ -15,9 +19,9 @@ def objfunc(xdict):
     y = xdict["y"]
     z = xdict["z"]
     funcs = {}
-    funcs["obj"] = x ** 2 + 2 * np.sum(y ** 2) + 3 * np.sum(z)
+    funcs["obj"] = x**2 + 2 * np.sum(y**2) + 3 * np.sum(z)
     funcs["con1"] = x + 1e-3 * abs(x) ** 2.05
-    funcs["con2"] = x ** 4 + np.sum(y) + np.sum(z ** 2)
+    funcs["con2"] = x**4 + np.sum(y) + np.sum(z**2)
     funcs["con3"] = x + np.sum(z)
 
     return funcs, False
@@ -27,17 +31,24 @@ def sens(xdict, funcs):
     x = xdict["x"]
     y = xdict["y"]
     z = xdict["z"]
-    funcsSens = {}
     funcsSens = {
-        ("obj", "x"): [2 * x],
-        ("obj", "y"): 4 * y,
-        ("obj", "z"): 3 * np.ones(2 * N),
-        ("con1", "x"): 2.05 * x * (x * x) ** 0.025,
-        ("con2", "x"): 4 * x ** 3,
-        ("con2", "y"): np.ones(N),
-        ("con2", "z"): 2 * z,
-        ("con3", "x"): 1.0,
-        ("con3", "z"): np.ones(2 * N),
+        "obj": {
+            "x": 2 * x,
+            "y": 4 * y,
+            "z": 3 * np.ones(2 * N),
+        },
+        "con1": {
+            "x": 2.05 * x * (x * x) ** 0.025,
+        },
+        "con2": {
+            "x": 4 * x**3,
+            "y": np.ones(N),
+            "z": 2 * z,
+        },
+        "con3": {
+            "x": 1.0,
+            "z": np.ones(2 * N),
+        },
     }
 
     return funcsSens, False
@@ -51,8 +62,8 @@ def large_sparse(optimizer="SNOPT", optOptions=None):
 
     # Design Variables
     optProb.addVar("x", lower=-100, upper=150, value=0)
-    optProb.addVarGroup("y", N, lower=-10 - arange(N), upper=arange(N), value=0)
-    optProb.addVarGroup("z", 2 * N, upper=arange(2 * N), lower=-100 - arange(2 * N), value=0)
+    optProb.addVarGroup("y", N, lower=-10 - np.arange(N), upper=np.arange(N), value=0)
+    optProb.addVarGroup("z", 2 * N, upper=np.arange(2 * N), lower=-100 - np.arange(2 * N), value=0)
     # Constraints
     optProb.addCon("con1", upper=100, wrt=["x"])
     optProb.addCon("con2", upper=100)
@@ -60,7 +71,7 @@ def large_sparse(optimizer="SNOPT", optOptions=None):
     optProb.addConGroup(
         "lincon",
         N,
-        lower=2 - 3 * arange(N),
+        lower=2 - 3 * np.arange(N),
         linear=True,
         wrt=["x", "y"],
         jac={"x": np.ones((N, 1)), "y": sparse.spdiags(np.ones(N), 0, N, N)},

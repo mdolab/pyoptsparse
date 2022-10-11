@@ -1,5 +1,4 @@
 """
-
 Provides interactive visualization of optimization results created by
 pyOptSparse. Figures produced here can be saved as images or pickled
 for future customization.
@@ -8,47 +7,31 @@ John Jasa 2015-2019
 
 """
 
-# ======================================================================
 # Standard Python modules
-# ======================================================================
-import os
 import argparse
-import shelve
-
-import sys
-
-major_python_version = sys.version_info[0]
-
-if major_python_version == 2:
-    import tkFont
-    import Tkinter as Tk
-else:
-    import tkinter as Tk
-    from tkinter import font as tkFont
-
+import os
 import re
+import tkinter as Tk
+from tkinter import font as tkFont
 import warnings
 
-# ======================================================================
-# External Python modules
-# ======================================================================
+# External modules
 import matplotlib
-
-matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
+import numpy as np
 
+# Local modules
+from .OptView_baseclass import OVBaseClass
+
+matplotlib.use("TkAgg")
 try:
     warnings.filterwarnings("ignore", category=matplotlib.cbook.mplDeprecation)
     warnings.filterwarnings("ignore", category=UserWarning)
 except:
     pass
-import numpy as np
-from sqlitedict import SqliteDict
-import traceback
-from .OptView_baseclass import OVBaseClass
 
 
 class Display(OVBaseClass):
@@ -69,7 +52,7 @@ class Display(OVBaseClass):
         try:
             icon_dir = os.path.dirname(os.path.abspath(__file__))
             icon_name = "OptViewIcon.gif"
-            icon_dir_full = os.path.join(icon_dir, icon_name)
+            icon_dir_full = os.path.join(icon_dir, "assets", icon_name)
             img = Tk.PhotoImage(file=icon_dir_full)
             self.root.tk.call("wm", "iconphoto", self.root._w, img)
         except:  # bare except because error is not in standard Python
@@ -259,6 +242,7 @@ class Display(OVBaseClass):
                        (1.0, 0.0, 0.0))
             }
             # fmt: on
+            # External modules
             from matplotlib.colors import LinearSegmentedColormap
 
             cmap = LinearSegmentedColormap("RedGreen", cdict1)
@@ -471,7 +455,7 @@ class Display(OVBaseClass):
                 for i in range(2, n):
                     new_fixed_axis = par_list[i].get_grid_helper().new_fixed_axis
                     par_list[i].axis["right"] = new_fixed_axis(
-                        loc="right", axes=par_list[i], offset=(offset * i ** 1.15, 0)
+                        loc="right", axes=par_list[i], offset=(offset * i**1.15, 0)
                     )
                     par_list[i].axis["right"].toggle(all=True)
 
@@ -650,7 +634,7 @@ class Display(OVBaseClass):
         self.arr_data = {}
         self.val_names = []
         for i, val in enumerate(values):
-            self.val_names.append(values_orig[0] + "_{0}".format(val))
+            self.val_names.append(values_orig[0] + f"_{val}")
             self.arr_data[self.val_names[i]] = []
             for ind_dat in dat:
                 self.arr_data[self.val_names[i]].append(ind_dat[val])
@@ -722,6 +706,7 @@ class Display(OVBaseClass):
         fname = "saved_figure.pickle"
         fpathname = os.path.join(self.outputDir, fname)
         try:
+            # External modules
             import dill
 
             dill.dump(self.f, file(fpathname, "wb"))
@@ -762,7 +747,7 @@ class Display(OVBaseClass):
             for name in values:
                 dat[name] = self.var_data[name]
 
-        keys = dat.keys()
+        keys = list(dat.keys())
 
         num_vars = len(keys)
         num_iters = len(dat[keys[0]])
@@ -783,7 +768,7 @@ class Display(OVBaseClass):
                     for j in range(m):
                         indiv_data[j] = small_data[j][i]
                     full_data = np.c_[full_data, indiv_data]
-                    var_names.append(key + "_{}".format(i))
+                    var_names.append(key + f"_{i}")
 
         filename = "OptView_tec.dat"
         self._file = open(filename, "w")
@@ -793,7 +778,7 @@ class Display(OVBaseClass):
             self._file.write('"' + name + '" ')
         self._file.write("\n")
 
-        self._file.write('Zone T= "OptView_tec_data", ' + "I={}, ".format(num_iters) + "F=POINT\n")
+        self._file.write('Zone T= "OptView_tec_data", ' + f"I={num_iters}, " + "F=POINT\n")
         np.savetxt(self._file, full_data)
         self._file.close()
 
@@ -910,7 +895,7 @@ class Display(OVBaseClass):
                 iter_count = np.round(event.xdata, 0)
                 ind = np.where(xdat == iter_count)[0][0]
 
-                label = label + "\niter: {0:d}\nvalue: {1}".format(int(iter_count), ydat[ind])
+                label = label + f"\niter: {int(iter_count):d}\nvalue: {ydat[ind]}"
 
                 # Get the width of the window so we can scale the label placement
                 size = self.f.get_size_inches() * self.f.dpi

@@ -1,35 +1,45 @@
-#!/usr/bin/env python
-# =============================================================================
-# External Python modules
-# =============================================================================
+# Standard Python modules
+from collections import OrderedDict
 import copy
-import numpy as np
-from .pyOpt_error import Error, pyOptSparseWarning
-from .pyOpt_utils import convertToCOO
+from typing import Dict, Iterable, List, Optional, Union
 
-INFINITY = 1e20
-eps = np.finfo(np.float64).eps
-# =============================================================================
-# Constraint Class
-# =============================================================================
-class Constraint(object):
-    def __init__(self, name, nCon, linear, wrt, jac, lower, upper, scale):
+# External modules
+import numpy as np
+
+# Local modules
+from .pyOpt_error import Error, pyOptSparseWarning
+from .pyOpt_utils import INFINITY, convertToCOO
+from .types import Dict1DType
+
+
+class Constraint:
+    def __init__(
+        self,
+        name: str,
+        nCon: int,
+        linear: bool,
+        wrt: Union[None, str, Iterable[str]],
+        jac: Dict1DType,
+        lower,
+        upper,
+        scale,
+    ):
         """
         This class holds the representation of a pyOptSparse constraint group
 
         See Also
         --------
-        Optimization.addConGroup : for the full documentation
+        pyoptsparse.pyOpt_optimization.Optimization.addConGroup : for the full documentation
         """
         self.name = name
         self.ncon = nCon
         self.linear = linear
         self.wrt = wrt
         self.jac = jac
-        self.partialReturnOk = None
+        self.partialReturnOk: Optional[bool] = None
         self.scale = scale
-        self.rs = None
-        self.re = None
+        self.rs: Optional[int] = None
+        self.re: Optional[int] = None
         # Before we can do the processing below we need to have lower
         # and upper arguments expanded:
 
@@ -41,10 +51,8 @@ class Constraint(object):
             pass  # Some iterable object
         else:
             raise Error(
-                (
-                    "The 'lower' argument to addCon or addConGroup is invalid. "
-                    + "It must be None, a scalar, or a list/array or length nCon={}.".format(nCon)
-                )
+                "The 'lower' argument to addCon or addConGroup is invalid. "
+                + f"It must be None, a scalar, or a list/array or length nCon={nCon}."
             )
 
         if upper is None:
@@ -55,10 +63,8 @@ class Constraint(object):
             pass  # Some iterable object
         else:
             raise Error(
-                (
-                    "The 'upper' argument to addCon or addConGroup is invalid. "
-                    + "It must be None, a scalar, or a list/array or length nCon={}.".format(nCon)
-                )
+                "The 'upper' argument to addCon or addConGroup is invalid. "
+                + f"It must be None, a scalar, or a list/array or length nCon={nCon}."
             )
 
         # ------ Process the scale argument
@@ -69,10 +75,8 @@ class Constraint(object):
             pass
         else:
             raise Error(
-                (
-                    "The length of the 'scale' argument to addCon or addConGroup is {}, ".format(len(scale))
-                    + "but the number of constraints is {}.".format(nCon)
-                )
+                f"The length of the 'scale' argument to addCon or addConGroup is {len(scale)}, "
+                + f"but the number of constraints is {nCon}."
             )
 
         # Save lower and upper...they are only used for printing however
@@ -95,12 +99,12 @@ class Constraint(object):
         # automatically.
 
         # This keeps track of the equality constraints:
-        equalityConstraints = {"value": [], "ind": [], "fact": []}
+        equalityConstraints: Dict[str, List] = {"value": [], "ind": [], "fact": []}
 
         # All (inequality) constraints get added to
         # "twoSidedConstraints". This will be used in optimizers that
         # can do two-sided constraints properly
-        twoSidedConstraints = {"lower": [], "upper": [], "ind": [], "fact": []}
+        twoSidedConstraints: Dict[str, List] = {"lower": [], "upper": [], "ind": [], "fact": []}
 
         # All (inequality) constraints are also added to
         # "oneSidedConstraints". These are processed such that the
@@ -110,7 +114,7 @@ class Constraint(object):
         # defined which is precisely 1.0 or -1.0. The -1.0 appears
         # when a greater-than-constraint is turned into a
         # less-than-constraint.
-        oneSidedConstraints = {"lower": [], "upper": [], "ind": [], "fact": []}
+        oneSidedConstraints: Dict[str, List] = {"lower": [], "upper": [], "ind": [], "fact": []}
 
         for icon in range(self.ncon):
             # Check for equality constraint:
@@ -195,14 +199,14 @@ class Constraint(object):
         self.oneSidedConstraints = oneSidedConstraints
         self.twoSidedConstraints = twoSidedConstraints
 
-    def finalize(self, variables, dvOffset, index):
+    def finalize(self, variables: OrderedDict, dvOffset, index: int):
         """
         After the design variables have been finalized and the order
         is known we can check the constraint for consistency.
 
         Parameters
         ----------
-        variables : Ordered Dict
+        variables : OrderedDict
             The pyOpt variable list after they have been finalized.
 
         dvOffset : dict
@@ -231,8 +235,8 @@ class Constraint(object):
             else:
                 try:
                     self.wrt = list(self.wrt)
-                except:  # noqa: E722
-                    raise Error("The 'wrt' argument to constraint '%s' must be an iterable list" % self.name)
+                except Exception:
+                    raise Error(f"The 'wrt' argument to constraint '{self.name}' must be an iterable list")
 
             # We allow 'None' to be in the list...they are null so
             # just pop them out:
@@ -243,26 +247,20 @@ class Constraint(object):
             for dvGroup in self.wrt:
                 if dvGroup not in variables:
                     raise Error(
-                        (
-                            "The supplied dvGroup '{}' in 'wrt' for the {} constraint, does not exist. ".format(
-                                dvGroup, self.name
-                            )
-                            + "It must be added with a call to addVar() or addVarGroup()."
-                        )
+                        f"The supplied dvGroup '{dvGroup}' in 'wrt' for the {self.name} constraint, does not exist. "
+                        + "It must be added with a call to addVar() or addVarGroup()."
                     )
 
             # Check for duplicates in wrt
             wrt_uniq = list(set(self.wrt))
             if len(wrt_uniq) < len(self.wrt):
-                duplicate_vars = list(set([x for x in self.wrt if self.wrt.count(x) > 1]))
+                duplicate_vars = list({x for x in self.wrt if self.wrt.count(x) > 1})
                 pyOptSparseWarning(
-                    (
-                        "The constraint {} was created with duplicate variables in 'wrt'. ".format(self.name)
-                        + "The following duplicates were automatically removed: "
-                    )
+                    f"The constraint {self.name} was created with duplicate variables in 'wrt'. "
+                    + "The following duplicates were automatically removed: "
                 )
                 for var in duplicate_vars:
-                    print("\t\t{}".format(var))
+                    print(f"\t\t{var}")
                 self.wrt = wrt_uniq
 
         # Last thing for wrt is to reorder them such that dvGroups are
@@ -289,10 +287,8 @@ class Constraint(object):
 
             if self.linear:
                 raise Error(
-                    (
-                        "The 'jac' keyword to argument to addConGroup() must be supplied for a linear constraint. "
-                        + "The constraint in error is {}.".format(self.name)
-                    )
+                    "The 'jac' keyword to argument to addConGroup() must be supplied for a linear constraint. "
+                    + f"The constraint in error is {self.name}."
                 )
 
             # without any additional information about the Jacobian
@@ -311,10 +307,8 @@ class Constraint(object):
             # First sanitize input:
             if not isinstance(self.jac, dict):
                 raise Error(
-                    (
-                        "The 'jac' keyword argument to addConGroup() must be a dictionary. "
-                        + "The constraint in error is {}.".format(self.name)
-                    )
+                    "The 'jac' keyword argument to addConGroup() must be a dictionary. "
+                    + f"The constraint in error is {self.name}."
                 )
 
             # Now loop over the set we *know* we need and see if any
@@ -340,26 +334,17 @@ class Constraint(object):
                 # Generically check the shape:
                 if self.jac[dvGroup]["shape"][0] != self.ncon or self.jac[dvGroup]["shape"][1] != ndvs:
                     raise Error(
-                        (
-                            "The supplied Jacobian for dvGroup {}' in constraint {}, was the incorrect size. ".format(
-                                dvGroup, self.name
-                            )
-                            + "Expecting a Jacobian of size ({}, {}) but received a Jacobian of size ({}, {}).".format(
-                                self.ncon,
-                                ndvs,
-                                self.jac[dvGroup]["shape"][0],
-                                self.jac[dvGroup]["shape"][1],
-                            )
-                        )
+                        f"The supplied Jacobian for dvGroup {dvGroup}' in constraint {self.name}, was the incorrect size. "
+                        + f"Expecting a Jacobian of size ({self.ncon}, {ndvs}) but received a Jacobian of size "
+                        + f"({self.jac[dvGroup]['shape'][0]}, {self.jac[dvGroup]['shape'][1]})."
                     )
             # end for (dvGroup)
 
             # If there is anything left in jac print a warning:
             for dvGroup in tmp:
                 pyOptSparseWarning(
-                    "A Jacobian with dvGroup key of '{}' was unused in constraint {}. This will be ignored.".format(
-                        dvGroup, self.name
-                    )
+                    f"A Jacobian with dvGroup key of '{dvGroup}' was unused in constraint {self.name}. "
+                    + "This will be ignored."
                 )
 
             # Since this function *may* be called multiple times, only
@@ -371,7 +356,7 @@ class Constraint(object):
 
         # end if (if Jac)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Print Constraint
         """
@@ -381,14 +366,14 @@ class Constraint(object):
             upper = self.upper[i]
             value = self.value[i]
             if lower is None:
-                lower = -1e20
+                lower = -INFINITY
             if upper is None:
-                upper = 1e20
+                upper = INFINITY
 
             res += (
                 "	 "
                 + str(self.name).center(9)
-                + "	  i %15.2e <= %8f <= %8.2e\n" % (np.real(lower), np.real(value), np.real(upper))
+                + f"	  i {np.real(lower):15.2e} <= {np.real(value):8f} <= {np.real(upper):8.2e}\n"
             )
 
         return res

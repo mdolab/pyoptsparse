@@ -1,4 +1,4 @@
-__version__ = "2.2.0"
+__version__ = "2.9.0"
 
 from .pyOpt_history import History
 from .pyOpt_variable import Variable
@@ -18,5 +18,3 @@ from .pyNLPQLP.pyNLPQLP import NLPQLP
 from .pyNSGA2.pyNSGA2 import NSGA2
 from .pyALPSO.pyALPSO import ALPSO
 from .pyParOpt.ParOpt import ParOpt
-
-# from .pyNOMAD.pyNOMAD import NOMAD

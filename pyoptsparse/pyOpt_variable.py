@@ -1,24 +1,32 @@
-#!/usr/bin/env python
-
+# Local modules
 from .pyOpt_error import Error
+from .pyOpt_utils import INFINITY
 
-INFINITY = 1e20
-# =============================================================================
-# Variable Class
-# =============================================================================
-class Variable(object):
-    def __init__(self, name, type, value, lower, upper, scale, offset, scalar=False, choices=None):
+
+class Variable:
+    def __init__(
+        self,
+        name: str,
+        varType: str,
+        value,
+        lower,
+        upper,
+        scale,
+        offset,
+        scalar=False,
+        choices=[],
+    ):
         """
         This class holds the representation of a single pyOptSparse variable
 
         See Also
         --------
-        Optimization.addVarGroup : for the full documentation
+        pyoptsparse.pyOpt_optimization.Optimization.addVarGroup : for the full documentation
         """
         self.name = name
-        self.type = type
+        self.type = varType
         self.scalar = scalar
-        self.choices = None
+        self.choices = choices
         if self.type == "c":
             if lower is None:
                 self.lower = -INFINITY
@@ -38,10 +46,10 @@ class Variable(object):
             self.lower = lower
             self.upper = upper
             self.scale = scale
+            self.offset = offset
         elif self.type == "d":
-            if choices is None:
+            if len(choices) == 0:
                 raise Error("A discrete variable requires to input an array of choices.")
-            self.choices = choices
             self.value = self.choices[int(value)]
             self.lower = 0
             self.upper = len(self.choices)
@@ -63,7 +71,7 @@ class Variable(object):
         else:
             return False
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Print Structured List of Variable
         """
@@ -74,22 +82,17 @@ class Variable(object):
         if self.type == "d":
             res += "	 "
             res += str(self.name).center(15)
-            res += "%25s%20f %14.2e %12.2e \n" % (
-                self.type,
-                self.choices[int(self.value)],
-                min(self.choices),
-                max(self.choices),
-            )
+            res += f"{self.type:>25}{self.choices[int(self.value)]:20f} {min(self.choices):14.2e} {max(self.choices):12.2e}\n"
         else:
             lower = self.lower
             upper = self.upper
             if self.lower is None:
-                lower = -1e20
+                lower = -INFINITY
             if self.upper is None:
-                upper = 1e20
+                upper = INFINITY
 
             res += "	 "
             res += str(self.name).center(9)
-            res += "%5s	%14f %14.2e %12.2e \n" % (self.type, self.value, lower, upper)
+            res += f"{self.type:>5}	{self.value:14f} {lower:14.2e} {upper:12.2e} \n"
 
         return res

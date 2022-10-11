@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 alpso - Python Version of the Augmented Lagrangian Particle Swarm Optimizer
 
@@ -16,30 +15,20 @@ To Do:
     - Fix Neighbourhood best from Lagrangian value
 """
 
-# =============================================================================
 # Standard Python modules
-# =============================================================================
+from math import floor
 import os
 import random
 import time
-from math import floor
 
-# =============================================================================
-# External Python modules
-# =============================================================================
+# External modules
 import numpy as np
+
+# Local modules
 from ..pyOpt_error import pyOptSparseWarning
 
-# =============================================================================
-# Extension modules
-# =============================================================================
-
-
-# =============================================================================
 # Misc Definitions
-# =============================================================================
 inf = 10.0e20  # define a value for infinity
-# =============================================================================
 eps = 1.0  # define a value for machine precision
 while (eps / 2.0 + 1.0) > 1.0:
     eps /= 2.0
@@ -71,7 +60,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
             x0 = np.array(x0)
         elif not isinstance(x0, np.ndarray):
             pyOptSparseWarning(
-                ("Initial x must be either list or numpy.array, all initial positions randomly generated")
+                "Initial x must be either list or numpy.array, all initial positions randomly generated"
             )
 
     #

@@ -26,9 +26,12 @@ To get started, please see the :ref:`install` and the :ref:`quickstart`.
    install
    quickstart
    guide
+   advancedFeatures
    postprocessing
    changes
    contribute
+   publishedWorks
+   citation
    license
 
 .. toctree::
@@ -51,12 +54,12 @@ To get started, please see the :ref:`install` and the :ref:`quickstart`.
    :caption: Optimizers
    :hidden:
 
-   optimizers/pysnopt
-   optimizers/pyipopt
-   optimizers/pyslsqp
-   optimizers/pynlpqlp
-   optimizers/pynsga2
-   optimizers/pypsqp
-   optimizers/pyparopt
-   optimizers/pyconmin
-   optimizers/pyalpso
+   optimizers/SNOPT
+   optimizers/IPOPT
+   optimizers/SLSQP
+   optimizers/NLPQLP
+   optimizers/NSGA2
+   optimizers/PSQP
+   optimizers/ParOpt
+   optimizers/CONMIN
+   optimizers/ALPSO

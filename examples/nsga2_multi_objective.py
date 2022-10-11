@@ -1,4 +1,5 @@
-from pyoptsparse import Optimization, NSGA2
+# First party modules
+from pyoptsparse import NSGA2, Optimization
 
 
 def objfunc(xdict):

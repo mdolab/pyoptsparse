@@ -1,0 +1,24 @@
+XMAX:
+  desc: Maximum Stepsize
+TOLX:
+  desc: Variable Change Tolerance
+TOLC:
+  desc: Constraint Violation Tolerance
+TOLG:
+  desc: Lagrangian Gradient Tolerance
+RPF:
+  desc: Penalty Coefficient
+MIT:
+  desc: Maximum Number of Iterations
+MFV:
+  desc: Maximum Number of Function Evaluations
+MET:
+  desc: Variable Metric Update (1 - BFGS, 2 - Hoshino)
+MEC:
+  desc: Negative Curvature Correction (1 - None, 2 - Powell's Correction)
+IPRINT:
+  desc: Output Level (0 - None, 1 - Final, 2 - Iter)
+IOUT:
+  desc: Output Unit Number
+IFILE:
+  desc: Output File Name

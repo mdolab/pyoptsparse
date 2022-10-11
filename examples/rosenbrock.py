@@ -1,26 +1,14 @@
-#!/usr/bin/env python
-from pyoptsparse import Optimization, OPT
+# Standard Python modules
 import argparse
-import numpy as np
 
-
-# import cProfile
+# First party modules
+from pyoptsparse import SLSQP, Optimization
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--sens", help="sensitivity mode", type=str, default="FD")
-parser.add_argument("--constrained", help="constrained or not", type=int, default=0)
-parser.add_argument("--testHist", help="test history", type=str, default="no")
-parser.add_argument("--groups", help="use groups", type=int, default=0)
-parser.add_argument("--sensMode", help="gradient mode", type=str, default="")
-parser.add_argument("--opt", help="optimizer", type=str, default="SLSQP")
-parser.add_argument("--pythonProf", help="profile in Python", type=int, default=0)
+parser.add_argument("--sens", help="sensitivity mode", type=str, default="FD", choices=["FD", "CS", "CD", "user"])
+parser.add_argument("--constrained", help="add a constraint", action="store_true")
+parser.add_argument("--testHotstart", help="test hotstart", action="store_true")
 args = parser.parse_args()
-sens = args.sens
-constrained = args.constrained
-testHist = args.testHist
-groups = args.groups
-sensMode = args.sensMode
-pythonProf = args.pythonProf
 optOptions = {}
 
 
@@ -45,87 +33,32 @@ def sensfunc(xdict, funcsDict):
     return funcsSens, fail
 
 
-# Matrix-free algorithm return functions
-def objgrad(xdict):
-    x = xdict["xvars"]
-
-    objsens = {}
-    objsens["obj"] = {
-        "xvars": np.array([2 * 100 * (x[1] - x[0] ** 2) * (-2 * x[0]) - 2 * (1 - x[0]), 2 * 100 * (x[1] - x[0] ** 2)])
-    }
-    fail = False
-
-    return objsens, fail
-
-
-def jprod(xdict, pdict, sparse_only):
-    x = xdict["xvars"]
-    p = pdict["xvars"]
-    qdict = {}
-
-    if constrained:
-        gcon = np.array([-3 * (x[0] - 1) ** 2, -1])
-        qdict["con"] = np.array([np.dot(gcon, p)])
-    fail = False
-
-    return qdict, fail
-
-
-def jtprod(xdict, qdict, sparse_only):
-    x = xdict["xvars"]
-
-    pdict = {}
-    if constrained:
-        q = qdict["con"]
-        gcon = np.array([-3 * (x[0] - 1) ** 2, -1])
-        pdict["xvars"] = q * gcon
-    else:
-        pdict["xvars"] = np.zeros(len(x))
-    fail = False
-
-    return pdict, fail
-
-
-if sens == "none":
-    sens = None
-if sens == "user":
+if args.sens == "user":
     sens = sensfunc
-if sens == "matrix-free":
-    sens = [objgrad, jprod, jtprod]
+else:
+    sens = args.sens
 
 # Instantiate Optimization Problem
 optProb = Optimization("Rosenbrock function", objfunc)
 optProb.addVarGroup("xvars", 2, "c", value=[3, -3], lower=-5.12, upper=5.12, scale=[1.0, 1.0])
-optProb.finalizeDesignVariables()
-if constrained:
+if args.constrained:
     optProb.addCon("con", upper=0, scale=1.0)
 optProb.addObj("obj")
 
 # Create optimizer
-opt = OPT(args.opt, options=optOptions)
-if testHist == "no":
-    # Just run a normal run
-    sol = opt(optProb, sens=sens, sensMode=sensMode)
-    # print(sol.fStar)
-    print(sol)
-else:
+opt = SLSQP(options=optOptions)
+
+if args.testHotstart:
+    histName = "opt_hist.hst"
     # First call just does 10 iterations
-    if args.opt.lower() == "snopt":
-        opt.setOption("Major iterations limit", 10)
-        solSnopt1 = opt(optProb, sens=sens, sensMode="pgc", storeHistory="opt_hist")
+    opt.setOption("MAXIT", 10)
+    sol1 = opt(optProb, sens=sens, storeHistory=histName)
 
-        # Now we are allowed to do 50
-        opt.setOption("Major iterations limit", 50)
-        if testHist == "hot":
-            solSnopt2 = opt(optProb, sens=sens, sensMode=sensMode, hotStart="opt_hist", storeHistory="opt_hist")
-        else:
-            solSnopt2 = opt(optProb, sens=sens, sensMode=sensMode, coldStart="opt_hist", storeHistory="opt_hist")
-
-        print(solSnopt2.fStar)
-
-    else:
-        # Quick test that history prints ok
-        # if pythonProf:
-        #     cProfile.run('sol = opt(optProb, sens=sens, sensMode=sensMode, storeHistory=\'opt_hist.bin\')',args.opt.lower()+'_profile.profile')
-        # else:
-        sol = opt(optProb, sens=sens, sensMode=sensMode, storeHistory="opt_hist.bin")
+    # Now we are allowed to do 50
+    opt.setOption("MAXIT", 50)
+    sol2 = opt(optProb, sens=sens, hotStart=histName, storeHistory=histName)
+    print(sol2.fStar)
+else:
+    # Just do a normal run
+    sol = opt(optProb, sens=sens)
+    print(sol.fStar)
