@@ -90,7 +90,14 @@ class IPOPT(Optimizer):
         return defOpts
 
     def __call__(
-        self, optProb, sens=None, sensStep=None, sensMode=None, storeHistory=None, hotStart=None, storeSens=True
+        self,
+        optProb,
+        sens=None,
+        sensStep=None,
+        sensMode=None,
+        storeHistory=None,
+        hotStart=None,
+        storeSens=True,
     ):
         """
         This is the main routine used to solve the optimization
@@ -144,6 +151,8 @@ class IPOPT(Optimizer):
         self.callCounter = 0
         self.storeSens = storeSens
 
+        self.userRequestedTermination = False
+
         if len(optProb.constraints) == 0:
             # If the user *actually* has an unconstrained problem,
             # snopt sort of chokes with that....it has to have at
@@ -195,19 +204,28 @@ class IPOPT(Optimizer):
 
             # Now what we need for IPOPT is precisely the .row and
             # .col attributes of the fullJacobian array
-            matStruct = (jac["coo"][IROW].copy().astype("int_"), jac["coo"][ICOL].copy().astype("int_"))
+            matStruct = (
+                jac["coo"][IROW].copy().astype("int_"),
+                jac["coo"][ICOL].copy().astype("int_"),
+            )
 
             # Define the 4 call back functions that ipopt needs:
             def eval_f(x, user_data=None):
                 fobj, fail = self._masterFunc(x, ["fobj"])
+                if fail == 2:
+                    self.userRequestedTermination = True
                 return fobj
 
             def eval_g(x, user_data=None):
                 fcon, fail = self._masterFunc(x, ["fcon"])
+                if fail == 2:
+                    self.userRequestedTermination = True
                 return fcon.copy()
 
             def eval_grad_f(x, user_data=None):
                 gobj, fail = self._masterFunc(x, ["gobj"])
+                if fail == 2:
+                    self.userRequestedTermination = True
                 return gobj.copy()
 
             def eval_jac_g(x, flag, user_data=None):
@@ -215,15 +233,38 @@ class IPOPT(Optimizer):
                     return copy.deepcopy(matStruct)
                 else:
                     gcon, fail = self._masterFunc(x, ["gcon"])
+                    if fail == 2:
+                        self.userRequestedTermination = True
                     return gcon.copy()
+
+            # Define intermediate callback. If this method returns false,
+            # Ipopt will terminate with the User_Requested_Stop status.
+            def eval_intermediate_callback(*args, **kwargs):
+                if self.userRequestedTermination is True:
+                    return False
+                else:
+                    return True
 
             timeA = time.time()
             nnzj = len(matStruct[0])
             nnzh = 0
 
             nlp = pyipoptcore.create(
-                len(xs), blx, bux, ncon, blc, buc, nnzj, nnzh, eval_f, eval_grad_f, eval_g, eval_jac_g
+                len(xs),
+                blx,
+                bux,
+                ncon,
+                blc,
+                buc,
+                nnzj,
+                nnzh,
+                eval_f,
+                eval_grad_f,
+                eval_g,
+                eval_jac_g,
             )
+
+            nlp.set_intermediate_callback(eval_intermediate_callback)
 
             self._set_ipopt_options(nlp)
             x, zl, zu, constraint_multipliers, obj, status = nlp.solve(xs)
