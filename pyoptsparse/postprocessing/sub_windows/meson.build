@@ -1,5 +1,11 @@
 python_sources = [
   '__init__.py',
+  'configure_plot_windows.py',
+  'metadata_window.py',
+  'mpl_figureoptions.py',
+  'plotting.py',
+  'settings_window.py',
+  'tab_window.py',
 ]
 
 py3_target.install_sources(
@@ -7,9 +13,3 @@ py3_target.install_sources(
   pure: true,
   subdir: 'pyoptsparse/postprocessing/sub_windows'
 )
-
-subdir('configure_plot_window')
-subdir('metadata_window')
-subdir('plotting')
-subdir('settings_window')
-subdir('variables')

@@ -3,6 +3,11 @@ python_sources = [
   '__init__.py',
   'OptView.py',
   'opt_view_controller.py',
+  'baseclasses.py',
+  'data_structures.py',
+  'colors.py',
+  'general_widgets.py',
+  'utils.py',
 ]
 
 py3_target.install_sources(
@@ -23,6 +28,4 @@ py3_target.install_sources(
   subdir: 'pyoptsparse/postprocessing/assets'
 )
 
-subdir('baseclasses')
 subdir('sub_windows')
-subdir('utils')

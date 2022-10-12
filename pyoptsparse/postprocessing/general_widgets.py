@@ -1,7 +1,91 @@
 # External modules
-from PyQt6.QtCore import QPropertyAnimation, QRectF, QSize, Qt, pyqtProperty
-from PyQt6.QtGui import QPainter
-from PyQt6.QtWidgets import QAbstractButton, QSizePolicy, QWidget
+from PyQt6.QtCore import QPropertyAnimation, QRectF, QSize, QSortFilterProxyModel, Qt, pyqtProperty
+from PyQt6.QtGui import QColor, QDropEvent, QKeySequence, QPainter, QShortcut
+from PyQt6.QtWidgets import (
+    QAbstractButton,
+    QComboBox,
+    QCompleter,
+    QHBoxLayout,
+    QLineEdit,
+    QListWidget,
+    QPushButton,
+    QSizePolicy,
+    QTableWidgetItem,
+    QTreeWidgetItem,
+    QWidget,
+)
+
+# First party modules
+from pyoptsparse.postprocessing.baseclasses import Controller, View
+from pyoptsparse.postprocessing.data_structures import File
+
+# --- Color constants ---
+GREEN = QColor(0, 255, 0, 20)
+BLUE = QColor(0, 150, 255, 20)
+WHITE = QColor(255, 255, 255)
+
+
+class Button(QPushButton):
+    def __init__(self, *args, **kwargs):
+        """
+        Inherits the PyQt6 push button class and implements a custom
+        button format.
+        """
+        super().__init__(*args, **kwargs)
+        self.resize(150, 30)
+
+
+class ExtendedComboBox(QComboBox):
+    def __init__(self, parent: QWidget = None):
+        """
+        Combobox view with custom autocomplete functionality for storing and
+        searching for variables
+
+        Parameters
+        ----------
+        parent : PyQt6.QtWidgets.QWidget, optional
+            The parent view, by default None
+        """
+        super(ExtendedComboBox, self).__init__(parent)
+
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setEditable(True)
+
+        # add a filter model to filter matching items
+        self.pFilterModel = QSortFilterProxyModel(self)
+        self.pFilterModel.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self.pFilterModel.setSourceModel(self.model())
+
+        # add a completer, which uses the filter model
+        self.completer = QCompleter(self.pFilterModel, self)
+        # always show all (filtered) completions
+        self.completer.setCompletionMode(QCompleter.CompletionMode.UnfilteredPopupCompletion)
+        self.setCompleter(self.completer)
+
+        # connect signals
+        self.lineEdit().textEdited.connect(self.pFilterModel.setFilterFixedString)
+        self.completer.activated.connect(self.on_completer_activated)
+
+    # on selection of an item from the completer, select the
+    # corresponding item from combobox
+    def on_completer_activated(self, text):
+        if text:
+            index = self.findText(text)
+            self.setCurrentIndex(index)
+
+    # on model change, update the models of the filter and completer
+    # as well
+    def setModel(self, model):
+        super(ExtendedComboBox, self).setModel(model)
+        self.pFilterModel.setSourceModel(model)
+        self.completer.setModel(self.pFilterModel)
+
+    # on model column change, update the model column of the filter
+    # and completer as well
+    def setModelColumn(self, column):
+        self.completer.setCompletionColumn(column)
+        self.pFilterModel.setFilterKeyColumn(column)
+        super(ExtendedComboBox, self).setModelColumn(column)
 
 
 class Switch(QAbstractButton):
@@ -215,3 +299,101 @@ class Switch(QAbstractButton):
         """
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         super().enterEvent(event)
+
+
+class PlotList(QListWidget, View):
+    def __init__(self, parent: QWidget = None, controller: Controller = None) -> None:
+        super(PlotList, self).__init__(parent)
+
+        self.controller = controller
+
+        self.plot_up_action = QShortcut(QKeySequence("Ctrl+Up"), self)
+        self.plot_down_action = QShortcut(QKeySequence("Ctrl+Down"), self)
+
+        self.plot_up_action.activated.connect(self.movePlotUp)
+        self.plot_down_action.activated.connect(self.movePlotDown)
+
+    def dropEvent(self, event: QDropEvent) -> None:
+        super(PlotList, self).dropEvent(event)
+        self.controller.reorder_plots()
+
+    def movePlotUp(self) -> None:
+        self.controller.move_plot_up()
+
+    def movePlotDown(self) -> None:
+        self.controller.move_plot_down()
+
+
+class PlotListWidget(View):
+    def __init__(self, parent: QWidget = None, controller: Controller = None, idx: int = 0):
+        """
+        Custom list widget that adds functionality for configuring and
+        removing plots.  The widget needs access to the tab window
+        controller so the embedded buttons can call functions for
+        configuring and removing plots.
+
+        Parameters
+        ----------
+        parent : PyQt6.QtWidgets.QWidget, optional
+            The parent view, by default None
+        controller : Controller, optional
+            Tab controller linked to the tab view., by default None
+        idx : int, optional
+            The index of the plot in the tab model, by default 0
+        """
+        super(PlotListWidget, self).__init__(parent)
+
+        self.controller = controller
+        self.idx = idx
+
+        # Set the plot title
+        self.title = QLineEdit(f"Plot {idx}")
+
+        # Add the configure plot button
+        self.configure_button = QPushButton("Configure/Add Variables")
+        self.configure_button.clicked.connect(self.configure)
+
+        # Add the remove plot button
+        self.remove_button = QPushButton("Remove Plot")
+        self.remove_button.clicked.connect(self.remove)
+
+        # Configure the layout
+        layout = QHBoxLayout()
+        layout.addWidget(self.title, 1)
+        layout.addWidget(self.configure_button, 1)
+        layout.addWidget(self.remove_button, 1)
+
+        # Set the layout
+        self.setLayout(layout)
+
+    def remove(self):
+        """
+        Calls the remove_plot function in the tab controller.
+        """
+        self.controller.remove_plot(self.idx)
+
+    def configure(self):
+        """
+        Calls teh configure_view function in the tab controller.
+        """
+        self.controller.configure_view(self.idx)
+
+
+class FileTreeWidgetItem(QTreeWidgetItem):
+    def __init__(self, *args, **kwargs):
+        """
+        Custom tree widget item that can store file objects.
+        """
+        self.file = None
+        super().__init__(*args, **kwargs)
+
+    def setFile(self, file: File):
+        self.file = file
+
+
+class FileTableWidgetItem(QTableWidgetItem):
+    def __init__(self, *args, **kwargs):
+        """
+        Custom file table widget item.
+        """
+        super(FileTableWidgetItem, self).__init__(*args, **kwargs)

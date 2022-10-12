@@ -5,11 +5,9 @@ from typing import List
 from PyQt6.QtWidgets import QInputDialog, QLineEdit
 
 # First party modules
-from pyoptsparse.postprocessing.baseclasses.controller import Controller
-from pyoptsparse.postprocessing.sub_windows.settings_window.settings_controller import SettingsController
-from pyoptsparse.postprocessing.sub_windows.settings_window.settings_view import SettingsView
-from pyoptsparse.postprocessing.sub_windows.tab_window.tab_controller import TabController
-from pyoptsparse.postprocessing.sub_windows.tab_window.tab_view import TabView
+from pyoptsparse.postprocessing.baseclasses import Controller
+from pyoptsparse.postprocessing.sub_windows.settings_window import SettingsController, SettingsView
+from pyoptsparse.postprocessing.sub_windows.tab_window import TabController, TabView
 
 
 class OptViewController(Controller):
@@ -32,7 +30,9 @@ class OptViewController(Controller):
         Adds a tab to the main view.
         """
         if interactive:
-            tab_name, ok_pressed = QInputDialog.getText(self.view, "Enter Tab Name", "Tab Name:", QLineEdit.Normal, "")
+            tab_name, ok_pressed = QInputDialog.getText(
+                self.view, "Enter Tab Name", "Tab Name:", QLineEdit.EchoMode.Normal, ""
+            )
         tab_controller = TabController(self.view, file_names=file_names)
         tab_view = TabView(self.view, tab_controller)
         self.view.tabs.addTab(tab_view, tab_name)

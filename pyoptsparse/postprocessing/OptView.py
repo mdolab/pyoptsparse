@@ -6,14 +6,14 @@ from typing import List
 
 # External modules
 from PyQt6.QtGui import QAction, QIcon, QKeySequence, QShortcut
-from PyQt6.QtWidgets import QApplication, QMenuBar, QTabWidget, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QApplication, QMenuBar, QTabWidget, QVBoxLayout
 
 # First party modules
-from pyoptsparse.postprocessing.baseclasses.view import View
+from pyoptsparse.postprocessing.baseclasses import View
 from pyoptsparse.postprocessing.opt_view_controller import OptViewController
 
 
-class MainView(QWidget, View):
+class MainView(View):
     def __init__(self, *args, file_names: List = [], **kwargs):
         """
         OptView - A GUI designed to assist viewing optimization problems

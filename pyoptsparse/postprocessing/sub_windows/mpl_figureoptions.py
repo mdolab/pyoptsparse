@@ -71,7 +71,7 @@ def figure_edit(axes, parent=None):
     if axes.legend_ is not None:
         old_legend = axes.get_legend()
         _draggable = old_legend._draggable is not None
-        _ncol = old_legend._ncol
+        _ncol = old_legend._ncol if hasattr(old_legend, "_ncol") else 1
         _fontsize = int(old_legend._fontsize)
         _frameon = old_legend.get_frame_on()
         _framecolor = mcolors.to_hex(mcolors.to_rgba(old_legend.get_frame().get_edgecolor()), keep_alpha=True)
