@@ -13,8 +13,7 @@ py3_target.install_sources(
 
 asset_sources = [
     'assets/nicePlotsStyle',
-    'assets/OptViewIcon.gif',
-    'assets/mdoLabLogo.png',
+    'assets/OptViewIcon.png',
     'assets/pyOptSparse_logo.png',
 ]
 
