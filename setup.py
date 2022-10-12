@@ -38,6 +38,8 @@ def run_meson_build():
     with open(setup_log, "wb") as f:
         f.write(p1.stdout)
     if p1.returncode != 0:
+        with open(setup_log, "r") as f:
+            print(f.read())
         raise OSError(sysargs, f"The meson setup command failed! Check the log at {setup_log} for more information.")
 
     # build
@@ -48,6 +50,8 @@ def run_meson_build():
     with open(compile_log, "wb") as f:
         f.write(p2.stdout)
     if p2.returncode != 0:
+        with open(compile_log, "r") as f:
+            print(f.read())
         raise OSError(
             sysargs, f"The meson compile command failed! Check the log at {compile_log} for more information."
         )
