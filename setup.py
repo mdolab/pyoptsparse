@@ -1,8 +1,11 @@
+# Standard Python modules
 import os
 import re
 import shutil
-import setuptools
 import subprocess
+
+# External modules
+import setuptools
 
 
 def run_meson_build():
@@ -105,7 +108,7 @@ if __name__ == "__main__":
         ],
         extras_require={
             "testing": ["testflo>=1.4.5", "parametrized"],
-            "optview": ["PyQt5>=5.15.6", "matplotlib>=3.5.1", "qdarkstyle>=3.0.3"],
+            "optview": ["PyQt6>=6.4.0", "matplotlib>=3.5.1"],
             "docs": docs_require,
         },
         classifiers=[

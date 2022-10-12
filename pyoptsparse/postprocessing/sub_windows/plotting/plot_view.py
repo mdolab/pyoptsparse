@@ -3,7 +3,7 @@ import os
 
 # External modules
 from PIL import Image
-from PyQt5.QtWidgets import QSizePolicy, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QSizePolicy, QVBoxLayout, QWidget
 import matplotlib
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
@@ -42,7 +42,7 @@ class MplCanvas(FigureCanvasQTAgg):
 
         # Set the size policy so the plot can be resized with the parent
         # view
-        FigureCanvasQTAgg.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
+        FigureCanvasQTAgg.setSizePolicy(self, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         FigureCanvasQTAgg.updateGeometry(self)
 
     def addImage(self):
@@ -62,7 +62,7 @@ class PlotView(QWidget, View):
 
         Parameters
         ----------
-        parent : PyQt5.QtWidgets.QWidget, optional
+        parent : PyQt6.QtWidgets.QWidget, optional
             Parent Window, by default None
         width : int, optional
             Figure Width, by default 10

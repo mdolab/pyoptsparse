@@ -1,5 +1,5 @@
 # External modules
-from PyQt5.QtWidgets import QDialog, QTableWidget
+from PyQt6.QtWidgets import QDialog, QTableWidget
 from pyoptsparse.postprocessing.baseclasses.view import View
 
 
@@ -10,7 +10,7 @@ class YTableWidget(QTableWidget, View):
 
         Parameters
         ----------
-        parent : PyQt5.QtWidgets.QDialog, optional
+        parent : PyQt6.QtWidgets.QDialog, optional
             The parent view, by default None
         """
         super(YTableWidget, self).__init__(parent)

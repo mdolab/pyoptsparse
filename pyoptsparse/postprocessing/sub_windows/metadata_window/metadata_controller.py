@@ -1,6 +1,6 @@
 # External modules
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QFileDialog
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QFileDialog
 
 # First party modules
 from pyoptsparse.postprocessing.baseclasses.controller import Controller
@@ -29,13 +29,9 @@ class MetadataController(Controller):
         Opens a file dialog to get user input for adding a new history
         file.
         """
-        # --- Set file dialog options ---
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-
         # --- Open file dialog and get selected user files ---
         file_names, _ = QFileDialog.getOpenFileNames(
-            self._view, "Open History File", "", "History File (*.hst)", options=options
+            self._view, "Open History File", "", "History File (*.hst)", options=QFileDialog.Option.DontUseNativeDialog
         )
 
         # --- Load files into the model ---
@@ -84,7 +80,7 @@ class MetadataController(Controller):
         """
         table = self._view.opt_prob_table
         row_count = table.rowCount()
-        sel_items = table.findItems(s, Qt.MatchContains)
+        sel_items = table.findItems(s, Qt.MatchFlag.MatchContains)
 
         rows_to_show = set()
         for item in sel_items:

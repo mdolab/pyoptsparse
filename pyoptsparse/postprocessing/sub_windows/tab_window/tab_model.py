@@ -1,9 +1,10 @@
 # Standard Python modules
 from typing import List
+from copy import copy
 
 # External modules
-from PyQt5.QtCore import QTimer
-from PyQt5.QtWidgets import QDialog
+from PyQt6.QtCore import QTimer
+from PyQt6.QtWidgets import QDialog
 
 # First party modules
 from pyoptsparse.postprocessing.baseclasses.model import Model
@@ -54,7 +55,7 @@ class TabModel(Model):
         ----------
         plot : Model
             The plot model being added.
-        view : PyQt5.QtWidgets.QDialog
+        view : PyQt6.QtWidgets.QDialog
             The plot configuration sub view being added.
         """
         self.plots.append(plot)
@@ -72,7 +73,7 @@ class TabModel(Model):
 
         Returns
         -------
-        PyQt5.QtWidgets.QDialog
+        PyQt6.QtWidgets.QDialog
             The sub view associated with the plot being removed.
         """
         # --- Remove the plot object and clear the figure ---
@@ -111,3 +112,6 @@ class TabModel(Model):
         self.canvas.fig.clf()
         for i, p in enumerate(self.plots):
             p.update_axis(self.canvas.fig.add_subplot(int(f"{num_plots}1{i+1}"), label=f"Plot {i}"))
+
+    def draw_canvas(self):
+        self.canvas.draw()

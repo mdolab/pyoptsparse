@@ -2,15 +2,15 @@
 from typing import List
 
 # External modules
-from PyQt5.QtWidgets import QApplication, QInputDialog, QLineEdit
-import qdarkstyle
+from PyQt6.QtWidgets import QApplication, QInputDialog, QLineEdit
 
 # First party modules
+from pyoptsparse.postprocessing.baseclasses.controller import Controller
 from pyoptsparse.postprocessing.sub_windows.settings_window.settings_controller import SettingsController
+from pyoptsparse.postprocessing.sub_windows.settings_window.settings_model import SettingsModel
 from pyoptsparse.postprocessing.sub_windows.settings_window.settings_view import SettingsView
 from pyoptsparse.postprocessing.sub_windows.tab_window.tab_controller import TabController
 from pyoptsparse.postprocessing.sub_windows.tab_window.tab_view import TabView
-from pyoptsparse.postprocessing.baseclasses.controller import Controller
 
 
 class OptViewController(Controller):
@@ -21,7 +21,7 @@ class OptViewController(Controller):
 
         Parameters
         ----------
-        view : PyQt5.QtWidgets.QWidget
+        view : PyQt6.QtWidgets.QWidget
             MainView instance.
         """
         super(OptViewController, self).__init__()
@@ -48,14 +48,6 @@ class OptViewController(Controller):
             The index of the current tab.
         """
         self.view.tabs.removeTab(current_index)
-
-    def toggleDarkMode(self):
-        app = QApplication.instance()
-        if not self._dark_mode:
-            self._dark_mode = True
-            app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-        else:
-            app.setStyleSheet("")
 
     def configure_settings(self):
         SettingsView(parent=self.view, controller=self._settings_controller)

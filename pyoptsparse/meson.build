@@ -72,9 +72,9 @@ subdir('pyCONMIN')
 subdir('pyNLPQLP')
 subdir('pyNSGA2')
 subdir('pyPSQP')
+subdir('postprocessing')
 #subdir('pyALPSO')
 #subdir('pyParOpt')
-#subdir('postprocessing')
 
 # test imports
 # envdata = environment()

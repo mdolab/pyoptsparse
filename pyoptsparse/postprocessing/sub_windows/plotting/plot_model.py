@@ -76,7 +76,6 @@ class PlotModel(Model):
         """
         for artist in self.axis.lines + self.axis.collections:
             artist.remove()
-        self.axis.clear()
 
     def plot(self):
         """
@@ -90,6 +89,11 @@ class PlotModel(Model):
                     x_data = self.x_var.data_major
                 else:
                     x_data = np.arange(0, len(y_var.data_minor), 1)
+            else:
+                if self.x_var.options["major"]:
+                    x_data = self.x_var.data_major
+                else:
+                    x_data = self.x_var.data_minor
 
             if y_var.options["major"]:
                 y_data = y_var.data_major
@@ -132,6 +136,9 @@ class PlotModel(Model):
                             path_effects=[patheffects.withTickedStroke(angle=-135)],
                             label=label,
                         )
+
+        if self.axis.legend_ is not None:
+            self.axis.legend()
 
         self.axis.relim()
         self.axis.autoscale_view()

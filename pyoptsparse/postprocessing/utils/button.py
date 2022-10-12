@@ -1,11 +1,11 @@
 # External modules
-from PyQt5.QtWidgets import QPushButton
+from PyQt6.QtWidgets import QPushButton
 
 
 class Button(QPushButton):
     def __init__(self, *args, **kwargs):
         """
-        Inherits the PyQt5 push button class and implements a custom
+        Inherits the PyQt6 push button class and implements a custom
         button format.
         """
         super().__init__(*args, **kwargs)

@@ -1,24 +1,33 @@
 # External modules
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QComboBox, QDialog, QHBoxLayout, QLineEdit, QTreeWidget, QVBoxLayout, QWidget
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (
+    QComboBox,
+    QDialog,
+    QHBoxLayout,
+    QLineEdit,
+    QTreeWidget,
+    QVBoxLayout,
+    QWidget,
+    QStackedWidget,
+)
 
 # First party modules
 from pyoptsparse.postprocessing.baseclasses.controller import Controller
+from pyoptsparse.postprocessing.baseclasses.view import View
 from pyoptsparse.postprocessing.sub_windows.variables.x_view import XTableWidget
 from pyoptsparse.postprocessing.sub_windows.variables.y_view import YTableWidget
 from pyoptsparse.postprocessing.utils.button import Button
 from pyoptsparse.postprocessing.utils.combo_box import ExtendedComboBox
-from pyoptsparse.postprocessing.baseclasses.view import View
 
 
-class ConfigurePlotView(QDialog, View):
+class ConfigurePlotView(QDialog, QStackedWidget, View):
     def __init__(self, parent: QWidget, controller: Controller, name: str):
         """
         The view for the plot configuration window.
 
         Parameters
         ----------
-        parent : PyQt5.QtWidgets.QWidget
+        parent : PyQt6.QtWidgets.QWidget
             The parent tab view.
         controller : Controller
             The configure plot controller linked to this view.
@@ -57,7 +66,7 @@ class ConfigurePlotView(QDialog, View):
         # ==============================================================
         # --- Add file(s) button ---
         self.add_file_btn = Button("Add file(s)", self)
-        self.add_file_btn.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.add_file_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.add_file_btn.clicked.connect(self._controller.add_file)
         left_layout.addWidget(self.add_file_btn)
 
@@ -83,13 +92,13 @@ class ConfigurePlotView(QDialog, View):
 
         # --- Add selected variables button ---
         self.add_sel_btn = Button("Add Selected Variables")
-        self.add_sel_btn.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.add_sel_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.add_sel_btn.clicked.connect(self._controller.add_selected_vars)
         right_button_layout.addWidget(self.add_sel_btn)
 
         # --- Remove selected variables button ---
         self.rem_sel_btn = Button("Remove Selected Variables")
-        self.rem_sel_btn.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.rem_sel_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.rem_sel_btn.clicked.connect(self._controller.rem_selected_vars)
         right_button_layout.addWidget(self.rem_sel_btn)
 
@@ -101,7 +110,7 @@ class ConfigurePlotView(QDialog, View):
         # X-Variables - Middle Right Layout
         # ==============================================================
         self.x_cbox = ExtendedComboBox(self)
-        self.x_cbox.setInsertPolicy(QComboBox.NoInsert)
+        self.x_cbox.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
         self.x_cbox.setToolTip("Type to search for variables")
         self.x_cbox.activated.connect(self._controller.add_x_var)
         right_layout.addWidget(self.x_cbox)

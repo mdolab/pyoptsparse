@@ -1,7 +1,7 @@
 # External modules
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QAbstractItemView, QHBoxLayout, QLabel, QShortcut, QTreeWidget, QVBoxLayout, QWidget
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QKeySequence, QShortcut
+from PyQt6.QtWidgets import QAbstractItemView, QHBoxLayout, QLabel, QTreeWidget, QVBoxLayout, QWidget
 
 # First party modules
 from pyoptsparse.postprocessing.baseclasses.controller import Controller
@@ -19,7 +19,7 @@ class TabView(QWidget, View):
 
         Parameters
         ----------
-        parent : PyQt5.QtWidgets.QWidget, optional
+        parent : PyQt6.QtWidgets.QWidget, optional
             The parent view, by default None
         controller : Controller, optional
             The tab controller, by default None
@@ -49,19 +49,12 @@ class TabView(QWidget, View):
         # ==============================================================
         # Keyboard Shortcuts
         # ==============================================================
-        self.add_file_action = QShortcut(QKeySequence("Ctrl+o"), self)
-        self.add_plot_action = QShortcut(QKeySequence("Ctrl+p"), self)
-        self.figure_options_action = QShortcut(QKeySequence("Ctrl+f"), self)
+        self.add_file_action = QShortcut(QKeySequence.StandardKey.Open, self)
+        self.add_plot_action = QShortcut(QKeySequence(QKeySequence.StandardKey.New), self)
+        self.figure_options_action = QShortcut(QKeySequence.StandardKey.Find, self)
         self.tight_layout_action = QShortcut(QKeySequence("Ctrl+t"), self)
-        self.save_figure_action = QShortcut(QKeySequence("Ctrl+s"), self)
-        self.figure_home_action = QShortcut(QKeySequence("Ctrl+Shift+h"), self)
-
-        self._controller.add_shortcut(self.add_file_action, "Opens the add file menu.")
-        self._controller.add_shortcut(self.add_plot_action, "Add a subplot to the figure.")
-        self._controller.add_shortcut(self.figure_options_action, "Opens the figure options menu.")
-        self._controller.add_shortcut(self.tight_layout_action, "Applies the tight layout format to the figure.")
-        self._controller.add_shortcut(self.save_figure_action, "Opens the save figure menu.")
-        self._controller.add_shortcut(self.figure_home_action, "Resets the figure to the default home view.")
+        self.save_figure_action = QShortcut(QKeySequence(QKeySequence.StandardKey.Save), self)
+        self.figure_home_action = QShortcut(QKeySequence(QKeySequence.StandardKey.SelectStartOfDocument), self)
 
         self.add_file_action.activated.connect(self._controller.open_files)
         self.add_plot_action.activated.connect(self._controller.add_plot)
@@ -74,8 +67,8 @@ class TabView(QWidget, View):
         # Plot List - Left most column of Sub Layout
         # ==============================================================
         self.plot_list = PlotList(self, self._controller)
-        self.plot_list.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.plot_list.setDragDropMode(QAbstractItemView.InternalMove)
+        self.plot_list.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.plot_list.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
         bottom_layout.addWidget(self.plot_list, 3)
 
         # ==============================================================
@@ -126,7 +119,7 @@ class TabView(QWidget, View):
 
         # Still need to add and align each widget even though they are set as buddies
         refresh_layout.addWidget(self.auto_refresh_lbl)
-        refresh_layout.addWidget(self.auto_refresh_togg, alignment=Qt.AlignRight)
+        refresh_layout.addWidget(self.auto_refresh_togg, alignment=Qt.AlignmentFlag.AlignRight)
 
         # --- Set the main layout ---
         self.setLayout(layout)

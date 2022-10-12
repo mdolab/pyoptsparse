@@ -5,15 +5,12 @@ import sys
 from typing import List
 
 # External modules
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QAction, QApplication, QMenuBar, QTabWidget, QVBoxLayout, QWidget, qApp
+from PyQt6.QtGui import QAction, QIcon, QKeySequence, QShortcut
+from PyQt6.QtWidgets import QApplication, QMenuBar, QTabWidget, QVBoxLayout, QWidget
 
 # First party modules
 from pyoptsparse.postprocessing.baseclasses.view import View
 from pyoptsparse.postprocessing.opt_view_controller import OptViewController
-
-QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 
 
 class MainView(QWidget, View):
@@ -56,23 +53,21 @@ class MainView(QWidget, View):
         # --- Add file sub-directory with sub-actions ---
         file_menu = menu_bar.addMenu("File")
 
-        self.new_tab_action = QAction("New Tab...", self)
-        self.new_tab_action.triggered.connect(lambda: self._controller.addTab(interactive=True))
-        file_menu.addAction(self.new_tab_action)
+        self.new_tab_menu = QAction("New Tab...", self)
+        self.new_tab_menu.triggered.connect(lambda: self._controller.addTab(interactive=True))
+        file_menu.addAction(self.new_tab_menu)
 
-        self.dark_mode_action = QAction("Dark Mode", self, checkable=True)
-        self.dark_mode_action.setStatusTip("Toggle Dark/Light Mode")
-        self.dark_mode_action.triggered.connect(self._controller.toggleDarkMode)
-        file_menu.addAction(self.dark_mode_action)
+        self.settings_menu = QAction("Help/Settings...", self)
+        self.settings_menu.setStatusTip("View OptView settings")
+        self.settings_menu.triggered.connect(self._controller.configure_settings)
+        file_menu.addAction(self.settings_menu)
 
-        self.settings_action = QAction("OptView Settings...", self)
-        self.settings_action.setStatusTip("View/Configure OptView settings")
-        self.settings_action.triggered.connect(self._controller.configure_settings)
-        file_menu.addAction(self.settings_action)
+        self.exit_menu = QAction("Close", self)
+        self.exit_menu.triggered.connect(QApplication.quit)
+        file_menu.addAction(self.exit_menu)
 
-        self.exit_action = QAction("Close", self)
-        self.exit_action.triggered.connect(qApp.quit)
-        file_menu.addAction(self.exit_action)
+        self.settings_menu_action = QShortcut(QKeySequence("Alt+h"), self)
+        self.settings_menu_action.activated.connect(self._controller.configure_settings)
 
         self.layout.addWidget(menu_bar)
 
@@ -123,4 +118,4 @@ def main():
     MainView(file_names=args.files)
 
     # This launches the app
-    sys.exit(app.exec_())
+    app.exec()

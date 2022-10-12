@@ -1,5 +1,5 @@
 # External modules
-from PyQt5.QtWidgets import QDialog, QTableWidget
+from PyQt6.QtWidgets import QDialog, QTableWidget
 
 # First party modules
 from pyoptsparse.postprocessing.baseclasses.controller import Controller
@@ -13,7 +13,7 @@ class XTableWidget(QTableWidget, View):
 
         Parameters
         ----------
-        parent : PyQt5.QtWidgets.QDialog, optional
+        parent : PyQt6.QtWidgets.QDialog, optional
             The parent view, by default None
         """
         super(XTableWidget, self).__init__(parent)

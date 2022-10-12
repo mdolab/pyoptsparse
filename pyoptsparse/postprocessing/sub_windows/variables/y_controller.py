@@ -1,6 +1,6 @@
 # External modules
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QCheckBox, QTableWidget, QTableWidgetItem
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QCheckBox, QTableWidget, QTableWidgetItem
 
 # First party modules
 from pyoptsparse.postprocessing.baseclasses.controller import Controller
@@ -34,7 +34,7 @@ class YController(Controller):
 
         Parameters
         ----------
-        view : PyQt5.QtWidgets.QTableWidget
+        view : PyQt6.QtWidgets.QTableWidget
             The view for this controller.
         """
         self._view = view
@@ -52,7 +52,7 @@ class YController(Controller):
         for var in current_file.y_vars.values():
             self.add_row(var)
 
-        self._view.sortItems(0, QtCore.Qt.AscendingOrder)
+        self._view.sortItems(0, Qt.SortOrder.AscendingOrder)
 
         # Find all variables that are in the plot, highlight them in
         # green, and link the table variable to the plot variable
@@ -97,11 +97,11 @@ class YController(Controller):
         self._view.setItem(row, 0, var_item)
 
         idx_item = QTableWidgetItem(f"{var_item.getVar().idx}")
-        idx_item.setFlags(QtCore.Qt.ItemIsEnabled)
+        idx_item.setFlags(Qt.ItemFlag.ItemIsEnabled)
         self._view.setItem(row, 1, idx_item)
 
         scaled_opt_item = QTableWidgetItem()
-        scaled_opt_item.setFlags(QtCore.Qt.ItemIsEnabled)
+        scaled_opt_item.setFlags(Qt.ItemFlag.ItemIsEnabled)
         scaled_opt_chbx = QCheckBox(self._view)
         scaled_opt_chbx.setChecked(False)
         scaled_opt_chbx.stateChanged.connect(self.scale_opt_set)
@@ -109,7 +109,7 @@ class YController(Controller):
         self._view.setCellWidget(row, 2, scaled_opt_chbx)
 
         bounds_opt_item = QTableWidgetItem()
-        bounds_opt_item.setFlags(QtCore.Qt.ItemIsEnabled)
+        bounds_opt_item.setFlags(Qt.ItemFlag.ItemIsEnabled)
         bounds_opt_chbx = QCheckBox(self._view)
         bounds_opt_chbx.setChecked(False)
         bounds_opt_chbx.stateChanged.connect(self.bounds_opt_set)
@@ -117,17 +117,17 @@ class YController(Controller):
         self._view.setCellWidget(row, 3, bounds_opt_chbx)
 
         add_btn = Button("Add", self._view)
-        add_btn.setFocusPolicy(QtCore.Qt.NoFocus)
+        add_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         add_item = QTableWidgetItem()
-        add_item.setFlags(QtCore.Qt.ItemIsEnabled)
+        add_item.setFlags(Qt.ItemFlag.ItemIsEnabled)
         add_btn.clicked.connect(self.add_var_to_plot)
         self._view.setItem(row, 4, add_item)
         self._view.setCellWidget(row, 4, add_btn)
 
         rem_btn = Button("Remove", self._view)
-        rem_btn.setFocusPolicy(QtCore.Qt.NoFocus)
+        rem_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         rem_item = QTableWidgetItem()
-        rem_item.setFlags(QtCore.Qt.ItemIsEnabled)
+        rem_item.setFlags(Qt.ItemFlag.ItemIsEnabled)
         rem_btn.clicked.connect(self.remove_var_from_plot)
         self._view.setItem(row, 5, rem_item)
         self._view.setCellWidget(row, 5, rem_btn)
@@ -155,7 +155,7 @@ class YController(Controller):
         selected_item.getVar().options["scaled"] = scaled_opt
 
         self._plot_model.plot()
-        self._parent_model.canvas.draw()
+        self._parent_model.draw_canvas()
 
     def bounds_opt_set(self):
         """
@@ -169,7 +169,7 @@ class YController(Controller):
         selected_item.getVar().options["bounds"] = bounds_opt
 
         self._plot_model.plot()
-        self._parent_model.canvas.draw()
+        self._parent_model.draw_canvas()
 
     def add_var_to_plot(self):
         """
@@ -186,7 +186,7 @@ class YController(Controller):
         self._plot_model.add_var(var, "y")
 
         self._plot_model.plot()
-        self._parent_model.canvas.draw()
+        self._parent_model.draw_canvas()
 
         selected_item.setRowColor(GREEN)
         self.set_row_color(index.row())
@@ -205,7 +205,7 @@ class YController(Controller):
 
         # Update the plot
         self._plot_model.plot()
-        self._parent_model.canvas.draw()
+        self._parent_model.draw_canvas()
 
         selected_item.setRowColor(selected_item.getDefaultRowColor())
         self.set_row_color(index.row())

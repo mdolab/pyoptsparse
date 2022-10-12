@@ -1,7 +1,7 @@
 # External modules
-from PyQt5.QtCore import QPropertyAnimation, QRectF, QSize, Qt, pyqtProperty
-from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import QAbstractButton, QSizePolicy, QWidget
+from PyQt6.QtCore import QPropertyAnimation, QRectF, QSize, Qt, pyqtProperty
+from PyQt6.QtGui import QPainter
+from PyQt6.QtWidgets import QAbstractButton, QSizePolicy, QWidget
 
 
 class Switch(QAbstractButton):
@@ -13,7 +13,7 @@ class Switch(QAbstractButton):
 
         Parameters
         ----------
-        parent : PyQt5.QtWidgets.QWidget
+        parent : PyQt6.QtWidgets.QWidget
             The parent view, default = None
         track_radius : int
             The radius of the slider track, default = 10
@@ -22,7 +22,7 @@ class Switch(QAbstractButton):
         """
         super().__init__(parent=parent)
         self.setCheckable(True)
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
 
         self._track_radius = track_radius
         self._thumb_radius = thumb_radius
@@ -136,8 +136,8 @@ class Switch(QAbstractButton):
             The event that triggered the paint call.
         """
         p = QPainter(self)
-        p.setRenderHint(QPainter.Antialiasing, True)
-        p.setPen(Qt.NoPen)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        p.setPen(Qt.PenStyle.NoPen)
         track_opacity = self._track_opacity
         thumb_opacity = 1.0
         text_opacity = 1.0
@@ -181,7 +181,7 @@ class Switch(QAbstractButton):
                 2 * self._thumb_radius,
                 2 * self._thumb_radius,
             ),
-            Qt.AlignCenter,
+            Qt.AlignmentFlag.AlignCenter,
             self._thumb_text[self.isChecked()],
         )
 
@@ -196,7 +196,7 @@ class Switch(QAbstractButton):
             The mouse release event that triggered the call.
         """
         super().mouseReleaseEvent(event)
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             anim = QPropertyAnimation(self, b"offset", self)
             anim.setDuration(120)
             anim.setStartValue(self.offset)
@@ -213,5 +213,5 @@ class Switch(QAbstractButton):
         event
             The enter key event that triggered the call.
         """
-        self.setCursor(Qt.PointingHandCursor)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
         super().enterEvent(event)

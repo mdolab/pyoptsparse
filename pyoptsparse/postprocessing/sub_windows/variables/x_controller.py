@@ -1,5 +1,5 @@
 # External modules
-from PyQt5.QtWidgets import QMessageBox, QTableWidget
+from PyQt6.QtWidgets import QMessageBox, QTableWidget
 
 # First party modules
 from pyoptsparse.postprocessing.baseclasses.controller import Controller
@@ -31,7 +31,7 @@ class XController(Controller):
 
         Parameters
         ----------
-        view : PyQt5.QtWidgets.QTableWidget
+        view : PyQt6.QtWidgets.QTableWidget
             The view for this controller.
         """
         self._view = view

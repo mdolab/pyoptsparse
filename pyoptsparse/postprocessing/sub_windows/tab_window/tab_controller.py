@@ -2,10 +2,11 @@
 from typing import List
 
 # External modules
-from PyQt5.QtWidgets import QFileDialog, QInputDialog, QListWidgetItem, QMessageBox, QWidget
+from PyQt6.QtWidgets import QFileDialog, QInputDialog, QListWidgetItem, QMessageBox, QWidget
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
 # First party modules
+from pyoptsparse.postprocessing.baseclasses.controller import Controller
 from pyoptsparse.postprocessing.sub_windows.configure_plot_window.configure_controller import ConfigureController
 from pyoptsparse.postprocessing.sub_windows.configure_plot_window.configure_view import ConfigurePlotView
 from pyoptsparse.postprocessing.sub_windows.metadata_window.metadata_controller import MetadataController
@@ -13,7 +14,6 @@ from pyoptsparse.postprocessing.sub_windows.metadata_window.metadata_model impor
 from pyoptsparse.postprocessing.sub_windows.metadata_window.metadata_view import MetadataView
 from pyoptsparse.postprocessing.sub_windows.plotting.plot_model import PlotModel
 from pyoptsparse.postprocessing.sub_windows.tab_window.tab_model import TabModel
-from pyoptsparse.postprocessing.baseclasses.controller import Controller
 from pyoptsparse.postprocessing.utils.widgets import FileTreeWidgetItem, PlotListWidget
 
 
@@ -24,7 +24,7 @@ class TabController(Controller):
 
         Parameters
         ----------
-        root : PyQt5.QtWidgets.QWidget
+        root : PyQt6.QtWidgets.QWidget
             The OptView main view
         file_names : List, optional
             Names of files to be pre-loaded in to the model,
@@ -39,13 +39,9 @@ class TabController(Controller):
         """
         Opens a file dialog for the user to load files into the model.
         """
-        # --- Set file dialog options ---
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-
         # --- Open file dialog and get selected user files ---
         file_names, _ = QFileDialog.getOpenFileNames(
-            self._view, "Open History File", "", "History File (*.hst)", options=options
+            self._view, "Open History File", "", "History File (*.hst)", options=QFileDialog.Option.DontUseNativeDialog
         )
 
         # --- Load files into the model ---

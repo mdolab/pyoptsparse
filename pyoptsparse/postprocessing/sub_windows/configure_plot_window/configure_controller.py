@@ -1,13 +1,13 @@
 # External modules
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QFileDialog
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QFileDialog
 
 # First party modules
+from pyoptsparse.postprocessing.baseclasses.controller import Controller
+from pyoptsparse.postprocessing.baseclasses.model import Model
 from pyoptsparse.postprocessing.sub_windows.configure_plot_window.configure_model import ConfigureModel
 from pyoptsparse.postprocessing.sub_windows.variables.x_controller import XController
 from pyoptsparse.postprocessing.sub_windows.variables.y_controller import YController
-from pyoptsparse.postprocessing.baseclasses.controller import Controller
-from pyoptsparse.postprocessing.baseclasses.model import Model
 from pyoptsparse.postprocessing.utils.colors import GREEN
 from pyoptsparse.postprocessing.utils.widgets import FileTreeWidgetItem, VarTableWidgetItem
 
@@ -56,13 +56,9 @@ class ConfigureController(Controller):
         Opens a file dialog to get user input for adding a new history
         file.
         """
-        # --- Set file dialog options ---
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-
         # --- Open file dialog and get selected user files ---
         file_names, _ = QFileDialog.getOpenFileNames(
-            self._view, "Open History File", "", "History File (*.hst)", options=options
+            self._view, "Open History File", "", "History File (*.hst)", options=QFileDialog.Option.DontUseNativeDialog
         )
 
         # --- Load files into the model ---
@@ -151,6 +147,9 @@ class ConfigureController(Controller):
         var_item.var = x_var
         self._xtable_controller.add_row(var_item)
 
+        self._plot_model.plot()
+        self._parent_model.canvas.draw()
+
     def y_var_search(self, s: str):
         """
         Searches the y-variable table for the string input.
@@ -162,7 +161,7 @@ class ConfigureController(Controller):
         """
         table = self._view.y_table
         row_count = table.rowCount()
-        sel_items = table.findItems(s, Qt.MatchContains)
+        sel_items = table.findItems(s, Qt.MatchFlag.MatchContains)
 
         rows_to_show = set()
         for item in sel_items:

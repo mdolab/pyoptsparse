@@ -1,11 +1,10 @@
 # External modules
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QListWidget, QListWidgetItem, QTabWidget, QVBoxLayout, QWidget
+from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import QDialog, QDialogButtonBox, QTableWidget, QTabWidget, QVBoxLayout, QWidget, QHeaderView
 
 # First party modules
 from pyoptsparse.postprocessing.baseclasses.controller import Controller
 from pyoptsparse.postprocessing.baseclasses.view import View
-from pyoptsparse.postprocessing.utils.widgets import DarkModeListWidget
 
 
 class SettingsView(QDialog, View):
@@ -26,13 +25,12 @@ class SettingsView(QDialog, View):
         self.tabs.setTabsClosable(False)
 
         # --- Add the first tab to the view ---
-        self.tabs.addTab(AppearanceSettingsView(parent=self, controller=self._controller), "Appearance")
         self.tabs.addTab(KeyboardShortuctsView(parent=self, controller=self._controller), "Keyboard Shortcuts")
         self.tabs.addTab(MplRcParametersView(parent=self, controller=self._controller), "Matplotlib RC Parameters")
-        layout.addWidget(self.tabs, 3)
+        layout.addWidget(self.tabs, 2)
 
         btnBox = QDialogButtonBox()
-        btnBox.setStandardButtons(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        btnBox.setStandardButtons(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         btnBox.accepted.connect(self.accept)
         btnBox.rejected.connect(self.reject)
         layout.addWidget(btnBox)
@@ -42,30 +40,6 @@ class SettingsView(QDialog, View):
 
         # --- Show the view ---
         self.show()
-
-
-class AppearanceSettingsView(QWidget, View):
-    def __init__(self, parent: QDialog = None, controller: Controller = None):
-        super(AppearanceSettingsView, self).__init__(parent)
-        self._controller = controller
-        self._controller.appearance_view = self
-
-        self._initUI()
-
-    def _initUI(self):
-        layout = QVBoxLayout()
-
-        self.widget_list = QListWidget(self)
-        layout.addWidget(self.widget_list)
-
-        dark_mode_item = QListWidgetItem(self.widget_list)
-        dark_mode_item.setFlags(Qt.NoItemFlags)
-        dark_mode_widget = DarkModeListWidget(self.widget_list, self._controller)
-        dark_mode_item.setSizeHint(dark_mode_widget.sizeHint())
-        self.widget_list.addItem(dark_mode_item)
-        self.widget_list.setItemWidget(dark_mode_item, dark_mode_widget)
-
-        self.setLayout(layout)
 
 
 class KeyboardShortuctsView(QWidget, View):
@@ -78,8 +52,17 @@ class KeyboardShortuctsView(QWidget, View):
 
     def _initUI(self):
         layout = QVBoxLayout()
-        self.shortcut_list = QListWidget(self)
-        layout.addWidget(self.shortcut_list)
+        self.shortcut_table = QTableWidget(self)
+        font = QFont()
+        font.setPointSize(16)
+        self.shortcut_table.setFont(font)
+        self.shortcut_table.setShowGrid(False)
+        self.shortcut_table.verticalHeader().setVisible(False)
+        self.shortcut_table.setColumnCount(2)
+        self.shortcut_table.setHorizontalHeaderLabels(["Sequence", "Description"])
+        self.shortcut_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        self.shortcut_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        layout.addWidget(self.shortcut_table)
 
         self.setLayout(layout)
 
@@ -95,7 +78,16 @@ class MplRcParametersView(QWidget, View):
 
     def _initUI(self):
         layout = QVBoxLayout()
-        self.param_list = QListWidget(self)
-        layout.addWidget(self.param_list)
+        self.rc_table = QTableWidget(self)
+        font = QFont()
+        font.setPointSize(16)
+        self.rc_table.setFont(font)
+        self.rc_table.setShowGrid(False)
+        self.rc_table.verticalHeader().setVisible(False)
+        self.rc_table.setColumnCount(2)
+        self.rc_table.setHorizontalHeaderLabels(["Parameter", "Value"])
+        self.rc_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        self.rc_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        layout.addWidget(self.rc_table)
 
         self.setLayout(layout)

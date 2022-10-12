@@ -1,6 +1,6 @@
 # External modules
-from PyQt5.QtCore import QSortFilterProxyModel, Qt
-from PyQt5.QtWidgets import QComboBox, QCompleter, QWidget
+from PyQt6.QtCore import QSortFilterProxyModel, Qt
+from PyQt6.QtWidgets import QComboBox, QCompleter, QWidget
 
 
 class ExtendedComboBox(QComboBox):
@@ -11,23 +11,23 @@ class ExtendedComboBox(QComboBox):
 
         Parameters
         ----------
-        parent : PyQt5.QtWidgets.QWidget, optional
+        parent : PyQt6.QtWidgets.QWidget, optional
             The parent view, by default None
         """
         super(ExtendedComboBox, self).__init__(parent)
 
-        self.setFocusPolicy(Qt.StrongFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setEditable(True)
 
         # add a filter model to filter matching items
         self.pFilterModel = QSortFilterProxyModel(self)
-        self.pFilterModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.pFilterModel.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.pFilterModel.setSourceModel(self.model())
 
         # add a completer, which uses the filter model
         self.completer = QCompleter(self.pFilterModel, self)
         # always show all (filtered) completions
-        self.completer.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
+        self.completer.setCompletionMode(QCompleter.CompletionMode.UnfilteredPopupCompletion)
         self.setCompleter(self.completer)
 
         # connect signals
@@ -40,7 +40,6 @@ class ExtendedComboBox(QComboBox):
         if text:
             index = self.findText(text)
             self.setCurrentIndex(index)
-            self.activated[str].emit(self.itemText(index))
 
     # on model change, update the models of the filter and completer
     # as well

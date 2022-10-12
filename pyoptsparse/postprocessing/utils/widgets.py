@@ -1,13 +1,12 @@
 # External modules
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QDropEvent, QKeySequence
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QDropEvent, QKeySequence, QShortcut
+from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
     QListWidget,
     QPushButton,
-    QShortcut,
     QTableWidgetItem,
     QTreeWidgetItem,
     QWidget,
@@ -51,9 +50,6 @@ class PlotList(QListWidget, View):
         self.plot_up_action = QShortcut(QKeySequence("Ctrl+Up"), self)
         self.plot_down_action = QShortcut(QKeySequence("Ctrl+Down"), self)
 
-        self.controller.add_shortcut(self.plot_up_action, "Moves a subplot up.")
-        self.controller.add_shortcut(self.plot_down_action, "Moves a subplot down.")
-
         self.plot_up_action.activated.connect(self.movePlotUp)
         self.plot_down_action.activated.connect(self.movePlotDown)
 
@@ -78,7 +74,7 @@ class PlotListWidget(QWidget, View):
 
         Parameters
         ----------
-        parent : PyQt5.QtWidgets.QWidget, optional
+        parent : PyQt6.QtWidgets.QWidget, optional
             The parent view, by default None
         controller : Controller, optional
             Tab controller linked to the tab view., by default None

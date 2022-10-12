@@ -1,5 +1,5 @@
 # External modules
-from PyQt5 import QtGui
+from PyQt6 import QtGui
 
 # --- Color constants ---
 GREEN = QtGui.QColor(0, 255, 0, 20)

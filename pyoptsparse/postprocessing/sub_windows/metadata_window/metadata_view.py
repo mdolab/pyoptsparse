@@ -1,5 +1,5 @@
 # External modules
-from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLineEdit, QTableWidget, QTreeWidget, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QDialog, QHBoxLayout, QLineEdit, QTableWidget, QTreeWidget, QVBoxLayout, QWidget
 
 # First party modules
 from pyoptsparse.postprocessing.baseclasses.controller import Controller
@@ -14,7 +14,7 @@ class MetadataView(QDialog, View):
 
         Parameters
         ----------
-        parent : PyQt5.QtWidgets.QWidget
+        parent : PyQt6.QtWidgets.QWidget
             The parent tab view.
         controller : Controller
             The metadata view controller linked to this view.
