@@ -1,6 +1,7 @@
 # First party modules
 from pyoptsparse.postprocessing.baseclasses.model import Model
 
+
 class ConfigureModel(Model):
     def __init__(self):
         """
