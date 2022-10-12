@@ -33,7 +33,6 @@ class MainView(QWidget, View):
 
         self._center()  # centers the application in the middle of the screen
         self.setWindowTitle("OptView")  # sets the GUI title
-        self.setWindowIcon(QIcon("assets/OptViewIcon.gif"))  # sets the OptView logo
         self.resize(1200, 800)
         self._initUI()  # Initialize the UI
 
@@ -114,6 +113,7 @@ def main():
     # Setup the app and the UI
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
+    app.setWindowIcon(QIcon(os.path.join(os.path.dirname(sys.modules[__name__].__file__), "assets", "OptViewIcon.png")))
 
     MainView(file_names=args.files)
 
