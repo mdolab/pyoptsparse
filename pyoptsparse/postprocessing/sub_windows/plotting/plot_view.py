@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 import pkg_resources
 
 # First party modules
-from pyoptsparse.postprocessing.sub_windows.plotting.mpl_figureoptions import figure_edit
 from pyoptsparse.postprocessing.baseclasses.view import View
+from pyoptsparse.postprocessing.sub_windows.plotting.mpl_figureoptions import figure_edit
 
 # ======================================================================
 # Set matplotlib backend and plt style

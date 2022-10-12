@@ -1,5 +1,7 @@
 # External modules
 from PyQt6.QtWidgets import QDialog, QTableWidget
+
+# First party modules
 from pyoptsparse.postprocessing.baseclasses.view import View
 
 

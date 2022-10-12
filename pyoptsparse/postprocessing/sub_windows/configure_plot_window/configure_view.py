@@ -5,10 +5,10 @@ from PyQt6.QtWidgets import (
     QDialog,
     QHBoxLayout,
     QLineEdit,
+    QStackedWidget,
     QTreeWidget,
     QVBoxLayout,
     QWidget,
-    QStackedWidget,
 )
 
 # First party modules

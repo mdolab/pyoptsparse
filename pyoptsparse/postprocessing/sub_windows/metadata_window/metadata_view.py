@@ -3,8 +3,8 @@ from PyQt6.QtWidgets import QDialog, QHBoxLayout, QLineEdit, QTableWidget, QTree
 
 # First party modules
 from pyoptsparse.postprocessing.baseclasses.controller import Controller
-from pyoptsparse.postprocessing.utils.button import Button
 from pyoptsparse.postprocessing.baseclasses.view import View
+from pyoptsparse.postprocessing.utils.button import Button
 
 
 class MetadataView(QDialog, View):

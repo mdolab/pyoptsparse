@@ -1,6 +1,6 @@
 # External modules
 from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import QDialog, QDialogButtonBox, QTableWidget, QTabWidget, QVBoxLayout, QWidget, QHeaderView
+from PyQt6.QtWidgets import QDialog, QDialogButtonBox, QHeaderView, QTableWidget, QTabWidget, QVBoxLayout, QWidget
 
 # First party modules
 from pyoptsparse.postprocessing.baseclasses.controller import Controller
