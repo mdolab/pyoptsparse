@@ -2,12 +2,11 @@
 from typing import List
 
 # External modules
-from PyQt6.QtWidgets import QApplication, QInputDialog, QLineEdit
+from PyQt6.QtWidgets import QInputDialog, QLineEdit
 
 # First party modules
 from pyoptsparse.postprocessing.baseclasses.controller import Controller
 from pyoptsparse.postprocessing.sub_windows.settings_window.settings_controller import SettingsController
-from pyoptsparse.postprocessing.sub_windows.settings_window.settings_model import SettingsModel
 from pyoptsparse.postprocessing.sub_windows.settings_window.settings_view import SettingsView
 from pyoptsparse.postprocessing.sub_windows.tab_window.tab_controller import TabController
 from pyoptsparse.postprocessing.sub_windows.tab_window.tab_view import TabView

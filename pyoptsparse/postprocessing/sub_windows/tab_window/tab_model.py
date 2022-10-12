@@ -1,6 +1,5 @@
 # Standard Python modules
 from typing import List
-from copy import copy
 
 # External modules
 from PyQt6.QtCore import QTimer

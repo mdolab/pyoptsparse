@@ -1,9 +1,5 @@
 # External modules
-from PyQt6.QtGui import QShortcut
 from PyQt6.QtWidgets import QWidget
-
-# First party modules
-from pyoptsparse.postprocessing.sub_windows.settings_window.settings_model import SettingsModel
 
 
 class Controller(object):
