@@ -1,5 +1,5 @@
 python_sources = [
-  '__init__.py'
+  '__init__.py',
   'metadata_controller.py',
   'metadata_model.py',
   'metadata_view.py',

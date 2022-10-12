@@ -1,5 +1,5 @@
 python_sources = [
-  '__init__.py'
+  '__init__.py',
 ]
 
 py3_target.install_sources(

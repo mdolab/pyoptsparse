@@ -1,5 +1,5 @@
 python_sources = [
-  '__init__.py'
+  '__init__.py',
   'tab_controller.py',
   'tab_model.py',
   'tab_view.py',

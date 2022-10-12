@@ -1,5 +1,5 @@
 python_sources = [
-  '__init__.py'
+  '__init__.py',
   'mpl_figureoptions.py',
   'plot_model.py',
   'plot_view.py',

@@ -1,5 +1,5 @@
 python_sources = [
-  '__init__.py'
+  '__init__.py',
   'configure_controller.py',
   'configure_window.py',
   'configure_view.py',
