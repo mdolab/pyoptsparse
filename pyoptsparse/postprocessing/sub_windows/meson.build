@@ -1,6 +1,6 @@
 python_sources = [
   '__init__.py',
-  'configure_plot_windows.py',
+  'configure_plot_window.py',
   'metadata_window.py',
   'mpl_figureoptions.py',
   'plotting.py',
