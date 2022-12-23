@@ -85,6 +85,13 @@ class Solution(Optimization):
         for i in range(5, len(lines)):
             text1 += lines[i] + "\n"
 
+        inform_val = self.optInform["value"]
+        inform_text = self.optInform["text"]
+        text1 += "\n"
+        text1 += "   Exit Status\n"
+        text1 += "      Inform  Description\n"
+        text1 += f"      {inform_val:>6}  {inform_text:<0}\n"
+
         text1 += ("-" * 80) + "\n"
 
         return text1
