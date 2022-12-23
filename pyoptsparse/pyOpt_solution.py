@@ -68,7 +68,7 @@ class Solution(Optimization):
         text0 = super().__str__()
         text1 = ""
         lines = text0.split("\n")
-        lines[1] = lines[1][len("Optimization Problem -- ") :]
+        lines[1] = lines[1][len("Optimization Problem -- "):]
         for i in range(5):
             text1 += lines[i] + "\n"
 
@@ -85,10 +85,12 @@ class Solution(Optimization):
         for i in range(5, len(lines)):
             text1 += lines[i] + "\n"
 
+        inform_val = self.optInform['value']
+        inform_text = self.optInform['text']
         text1 += "\n"
         text1 += "   Exit Status\n"
         text1 += "      Inform  Description\n"
-        text1 += f"      {self.optInform['value']:>6}  {self.optInform['text']:<0}\n"
+        text1 += f"      {inform_val:>6}  {inform_text:<0}\n"
 
         text1 += ("-" * 80) + "\n"
 
