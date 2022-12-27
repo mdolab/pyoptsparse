@@ -1,8 +1,11 @@
+# Standard Python modules
 import os
 import re
 import shutil
-import setuptools
 import subprocess
+
+# External modules
+import setuptools
 
 
 def run_meson_build():
@@ -108,13 +111,9 @@ if __name__ == "__main__":
             "mdolab-baseclasses>=1.3.1",
         ],
         extras_require={
-            "optview": [
-                "dash",
-                "plotly",
-                "matplotlib",
-            ],
+            "testing": ["testflo>=1.4.5", "parametrized"],
+            "optview": ["PyQt6>=6.4.0", "matplotlib>=3.5.1"],
             "docs": docs_require,
-            "testing": ["testflo>=1.4.5", "parameterized"],
         },
         classifiers=[
             "Development Status :: 5 - Production/Stable",
@@ -138,7 +137,6 @@ if __name__ == "__main__":
         entry_points={
             "gui_scripts": [
                 "optview = pyoptsparse.postprocessing.OptView:main",
-                "optview_dash = pyoptsparse.postprocessing.OptView_dash:main",
             ]
         },
     )

@@ -1,0 +1,29 @@
+font.family : sans-serif
+font.sans-serif : CMU Bright
+font.size : 10
+
+axes.unicode_minus : False
+axes.spines.top : False
+axes.spines.right : False
+axes.labelpad : 8.0
+
+legend.columnspacing : 0.2
+legend.frameon : False
+
+patch.edgecolor : w
+
+axes.autolimit_mode : round_numbers
+axes.xmargin : 0
+axes.ymargin : 0
+
+lines.linewidth : 2.0
+
+axes.prop_cycle: cycler('color', ['e29400ff','1E90FF','E21A1A','00a650ff','800000ff','ff8f00','800080ff','00A6D6','000000ff','5a5758ff'])
+axes.edgecolor : 5a5758ff
+text.color : 5a5758ff
+axes.labelcolor : 5a5758ff
+axes.labelweight : 200
+xtick.color : 5a5758ff
+ytick.color : 5a5758ff
+
+pgf.texsystem: pdflatex
