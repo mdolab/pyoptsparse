@@ -111,7 +111,7 @@ if __name__ == "__main__":
             "optview": [
                 "dash",
                 "plotly",
-                "matplotlib",
+                "matplotlib<3.7",
             ],
             "docs": docs_require,
             "testing": ["testflo>=1.4.5", "parameterized"],
