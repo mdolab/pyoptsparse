@@ -817,7 +817,7 @@ class Optimization:
             self.finalized = True
 
     def finalizeDesignVariables(self):
-        warnings.warn("finalizeDesignVariables() is deprecated, use _finalizeDesignVariables() instead.")
+        warnings.warn("finalizeDesignVariables() is deprecated, use _finalizeDesignVariables() instead.", stacklevel=2)
         self._finalizeDesignVariables()
 
     def _finalizeDesignVariables(self):
