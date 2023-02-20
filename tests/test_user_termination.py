@@ -79,7 +79,6 @@ def setup_optProb(termcomp):
 
 
 class TestUserTerminationStatus(unittest.TestCase):
-
     optOptions = {
         "IPOPT": {
             "output_file": "{}.out",

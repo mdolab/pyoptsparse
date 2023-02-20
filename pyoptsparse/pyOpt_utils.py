@@ -224,7 +224,8 @@ def convertToCOO(mat: Union[dict, spmatrix, ndarray]):
                     + "fixed sparsity structure and explicit zeros in the matrix. "
                     + "There is no way to guarantee a fixed sparsity structure with scipy matrices "
                     + "which is what the underlying optimizers require. "
-                    + "Using scipy.sparse matrices may cause unexpected errors."
+                    + "Using scipy.sparse matrices may cause unexpected errors.",
+                    stacklevel=2,
                 )
 
                 mat = mat.tocoo()

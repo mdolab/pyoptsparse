@@ -15,7 +15,6 @@ from testing_utils import OptTest
 
 
 class TestSphere(OptTest):
-
     ## Solve unconstrained Sphere problem.
     #  This problem is scalable w.r.t. design variables number.
     #  We select a problem with 4 design variables, but the

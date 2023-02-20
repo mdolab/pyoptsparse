@@ -15,7 +15,6 @@ from testing_utils import OptTest
 
 
 class TestHS15(OptTest):
-
     ## Solve test problem HS15 from the Hock & Schittkowski collection.
     #
     #  min   100 (x2 - x1^2)^2 + (1 - x1)^2

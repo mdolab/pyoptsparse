@@ -164,7 +164,6 @@ class CONMIN(Optimizer):
             # CONMIN - Objective/Constraint Gradients Function
             # =================================================================
             def cnmngrad(n1, n2, x, f, g, ct, df, a, ic, nac):
-
                 gobj, gcon, fail = self._masterFunc(x[0:ndv], ["gobj", "gcon"])
                 df[0:ndv] = gobj.copy()
 

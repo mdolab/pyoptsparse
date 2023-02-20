@@ -231,7 +231,7 @@ class Optimization:
         if "type" in kwargs:
             varType = kwargs["type"]
             # but we also throw a deprecation warning
-            warnings.warn("The argument `type=` is deprecated. Use `varType` in the future.")
+            warnings.warn("The argument `type=` is deprecated. Use `varType` in the future.", stacklevel=2)
         # Check that the type is ok
         if varType not in ["c", "i", "d"]:
             raise Error("Type must be one of 'c' for continuous, 'i' for integer or 'd' for discrete.")
@@ -729,7 +729,6 @@ class Optimization:
         # If we're printing vertically, add an additional text array on top
         # of the already created txt array
         if verticalPrint:
-
             # It has the same width and a height corresponding to the length
             # of the longest design variable name
             newTxt = np.zeros((longestNameLength + 1, nCol), dtype=str)
@@ -739,14 +738,12 @@ class Optimization:
             # Loop through the letters in the longest design variable name
             # and add the letters for each design variable
             for i in range(longestNameLength + 2):
-
                 # Make a space between the name and the size
                 if i >= longestNameLength:
                     txt[i, :] = " "
 
                 # Loop through each design variable
                 for j, dvGroup in enumerate(self.variables):
-
                     # Print a letter in the name if any remain
                     if i < longestNameLength and i < len(dvGroup):
                         txt[i, int(varCenters[j])] = dvGroup[i]
@@ -820,7 +817,7 @@ class Optimization:
             self.finalized = True
 
     def finalizeDesignVariables(self):
-        warnings.warn("finalizeDesignVariables() is deprecated, use _finalizeDesignVariables() instead.")
+        warnings.warn("finalizeDesignVariables() is deprecated, use _finalizeDesignVariables() instead.", stacklevel=2)
         self._finalizeDesignVariables()
 
     def _finalizeDesignVariables(self):
@@ -848,7 +845,7 @@ class Optimization:
         self.ndvs = dvCounter
 
     def finalizeConstraints(self):
-        warnings.warn("finalizeConstraints() is deprecated, use _finalizeConstraints() instead.")
+        warnings.warn("finalizeConstraints() is deprecated, use _finalizeConstraints() instead.", stacklevel=2)
         self._finalizeConstraints()
 
     def _finalizeConstraints(self):
@@ -1235,7 +1232,6 @@ class Optimization:
         for iCon in self.constraints:
             con = self.constraints[iCon]
             if iCon in fcon_in:
-
                 # Make sure it is at least 1-dimensional:
                 c = np.atleast_1d(fcon_in[iCon])
                 if dtype == "d":

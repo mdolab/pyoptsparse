@@ -44,7 +44,6 @@ class OVBaseClass:
 
         # Loop over each history file name provided by the user.
         for histIndex, histFileName in enumerate(self.histList):
-
             # If they only have one history file, we don't change the keys' names
             if len(self.histList) == 1:
                 histIndex = ""
@@ -71,7 +70,6 @@ class OVBaseClass:
 
             # Specific instructions for OpenMDAO databases
             if OpenMDAO:
-
                 # Get the number of iterations by looking at the largest number
                 # in the split string names for each entry in the db
                 for string in db.keys():
@@ -108,7 +106,6 @@ class OVBaseClass:
                     pass
 
             else:
-
                 # Get the number of iterations
                 nkey = int(db["last"]) + 1
                 self.nkey = nkey
@@ -190,14 +187,11 @@ class OVBaseClass:
                     self.num_iter = length
 
     def DetermineMajorIterations(self, db, OpenMDAO):
-
         if not OpenMDAO:
-
             previousIterCounter = -1
 
             # Loop over each optimization call
             for i, iter_type in enumerate(self.iter_type):
-
                 # If this is an OpenMDAO file, the keys are of the format
                 # 'rank0:SNOPT|1', etc
                 key = "%d" % i
@@ -252,7 +246,6 @@ class OVBaseClass:
 
         # Loop over each optimization iteration
         for i, iter_type in enumerate(self.iter_type):
-
             # If this is an OpenMDAO file, the keys are of the format
             # 'rank0:SNOPT|1', etc
             if OpenMDAO:
@@ -262,13 +255,11 @@ class OVBaseClass:
 
             # Do this for both major and minor iterations
             if self.iter_type[i]:
-
                 # Get just the info in the dict for this iteration
                 iter_data = db[key][data_str]
 
                 # Loop through each key within this iteration
                 for key in sorted(iter_data):
-
                     # Format a new_key string where we append a modifier
                     # if we have multiple history files
                     new_key = key + f"{self.histIndex}"
@@ -294,11 +285,9 @@ class OVBaseClass:
 
         # Loop over each key in the metadata db
         for tag in db:
-
             # Only look at variables and unknowns
             if tag in ["Unknowns", "Parameters"]:
                 for old_item in db[tag]:
-
                     # We'll rename each item, so we need to get the old item
                     # name and modify it
                     item = old_item + f"{self.histIndex}"

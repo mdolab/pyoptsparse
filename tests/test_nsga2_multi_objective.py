@@ -46,7 +46,9 @@ class TestNSGA2(OptTest):
         # 300 generations will find x=(0,0), 200 or less will find x=(1,1)
         optOptions = {"maxGen": 200}
         if sys.platform == "win32":
-            warnings.warn("test_nsga2_multi_objective.py fails on windows with two objectives! Skipping for now.")
+            warnings.warn(
+                "test_nsga2_multi_objective.py fails on windows with two objectives! Skipping for now.", stacklevel=2
+            )
             return
         sol = self.optimize(optOptions=optOptions)
         tol = 1e-2

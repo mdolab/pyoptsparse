@@ -323,7 +323,6 @@ class SNOPT(Optimizer):
         # We make a split here: If the rank is zero we setup the
         # problem and run SNOPT, otherwise we go to the waiting loop:
         if self.optProb.comm.rank == 0:
-
             # Determine the sparsity structure of the full Jacobian
             # -----------------------------------------------------
 
