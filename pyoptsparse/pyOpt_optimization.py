@@ -729,7 +729,6 @@ class Optimization:
         # If we're printing vertically, add an additional text array on top
         # of the already created txt array
         if verticalPrint:
-
             # It has the same width and a height corresponding to the length
             # of the longest design variable name
             newTxt = np.zeros((longestNameLength + 1, nCol), dtype=str)
@@ -739,14 +738,12 @@ class Optimization:
             # Loop through the letters in the longest design variable name
             # and add the letters for each design variable
             for i in range(longestNameLength + 2):
-
                 # Make a space between the name and the size
                 if i >= longestNameLength:
                     txt[i, :] = " "
 
                 # Loop through each design variable
                 for j, dvGroup in enumerate(self.variables):
-
                     # Print a letter in the name if any remain
                     if i < longestNameLength and i < len(dvGroup):
                         txt[i, int(varCenters[j])] = dvGroup[i]
@@ -1235,7 +1232,6 @@ class Optimization:
         for iCon in self.constraints:
             con = self.constraints[iCon]
             if iCon in fcon_in:
-
                 # Make sure it is at least 1-dimensional:
                 c = np.atleast_1d(fcon_in[iCon])
                 if dtype == "d":

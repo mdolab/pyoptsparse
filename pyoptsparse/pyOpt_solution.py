@@ -7,7 +7,6 @@ from .pyOpt_optimization import Optimization
 
 class Solution(Optimization):
     def __init__(self, optProb, xStar, fStar, lambdaStar, optInform, info):
-
         """
         This class is used to describe the solution of an optimization
         problem. This class inherits from Optimization which enables a

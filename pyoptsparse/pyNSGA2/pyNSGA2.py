@@ -24,7 +24,6 @@ class NSGA2(Optimizer):
     """
 
     def __init__(self, raiseError=True, options={}):
-
         name = "NSGA-II"
         category = "Global Optimizer"
         defOpts = self._getDefaultOptions()

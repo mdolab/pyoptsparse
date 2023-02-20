@@ -26,7 +26,6 @@ class ALPSO(Optimizer):
     """
 
     def __init__(self, raiseError=True, options={}):
-
         from . import alpso
 
         self.alpso = alpso
@@ -154,7 +153,6 @@ class ALPSO(Optimizer):
             me = len(indices)
 
         if self.optProb.comm.rank == 0:
-
             # Setup argument list values
             opt = self.getOption
 

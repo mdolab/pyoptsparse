@@ -230,7 +230,6 @@ class Optimizer(BaseSolver):
         # fire it back to the specific optimizer
         timeA = time.time()
         if self.hotStart:
-
             # This is a very inexpensive check to see if point exists
             if self.hotStart.pointExists(self.callCounter):
                 # Read the actual data for this point:
@@ -242,7 +241,6 @@ class Optimizer(BaseSolver):
                 # Validated x-point point to use:
                 xuser_vec = self.optProb._mapXtoUser(x)
                 if np.isclose(xuser_vec, xuser_ref, rtol=EPS, atol=EPS).all():
-
                     # However, we may need a sens that *isn't* in the
                     # the dictionary:
                     funcs = None

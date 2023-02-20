@@ -201,7 +201,6 @@ class IPOPT(Optimizer):
         # problem and run IPOPT, otherwise we go to the waiting loop:
 
         if self.optProb.comm.rank == 0:
-
             # Now what we need for IPOPT is precisely the .row and
             # .col attributes of the fullJacobian array
             matStruct = (
