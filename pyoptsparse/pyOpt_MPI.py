@@ -65,5 +65,5 @@ else:
             + "non-gradient based optimizers. Continuing using a dummy MPI module "
             + "from pyOptSparse."
         )
-        warnings.warn(warn)
+        warnings.warn(warn, stacklevel=2)
         MPI = myMPI()

@@ -231,7 +231,7 @@ class Optimization:
         if "type" in kwargs:
             varType = kwargs["type"]
             # but we also throw a deprecation warning
-            warnings.warn("The argument `type=` is deprecated. Use `varType` in the future.")
+            warnings.warn("The argument `type=` is deprecated. Use `varType` in the future.", stacklevel=2)
         # Check that the type is ok
         if varType not in ["c", "i", "d"]:
             raise Error("Type must be one of 'c' for continuous, 'i' for integer or 'd' for discrete.")
@@ -845,7 +845,7 @@ class Optimization:
         self.ndvs = dvCounter
 
     def finalizeConstraints(self):
-        warnings.warn("finalizeConstraints() is deprecated, use _finalizeConstraints() instead.")
+        warnings.warn("finalizeConstraints() is deprecated, use _finalizeConstraints() instead.", stacklevel=2)
         self._finalizeConstraints()
 
     def _finalizeConstraints(self):
