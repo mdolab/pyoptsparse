@@ -396,11 +396,10 @@ class OptTest(unittest.TestCase):
             except OSError:
                 pass
         # remove output files
-        if self.optName in OUTPUT_FILENAMES.keys():
-            for _, suffix in OUTPUT_FILENAMES[self.optName].items():
-                fname = f"{self.id()}{suffix}"
-                if os.path.exists(fname):
-                    try:
-                        os.remove(fname)
-                    except OSError:
-                        pass
+        for _, suffix in OUTPUT_FILENAMES[self.optName].items():
+            fname = f"{self.id()}{suffix}"
+            if os.path.exists(fname):
+                try:
+                    os.remove(fname)
+                except OSError:
+                    pass
