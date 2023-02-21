@@ -41,6 +41,7 @@ class TestNSGA2(OptTest):
         self.optProb.addObj("obj2")
 
     def test_opt(self):
+        self.optName = optName
         self.setup_optProb()
 
         # 300 generations will find x=(0,0), 200 or less will find x=(1,1)
