@@ -86,6 +86,7 @@ class OptTest(unittest.TestCase):
 
     def setUp(self):
         self.histFileName = None
+        self.optName = None
 
     def assert_solution_allclose(self, sol, tol, partial_x=False):
         """
@@ -396,10 +397,11 @@ class OptTest(unittest.TestCase):
             except OSError:
                 pass
         # remove output files
-        for _, suffix in OUTPUT_FILENAMES[self.optName].items():
-            fname = f"{self.id()}{suffix}"
-            if os.path.exists(fname):
-                try:
-                    os.remove(fname)
-                except OSError:
-                    pass
+        if self.optName in OUTPUT_FILENAMES.keys():
+            for _, suffix in OUTPUT_FILENAMES[self.optName].items():
+                fname = f"{self.id()}{suffix}"
+                if os.path.exists(fname):
+                    try:
+                        os.remove(fname)
+                    except OSError:
+                        pass

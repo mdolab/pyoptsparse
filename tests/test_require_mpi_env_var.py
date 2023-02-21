@@ -54,7 +54,7 @@ class TestRequireMPIEnvVarOnParOpt(unittest.TestCase):
         try:
             from paropt import ParOpt as _ParOpt  # noqa: F401
         except ImportError:
-            raise unittest.SkipTest("Optimizer not available:", "paropt")
+            raise unittest.SkipTest("Optimizer not available: paropt")
 
     def test_require_mpi_check_paropt(self):
         os.environ["PYOPTSPARSE_REQUIRE_MPI"] = "1"
