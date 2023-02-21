@@ -86,7 +86,6 @@ class OptTest(unittest.TestCase):
 
     def setUp(self):
         self.histFileName = None
-        self.optName = None
 
     def assert_solution_allclose(self, sol, tol, partial_x=False):
         """
