@@ -150,9 +150,9 @@ class TestRosenbrock(OptTest):
 
     @parameterized.expand(["IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "ParOpt"])
     def test_optimization(self, optName):
+        self.optName = optName
         if optName == "IPOPT" and sys.platform == "win32":
             raise unittest.SkipTest()
-        self.optName = optName
         self.setup_optProb()
         optOptions = self.optOptions.pop(optName, None)
         self.optimize_with_hotstart(self.tol[optName], optOptions=optOptions)
