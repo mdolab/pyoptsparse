@@ -16,8 +16,6 @@ from testing_utils import OptTest
 
 
 class TestNSGA2(OptTest):
-    name = "quadratic"
-    optName = "NSGA2"
 
     def objfunc(self, xdict):
         x = xdict["x"]
@@ -41,7 +39,7 @@ class TestNSGA2(OptTest):
         self.optProb.addObj("obj2")
 
     def test_opt(self):
-        self.optName = optName
+        self.optName = "NSGA2"
         self.setup_optProb()
 
         # 300 generations will find x=(0,0), 200 or less will find x=(1,1)
