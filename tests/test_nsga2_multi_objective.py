@@ -16,7 +16,6 @@ from testing_utils import OptTest
 
 
 class TestNSGA2(OptTest):
-
     def objfunc(self, xdict):
         x = xdict["x"]
         y = xdict["y"]
