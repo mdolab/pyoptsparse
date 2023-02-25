@@ -54,6 +54,8 @@ class TestNSGA2(OptTest):
         tol = 1e-2
         assert_allclose(sol.variables["x"][0].value, 1.0, atol=tol, rtol=tol)
         assert_allclose(sol.variables["y"][0].value, 1.0, atol=tol, rtol=tol)
+        assert_allclose(sol.fStar["obj1"], 2.0, atol=tol, rtol=tol)
+        assert_allclose(sol.fStar["obj2"], 0.0, atol=tol, rtol=tol)
 
 
 if __name__ == "__main__":

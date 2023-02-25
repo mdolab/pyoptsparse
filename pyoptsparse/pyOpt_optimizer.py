@@ -778,6 +778,9 @@ class Optimizer(BaseSolver):
         finishes.
         """
         fStar = self.optProb._mapObjtoUser(obj)
+        # optionally convert to dict for multi-objective problems
+        if len(fStar) > 1:
+            fStar = self.optProb.processObjtoDict(fStar, scaled=False)
         xuser = self.optProb._mapXtoUser(xopt)
         xStar = self.optProb.processXtoDict(xuser)
 
