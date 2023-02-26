@@ -188,8 +188,9 @@ class NSGA2(Optimizer):
             for i in range(n):
                 xstar[i] = nsga2.doubleArray_getitem(x, i)
 
-            for i in range(len_ff):
-                ff[i] = nsga2.doubleArray_getitem(f, i)
+            if len_ff > 1:
+                for i in range(len_ff):
+                    ff[i] = nsga2.doubleArray_getitem(f, i)
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xstar)
