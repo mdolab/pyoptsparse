@@ -192,7 +192,7 @@ class NSGA2(Optimizer):
                 for i in range(len_ff):
                     ff[i] = nsga2.doubleArray_getitem(f, i)
             else:
-                ff = f
+                ff = nsga2.doubleArray_getitem(f, 0)
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xstar)

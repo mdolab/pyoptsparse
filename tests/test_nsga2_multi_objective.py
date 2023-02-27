@@ -25,6 +25,7 @@ class TestNSGA2(OptTest):
         y = xdict["y"]
 
         funcs = {}
+        # Adding an offset so that fStar != 0.0
         funcs["obj1"] = (x - 0.0) ** 2 + (y - 0.0) ** 2 + 10
         funcs["obj2"] = (x - 1.0) ** 2 + (y - 1.0) ** 2
 
