@@ -25,7 +25,7 @@ class TestNSGA2(OptTest):
         y = xdict["y"]
 
         funcs = {}
-        funcs["obj1"] = (x - 0.0) ** 2 + (y - 0.0) ** 2
+        funcs["obj1"] = (x - 0.0) ** 2 + (y - 0.0) ** 2 + 10
         funcs["obj2"] = (x - 1.0) ** 2 + (y - 1.0) ** 2
 
         fail = False
@@ -58,11 +58,11 @@ class TestNSGA2(OptTest):
         if n_obj == 1:
             assert_allclose(sol.xStar["x"], 0.0, atol=tol, rtol=tol)
             assert_allclose(sol.xStar["y"], 0.0, atol=tol, rtol=tol)
-            assert_allclose(sol.fStar, 0.0, atol=tol, rtol=tol)
+            assert_allclose(sol.fStar, 10.0, atol=tol, rtol=tol)
         elif n_obj == 2:
             assert_allclose(sol.xStar["x"], 1.0, atol=tol, rtol=tol)
             assert_allclose(sol.xStar["y"], 1.0, atol=tol, rtol=tol)
-            assert_allclose(sol.fStar["obj1"], 2.0, atol=tol, rtol=tol)
+            assert_allclose(sol.fStar["obj1"], 12.0, atol=tol, rtol=tol)
             assert_allclose(sol.fStar["obj2"], 0.0, atol=tol, rtol=tol)
 
 
