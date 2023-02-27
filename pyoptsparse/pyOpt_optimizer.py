@@ -758,9 +758,8 @@ class Optimizer(BaseSolver):
 
     def _assembleObjective(self):
         """
-        Utility function for assembling the design variables. Most
-        optimizers here use continuous variables so this chunk of code
-        can be reused.
+        Utility function for assembling the objective, fetching the information in the Objective object within the Optimization class.
+        Most optimizers use a single objective. In that case, the function will return a 0-length array (not a scalar).
         """
 
         nobj = len(self.optProb.objectives.keys())
