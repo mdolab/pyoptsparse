@@ -181,8 +181,6 @@ class NSGA2(Optimizer):
 
             # Store Results
             sol_inform = {}
-            # sol_inform['value'] = inform
-            # sol_inform['text'] = self.informs[inform[0]]
 
             xstar = [0.0] * n
             for i in range(n):
