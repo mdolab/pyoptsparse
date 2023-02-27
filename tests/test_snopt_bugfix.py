@@ -113,8 +113,8 @@ class TestSNOPTBug(unittest.TestCase):
 
         # Check Solution 7.166667, -7.833334
         tol = 1e-6
-        assert_allclose(sol.variables["x"][0].value, 7.166667, atol=tol, rtol=tol)
-        assert_allclose(sol.variables["y"][0].value, -7.833333, atol=tol, rtol=tol)
+        assert_allclose(sol.xStar["x"], 7.166667, atol=tol, rtol=tol)
+        assert_allclose(sol.xStar["y"], -7.833333, atol=tol, rtol=tol)
 
     def test_opt_bug1(self):
         # Due to a new feature, there is a TypeError when you optimize a model without a constraint.

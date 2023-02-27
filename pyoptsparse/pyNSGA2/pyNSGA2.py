@@ -188,8 +188,15 @@ class NSGA2(Optimizer):
             for i in range(n):
                 xstar[i] = nsga2.doubleArray_getitem(x, i)
 
+            fStar = np.zeros(len_ff)
+            if len_ff > 1:
+                for i in range(len_ff):
+                    fStar[i] = nsga2.doubleArray_getitem(f, i)
+            else:
+                fStar = nsga2.doubleArray_getitem(f, 0)
+
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff, xstar)
+            sol = self._createSolution(optTime, sol_inform, fStar, xstar)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
