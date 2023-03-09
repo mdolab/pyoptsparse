@@ -62,6 +62,12 @@ Because the hot start process will store all the previous "restarted" iterations
 
 Time limit (for SNOPT only)
 ---------------------------
+
+.. note::
+
+   Since SNOPT 7.7, the user should rely on the ``Time Limit`` SNOPT option instead of the ``timeLimit`` argument of the ``Optimizer`` instance to set the maximum optimization time.
+
+
 The :ref:`optimizer` class in pyOptSparse has an attribute used to set the maximum allowable wall time for optimizations using SNOPT.
 The code will exit gracefully when such time limit is reached.
 This feature is particularly useful when running a time-constrained job, as in the case of most HPC systems.
@@ -78,6 +84,7 @@ Note that the attribute takes the maximum wall time *in seconds* as an integer n
    pyOptSparse will verify that the computational time is not exceeded before proceeding to the next iteration.
    It will NOT interrupt an ongoing function or sensitivity evaluation.
    If your function evaluations are expensive, you should be more conservative when setting the ``timeLimit`` option for it to be effective.
+
 
 .. Clean Optimization Termination
 .. ------------------------------

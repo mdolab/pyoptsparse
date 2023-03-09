@@ -269,7 +269,7 @@ class SNOPT(Optimizer):
             Specify the maximum amount of time for optimizer to run.
             Must be in seconds. This can be useful on queue systems when
             you want an optimization to cleanly finish before the
-            job runs out of time.
+            job runs out of time. From SNOPT 7.7, use the "Time limit" option instead.
 
         restartDict : dict
             A dictionary containing the necessary information for hot-starting SNOPT.
