@@ -116,18 +116,21 @@ class SNOPT(Optimizer):
 
     @staticmethod
     def _getInforms() -> Dict[int, str]:
+        # INFO exit codes for SNOPT 7.7
         informs = {
             0: "finished successfully",
             1: "optimality conditions satisfied",
             2: "feasible point found",
             3: "requested accuracy could not be achieved",
-            4: "weak QP minimizer",
+            5: "elastic objective minimized",
+            6: "elastic infeasibilities minimized",
             10: "the problem appears to be infeasible",
             11: "infeasible linear constraints",
             12: "infeasible linear equalities",
             13: "nonlinear infeasibilities minimized",
             14: "infeasibilities minimized",
             15: "infeasible linear constraints in QP subproblem",
+            16: "infeasible nonelastic constraints",
             20: "the problem appears to be unbounded",
             21: "unbounded objective",
             22: "constraint violation limit reached",
@@ -135,17 +138,16 @@ class SNOPT(Optimizer):
             31: "iteration limit reached",
             32: "major iteration limit reached",
             33: "the superbasics limit is too small",
+            34: "time limit reached",
             40: "terminated after numerical difficulties",
             41: "current point cannot be improved",
             42: "singular basis",
             43: "cannot satisfy the general constraints",
             44: "ill-conditioned null-space basis",
+            45: "unable to compute acceptable LU factors",
             50: "error in the user-supplied functions",
             51: "incorrect objective  derivatives",
             52: "incorrect constraint derivatives",
-            53: "the QP Hessian is indefinite",
-            54: "incorrect second derivatives",
-            55: "incorrect derivatives",
             56: "irregular or badly scaled problem functions",
             60: "undefined user-supplied functions",
             61: "undefined function at the first feasible point",
@@ -153,8 +155,6 @@ class SNOPT(Optimizer):
             63: "unable to proceed into undefined region",
             70: "user requested termination",
             71: "terminated during function evaluation",
-            72: "terminated during constraint evaluation",
-            73: "terminated during objective evaluation",
             74: "terminated from monitor routine",
             80: "insufficient storage allocated",
             81: "work arrays must have at least 500 elements",
@@ -164,6 +164,19 @@ class SNOPT(Optimizer):
             90: "input arguments out of range",
             91: "invalid input argument",
             92: "basis file dimensions do not match this problem",
+            140: "system error",
+            141: "wrong no of basic variables",
+            142: "error in basis package",
+        }
+
+        # INFO exit codes from SNOPT 7.2
+        informs_old = {
+            4: "weak QP minimizer",
+            53: "the QP Hessian is indefinite",
+            54: "incorrect second derivatives",
+            55: "incorrect derivatives",
+            72: "terminated during constraint evaluation",
+            73: "terminated during objective evaluation",
             93: "the QP Hessian is indefinite",
             100: "finished successfully",
             101: "SPECS file read",
@@ -184,10 +197,10 @@ class SNOPT(Optimizer):
             132: "End-of-file while looking for a BEGIN",
             133: "End-of-file while reading SPECS file",
             134: "ENDRUN found before any valid SPECS",
-            140: "system error",
-            141: "wrong no of basic variables",
-            142: "error in basis package",
         }
+
+        informs.update(informs_old)
+
         return informs
 
     def __call__(
