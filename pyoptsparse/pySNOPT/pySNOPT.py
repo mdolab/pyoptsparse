@@ -169,38 +169,6 @@ class SNOPT(Optimizer):
             142: "error in basis package",
         }
 
-        # INFO exit codes from SNOPT 7.2
-        informs_old = {
-            4: "weak QP minimizer",
-            53: "the QP Hessian is indefinite",
-            54: "incorrect second derivatives",
-            55: "incorrect derivatives",
-            72: "terminated during constraint evaluation",
-            73: "terminated during objective evaluation",
-            93: "the QP Hessian is indefinite",
-            100: "finished successfully",
-            101: "SPECS file read",
-            102: "Jacobian structure estimated",
-            103: "MPS file read",
-            104: "memory requirements estimated",
-            105: "user-supplied derivatives appear to be correct",
-            106: "no derivatives were checked",
-            107: "some SPECS keywords were not recognized",
-            110: "errors while processing MPS data",
-            111: "no MPS file specified",
-            112: "problem-size estimates too small",
-            113: "fatal error in the MPS file",
-            120: "errors while estimating Jacobian structure",
-            121: "cannot find Jacobian structure at given point",
-            130: "fatal errors while reading the SP",
-            131: "no SPECS file (iSpecs le 0 or iSpecs gt 99)",
-            132: "End-of-file while looking for a BEGIN",
-            133: "End-of-file while reading SPECS file",
-            134: "ENDRUN found before any valid SPECS",
-        }
-
-        informs.update(informs_old)
-
         return informs
 
     def __call__(
