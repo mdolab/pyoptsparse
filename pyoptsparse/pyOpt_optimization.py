@@ -1197,7 +1197,8 @@ class Optimization:
     def processContoVec(
         self, fcon_in: Dict1DType, scaled: bool = True, dtype: str = "d", natural: bool = False
     ) -> ndarray:
-        """
+        """A function that converts a dictionary of constraints into a vector
+
         Parameters
         ----------
         fcon_in : dict
@@ -1267,7 +1268,8 @@ class Optimization:
     def processContoDict(
         self, fcon_in: ndarray, scaled: bool = True, dtype: str = "d", natural: bool = False, multipliers: bool = False
     ) -> Dict1DType:
-        """
+        """A function that converts an array of constraints into a dictionary
+
         Parameters
         ----------
         fcon_in : array
