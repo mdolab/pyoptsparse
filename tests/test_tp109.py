@@ -2,6 +2,7 @@
 Test uses Schittkowski's TP109 constraint problem.
 
     min 	3.0*x1+1.*10**(-6)*x1**3+0.522074*10**(-6)*x2**3+2.0*x2
+
     s.t.    -(x4-x3+0.550) <= 0
             -(x3-x4+0.550) <= 0
             -(2.25*10**(+6)-x1**2-x8**2) <= 0
@@ -16,6 +17,7 @@ Test uses Schittkowski's TP109 constraint problem.
             -0.55 <= xi <= 0.55, i = 3,4
             196.0 <= xi <= 252.0, i = 5,6,7
             -400.0 <= xi <= 800.0, i = 8,9
+
     where   a = 50.176
             b = np.sin(0.25)
             c = np.cos(0.25)

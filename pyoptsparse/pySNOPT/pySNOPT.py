@@ -116,18 +116,21 @@ class SNOPT(Optimizer):
 
     @staticmethod
     def _getInforms() -> Dict[int, str]:
+        # INFO exit codes for SNOPT 7.7
         informs = {
             0: "finished successfully",
             1: "optimality conditions satisfied",
             2: "feasible point found",
             3: "requested accuracy could not be achieved",
-            4: "weak QP minimizer",
+            5: "elastic objective minimized",
+            6: "elastic infeasibilities minimized",
             10: "the problem appears to be infeasible",
             11: "infeasible linear constraints",
             12: "infeasible linear equalities",
             13: "nonlinear infeasibilities minimized",
             14: "infeasibilities minimized",
             15: "infeasible linear constraints in QP subproblem",
+            16: "infeasible nonelastic constraints",
             20: "the problem appears to be unbounded",
             21: "unbounded objective",
             22: "constraint violation limit reached",
@@ -135,17 +138,16 @@ class SNOPT(Optimizer):
             31: "iteration limit reached",
             32: "major iteration limit reached",
             33: "the superbasics limit is too small",
+            34: "time limit reached",
             40: "terminated after numerical difficulties",
             41: "current point cannot be improved",
             42: "singular basis",
             43: "cannot satisfy the general constraints",
             44: "ill-conditioned null-space basis",
+            45: "unable to compute acceptable LU factors",
             50: "error in the user-supplied functions",
             51: "incorrect objective  derivatives",
             52: "incorrect constraint derivatives",
-            53: "the QP Hessian is indefinite",
-            54: "incorrect second derivatives",
-            55: "incorrect derivatives",
             56: "irregular or badly scaled problem functions",
             60: "undefined user-supplied functions",
             61: "undefined function at the first feasible point",
@@ -153,8 +155,6 @@ class SNOPT(Optimizer):
             63: "unable to proceed into undefined region",
             70: "user requested termination",
             71: "terminated during function evaluation",
-            72: "terminated during constraint evaluation",
-            73: "terminated during objective evaluation",
             74: "terminated from monitor routine",
             80: "insufficient storage allocated",
             81: "work arrays must have at least 500 elements",
@@ -164,30 +164,11 @@ class SNOPT(Optimizer):
             90: "input arguments out of range",
             91: "invalid input argument",
             92: "basis file dimensions do not match this problem",
-            93: "the QP Hessian is indefinite",
-            100: "finished successfully",
-            101: "SPECS file read",
-            102: "Jacobian structure estimated",
-            103: "MPS file read",
-            104: "memory requirements estimated",
-            105: "user-supplied derivatives appear to be correct",
-            106: "no derivatives were checked",
-            107: "some SPECS keywords were not recognized",
-            110: "errors while processing MPS data",
-            111: "no MPS file specified",
-            112: "problem-size estimates too small",
-            113: "fatal error in the MPS file",
-            120: "errors while estimating Jacobian structure",
-            121: "cannot find Jacobian structure at given point",
-            130: "fatal errors while reading the SP",
-            131: "no SPECS file (iSpecs le 0 or iSpecs gt 99)",
-            132: "End-of-file while looking for a BEGIN",
-            133: "End-of-file while reading SPECS file",
-            134: "ENDRUN found before any valid SPECS",
             140: "system error",
             141: "wrong no of basic variables",
             142: "error in basis package",
         }
+
         return informs
 
     def __call__(
@@ -256,7 +237,7 @@ class SNOPT(Optimizer):
             Specify the maximum amount of time for optimizer to run.
             Must be in seconds. This can be useful on queue systems when
             you want an optimization to cleanly finish before the
-            job runs out of time.
+            job runs out of time. From SNOPT 7.7, use the "Time limit" option instead.
 
         restartDict : dict
             A dictionary containing the necessary information for hot-starting SNOPT.
