@@ -173,6 +173,12 @@ class TestTP109(OptTest):
         self.assertTrue(np.isrealobj(val["obj"]))
         self.assertTrue(np.isrealobj(val["con"]))
 
+    def test_snopt_informs(self):
+        self.optName = "SNOPT"
+        self.setup_optProb()
+        sol = self.optimize(optOptions={"Time Limit": 1e-5})
+        self.assert_inform_equal(sol, 34)
+
     def test_slsqp(self):
         self.optName = "SLSQP"
         self.setup_optProb()
