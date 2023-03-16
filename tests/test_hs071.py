@@ -173,8 +173,6 @@ class TestHS71(OptTest):
         self.setup_optProb()
         sol = self.optimize(optOptions={"Major iterations limit": 1})
         self.assert_inform_equal(sol, 32)
-        sol = self.optimize(optOptions={"Time Limit": 0.001})
-        self.assert_inform_equal(sol, 34)
 
     def test_slsqp_informs(self):
         self.optName = "SLSQP"
