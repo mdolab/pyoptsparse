@@ -2,17 +2,24 @@
 pySNOPT - A variation of the pySNOPT wrapper specificially designed to
 work with sparse optimization problems.
 """
-# Compiled module
-try:
-    from . import snopt  # isort: skip
-except ImportError:
-    snopt = None
 # Standard Python modules
-import datetime
 import os
+import datetime
 import re
 import time
 from typing import Any, Dict, Optional, Tuple
+
+# Compiled module
+try:
+    if os.environ.get('PYOPTSPARSE_LOAD_SNOPT_NONRELATIVE', False):
+        # Sometimes `snopt` should be imported from Python search paths instead of relative to this file (e.g., in the
+        # case of an installation from conda-forge which does not contain the snopt .so, because it cannot be linked at
+        # package build-time)
+        import snopt  # isort: skip
+    else:
+        from . import snopt  # isort: skip
+except ImportError:
+    snopt = None
 
 # External modules
 from baseclasses.utils import CaseInsensitiveSet
