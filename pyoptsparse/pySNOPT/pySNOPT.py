@@ -3,8 +3,8 @@ pySNOPT - A variation of the pySNOPT wrapper specificially designed to
 work with sparse optimization problems.
 """
 # Standard Python modules
-import os
 import datetime
+import os
 import re
 import time
 from typing import Any, Dict, Optional, Tuple
