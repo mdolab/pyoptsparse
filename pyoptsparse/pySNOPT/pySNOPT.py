@@ -11,7 +11,7 @@ from typing import Any, Dict, Optional, Tuple
 
 # Compiled module
 try:
-    if os.environ.get("PYOPTSPARSE_LOAD_SNOPT_NONRELATIVE", False):
+    if os.environ.get("PYOPTSPARSE_IMPORT_SNOPT_ABSOLUTE", False):
         # Sometimes `snopt` should be imported from Python search paths instead of relative to this file (e.g., in the
         # case of an installation from conda-forge which does not contain the snopt .so, because it cannot be linked at
         # package build-time)
