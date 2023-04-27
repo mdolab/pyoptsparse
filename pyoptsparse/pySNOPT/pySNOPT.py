@@ -10,6 +10,16 @@ import sys
 import time
 from typing import Any, Dict, Optional, Tuple
 
+# External modules
+from baseclasses.utils import CaseInsensitiveSet
+import numpy as np
+from numpy import ndarray
+
+# Local modules
+from ..pyOpt_error import Error
+from ..pyOpt_optimization import Optimization
+from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_utils import ICOL, IDATA, INFINITY, IROW, extractRows, mapToCSC, scaleRows
 
 # Compiled module
 def _import_snopt(absolute: bool = False, path_prepend: Optional[str] = None):
@@ -28,27 +38,16 @@ def _import_snopt(absolute: bool = False, path_prepend: Optional[str] = None):
 _SNOPT_PATH_PREPEND = os.environ.get("PYOPTSPARSE_SNOPT_PATH_PREPEND", None)
 if _SNOPT_PATH_PREPEND is not None:
     try:
-        _import_snopt(absolute=True, path_prepend=_SNOPT_PATH_PREPEND)
+        snopt = _import_snopt(absolute=True, path_prepend=_SNOPT_PATH_PREPEND)
     except ImportError:
         snopt = None
 
 # if snopt was not successfully loaded, try to load relative
 if snopt is None:
     try:
-        _import_snopt(absolute=False)
+        snopt = _import_snopt(absolute=False)
     except ImportError:
         snopt = None
-
-# External modules
-from baseclasses.utils import CaseInsensitiveSet
-import numpy as np
-from numpy import ndarray
-
-# Local modules
-from ..pyOpt_error import Error
-from ..pyOpt_optimization import Optimization
-from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_utils import ICOL, IDATA, INFINITY, IROW, extractRows, mapToCSC, scaleRows
 
 
 class SNOPT(Optimizer):
