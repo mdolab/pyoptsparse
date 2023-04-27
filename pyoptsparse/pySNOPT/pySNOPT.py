@@ -43,6 +43,8 @@ if _SNOPT_PATH_PREPEND is not None:
         snopt = _import_snopt(absolute=True, path_prepend=_SNOPT_PATH_PREPEND)
     except ImportError:
         snopt = None
+else:
+    snopt = None
 
 # if snopt was not successfully loaded, try to load relative
 if snopt is None:
