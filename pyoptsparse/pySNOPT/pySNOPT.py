@@ -21,6 +21,7 @@ from ..pyOpt_optimization import Optimization
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_utils import ICOL, IDATA, INFINITY, IROW, extractRows, mapToCSC, scaleRows
 
+
 # Compiled module
 def _import_snopt(absolute: bool = False, path_prepend: Optional[str] = None):
     """Helper to load snopt bindings."""
@@ -28,6 +29,7 @@ def _import_snopt(absolute: bool = False, path_prepend: Optional[str] = None):
         if path_prepend:
             sys.path.insert(0, path_prepend)
         import snopt  # isort: skip
+
         if path_prepend:
             sys.path.remove(path_prepend)
     else:
