@@ -25,15 +25,21 @@ We currently test v7.7.7 and v7.7.1.
 
 Installation by conda
 *********************
-When installing via conda, all pyoptsparse binaries are pre-compiled and installed as part of the package. However, the `snopt` binding module cannot be included as part of the package due to license restrictions.
+When installing via conda, all pyoptsparse binaries are pre-compiled and installed as part of the package.
+However, the `snopt` binding module cannot be included as part of the package due to license restrictions.
 
-If you are installing via conda and would like to use SNOPT, you will need to build the `snopt` binding module on your own and inform `pyoptsparse` that it should use that library.
+If you are installing via conda and would like to use SNOPT, you will need to build the `snopt` binding module on your own, and inform `pyoptsparse` that it should use that library.
 
-Suppose you have built the binding file, producing `snopt.cpython-310.so`, living in the folder `~/snopt-bind`.
+Suppose you have built the binding file, producing ``snopt.cpython-310.so``, living in the folder ``~/snopt-bind``.
 
-To inform `pyoptsparse` that it should use this module, set the following environment variables:
-1. `PYOPTSPARSE_IMPORT_SNOPT_ABSOLUTE=1` to inform pyoptsparse that it should import `snopt` bindings absolute, rather than relative (the default)
-2. `PYTHONPATH=~/snopt-bind:${PYTHONPATH}` to put the `~/snopt-bind` library on the module search path.
+To use this module, set the environment variable, `PYOPTSPARSE_SNOPT_PATH_PREPEND`, e.g.:
+```
+PYOPTSPARSE_SNOPT_PATH_PREPEND=~/snopt-bind/
+```
+
+Setting this variable does the following:
+1. Temporarily prepends the given path to the `PYTHONPATH` during import of `snopt`
+2. Informs pyOptSparse that it should attempt to load `snopt` _absolutely_ (by searching the `PYTHONPATH`) before attempting to import relatively (the default behavior if `PYOPTSPARSE_SNOPT_PATH_PREPEND` is not set).
 
 Options
 -------

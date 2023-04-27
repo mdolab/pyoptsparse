@@ -6,20 +6,38 @@ work with sparse optimization problems.
 import datetime
 import os
 import re
+import sys
 import time
 from typing import Any, Dict, Optional, Tuple
 
+
 # Compiled module
-try:
-    if os.environ.get("PYOPTSPARSE_IMPORT_SNOPT_ABSOLUTE", False):
-        # Sometimes `snopt` should be imported from Python search paths instead of relative to this file (e.g., in the
-        # case of an installation from conda-forge which does not contain the snopt .so, because it cannot be linked at
-        # package build-time)
+def _import_snopt(absolute: bool = False, path_prepend: Optional[str] = None):
+    """Helper to load snopt bindings."""
+    if absolute:
+        if path_prepend:
+            sys.path.insert(0, path_prepend)
         import snopt  # isort: skip
+        if path_prepend:
+            sys.path.remove(path_prepend)
     else:
         from . import snopt  # isort: skip
-except ImportError:
-    snopt = None
+    return snopt
+
+
+_SNOPT_PATH_PREPEND = os.environ.get("PYOPTSPARSE_SNOPT_PATH_PREPEND", None)
+if _SNOPT_PATH_PREPEND is not None:
+    try:
+        _import_snopt(absolute=True, path_prepend=_SNOPT_PATH_PREPEND)
+    except ImportError:
+        snopt = None
+
+# if snopt was not successfully loaded, try to load relative
+if snopt is None:
+    try:
+        _import_snopt(absolute=False)
+    except ImportError:
+        snopt = None
 
 # External modules
 from baseclasses.utils import CaseInsensitiveSet
