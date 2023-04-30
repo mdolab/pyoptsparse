@@ -32,13 +32,12 @@ If you are installing via conda and would like to use SNOPT, you will need to bu
 
 Suppose you have built the binding file, producing ``snopt.cpython-310.so``, living in the folder ``~/snopt-bind``.
 
-To use this module, set the environment variable, `PYOPTSPARSE_SNOPT_PATH_PREPEND`, e.g.:
+To use this module, set the environment variable, `PYOPTSPARSE_IMPORT_SNOPT_FROM`, e.g.:
 ```
 PYOPTSPARSE_IMPORT_SNOPT_FROM=~/snopt-bind/
 ```
 
-This will attempt to load the ``snopt`` binding module from ``~/snopt-bind``. If the module cannot be loaded from this
-path, a warning will be raised at import time, and an error will be raised if attempting to run the SNOPT optimizer.
+This will attempt to load the ``snopt`` binding module from ``~/snopt-bind``. If the module cannot be loaded from this path, a warning will be raised at import time, and an error will be raised if attempting to run the SNOPT optimizer.
 
 Options
 -------
