@@ -29,9 +29,9 @@ def _import_snopt_from_path(path):
     orig_path = sys.path
     sys.path = [path]
     try:
-        import snopt
+        import snopt  # isort: skip
     except ImportError:
-        warnings.warn(f"`snopt` module could not be imported from {path}.")
+        warnings.warn(f"`snopt` module could not be imported from {path}.", stacklevel=2)
         snopt = None
     finally:
         sys.path = orig_path
@@ -46,7 +46,7 @@ if _IMPORT_SNOPT_FROM is not None:
 else:
     # otherwise, load it relative to this file
     try:
-        from . import snopt
+        from . import snopt  # isort: skip
     except ImportError:
         snopt = None
 
