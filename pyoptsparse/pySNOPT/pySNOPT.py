@@ -9,6 +9,7 @@ import re
 import sys
 import time
 from typing import Any, Dict, Optional, Tuple
+import warnings
 
 # External modules
 from baseclasses.utils import CaseInsensitiveSet
@@ -22,34 +23,30 @@ from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_utils import ICOL, IDATA, INFINITY, IROW, extractRows, mapToCSC, scaleRows
 
 
-# Compiled module
-def _import_snopt(absolute: bool = False, path_prepend: Optional[str] = None):
-    """Helper to load snopt bindings."""
-    if absolute:
-        if path_prepend:
-            sys.path.insert(0, path_prepend)
-        import snopt  # isort: skip
-
-        if path_prepend:
-            sys.path.remove(path_prepend)
-    else:
-        from . import snopt  # isort: skip
+def _import_snopt_from_path(path):
+    """Attempt to import snopt from a specific path. Return the loaded module, or `None` if snopt cannot be imported."""
+    path = os.path.abspath(os.path.expandvars(os.path.expanduser(path)))
+    orig_path = sys.path
+    sys.path = [path]
+    try:
+        import snopt
+    except ImportError:
+        warnings.warn(f"`snopt` module could not be imported from {path}.")
+        snopt = None
+    finally:
+        sys.path = orig_path
     return snopt
 
 
-_SNOPT_PATH_PREPEND = os.environ.get("PYOPTSPARSE_SNOPT_PATH_PREPEND", None)
-if _SNOPT_PATH_PREPEND is not None:
-    try:
-        snopt = _import_snopt(absolute=True, path_prepend=_SNOPT_PATH_PREPEND)
-    except ImportError:
-        snopt = None
+# Compiled module
+_IMPORT_SNOPT_FROM = os.environ.get("PYOPTSPARSE_IMPORT_SNOPT_FROM", None)
+if _IMPORT_SNOPT_FROM is not None:
+    # if a specific import path is specified, attempt to load SNOPT from it
+    snopt = _import_snopt_from_path(_IMPORT_SNOPT_FROM)
 else:
-    snopt = None
-
-# if snopt was not successfully loaded, try to load relative
-if snopt is None:
+    # otherwise, load it relative to this file
     try:
-        snopt = _import_snopt(absolute=False)
+        from . import snopt
     except ImportError:
         snopt = None
 

@@ -34,12 +34,11 @@ Suppose you have built the binding file, producing ``snopt.cpython-310.so``, liv
 
 To use this module, set the environment variable, `PYOPTSPARSE_SNOPT_PATH_PREPEND`, e.g.:
 ```
-PYOPTSPARSE_SNOPT_PATH_PREPEND=~/snopt-bind/
+PYOPTSPARSE_IMPORT_SNOPT_FROM=~/snopt-bind/
 ```
 
-Setting this variable does the following:
-1. Temporarily prepends the given path to the `PYTHONPATH` during import of `snopt`
-2. Informs pyOptSparse that it should attempt to load `snopt` _absolutely_ (by searching the `PYTHONPATH`) before attempting to import relatively (the default behavior if `PYOPTSPARSE_SNOPT_PATH_PREPEND` is not set).
+This will attempt to load the ``snopt`` binding module from ``~/snopt-bind``. If the module cannot be loaded from this
+path, a warning will be raised at import time, and an error will be raised if attempting to run the SNOPT optimizer.
 
 Options
 -------
