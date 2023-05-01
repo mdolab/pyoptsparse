@@ -7,6 +7,7 @@ from .pyOpt_constraint import Constraint
 from .pyOpt_objective import Objective
 from .pyOpt_optimization import Optimization
 from .pyOpt_optimizer import Optimizer, OPT, Optimizers
+from .pyOpt_solution import Solution
 
 # Now import all the individual optimizers
 from .pySNOPT.pySNOPT import SNOPT
