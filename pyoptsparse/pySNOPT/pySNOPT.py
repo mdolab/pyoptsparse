@@ -31,7 +31,11 @@ def _import_snopt_from_path(path):
     try:
         import snopt  # isort: skip
     except ImportError:
-        warnings.warn(f"`snopt` module could not be imported from {path}.", stacklevel=2)
+        warnings.warn(
+            f"`snopt` module could not be imported from {path}.",
+            ImportWarning,
+            stacklevel=2,
+        )
         snopt = None
     finally:
         sys.path = orig_path
@@ -133,7 +137,10 @@ class SNOPT(Optimizer):
             "Total character workspace": [int, None],
             "Total integer workspace": [int, None],
             "Total real workspace": [int, None],
-            "Save major iteration variables": [list, ["step", "merit", "feasibility", "optimality", "penalty"]],
+            "Save major iteration variables": [
+                list,
+                ["step", "merit", "feasibility", "optimality", "penalty"],
+            ],
             "Return work arrays": [bool, False],
             "snSTOP function handle": [(type(None), type(lambda: None)), None],
         }
