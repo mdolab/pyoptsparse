@@ -2,17 +2,14 @@
 pySNOPT - A variation of the pySNOPT wrapper specificially designed to
 work with sparse optimization problems.
 """
-# Compiled module
-try:
-    from . import snopt  # isort: skip
-except ImportError:
-    snopt = None
 # Standard Python modules
 import datetime
 import os
 import re
+import sys
 import time
 from typing import Any, Dict, Optional, Tuple
+import warnings
 
 # External modules
 from baseclasses.utils import CaseInsensitiveSet
@@ -24,6 +21,38 @@ from ..pyOpt_error import Error
 from ..pyOpt_optimization import Optimization
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_utils import ICOL, IDATA, INFINITY, IROW, extractRows, mapToCSC, scaleRows
+
+
+def _import_snopt_from_path(path):
+    """Attempt to import snopt from a specific path. Return the loaded module, or `None` if snopt cannot be imported."""
+    path = os.path.abspath(os.path.expandvars(os.path.expanduser(path)))
+    orig_path = sys.path
+    sys.path = [path]
+    try:
+        import snopt  # isort: skip
+    except ImportError:
+        warnings.warn(
+            f"`snopt` module could not be imported from {path}.",
+            ImportWarning,
+            stacklevel=2,
+        )
+        snopt = None
+    finally:
+        sys.path = orig_path
+    return snopt
+
+
+# Compiled module
+_IMPORT_SNOPT_FROM = os.environ.get("PYOPTSPARSE_IMPORT_SNOPT_FROM", None)
+if _IMPORT_SNOPT_FROM is not None:
+    # if a specific import path is specified, attempt to load SNOPT from it
+    snopt = _import_snopt_from_path(_IMPORT_SNOPT_FROM)
+else:
+    # otherwise, load it relative to this file
+    try:
+        from . import snopt  # isort: skip
+    except ImportError:
+        snopt = None
 
 
 class SNOPT(Optimizer):
@@ -108,7 +137,10 @@ class SNOPT(Optimizer):
             "Total character workspace": [int, None],
             "Total integer workspace": [int, None],
             "Total real workspace": [int, None],
-            "Save major iteration variables": [list, ["step", "merit", "feasibility", "optimality", "penalty"]],
+            "Save major iteration variables": [
+                list,
+                ["step", "merit", "feasibility", "optimality", "penalty"],
+            ],
             "Return work arrays": [bool, False],
             "snSTOP function handle": [(type(None), type(lambda: None)), None],
         }
