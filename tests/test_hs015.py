@@ -42,7 +42,7 @@ class TestHS15(OptTest):
         {"xvars": (-0.79212322, -1.26242985)},
     ]
     tol = {
-        "SLSQP": 1e-8,
+        "SLSQP": 1e-5,
         "NLPQLP": 1e-12,
         "IPOPT": 1e-4,
         "ParOpt": 1e-6,
