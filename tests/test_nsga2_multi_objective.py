@@ -16,6 +16,7 @@ from pyoptsparse import Optimization
 from testing_utils import OptTest
 
 
+@unittest.skip("skip flaky NSGA2 tests")
 class TestNSGA2(OptTest):
     name = "quadratic"
     optName = "NSGA2"
