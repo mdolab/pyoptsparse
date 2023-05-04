@@ -16,7 +16,6 @@ from pyoptsparse import Optimization
 from testing_utils import OptTest
 
 
-@unittest.skip("skip flaky NSGA2 tests")
 class TestNSGA2(OptTest):
     name = "quadratic"
     optName = "NSGA2"
@@ -46,6 +45,8 @@ class TestNSGA2(OptTest):
 
     @parameterized.expand([(1,), (2,)])
     def test_opt(self, n_obj):
+        if n_obj == 2:
+            raise unittest.SkipTest("skip flaky NSGA2 tests")
         self.setup_optProb(n_obj)
 
         # 300 generations will find x=(0,0), 200 or less will find x=(1,1)
