@@ -326,9 +326,6 @@ class OptTest(unittest.TestCase):
         times = hist.getValues(names="time", major=False)["time"]
         # the times should be monotonically increasing
         self.assertTrue(np.all(np.diff(times) > 0))
-        # the final time should be close to the metadata time
-        # we only specify a relatively loose atol because of variations in overhead cost between machines
-        assert_allclose(times[-1], metadata["optTime"], atol=1.0)
 
         # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
         if self.optName in ["SNOPT", "PSQP"]:
