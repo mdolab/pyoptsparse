@@ -4,7 +4,6 @@ import copy
 import os
 import pickle
 from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
-import warnings
 
 # External modules
 import numpy as np
@@ -227,11 +226,6 @@ class Optimization:
                 f"The 'nVars' argument to addVarGroup must be greater than or equal to 1. The bad DV is {name}."
             )
 
-        # we let type overwrite the newer varType option name
-        if "type" in kwargs:
-            varType = kwargs["type"]
-            # but we also throw a deprecation warning
-            warnings.warn("The argument `type=` is deprecated. Use `varType` in the future.", stacklevel=2)
         # Check that the type is ok
         if varType not in ["c", "i", "d"]:
             raise Error("Type must be one of 'c' for continuous, 'i' for integer or 'd' for discrete.")
@@ -816,10 +810,6 @@ class Optimization:
             self._finalizeConstraints()
             self.finalized = True
 
-    def finalizeDesignVariables(self):
-        warnings.warn("finalizeDesignVariables() is deprecated, use _finalizeDesignVariables() instead.", stacklevel=2)
-        self._finalizeDesignVariables()
-
     def _finalizeDesignVariables(self):
         """
         Communicate design variables potentially from different
@@ -843,10 +833,6 @@ class Optimization:
             self.dvOffset[dvGroup] = [dvCounter, dvCounter + n, self.variables[dvGroup][0].scalar]
             dvCounter += n
         self.ndvs = dvCounter
-
-    def finalizeConstraints(self):
-        warnings.warn("finalizeConstraints() is deprecated, use _finalizeConstraints() instead.", stacklevel=2)
-        self._finalizeConstraints()
 
     def _finalizeConstraints(self):
         """

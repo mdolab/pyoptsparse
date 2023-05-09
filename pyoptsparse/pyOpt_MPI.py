@@ -8,9 +8,6 @@ pyOptSparse are included here.
 
 # Standard Python modules
 import os
-import warnings
-
-# isort: off
 
 
 class COMM:
@@ -50,6 +47,7 @@ class myMPI:
 # and raise exception on failure. If set to anything else, no import is attempted.
 if "PYOPTSPARSE_REQUIRE_MPI" in os.environ:
     if os.environ["PYOPTSPARSE_REQUIRE_MPI"].lower() in ["always", "1", "true", "yes"]:
+        # External modules
         from mpi4py import MPI
     else:
         MPI = myMPI()
@@ -57,13 +55,7 @@ if "PYOPTSPARSE_REQUIRE_MPI" in os.environ:
 # with a notification.
 else:
     try:
+        # External modules
         from mpi4py import MPI
     except ImportError:
-        warn = (
-            "mpi4py could not be imported. mpi4py is required to use "
-            + "the parallel gradient analysis and parallel objective analysis for "
-            + "non-gradient based optimizers. Continuing using a dummy MPI module "
-            + "from pyOptSparse."
-        )
-        warnings.warn(warn, stacklevel=2)
         MPI = myMPI()
