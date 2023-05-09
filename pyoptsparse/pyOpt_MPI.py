@@ -47,6 +47,7 @@ class myMPI:
 # and raise exception on failure. If set to anything else, no import is attempted.
 if "PYOPTSPARSE_REQUIRE_MPI" in os.environ:
     if os.environ["PYOPTSPARSE_REQUIRE_MPI"].lower() in ["always", "1", "true", "yes"]:
+        # External modules
         from mpi4py import MPI
     else:
         MPI = myMPI()
@@ -54,6 +55,7 @@ if "PYOPTSPARSE_REQUIRE_MPI" in os.environ:
 # with a notification.
 else:
     try:
+        # External modules
         from mpi4py import MPI
     except ImportError:
         MPI = myMPI()
