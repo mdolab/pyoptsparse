@@ -4,7 +4,6 @@ import copy
 import os
 import pickle
 from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
-import warnings
 
 # External modules
 import numpy as np

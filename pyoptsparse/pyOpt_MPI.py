@@ -8,9 +8,6 @@ pyOptSparse are included here.
 
 # Standard Python modules
 import os
-import warnings
-
-# isort: off
 
 
 class COMM:
