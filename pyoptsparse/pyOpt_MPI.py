@@ -59,11 +59,4 @@ else:
     try:
         from mpi4py import MPI
     except ImportError:
-        warn = (
-            "mpi4py could not be imported. mpi4py is required to use "
-            + "the parallel gradient analysis and parallel objective analysis for "
-            + "non-gradient based optimizers. Continuing using a dummy MPI module "
-            + "from pyOptSparse."
-        )
-        warnings.warn(warn, stacklevel=2)
         MPI = myMPI()
