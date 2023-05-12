@@ -2,7 +2,6 @@
 from collections import OrderedDict
 import copy
 import os
-import pickle
 from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 # External modules
