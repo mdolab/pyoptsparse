@@ -135,8 +135,8 @@ class OptTest(unittest.TestCase):
         if (
             hasattr(self, "lambdaStar")
             and hasattr(sol, "lambdaStar")
-            and self.lambdaStar is not None
-            and sol.lambdaStar is not None
+            and len(self.lambdaStar) > 0
+            and len(sol.lambdaStar) > 0
         ):
             assert_dict_allclose(sol.lambdaStar, self.lambdaStar[self.sol_index], atol=tol, rtol=tol)
 

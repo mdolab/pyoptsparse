@@ -791,6 +791,8 @@ class Optimizer(BaseSolver):
                 obj = list(self.optProb.objectives.keys())[0]
                 for con in multipliers.keys():
                     multipliers[con] /= self.optProb.objectives[obj].scale
+        else:
+            multipliers = {}
         # construct info dict
         info = {
             "optTime": optTime,

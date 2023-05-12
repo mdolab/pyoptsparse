@@ -34,7 +34,7 @@ class Solution(Optimization):
             in the Solution object.
         """
 
-        Optimization.__init__(self, optProb.name, None)
+        super().__init__(self, optProb.name, None)
 
         # Copy over the variables, constraints, and objectives
         self.variables = copy.deepcopy(optProb.variables)
