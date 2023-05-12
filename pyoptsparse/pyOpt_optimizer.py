@@ -592,14 +592,18 @@ class Optimizer(BaseSolver):
             for objKey in self.optProb.objectives.keys():
                 objInfo[objKey] = {"scale": self.optProb.objectives[objKey].scale}
 
-            # There is a special write for the bounds data
+            # There is a special write for additional metadata
             if self.storeHistory:
                 self.hist.writeData("varInfo", varInfo)
                 self.hist.writeData("conInfo", conInfo)
                 self.hist.writeData("objInfo", objInfo)
                 self._setMetadata()
                 self.hist.writeData("metadata", self.metadata)
-                self.hist.writeData("optProb", self.optProb)
+                # we have to get rid of some callables in optProb before serialization
+                optProb = copy.copy(self.optProb)
+                optProb.objFun = None
+                optProb.sens = None
+                self.hist.writeData("optProb", optProb)
 
         # Write history if necessary
         if self.optProb.comm.rank == 0 and writeHist and self.storeHistory:
