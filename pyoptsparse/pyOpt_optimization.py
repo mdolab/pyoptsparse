@@ -2,7 +2,6 @@
 from collections import OrderedDict
 import copy
 import os
-import pickle
 from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 # External modules
@@ -1761,15 +1760,7 @@ class Optimization:
         The un-serializable fields are deleted first.
         """
         d = copy.copy(self.__dict__)
-        keysToRemove = ["comm"]
-        try:
-            pickle.dumps(self.objFun)
-        except Exception:
-            # Use a blanket exception because pickle errors are unreliable
-            # Tests raise RecursionError
-            # mpi4py raises TypeError
-            keysToRemove.append("objFun")
-        for key in keysToRemove:
+        for key in ["comm"]:
             if key in d.keys():
                 del d[key]
         return d
