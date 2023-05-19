@@ -98,7 +98,7 @@ class TestHS15(OptTest):
     def test_snopt(self):
         self.optName = "SNOPT"
         self.setup_optProb()
-        store_vars = ["step", "merit", "feasibility", "optimality", "penalty", "Hessian", "condZHZ", "slack", "lambda"]
+        store_vars = ["Hessian", "slack", "lambda", "penalty_vector", "nS", "BSwap", "maxVi"]
         optOptions = {"Save major iteration variables": store_vars}
         self.optimize_with_hotstart(1e-12, optOptions=optOptions)
 
