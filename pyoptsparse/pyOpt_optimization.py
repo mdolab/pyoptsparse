@@ -243,7 +243,7 @@ class Optimization:
 
         if lower is None:
             lower = [None for i in range(nVars)]
-        elif np.isscalar(lower):
+        elif np.size(lower) == 1:
             lower = lower * np.ones(nVars)
         elif len(lower) == nVars:
             lower = np.atleast_1d(lower).real
@@ -255,7 +255,7 @@ class Optimization:
 
         if upper is None:
             upper = [None for i in range(nVars)]
-        elif np.isscalar(upper):
+        elif np.size(upper) == 1:
             upper = upper * np.ones(nVars)
         elif len(upper) == nVars:
             upper = np.atleast_1d(upper).real
