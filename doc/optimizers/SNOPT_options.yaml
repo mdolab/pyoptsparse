@@ -77,7 +77,6 @@ Save major iteration variables:
     - ``Hessian``
     - ``slack``
     - ``lambda``
-    - ``condZHZ``
     - ``nS``
     - ``BSwap``
     - ``maxVi``

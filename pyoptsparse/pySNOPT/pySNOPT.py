@@ -614,7 +614,7 @@ class SNOPT(Optimizer):
         H = np.matmul(Umat.T, Umat)
         return H
 
-    def _getPenaltyParam(self, iw, rw):
+    def _getPenaltyVector(self, iw, rw):
         """
         Retrieves the full penalty parameter vector from the work arrays.
         """
@@ -651,7 +651,7 @@ class SNOPT(Optimizer):
         }
         for saveVar in self.getOption("Save major iteration variables"):
             if saveVar == "penalty_vector":
-                iterDict[saveVar] = self._getPenaltyParam(iw, rw),
+                iterDict[saveVar] = self._getPenaltyVector(iw, rw),
             elif saveVar == "Hessian":
                 H = self._getHessian(iw, rw)
                 iterDict[saveVar] = H
@@ -666,7 +666,7 @@ class SNOPT(Optimizer):
             elif saveVar == "maxVi":
                 iterDict[saveVar] = maxvi
             else:
-                warnings.warn(f"Received unknown SNOPT save variable {saveVar}")
+                warnings.warn(f"Received unknown SNOPT save variable {saveVar}", stacklevel=2)
         if self.storeHistory:
             currX = x[:n]  # only the first n component is x, the rest are the slacks
             if nmajor == 0:
