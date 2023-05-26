@@ -82,6 +82,17 @@ Save major iteration variables:
     - ``maxVi``
     - ``penalty_vector``
 
+    In addition, a set of default parameters are saved to the history file and cannot be changed. These are
+
+    - ``nMajor``
+    - ``nMinor``
+    - ``step``
+    - ``feasibility``
+    - ``optimality``
+    - ``merit``
+    - ``condZHZ``
+    - ``penalty``
+
 Return work arrays:
   desc: >
     This option is unique to the Python wrapper.

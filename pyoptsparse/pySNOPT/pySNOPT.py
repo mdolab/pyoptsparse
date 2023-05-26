@@ -666,7 +666,9 @@ class SNOPT(Optimizer):
             elif saveVar == "maxVi":
                 iterDict[saveVar] = maxvi
             else:
-                warnings.warn(f"Received unknown SNOPT save variable {saveVar}", stacklevel=2)
+                raise Error(f"Received unkown SNOPT save variable {saveVar}. "
+                            + "Please see 'Save major iteration variables' option in the pyOptSparse documentation "
+                            + "under 'SNOPT'.")
         if self.storeHistory:
             currX = x[:n]  # only the first n component is x, the rest are the slacks
             if nmajor == 0:
