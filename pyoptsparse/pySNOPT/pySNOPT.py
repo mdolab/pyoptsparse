@@ -137,10 +137,7 @@ class SNOPT(Optimizer):
             "Total character workspace": [int, None],
             "Total integer workspace": [int, None],
             "Total real workspace": [int, None],
-            "Save major iteration variables": [
-                list,
-                ["step", "merit", "feasibility", "optimality", "penalty"],
-            ],
+            "Save major iteration variables": [list, []],
             "Return work arrays": [bool, False],
             "snSTOP function handle": [(type(None), type(lambda: None)), None],
         }
@@ -617,7 +614,7 @@ class SNOPT(Optimizer):
         H = np.matmul(Umat.T, Umat)
         return H
 
-    def _getPenaltyParam(self, iw, rw):
+    def _getPenaltyVector(self, iw, rw):
         """
         Retrieves the full penalty parameter vector from the work arrays.
         """
@@ -627,43 +624,51 @@ class SNOPT(Optimizer):
         return xPen
 
     # fmt: off
-    def _snstop(self, ktcond, mjrprtlvl, minimize, n, nncon, nnobj, ns, itn, nmajor, nminor, nswap, condzhz, iobj, scaleobj,
-                objadd, fobj, fmerit, penparm, step, primalinf, dualinf, maxvi, maxvirel, hs, locj, indj, jcol, scales, bl, bu, fx, fcon, gcon, gobj, ycon,
-                pi, rc, rg, x, cu, iu, ru, cw, iw, rw):
+    def _snstop(self, ktcond, mjrprtlvl, minimize, n, nncon, nnobj, ns, itn, nmajor, nminor, nswap, condzhz, iobj,
+                scaleobj, objadd, fobj, fmerit, penparm, step, primalinf, dualinf, maxvi, maxvirel, hs, locj, indj,
+                jcol, scales, bl, bu, fx, fcon, gcon, gobj, ycon, pi, rc, rg, x, cu, iu, ru, cw, iw, rw):
         # fmt: on
         """
         This routine is called every major iteration in SNOPT, after solving QP but before line search
         We use it to determine the correct major iteration counting, and save some parameters in the history file.
-        If 'snSTOP function handle' is set to a function handle, then the callback is performed at the end of this function.
+        If 'snSTOP function handle' is set to a function handle, then it is called at the end of this function.
 
-        returning with iabort != 0 will terminate SNOPT immediately
+        Returns
+        -------
+        iabort : int
+            The return code expected by SNOPT. A non-zero value will terminate SNOPT immediately.
         """
         iterDict = {
             "isMajor": True,
             "nMajor": nmajor,
             "nMinor": nminor,
+            "step": step,
+            "feasibility": primalinf,
+            "optimality": dualinf,
+            "merit": fmerit,
+            "condZHZ": condzhz,
+            "penalty": penparm[2],
         }
         for saveVar in self.getOption("Save major iteration variables"):
-            if saveVar == "merit":
-                iterDict[saveVar] = fmerit
-            elif saveVar == "feasibility":
-                iterDict[saveVar] = primalinf
-            elif saveVar == "optimality":
-                iterDict[saveVar] = dualinf
-            elif saveVar == "penalty":
-                penParam = self._getPenaltyParam(iw, rw)
-                iterDict[saveVar] = penParam
+            if saveVar == "penalty_vector":
+                iterDict[saveVar] = self._getPenaltyVector(iw, rw),
             elif saveVar == "Hessian":
                 H = self._getHessian(iw, rw)
                 iterDict[saveVar] = H
-            elif saveVar == "step":
-                iterDict[saveVar] = step
-            elif saveVar == "condZHZ":
-                iterDict[saveVar] = condzhz
             elif saveVar == "slack":
                 iterDict[saveVar] = x[n:]
             elif saveVar == "lambda":
                 iterDict[saveVar] = pi
+            elif saveVar == "nS":
+                iterDict[saveVar] = ns
+            elif saveVar == "BSwap":
+                iterDict[saveVar] = nswap
+            elif saveVar == "maxVi":
+                iterDict[saveVar] = maxvi
+            else:
+                raise Error(f"Received unknown SNOPT save variable {saveVar}. "
+                            + "Please see 'Save major iteration variables' option in the pyOptSparse documentation "
+                            + "under 'SNOPT'.")
         if self.storeHistory:
             currX = x[:n]  # only the first n component is x, the rest are the slacks
             if nmajor == 0:

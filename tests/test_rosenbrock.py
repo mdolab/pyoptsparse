@@ -101,10 +101,8 @@ class TestRosenbrock(OptTest):
     def test_snopt(self):
         self.optName = "SNOPT"
         self.setup_optProb()
-        store_vars = ["step", "merit", "feasibility", "optimality", "penalty", "Hessian", "condZHZ", "slack", "lambda"]
-        optOptions = {
-            "Save major iteration variables": store_vars,
-        }
+        store_vars = ["Hessian", "slack", "lambda", "penalty_vector", "nS", "BSwap", "maxVi"]
+        optOptions = {"Save major iteration variables": store_vars}
         self.optimize_with_hotstart(1e-8, optOptions=optOptions)
 
         hist = History(self.histFileName, flag="r")
