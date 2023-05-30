@@ -555,7 +555,7 @@ def _broadcast_to_array(name: str, value: ArrayType, n_values: int, allow_none: 
     Raises
     ------
     Error
-        If either the input is not broadcastable, or if the input contains None and ``allow_none=False`.
+        If either the input is not broadcastable, or if the input contains None and ``allow_none=False``.
 
     Warnings
     --------
