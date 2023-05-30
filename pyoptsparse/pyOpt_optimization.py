@@ -15,7 +15,18 @@ from .pyOpt_MPI import MPI
 from .pyOpt_constraint import Constraint
 from .pyOpt_error import Error
 from .pyOpt_objective import Objective
-from .pyOpt_utils import ICOL, IDATA, INFINITY, IROW, convertToCOO, convertToCSR, mapToCSR, scaleColumns, scaleRows
+from .pyOpt_utils import (
+    ICOL,
+    IDATA,
+    INFINITY,
+    IROW,
+    convertToCOO,
+    convertToCSR,
+    mapToCSR,
+    scaleColumns,
+    scaleRows,
+    _broadcast_to_array,
+)
 from .pyOpt_variable import Variable
 from .types import Dict1DType, Dict2DType, NumpyType
 
@@ -229,71 +240,11 @@ class Optimization:
         if varType not in ["c", "i", "d"]:
             raise Error("Type must be one of 'c' for continuous, 'i' for integer or 'd' for discrete.")
 
-        # ------ Process the value argument
-        value = np.atleast_1d(value).real
-        if len(value) == 1:
-            value = value[0] * np.ones(nVars)
-        elif len(value) == nVars:
-            pass
-        else:
-            raise Error(
-                f"The length of the 'value' argument to addVarGroup is {len(value)}, "
-                + f"but the number of variables in nVars is {nVars}."
-            )
-
-        if lower is None:
-            lower = [None for i in range(nVars)]
-        elif np.size(lower) == 1:
-            lower = lower * np.ones(nVars)
-        elif len(lower) == nVars:
-            lower = np.atleast_1d(lower).real
-        else:
-            raise Error(
-                "The 'lower' argument to addVarGroup is invalid. "
-                + f"It must be None, a scalar, or a list/array or length nVars={nVars}."
-            )
-
-        if upper is None:
-            upper = [None for i in range(nVars)]
-        elif np.size(upper) == 1:
-            upper = upper * np.ones(nVars)
-        elif len(upper) == nVars:
-            upper = np.atleast_1d(upper).real
-        else:
-            raise Error(
-                "The 'upper' argument to addVarGroup is invalid. "
-                + f"It must be None, a scalar, or a list/array or length nVars={nVars}."
-            )
-
-        # ------ Process the scale argument
-        if scale is None:
-            scale = np.ones(nVars)
-        else:
-            scale = np.atleast_1d(scale)
-            if len(scale) == 1:
-                scale = scale[0] * np.ones(nVars)
-            elif len(scale) == nVars:
-                pass
-            else:
-                raise Error(
-                    f"The length of the 'scale' argument to addVarGroup is {len(scale)}, "
-                    + f"but the number of variables in nVars is {nVars}."
-                )
-
-        # ------ Process the offset argument
-        if offset is None:
-            offset = np.ones(nVars)
-        else:
-            offset = np.atleast_1d(offset)
-            if len(offset) == 1:
-                offset = offset[0] * np.ones(nVars)
-            elif len(offset) == nVars:
-                pass
-            else:
-                raise Error(
-                    f"The length of the 'offset' argument to addVarGroup is {len(offset)}, "
-                    + f"but the number of variables is {nVars}."
-                )
+        value = _broadcast_to_array("value", value, nVars, allow_none=False)
+        lower = _broadcast_to_array("lower", lower, nVars)
+        upper = _broadcast_to_array("upper", upper, nVars)
+        scale = _broadcast_to_array("scale", scale, nVars, allow_none=False)
+        offset = _broadcast_to_array("offset", offset, nVars, allow_none=False)
 
         # Determine if scalar i.e. it was called from addVar():
         scalar = kwargs.pop("scalar", False)

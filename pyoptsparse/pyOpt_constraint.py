@@ -8,7 +8,7 @@ import numpy as np
 
 # Local modules
 from .pyOpt_error import Error, pyOptSparseWarning
-from .pyOpt_utils import INFINITY, convertToCOO
+from .pyOpt_utils import INFINITY, convertToCOO, _broadcast_to_array
 from .types import Dict1DType
 
 
@@ -43,41 +43,9 @@ class Constraint:
         # Before we can do the processing below we need to have lower
         # and upper arguments expanded:
 
-        if lower is None:
-            lower = [None for i in range(self.ncon)]
-        elif np.isscalar(lower):
-            lower = lower * np.ones(self.ncon)
-        elif len(lower) == self.ncon:
-            pass  # Some iterable object
-        else:
-            raise Error(
-                "The 'lower' argument to addCon or addConGroup is invalid. "
-                + f"It must be None, a scalar, or a list/array or length nCon={nCon}."
-            )
-
-        if upper is None:
-            upper = [None for i in range(self.ncon)]
-        elif np.isscalar(upper):
-            upper = upper * np.ones(self.ncon)
-        elif len(upper) == self.ncon:
-            pass  # Some iterable object
-        else:
-            raise Error(
-                "The 'upper' argument to addCon or addConGroup is invalid. "
-                + f"It must be None, a scalar, or a list/array or length nCon={nCon}."
-            )
-
-        # ------ Process the scale argument
-        scale = np.atleast_1d(scale)
-        if len(scale) == 1:
-            scale = scale[0] * np.ones(nCon)
-        elif len(scale) == nCon:
-            pass
-        else:
-            raise Error(
-                f"The length of the 'scale' argument to addCon or addConGroup is {len(scale)}, "
-                + f"but the number of constraints is {nCon}."
-            )
+        lower = _broadcast_to_array("lower", lower, nCon)
+        upper = _broadcast_to_array("upper", upper, nCon)
+        scale = _broadcast_to_array("scale", scale, nCon, allow_none=False)
 
         # Save lower and upper...they are only used for printing however
         self.lower = lower

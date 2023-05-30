@@ -529,3 +529,13 @@ def _csc_to_coo(mat: dict) -> dict:
     coo_data = np.array(data)
 
     return {"coo": [coo_rows, coo_cols, coo_data], "shape": mat["shape"]}
+
+
+def _broadcast_to_array(name: str, value, n_vars: int, allow_none: bool = True):
+    try:
+        value = np.broadcast_to(value, (n_vars))
+    except ValueError:
+        raise Error(f"The '{name}' argument is invalid. It must be None, a scalar, or a list/array or length {n_vars}.")
+    if not allow_none and any([i is None for i in value]):
+        raise Error(f"The {name} argument cannot be 'None'.")
+    return value
