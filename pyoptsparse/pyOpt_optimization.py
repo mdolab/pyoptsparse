@@ -20,12 +20,12 @@ from .pyOpt_utils import (
     IDATA,
     INFINITY,
     IROW,
+    _broadcast_to_array,
     convertToCOO,
     convertToCSR,
     mapToCSR,
     scaleColumns,
     scaleRows,
-    _broadcast_to_array,
 )
 from .pyOpt_variable import Variable
 from .types import Dict1DType, Dict2DType, NumpyType

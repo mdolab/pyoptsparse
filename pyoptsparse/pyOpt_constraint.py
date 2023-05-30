@@ -8,7 +8,7 @@ import numpy as np
 
 # Local modules
 from .pyOpt_error import Error, pyOptSparseWarning
-from .pyOpt_utils import INFINITY, convertToCOO, _broadcast_to_array
+from .pyOpt_utils import INFINITY, _broadcast_to_array, convertToCOO
 from .types import Dict1DType
 
 
