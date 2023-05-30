@@ -43,9 +43,9 @@ class Constraint:
         # Before we can do the processing below we need to have lower
         # and upper arguments expanded:
 
-        lower = _broadcast_to_array("lower", lower, nCon)
-        upper = _broadcast_to_array("upper", upper, nCon)
-        scale = _broadcast_to_array("scale", scale, nCon, allow_none=False)
+        lower = _broadcast_to_array("lower", lower, nCon, allow_none=True)
+        upper = _broadcast_to_array("upper", upper, nCon, allow_none=True)
+        scale = _broadcast_to_array("scale", scale, nCon)
 
         # Save lower and upper...they are only used for printing however
         self.lower = lower

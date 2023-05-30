@@ -240,11 +240,11 @@ class Optimization:
         if varType not in ["c", "i", "d"]:
             raise Error("Type must be one of 'c' for continuous, 'i' for integer or 'd' for discrete.")
 
-        value = _broadcast_to_array("value", value, nVars, allow_none=False)
-        lower = _broadcast_to_array("lower", lower, nVars)
-        upper = _broadcast_to_array("upper", upper, nVars)
-        scale = _broadcast_to_array("scale", scale, nVars, allow_none=False)
-        offset = _broadcast_to_array("offset", offset, nVars, allow_none=False)
+        value = _broadcast_to_array("value", value, nVars)
+        lower = _broadcast_to_array("lower", lower, nVars, allow_none=True)
+        upper = _broadcast_to_array("upper", upper, nVars, allow_none=True)
+        scale = _broadcast_to_array("scale", scale, nVars)
+        offset = _broadcast_to_array("offset", offset, nVars)
 
         # Determine if scalar i.e. it was called from addVar():
         scalar = kwargs.pop("scalar", False)

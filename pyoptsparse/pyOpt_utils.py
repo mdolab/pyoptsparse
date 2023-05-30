@@ -20,6 +20,7 @@ from scipy.sparse import spmatrix
 
 # Local modules
 from .pyOpt_error import Error
+from .types import ArrayType
 
 # Define index mnemonics
 IROW = 0
@@ -531,11 +532,41 @@ def _csc_to_coo(mat: dict) -> dict:
     return {"coo": [coo_rows, coo_cols, coo_data], "shape": mat["shape"]}
 
 
-def _broadcast_to_array(name: str, value, n_vars: int, allow_none: bool = True):
+def _broadcast_to_array(name: str, value: ArrayType, n_values: int, allow_none: bool = False):
+    """
+    Broadcast an input to an array with a specified length
+
+    Parameters
+    ----------
+    name : str
+        The name of the input. This is only used in the error message emitted.
+    value : float, list[float], numpy array
+        The input value
+    n_values : int
+        The number of values
+    allow_none : bool, optional
+        Whether to allow `None` in the input/output, by default False
+
+    Returns
+    -------
+    NDArray
+        An array with the shape ``(n_values)``
+
+    Raises
+    ------
+    Error
+        If either the input is not broadcastable, or if the input contains None and ``allow_none=False`.
+
+    Warnings
+    --------
+    Note that the default value for ``allow_none`` is False.
+    """
     try:
-        value = np.broadcast_to(value, (n_vars))
+        value = np.broadcast_to(value, n_values)
     except ValueError:
-        raise Error(f"The '{name}' argument is invalid. It must be None, a scalar, or a list/array or length {n_vars}.")
+        raise Error(
+            f"The '{name}' argument is invalid. It must be None, a scalar, or a list/array or length {n_values}."
+        )
     if not allow_none and any([i is None for i in value]):
         raise Error(f"The {name} argument cannot be 'None'.")
     return value
