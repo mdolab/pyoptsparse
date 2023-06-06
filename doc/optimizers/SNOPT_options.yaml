@@ -70,7 +70,7 @@ Total real workspace:
     User-specified values are not overwritten.
 
 Save major iteration variables:
-  desc: >
+  desc: |
     This option is unique to the Python wrapper, and takes a list of values which can be saved at each major iteration to the History file.
     The possible values are
 
