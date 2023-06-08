@@ -1,5 +1,5 @@
 """
-pySNOPT - A variation of the pySNOPT wrapper specificially designed to
+pySNOPT - A variation of the pySNOPT wrapper specifically designed to
 work with sparse optimization problems.
 """
 # Standard Python modules
@@ -57,14 +57,10 @@ else:
 
 class SNOPT(Optimizer):
     """
-    SNOPT Optimizer Class - Inherited from Optimizer Abstract Class
+    SNOPT Optimizer Class
     """
 
     def __init__(self, raiseError=True, options: Dict = {}):
-        """
-        SNOPT Optimizer Class Initialization
-        """
-
         name = "SNOPT"
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
@@ -227,20 +223,20 @@ class SNOPT(Optimizer):
             None which will use SNOPT's own finite differences which
             are vastly superior to the pyOptSparse implementation. To
             explicitly use pyOptSparse gradient class to do the
-            derivatives with finite differences use 'FD'. 'sens'
-            may also be 'CS' which will cause pyOptSpare to compute
+            derivatives with finite differences use `FD`. `sens`
+            may also be `CS` which will cause pyOptSpare to compute
             the derivatives using the complex step method. Finally,
-            'sens' may be a python function handle which is expected
+            `sens` may be a python function handle which is expected
             to compute the sensitivities directly. For expensive
             function evaluations and/or problems with large numbers of
             design variables this is the preferred method.
 
         sensStep : float
             Set the step size to use for design variables. Defaults to
-            1e-6 when sens is 'FD' and 1e-40j when sens is 'CS'.
+            ``1e-6`` when sens is `FD` and ``1e-40j`` when sens is `CS`.
 
         sensMode : str
-            Use 'pgc' for parallel gradient computations. Only
+            Use `pgc` for parallel gradient computations. Only
             available with mpi4py and each objective evaluation is
             otherwise serial
 
@@ -251,8 +247,8 @@ class SNOPT(Optimizer):
         hotStart : str
             File name of the history file to "replay" for the
             optimization.  The optimization problem used to generate
-            the history file specified in 'hotStart' must be
-            **IDENTICAL** to the currently supplied 'optProb'. By
+            the history file specified in `hotStart` must be
+            **IDENTICAL** to the currently supplied `optProb`. By
             identical we mean, **EVERY SINGLE PARAMETER MUST BE
             IDENTICAL**. As soon as he requested evaluation point
             from SNOPT does not match the history, function and
@@ -277,7 +273,7 @@ class SNOPT(Optimizer):
         sol : Solution object
             The optimization solution
         restartDict : dict
-            If 'Return work arrays' is True, a dictionary of arrays is also returned
+            If `Return work arrays` is True, a dictionary of arrays is also returned
         """
         self.startTime = time.time()
         self.callCounter = 0
@@ -631,7 +627,7 @@ class SNOPT(Optimizer):
         """
         This routine is called every major iteration in SNOPT, after solving QP but before line search
         We use it to determine the correct major iteration counting, and save some parameters in the history file.
-        If 'snSTOP function handle' is set to a function handle, then it is called at the end of this function.
+        If `snSTOP function handle` is set to a function handle, then it is called at the end of this function.
 
         Returns
         -------
