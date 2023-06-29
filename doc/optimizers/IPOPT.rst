@@ -1,3 +1,5 @@
+.. _ipopt:
+
 IPOPT
 =====
 IPOPT (Interior Point OPTimizer) is an open source interior point optimizer, designed for large-scale nonlinear optimization.

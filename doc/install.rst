@@ -13,15 +13,15 @@ Conda packages are available on ``conda-forge`` and can be installed via
 
 This would install pyOptSparse with the built-in optimizers, as well as IPOPT.
 If you wish to use optimizers not packaged by ``conda``, e.g. SNOPT, then you must either build the package from source or use the installation script below.
+If you have the SNOPT precompiled library available, it is possible to dynamically link it to pyOptSparse following the instructions on the :ref:`SNOPT installation page<snopt_by_conda>`.
 
 Using an installation script
 ----------------------------
 You can build and install pyOptsparse using a `Python script <https://github.com/OpenMDAO/build_pyoptsparse/>`_ developed by the OpenMDAO team.
 For usage, see the instruction on the README of the repo.
 
-This script is particularly useful for installing IPOPT and its dependencies.
+This script is particularly useful for installing :ref:`IPOPT<ipopt>` and its dependencies.
 It can also support SNOPT installation if you have access to the SNOPT source code.
-If you have the SNOPT precompiled library available, it is possible to dynamically link it to pyOptSparse following the instructions on the :ref:`SNOPT installation page<snopt_by_conda>`.
 
 Building from source
 --------------------
