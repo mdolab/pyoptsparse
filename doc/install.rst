@@ -20,8 +20,8 @@ You can build and install pyOptsparse using a `Python script <https://github.com
 For usage, see the instruction on the README of the repo.
 
 This script is particularly useful for installing IPOPT and its dependencies.
-It can also install SNOPT if you have access to the SNOPT source code.
-If you have SNOPT precompiled library, it is possible to dynamically link it to pyOptSparse following the instructions on :ref:`SNOPT installation page<snopt_by_conda>`.
+It can also support SNOPT installation if you have access to the SNOPT source code.
+If you have the SNOPT precompiled library available, it is possible to dynamically link it to pyOptSparse following the instructions on the :ref:`SNOPT installation page<snopt_by_conda>`.
 
 Building from source
 --------------------
