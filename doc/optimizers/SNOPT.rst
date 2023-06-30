@@ -25,6 +25,9 @@ We currently test v7.7.7 and v7.7.1.
 
 Installation by conda
 *********************
+
+.. _snopt_by_conda:
+
 When installing via conda, all pyoptsparse binaries are pre-compiled and installed as part of the package.
 However, the `snopt` binding module cannot be included as part of the package due to license restrictions.
 
