@@ -687,7 +687,7 @@ class SNOPT(Optimizer):
         if snstop_handle is not None:
             if not self.storeHistory:
                 raise Error("snSTOP function handle must be used with storeHistory=True")
-            iabort = snstop_handle(iterDict)
+            iabort = snstop_handle(iterDict, self.restartDict)
             # write iterDict again if anything was inserted
             if self.storeHistory and callCounter is not None:
                 self.hist.write(callCounter, iterDict)

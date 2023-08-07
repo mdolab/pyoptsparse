@@ -176,7 +176,7 @@ class TestHS15(OptTest):
         self.assertEqual(self.ng, 1)
 
     @staticmethod
-    def my_snstop(iterDict):
+    def my_snstop(iterDict, restartDict):
         """manually terminate SNOPT after 1 major iteration"""
         if iterDict["nMajor"] == 1:
             return 1
