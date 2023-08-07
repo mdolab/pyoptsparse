@@ -521,24 +521,16 @@ class SNOPT(Optimizer):
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, obj, xs[:nvar], multipliers=pi)
-            restartDict = {
-                "cw": cw,
-                "iw": iw,
-                "rw": rw,
-                "xs": xs,
-                "hs": hs,
-                "pi": pi,
-            }
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
-            restartDict = None
+            self.restartDict = None
 
         # Communication solution and return
         commSol = self._communicateSolution(sol)
         if self.getOption("Return work arrays"):
-            restartDict = self.optProb.comm.bcast(restartDict, root=0)
-            return commSol, restartDict
+            self.restartDict = self.optProb.comm.bcast(self.restartDict, root=0)
+            return commSol, self.restartDict
         else:
             return commSol
 
@@ -679,6 +671,16 @@ class SNOPT(Optimizer):
                 # update funcs with any additional entries that may be added
                 if "funcs" in self.cache.keys():
                     iterDict["funcs"].update(self.cache["funcs"])
+
+        # Save the restart dictionary
+        self.restartDict = {
+            "cw": cw,
+            "iw": iw,
+            "rw": rw,
+            "xs": x,  # x is the same as xs; we call it x here to be consistent with the SNOPT subroutine snSTOP
+            "hs": hs,
+            "pi": pi,
+        }
 
         # perform callback if requested
         snstop_handle = self.getOption("snSTOP function handle")
