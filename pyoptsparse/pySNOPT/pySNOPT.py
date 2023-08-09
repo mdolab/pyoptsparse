@@ -521,16 +521,24 @@ class SNOPT(Optimizer):
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, obj, xs[:nvar], multipliers=pi)
+            restartDict = {
+                "cw": cw,
+                "iw": iw,
+                "rw": rw,
+                "xs": xs,
+                "hs": hs,
+                "pi": pi,
+            }
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
-            self.restartDict = None
+            restartDict = None
 
         # Communication solution and return
         commSol = self._communicateSolution(sol)
         if self.getOption("Return work arrays"):
-            self.restartDict = self.optProb.comm.bcast(self.restartDict, root=0)
-            return commSol, self.restartDict
+            restartDict = self.optProb.comm.bcast(restartDict, root=0)
+            return commSol, restartDict
         else:
             return commSol
 
@@ -672,8 +680,8 @@ class SNOPT(Optimizer):
                 if "funcs" in self.cache.keys():
                     iterDict["funcs"].update(self.cache["funcs"])
 
-        # Save the restart dictionary
-        self.restartDict = {
+        # Create the restart dictionary to be passed to snstop_handle
+        restartDict = {
             "cw": cw,
             "iw": iw,
             "rw": rw,
@@ -687,7 +695,7 @@ class SNOPT(Optimizer):
         if snstop_handle is not None:
             if not self.storeHistory:
                 raise Error("snSTOP function handle must be used with storeHistory=True")
-            iabort = snstop_handle(iterDict, self.restartDict)
+            iabort = snstop_handle(iterDict, restartDict)
             # write iterDict again if anything was inserted
             if self.storeHistory and callCounter is not None:
                 self.hist.write(callCounter, iterDict)
