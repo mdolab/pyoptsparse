@@ -61,7 +61,7 @@ OUTPUT_FILENAMES = {
 }
 
 # these are optimizers which are installed by default
-DEFAULT_OPTIMIZERS = {"SLSQP", "PSQP", "CONMIN", "ALPSO", "NSGA2"}
+DEFAULT_OPTIMIZERS = {"SLSQP", "PSQP", "CONMIN", "ALPSO"}
 
 # Define gradient-based optimizers
 GRAD_BASED_OPTIMIZERS = {"CONMIN", "IPOPT", "NLPQLP", "ParOpt", "PSQP", "SLSQP", "SNOPT"}
