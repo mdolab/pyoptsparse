@@ -20,6 +20,13 @@ class TestNSGA2(OptTest):
     name = "quadratic"
     optName = "NSGA2"
 
+    def setUp(self):
+        try:
+            # First party modules
+            from pyoptsparse.pyNSGA2 import nsga2  # noqa: F401
+        except ImportError:
+            raise unittest.SkipTest("Optimizer not available: NSGA2")
+
     def objfunc(self, xdict):
         x = xdict["x"]
         y = xdict["y"]
@@ -43,6 +50,9 @@ class TestNSGA2(OptTest):
         if n_obj == 2:
             self.optProb.addObj("obj2")
 
+    @unittest.skipIf(
+        sys.platform == "win32", "test_nsga2_multi_objective.py fails on windows with two objectives! Skipping for now."
+    )
     @parameterized.expand([(1,), (2,)])
     def test_opt(self, n_obj):
         if n_obj == 2:
@@ -51,11 +61,7 @@ class TestNSGA2(OptTest):
 
         # 300 generations will find x=(0,0), 200 or less will find x=(1,1)
         optOptions = {"maxGen": 200}
-        if sys.platform == "win32":
-            warnings.warn(
-                "test_nsga2_multi_objective.py fails on windows with two objectives! Skipping for now.", stacklevel=2
-            )
-            return
+
         sol = self.optimize(optOptions=optOptions)
         tol = 1e-2
         if n_obj == 1:
@@ -70,4 +76,7 @@ class TestNSGA2(OptTest):
 
 
 if __name__ == "__main__":
+    unittest.main()
+    unittest.main()
+    unittest.main()
     unittest.main()
