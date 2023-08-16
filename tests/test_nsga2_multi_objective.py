@@ -3,7 +3,6 @@
 # Standard Python modules
 import sys
 import unittest
-import warnings
 
 # External modules
 from numpy.testing import assert_allclose
@@ -19,6 +18,7 @@ from testing_utils import OptTest
 class TestNSGA2(OptTest):
     name = "quadratic"
     optName = "NSGA2"
+    histFileName = None
 
     def setUp(self):
         try:
@@ -76,7 +76,4 @@ class TestNSGA2(OptTest):
 
 
 if __name__ == "__main__":
-    unittest.main()
-    unittest.main()
-    unittest.main()
     unittest.main()
