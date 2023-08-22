@@ -35,12 +35,7 @@ pyOptSparse has the following dependencies:
 
 Please make sure these are installed and available for use.
 In order to use NSGA2, SWIG (v1.3+) is also required, which can be installed via the package manager.
-If those optimizers are not needed, then you do not need to install SWIG.
-Simply comment out the corresponding lines in ``pyoptsparse/pyoptsparse/meson.build`` so that they are not compiled.
-The corresponding lines in ``pyoptsparse/pyoptsparse/__init__.py`` must be commented out as well.
-
 Python dependencies are automatically handled by ``pip``, so they do not need to be installed separately.
-The only exception is ``numpy``, which is required as part of the build process and therefore must be present before installing.
 
 .. note::
   * In Linux, the python header files (``python-dev``) are also required.
