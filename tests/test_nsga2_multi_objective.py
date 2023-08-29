@@ -1,7 +1,6 @@
 """ Test NSGA2."""
 
 # Standard Python modules
-import sys
 import unittest
 
 # External modules
@@ -50,9 +49,6 @@ class TestNSGA2(OptTest):
         if n_obj == 2:
             self.optProb.addObj("obj2")
 
-    @unittest.skipIf(
-        sys.platform == "win32", "test_nsga2_multi_objective.py fails on windows with two objectives! Skipping for now."
-    )
     @parameterized.expand([(1,), (2,)])
     def test_opt(self, n_obj):
         if n_obj == 2:
