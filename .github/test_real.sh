@@ -3,7 +3,7 @@ set -e
 
 # all tests should pass on the private image
 # except for the Intel image, where IPOPT is not available
-if [[ $IMAGE == "private" ]] && [[ $COMPILERS != "intel" ]]; then
+if [[ $IMAGE == "private" ]]; then
     EXTRA_FLAGS='--disallow_skipped'
 fi
 
