@@ -314,7 +314,7 @@ class SNOPT(Optimizer):
             if nnCon == 0:
                 nnCon = 1
                 self.optProb.jacIndices = [0]
-                self.optProb.fact = np.array([1.0])
+                self.optProb.fact = np.array(1.0)
                 self.optProb.offset = np.zeros_like(self.optProb.fact)
 
         # Make sure restartDict is provided if using hot start
@@ -461,7 +461,7 @@ class SNOPT(Optimizer):
 
             # Setup argument list values
             start = np.array(self.getOption("Start"))
-            ObjAdd = np.array([0.0], float)
+            ObjAdd = np.array(0.0, float)
             ProbNm = np.array(self.optProb.name, "c")
             cdummy = -1111111  # this is a magic variable defined in SNOPT for undefined strings
             cw[51, :] = cdummy  # we set these to cdummy so that a placeholder is used in printout
@@ -704,7 +704,7 @@ class SNOPT(Optimizer):
         """
         # Set Options from the local options dictionary
         # ---------------------------------------------
-        inform = np.array([-1], np.intc)
+        inform = np.array(-1, np.intc)
         for name, value in self.options.items():
             # these do not get set using snset
             if name in self.specialOptions or name in self.pythonOptions:
