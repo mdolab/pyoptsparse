@@ -314,7 +314,7 @@ class SNOPT(Optimizer):
             if nnCon == 0:
                 nnCon = 1
                 self.optProb.jacIndices = [0]
-                self.optProb.fact = np.array(1.0)
+                self.optProb.fact = np.array([1.0])
                 self.optProb.offset = np.zeros_like(self.optProb.fact)
 
         # Make sure restartDict is provided if using hot start
