@@ -127,7 +127,7 @@ void mutation_ind (individual *ind, Global global, int *nrealmut, int *nbinmut);
 void bin_mutate_ind (individual *ind, Global global, int *nbinmut);
 void real_mutate_ind (individual *ind, Global global, int *nrealmut);
 
-//void nsga2func (int nreal, int nbin, int nobj, int ncon, double *xreal, double *xbin, int **gene, double *obj, double *constr);
+void nsga2func (int nreal, int nbin, int nobj, int ncon, double *xreal, double *xbin, int **gene, double *obj, double *constr);
 
 void assign_rank_and_crowding_distance (population *new_pop, Global global);
 
