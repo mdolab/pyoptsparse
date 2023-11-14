@@ -160,7 +160,7 @@ class ALPSO(Optimizer):
             if dyniI == 0:
                 self.setOption("minInnerIter", opt("maxInnerIter"))
 
-            if not opt("stopCriteria") in [0, 1]:
+            if opt("stopCriteria") not in [0, 1]:
                 raise Error("Incorrect Stopping Criteria Setting")
 
             if opt("fileout") not in [0, 1, 2, 3]:
