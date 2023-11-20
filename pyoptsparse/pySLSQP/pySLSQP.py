@@ -188,7 +188,7 @@ class SLSQP(Optimizer):
             gg = np.zeros([la], float)
             df = np.zeros([n + 1], float)
             dg = np.zeros([la, n + 1], float)
-            acc = np.array([self.getOption("ACC")], float)
+            acc = np.array(self.getOption("ACC"), float)
             maxit = self.getOption("MAXIT")
             iprint = self.getOption("IPRINT")
             iout = self.getOption("IOUT")
@@ -204,13 +204,13 @@ class SLSQP(Optimizer):
             lsei = ((n + 1) + mineq) * ((n + 1) - meq) + 2 * meq + (n + 1)
             slsqpb = (n + 1) * (n / 2) + 2 * m + 3 * n + 3 * (n + 1) + 1
             lwM = lsq + lsi + lsei + slsqpb + n + m
-            lw = np.array([lwM], int)
+            lw = np.array(lwM, int)
             w = np.zeros(lw, float)
             ljwM = max(mineq, (n + 1) - meq)
-            ljw = np.array([ljwM], int)
+            ljw = np.array(ljwM, int)
             jw = np.zeros(ljw, np.intc)
-            nfunc = np.array([0], int)
-            ngrad = np.array([0], int)
+            nfunc = np.array(0, int)
+            ngrad = np.array(0, int)
 
             # Run SLSQP
             t0 = time.time()
