@@ -47,7 +47,7 @@ class Solution(Optimization):
             for var in self.variables[dvGroup]:
                 var.value = xopt[i]
                 i += 1
-        i = 0
+
         # Now set the f-values
         if isinstance(fStar, float) or len(fStar) == 1:
             self.objectives[list(self.objectives.keys())[0]].value = float(fStar)
