@@ -6,7 +6,6 @@ import unittest
 from baseclasses.testing.assertions import assert_dict_allclose, assert_equal
 import numpy as np
 from numpy.testing import assert_allclose
-from pkg_resources import parse_version
 
 # First party modules
 from pyoptsparse import OPT, History
@@ -122,11 +121,11 @@ class OptTest(unittest.TestCase):
 
         # now we assert against the closest solution
         # objective
-        sol_objectives = np.array([obj.value for obj in sol.objectives.values()])
         assert_allclose(sol.fStar, self.fStar[self.sol_index], atol=tol, rtol=tol)
         # make sure fStar and sol.objectives values match
         # NOTE this is not true in general, but true for well-behaving optimizations
         # which should be the case for all tests
+        sol_objectives = np.array([obj.value for obj in sol.objectives.values()])
         assert_allclose(sol.fStar, sol_objectives, rtol=1e-12)
 
         # x
