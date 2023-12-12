@@ -50,8 +50,8 @@ class Solution(Optimization):
 
         # Now set the f-values
         if isinstance(fStar, float) or len(fStar) == 1:
-            self.objectives[list(self.objectives.keys())[0]].value = float(fStar)
-            fStar = float(fStar)
+            self.objectives[list(self.objectives.keys())[0]].value = float(fStar.item())
+            fStar = float(fStar.item())
         else:
             for f_name, f in self.objectives.items():
                 f.value = fStar[f_name]
