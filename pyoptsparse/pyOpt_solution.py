@@ -1,6 +1,9 @@
 # Standard Python modules
 import copy
 
+# External modules
+import numpy as np
+
 # Local modules
 from .pyOpt_optimization import Optimization
 
@@ -49,9 +52,9 @@ class Solution(Optimization):
                 i += 1
 
         # Now set the f-values
-        if isinstance(fStar, float) or len(fStar) == 1:
-            self.objectives[list(self.objectives.keys())[0]].value = float(fStar)
-            fStar = float(fStar)
+        if isinstance(fStar, np.ndarray) and len(fStar) == 1:
+            self.objectives[list(self.objectives.keys())[0]].value = fStar.item()
+            fStar = fStar.item()
         else:
             for f_name, f in self.objectives.items():
                 f.value = fStar[f_name]
