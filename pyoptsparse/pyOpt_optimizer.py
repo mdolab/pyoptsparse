@@ -665,7 +665,7 @@ class Optimizer(BaseSolver):
                     self._jac_map_csr_to_csc = mapToCSC(gcon_csr)
                 gcon = gcon_csr["csr"][IDATA][self._jac_map_csr_to_csc[IDATA]]
             elif self.jacType == "csr":
-                pass
+                gcon = gcon_csr["csr"][IDATA]
             elif self.jacType == "coo":
                 gcon = convertToCOO(gcon_csr)
                 gcon = gcon["coo"][IDATA]

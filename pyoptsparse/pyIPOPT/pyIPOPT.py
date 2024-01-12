@@ -191,8 +191,8 @@ class IPOPT(Optimizer):
             jac = extractRows(jac, indices)  # Does reordering
             scaleRows(jac, fact)  # Perform logical scaling
         else:
-            blc = np.array([-INFINITY])
-            buc = np.array([INFINITY])
+            blc = np.array(-INFINITY)
+            buc = np.array(INFINITY)
             ncon = 1
 
         jac = convertToCOO(jac)  # Conver to coo format for IPOPT

@@ -15,6 +15,7 @@ import warnings
 from baseclasses.utils import CaseInsensitiveSet
 import numpy as np
 from numpy import ndarray
+from pkg_resources import parse_version
 
 # Local modules
 from ..pyOpt_error import Error
@@ -461,7 +462,7 @@ class SNOPT(Optimizer):
 
             # Setup argument list values
             start = np.array(self.getOption("Start"))
-            ObjAdd = np.array([0.0], float)
+            ObjAdd = np.array(0.0, float)
             ProbNm = np.array(self.optProb.name, "c")
             cdummy = -1111111  # this is a magic variable defined in SNOPT for undefined strings
             cw[51, :] = cdummy  # we set these to cdummy so that a placeholder is used in printout
@@ -520,6 +521,12 @@ class SNOPT(Optimizer):
             sol_inform["text"] = self.informs[inform]
 
             # Create the optimization solution
+            if parse_version(self.version) > parse_version("7.7.0") and parse_version(self.version) < parse_version(
+                "7.7.7"
+            ):
+                # SNOPT obj value is buggy and returned as 0, its thus overwritten with the solution objective value
+                obj = np.array([obj.value * obj.scale for obj in self.optProb.objectives.values()])
+
             sol = self._createSolution(optTime, sol_inform, obj, xs[:nvar], multipliers=pi)
             restartDict = {
                 "cw": cw,
@@ -714,7 +721,7 @@ class SNOPT(Optimizer):
         """
         # Set Options from the local options dictionary
         # ---------------------------------------------
-        inform = np.array([-1], np.intc)
+        inform = np.array(-1, np.intc)
         for name, value in self.options.items():
             # these do not get set using snset
             if name in self.specialOptions or name in self.pythonOptions:
