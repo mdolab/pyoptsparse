@@ -176,7 +176,7 @@ class TestTP109(OptTest):
     def test_snopt_informs(self):
         self.optName = "SNOPT"
         self.setup_optProb()
-        sol = self.optimize(optOptions={"Time Limit": 1e-5})
+        sol = self.optimize(optOptions={"Time Limit": 1e-15})
         self.assert_inform_equal(sol, 34)
 
     def test_slsqp(self):
