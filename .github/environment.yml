@@ -4,7 +4,7 @@ dependencies:
   - numpy >=1.16
   - ipopt
   - swig
-  - meson =0.61
+  - meson >=1.3.2
   - compilers
   - pkg-config
   - pip
