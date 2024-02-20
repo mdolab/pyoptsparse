@@ -12,8 +12,8 @@ solved. The line search can be performed with respect to two
 alternative merit functions, and the Hessian approximation is updated
 by a modified BFGS formula.
 
-NLPQLP is a proprietary software, which can be obtained `here <http://www.ai7.uni-bayreuth.de/nlpqlp.htm>`_.
-The latest version supported is v4.2.2.
+NLPQLP is a proprietary software, which can be obtained `here <https://www.schittkowski.de/numericalsoftware.php>`_.
+The supported version are v4.2.2 and v5.0.3, but other versions may work.
 
 Options
 -------
