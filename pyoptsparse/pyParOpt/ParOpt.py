@@ -173,7 +173,7 @@ class ParOpt(Optimizer):
 
             class Problem(_ParOpt.Problem):
                 def __init__(self, ptr, n, m, xs, blx, bux):
-                    super().__init__(MPI.COMM_SELF, n, m)
+                    super().__init__(MPI.COMM_SELF, nvars=n, ncon=m)
                     self.ptr = ptr
                     self.n = n
                     self.m = m
