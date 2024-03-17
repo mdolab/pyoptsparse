@@ -575,7 +575,7 @@ def _broadcast_to_array(name: str, value: ArrayType, n_values: int, allow_none: 
         raise Error(f"The {name} argument cannot be 'None'.")
     return value
 
-def try_import_compiled_module_from_path(module_name: str, path: str) -> types.ModuleType | str:
+def try_import_compiled_module_from_path(module_name: str, path: str|None = None) -> types.ModuleType | str:
     """
     Attempt to import a module from a given path.
 
@@ -583,8 +583,8 @@ def try_import_compiled_module_from_path(module_name: str, path: str) -> types.M
     ----------
     module_name : str
         The name of the module
-    path : str
-        The path to import from
+    path : str | None
+        The path to import from. If None, the default ``sys.path`` is used.
 
     Returns
     -------
@@ -594,15 +594,17 @@ def try_import_compiled_module_from_path(module_name: str, path: str) -> types.M
     """
     path = os.path.abspath(os.path.expandvars(os.path.expanduser(path)))
     orig_path = sys.path
-    sys.path = [path]
+    if path is not None:
+        sys.path = [path]
     try:
         module = importlib.import_module(module_name)
     except ImportError as e:
-        # warnings.warn(
-        #     f"`{module_name}` module could not be imported from {path}.",
-        #     ImportWarning,
-        #     stacklevel=2,
-        # )
+        if path is not None:
+            warnings.warn(
+                f"{module_name} module could not be imported from {path}.",
+                ImportWarning,
+                stacklevel=2,
+            )
         module = str(e)
     finally:
         sys.path = orig_path

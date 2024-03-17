@@ -231,7 +231,7 @@ class OptTest(unittest.TestCase):
         try:
             opt = OPT(self.optName, options=optOptions)
             self.optVersion = opt.version
-        except Error as e:
+        except ImportError as e:
             if self.optName in DEFAULT_OPTIMIZERS:
                 raise e
             else:

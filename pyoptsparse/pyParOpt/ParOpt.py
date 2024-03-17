@@ -48,9 +48,8 @@ class ParOpt(Optimizer):
     def __init__(self, raiseError=True, options={}):
         name = "ParOpt"
         category = "Local Optimizer"
-        if _ParOpt is None:
-            if raiseError:
-                raise Error("There was an error importing ParOpt")
+        if _ParOpt is None and raiseError:
+            raise ImportError("There was an error importing ParOpt")
 
         # Create and fill-in the dictionary of default option values
         self.defOpts = {}
