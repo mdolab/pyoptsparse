@@ -13,7 +13,7 @@ import importlib
 import os
 import sys
 import types
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 import warnings
 
 # External modules
@@ -575,7 +575,7 @@ def _broadcast_to_array(name: str, value: ArrayType, n_values: int, allow_none: 
         raise Error(f"The {name} argument cannot be 'None'.")
     return value
 
-def try_import_compiled_module_from_path(module_name: str, path: str|None = None) -> types.ModuleType | str:
+def try_import_compiled_module_from_path(module_name: str, path: Optional[str] = None) -> Union[types.ModuleType, str]:
     """
     Attempt to import a module from a given path.
 
@@ -583,12 +583,12 @@ def try_import_compiled_module_from_path(module_name: str, path: str|None = None
     ----------
     module_name : str
         The name of the module
-    path : str | None
+    path : Optional[str]
         The path to import from. If None, the default ``sys.path`` is used.
 
     Returns
     -------
-    types.ModuleType | str
+    Union[types.ModuleType, str]
         If importable, the imported module is returned.
         If not importable, the error message is instead returned.
     """
