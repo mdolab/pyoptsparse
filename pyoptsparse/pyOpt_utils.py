@@ -9,6 +9,10 @@ We use a very simple dictionary format to represent the three most common forms 
     mat = {'csc':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
 """
 # Standard Python modules
+import importlib
+import os
+import sys
+import types
 from typing import Tuple, Union
 import warnings
 
@@ -570,3 +574,36 @@ def _broadcast_to_array(name: str, value: ArrayType, n_values: int, allow_none: 
     if not allow_none and any([i is None for i in value]):
         raise Error(f"The {name} argument cannot be 'None'.")
     return value
+
+def try_import_compiled_module_from_path(module_name: str, path: str) -> types.ModuleType | str:
+    """
+    Attempt to import a module from a given path.
+
+    Parameters
+    ----------
+    module_name : str
+        The name of the module
+    path : str
+        The path to import from
+
+    Returns
+    -------
+    types.ModuleType | str
+        If importable, the imported module is returned.
+        If not importable, the error message is instead returned.
+    """
+    path = os.path.abspath(os.path.expandvars(os.path.expanduser(path)))
+    orig_path = sys.path
+    sys.path = [path]
+    try:
+        module = importlib.import_module(module_name)
+    except ImportError as e:
+        # warnings.warn(
+        #     f"`{module_name}` module could not be imported from {path}.",
+        #     ImportWarning,
+        #     stacklevel=2,
+        # )
+        module = str(e)
+    finally:
+        sys.path = orig_path
+    return module
