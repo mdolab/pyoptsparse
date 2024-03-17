@@ -6,10 +6,8 @@ work with sparse optimization problems.
 import datetime
 import os
 import re
-import sys
 import time
 from typing import Any, Dict, Optional, Tuple
-import warnings
 
 # External modules
 from baseclasses.utils import CaseInsensitiveSet
