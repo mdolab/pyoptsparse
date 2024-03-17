@@ -10,6 +10,7 @@ from pyoptsparse.pyOpt_utils import try_import_compiled_module_from_path
 # the snopt module gets automatically imported, thus failing the import test below
 os.environ.pop("PYOPTSPARSE_IMPORT_SNOPT_FROM", None)
 
+
 class TestImportSnoptFromPath(unittest.TestCase):
     def test_nonexistent_path(self):
         # first unload `snopt` from namespace

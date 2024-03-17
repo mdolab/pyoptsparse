@@ -575,6 +575,7 @@ def _broadcast_to_array(name: str, value: ArrayType, n_values: int, allow_none: 
         raise Error(f"The {name} argument cannot be 'None'.")
     return value
 
+
 def try_import_compiled_module_from_path(module_name: str, path: Optional[str] = None) -> Union[types.ModuleType, str]:
     """
     Attempt to import a module from a given path.

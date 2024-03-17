@@ -27,6 +27,7 @@ from ..pyOpt_utils import (
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 pyipoptcore = try_import_compiled_module_from_path("pyipoptcore", THIS_DIR)
 
+
 class IPOPT(Optimizer):
     """
     IPOPT Optimizer Class - Inherited from Optimizer Abstract Class

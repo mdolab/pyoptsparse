@@ -18,6 +18,7 @@ from ..pyOpt_utils import try_import_compiled_module_from_path
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 nsga2 = try_import_compiled_module_from_path("nsga2", THIS_DIR)
 
+
 class NSGA2(Optimizer):
     """
     NSGA2 Optimizer Class - Inherited from Optimizer Abstract Class

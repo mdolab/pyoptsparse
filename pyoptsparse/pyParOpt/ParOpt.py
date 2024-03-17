@@ -13,7 +13,12 @@ from ..pyOpt_utils import INFINITY, try_import_compiled_module_from_path
 # Attempt to import ParOpt/mpi4py
 # If PYOPTSPARSE_REQUIRE_MPI is set to a recognized positive value, attempt import
 # and raise exception on failure. If set to anything else, no import is attempted.
-if "PYOPTSPARSE_REQUIRE_MPI" in os.environ and os.environ["PYOPTSPARSE_REQUIRE_MPI"].lower() not in ["always", "1", "true", "yes"]:
+if "PYOPTSPARSE_REQUIRE_MPI" in os.environ and os.environ["PYOPTSPARSE_REQUIRE_MPI"].lower() not in [
+    "always",
+    "1",
+    "true",
+    "yes",
+]:
     _ParOpt = "ParOpt was not imported, as requested by the environment variable 'PYOPTSPARSE_REQUIRE_MPI'"
     MPI = "mpi4py was not imported, as requested by the environment variable 'PYOPTSPARSE_REQUIRE_MPI'"
 # If PYOPTSPARSE_REQUIRE_MPI is unset, attempt to import mpi4py.
@@ -22,6 +27,7 @@ if "PYOPTSPARSE_REQUIRE_MPI" in os.environ and os.environ["PYOPTSPARSE_REQUIRE_M
 else:
     _ParOpt = try_import_compiled_module_from_path("paropt.ParOpt")
     MPI = try_import_compiled_module_from_path("mpi4py.MPI")
+
 
 class ParOpt(Optimizer):
     """
