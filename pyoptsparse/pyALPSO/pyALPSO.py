@@ -10,6 +10,7 @@ import time
 import numpy as np
 
 # Local modules
+from . import alpso
 from ..pyOpt_error import Error
 from ..pyOpt_optimizer import Optimizer
 
@@ -25,9 +26,7 @@ class ALPSO(Optimizer):
     - pll_type -> STR: ALPSO Parallel Implementation (None, SPM- Static, DPM- Dynamic, POA-Parallel Analysis), *Default* = None
     """
 
-    def __init__(self, raiseError=True, options={}):
-        from . import alpso
-
+    def __init__(self, options={}):
         self.alpso = alpso
 
         category = "Global Optimizer"

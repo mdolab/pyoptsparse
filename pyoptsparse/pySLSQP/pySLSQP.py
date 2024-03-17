@@ -2,11 +2,7 @@
 pySLSQP - A variation of the pySLSQP wrapper specificially designed to
 work with sparse optimization problems.
 """
-# Compiled module
-try:
-    from . import slsqp  # isort: skip
-except ImportError:
-    slsqp = None
+
 # Standard Python modules
 import datetime
 import os
@@ -18,7 +14,11 @@ import numpy as np
 # Local modules
 from ..pyOpt_error import Error
 from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_utils import try_import_compiled_module_from_path
 
+# import the compiled module
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+slsqp = try_import_compiled_module_from_path("slsqp", THIS_DIR)
 
 class SLSQP(Optimizer):
     """
@@ -30,9 +30,8 @@ class SLSQP(Optimizer):
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
-        if slsqp is None:
-            if raiseError:
-                raise Error("There was an error importing the compiled slsqp module")
+        if isinstance(slsqp, str) and raiseError:
+            raise ImportError(slsqp)
 
         self.set_options = []
         super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)

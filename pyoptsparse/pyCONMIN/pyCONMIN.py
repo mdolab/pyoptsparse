@@ -2,11 +2,6 @@
 pyCONMIN - A variation of the pyCONMIN wrapper specificially designed to
 work with sparse optimization problems.
 """
-# Compiled module
-try:
-    from . import conmin  # isort: skip
-except ImportError:
-    conmin = None
 # Standard Python modules
 import datetime
 import os
@@ -18,6 +13,11 @@ import numpy as np
 # Local modules
 from ..pyOpt_error import Error
 from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_utils import try_import_compiled_module_from_path
+
+# import the compiled module
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+conmin = try_import_compiled_module_from_path("conmin", THIS_DIR)
 
 
 class CONMIN(Optimizer):
@@ -30,9 +30,8 @@ class CONMIN(Optimizer):
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
-        if conmin is None:
-            if raiseError:
-                raise Error("There was an error importing the compiled conmin module")
+        if isinstance(conmin, str) and raiseError:
+            raise ImportError(conmin)
 
         self.set_options = []
         super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
