@@ -12,6 +12,10 @@ os.environ.pop("PYOPTSPARSE_IMPORT_SNOPT_FROM", None)
 
 class TestImportSnoptFromPath(unittest.TestCase):
     def test_nonexistent_path(self):
+        # first unload `snopt` from namespace
+        for key in sys.modules.keys():
+            if "snopt" in key:
+                sys.modules.pop(key)
         with self.assertWarns(ImportWarning):
             module = try_import_compiled_module_from_path("snopt", "/a/nonexistent/path")
             self.assertTrue(isinstance(module, str))
