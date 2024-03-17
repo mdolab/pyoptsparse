@@ -592,9 +592,9 @@ def try_import_compiled_module_from_path(module_name: str, path: str|None = None
         If importable, the imported module is returned.
         If not importable, the error message is instead returned.
     """
-    path = os.path.abspath(os.path.expandvars(os.path.expanduser(path)))
     orig_path = sys.path
     if path is not None:
+        path = os.path.abspath(os.path.expandvars(os.path.expanduser(path)))
         sys.path = [path]
     try:
         module = importlib.import_module(module_name)

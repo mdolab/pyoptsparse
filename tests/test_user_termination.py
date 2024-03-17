@@ -14,7 +14,6 @@ from parameterized import parameterized
 
 # First party modules
 from pyoptsparse import OPT, Optimization
-from pyoptsparse.pyOpt_error import Error
 
 
 class TerminateComp:

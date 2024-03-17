@@ -12,7 +12,6 @@ from numpy.testing import assert_allclose
 
 # First party modules
 from pyoptsparse import SNOPT, Optimization
-from pyoptsparse.pyOpt_error import Error
 
 
 def objfunc(xdict):

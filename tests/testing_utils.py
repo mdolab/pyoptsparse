@@ -9,7 +9,6 @@ from numpy.testing import assert_allclose
 
 # First party modules
 from pyoptsparse import OPT, History
-from pyoptsparse.pyOpt_error import Error
 
 
 def assert_optProb_size(optProb, nObj, nDV, nCon):
