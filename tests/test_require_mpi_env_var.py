@@ -6,10 +6,6 @@ import sys
 import unittest
 
 # isort: off
-if sys.version_info[0] == 2:
-    reload_func = reload  # noqa: F821
-else:
-    reload_func = importlib.reload
 
 try:
     HAS_MPI = True
@@ -26,14 +22,14 @@ class TestRequireMPIEnvVar(unittest.TestCase):
         os.environ["PYOPTSPARSE_REQUIRE_MPI"] = "1"
         import pyoptsparse.pyOpt_MPI
 
-        reload_func(pyoptsparse.pyOpt_MPI)
+        importlib.reload(pyoptsparse.pyOpt_MPI)
         self.assertTrue(inspect.ismodule(pyoptsparse.pyOpt_MPI.MPI))
 
     def test_no_mpi_requirement_given(self):
         os.environ.pop("PYOPTSPARSE_REQUIRE_MPI", None)
         import pyoptsparse.pyOpt_MPI
 
-        reload_func(pyoptsparse.pyOpt_MPI)
+        importlib.reload(pyoptsparse.pyOpt_MPI)
         if HAS_MPI:
             self.assertTrue(inspect.ismodule(pyoptsparse.pyOpt_MPI.MPI))
         else:
@@ -43,7 +39,7 @@ class TestRequireMPIEnvVar(unittest.TestCase):
         os.environ["PYOPTSPARSE_REQUIRE_MPI"] = "0"
         import pyoptsparse.pyOpt_MPI
 
-        reload_func(pyoptsparse.pyOpt_MPI)
+        importlib.reload(pyoptsparse.pyOpt_MPI)
         self.assertFalse(inspect.ismodule(pyoptsparse.pyOpt_MPI.MPI))
 
 
@@ -60,22 +56,22 @@ class TestRequireMPIEnvVarOnParOpt(unittest.TestCase):
         os.environ["PYOPTSPARSE_REQUIRE_MPI"] = "1"
         import pyoptsparse.pyParOpt.ParOpt
 
-        reload_func(pyoptsparse.pyParOpt.ParOpt)
+        importlib.reload(pyoptsparse.pyParOpt.ParOpt)
         self.assertIsNotNone(pyoptsparse.pyParOpt.ParOpt._ParOpt)
 
     def test_no_mpi_requirement_given_check_paropt(self):
         os.environ.pop("PYOPTSPARSE_REQUIRE_MPI", None)
         import pyoptsparse.pyParOpt.ParOpt
 
-        reload_func(pyoptsparse.pyParOpt.ParOpt)
+        importlib.reload(pyoptsparse.pyParOpt.ParOpt)
         self.assertIsNotNone(pyoptsparse.pyParOpt.ParOpt._ParOpt)
 
     def test_do_not_use_mpi_check_paropt(self):
         os.environ["PYOPTSPARSE_REQUIRE_MPI"] = "0"
         import pyoptsparse.pyParOpt.ParOpt
 
-        reload_func(pyoptsparse.pyParOpt.ParOpt)
-        self.assertIsNone(pyoptsparse.pyParOpt.ParOpt._ParOpt)
+        importlib.reload(pyoptsparse.pyParOpt.ParOpt)
+        self.assertTrue(isinstance(pyoptsparse.pyParOpt.ParOpt._ParOpt, str))
 
 
 if __name__ == "__main__":
