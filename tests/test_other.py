@@ -17,7 +17,7 @@ class TestImportSnoptFromPath(unittest.TestCase):
         for key in list(sys.modules.keys()):
             if "snopt" in key:
                 sys.modules.pop(key)
-        with self.assertWarns(ImportWarning):
+        with self.assertWarns(UserWarning):
             module = try_import_compiled_module_from_path("snopt", "/a/nonexistent/path")
             self.assertTrue(isinstance(module, str))
 
