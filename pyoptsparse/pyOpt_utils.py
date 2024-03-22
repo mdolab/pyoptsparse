@@ -603,7 +603,6 @@ def try_import_compiled_module_from_path(module_name: str, path: Optional[str] =
         if path is not None:
             warnings.warn(
                 f"{module_name} module could not be imported from {path}.",
-                ImportWarning,
                 stacklevel=2,
             )
         module = str(e)
