@@ -101,6 +101,7 @@ if __name__ == "__main__":
         long_description="pyOptSparse is a Python package for formulating and solving nonlinear constrained optimization problems",
         platforms=["Linux"],
         keywords="optimization",
+        python_requires=">=3.9"
         install_requires=[
             "sqlitedict>=1.6",
             "numpy>=1.21",
