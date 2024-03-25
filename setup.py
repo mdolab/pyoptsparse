@@ -101,7 +101,6 @@ if __name__ == "__main__":
         long_description="pyOptSparse is a Python package for formulating and solving nonlinear constrained optimization problems",
         platforms=["Linux"],
         keywords="optimization",
-        python_requires=">=3.9",
         install_requires=[
             "sqlitedict>=1.6",
             "numpy>=1.21",
@@ -135,7 +134,7 @@ if __name__ == "__main__":
         package_data={
             "": ["*.so", "*.lib", "*.pyd", "*.pdb", "*.dylib", "assets/*", "LICENSE"],
         },
-        python_requires=">=3.7",
+        python_requires=">=3.9",
         entry_points={
             "gui_scripts": [
                 "optview = pyoptsparse.postprocessing.OptView:main",
