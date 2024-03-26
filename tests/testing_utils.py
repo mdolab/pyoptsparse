@@ -9,7 +9,6 @@ from numpy.testing import assert_allclose
 
 # First party modules
 from pyoptsparse import OPT, History
-from pyoptsparse.pyOpt_error import Error
 
 
 def assert_optProb_size(optProb, nObj, nDV, nCon):
@@ -231,7 +230,7 @@ class OptTest(unittest.TestCase):
         try:
             opt = OPT(self.optName, options=optOptions)
             self.optVersion = opt.version
-        except Error as e:
+        except ImportError as e:
             if self.optName in DEFAULT_OPTIMIZERS:
                 raise e
             else:

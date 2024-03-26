@@ -1,11 +1,6 @@
 """
 pyPSQP - the pyPSQP wrapper
 """
-# Compiled module
-try:
-    from . import psqp  # isort: skip
-except ImportError:
-    psqp = None
 # Standard Python modules
 import datetime
 import os
@@ -17,6 +12,11 @@ import numpy as np
 # Local modules
 from ..pyOpt_error import Error
 from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_utils import try_import_compiled_module_from_path
+
+# import the compiled module
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+psqp = try_import_compiled_module_from_path("psqp", THIS_DIR)
 
 
 class PSQP(Optimizer):
@@ -30,9 +30,8 @@ class PSQP(Optimizer):
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
 
-        if psqp is None:
-            if raiseError:
-                raise Error("There was an error importing the compiled psqp module")
+        if isinstance(psqp, str) and raiseError:
+            raise ImportError(psqp)
 
         super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
 
