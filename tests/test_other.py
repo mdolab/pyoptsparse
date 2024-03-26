@@ -3,20 +3,25 @@ import os
 import sys
 import unittest
 
-# we have to unset this environment variable because otherwise when we import `_import_snopt_from_path`
+# First party modules
+from pyoptsparse.pyOpt_utils import try_import_compiled_module_from_path
+
+# we have to unset this environment variable because otherwise
 # the snopt module gets automatically imported, thus failing the import test below
 os.environ.pop("PYOPTSPARSE_IMPORT_SNOPT_FROM", None)
-
-# First party modules
-from pyoptsparse.pySNOPT.pySNOPT import _import_snopt_from_path  # noqa: E402
 
 
 class TestImportSnoptFromPath(unittest.TestCase):
     def test_nonexistent_path(self):
-        with self.assertWarns(ImportWarning):
-            self.assertIsNone(_import_snopt_from_path("/a/nonexistent/path"))
+        # first unload `snopt` from namespace
+        for key in list(sys.modules.keys()):
+            if "snopt" in key:
+                sys.modules.pop(key)
+        with self.assertWarns(UserWarning):
+            module = try_import_compiled_module_from_path("snopt", "/a/nonexistent/path")
+            self.assertTrue(isinstance(module, str))
 
     def test_sys_path_unchanged(self):
         path = tuple(sys.path)
-        _import_snopt_from_path("/some/path")
+        try_import_compiled_module_from_path("snopt", "/some/path")
         self.assertEqual(tuple(sys.path), path)
