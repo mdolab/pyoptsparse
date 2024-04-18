@@ -17,7 +17,7 @@ from ..pyOpt_utils import try_import_compiled_module_from_path
 
 # import the compiled module
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-slsqp = try_import_compiled_module_from_path("slsqp", THIS_DIR)
+slsqp = try_import_compiled_module_from_path("slsqp", THIS_DIR, raise_warning=True)
 
 
 class SLSQP(Optimizer):
