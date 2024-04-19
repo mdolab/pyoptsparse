@@ -15,6 +15,7 @@ from .pyOpt_MPI import MPI
 from .pyOpt_constraint import Constraint
 from .pyOpt_error import Error
 from .pyOpt_objective import Objective
+from .pyOpt_types import Dict1DType, Dict2DType, NumpyType
 from .pyOpt_utils import (
     ICOL,
     IDATA,
@@ -28,7 +29,6 @@ from .pyOpt_utils import (
     scaleRows,
 )
 from .pyOpt_variable import Variable
-from .types import Dict1DType, Dict2DType, NumpyType
 
 
 class Optimization:
