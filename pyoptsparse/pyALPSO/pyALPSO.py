@@ -192,9 +192,7 @@ class ALPSO(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
-            sol_inform = {}
-            sol_inform["value"] = None
-            sol_inform["text"] = None
+            sol_inform = {"value": "", "text": ""}
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, opt_f, opt_x)
