@@ -235,9 +235,7 @@ class ParOpt(Optimizer):
             # Create the optimization solution. Note that the signs on the multipliers
             # are switch since ParOpt uses a formulation with c(x) >= 0, while pyOpt
             # uses g(x) = -c(x) <= 0. Therefore the multipliers are reversed.
-            sol_inform = {}
-            sol_inform["value"] = None
-            sol_inform["text"] = None
+            sol_inform = {"value": "", "text": ""}
 
             # If number of constraints is zero, ParOpt returns z as None.
             # Thus if there is no constraints, should pass an empty list
