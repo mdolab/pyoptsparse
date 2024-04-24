@@ -2,6 +2,7 @@
 pyNSGA2 - A variation of the pyNSGA2 wrapper specificially designed to
 work with sparse optimization problems.
 """
+
 # Standard Python modules
 import os
 import time
@@ -180,7 +181,7 @@ class NSGA2(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
-            sol_inform = {}
+            sol_inform = {"value": "", "text": ""}
 
             xstar = [0.0] * n
             for i in range(n):

@@ -141,6 +141,9 @@ class OptTest(unittest.TestCase):
         ):
             assert_dict_allclose(sol.lambdaStar, self.lambdaStar[self.sol_index], atol=tol, rtol=tol)
 
+        # test printing solution
+        print(sol)
+
     def assert_inform_equal(self, sol, optInform=None):
         """
         Check that the optInform stored in the Solution object is as expected.

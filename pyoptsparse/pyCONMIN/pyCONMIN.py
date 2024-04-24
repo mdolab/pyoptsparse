@@ -2,6 +2,7 @@
 pyCONMIN - A variation of the pyCONMIN wrapper specificially designed to
 work with sparse optimization problems.
 """
+
 # Standard Python modules
 import datetime
 import os
@@ -240,9 +241,7 @@ class CONMIN(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
-            sol_inform = {}
-            # sol_inform['value'] = inform
-            # sol_inform['text'] = self.informs[inform[0]]
+            sol_inform = {"value": "", "text": ""}
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xs)
