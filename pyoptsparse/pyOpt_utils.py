@@ -8,6 +8,7 @@ We use a very simple dictionary format to represent the three most common forms 
     mat = {'csr':[rowp, colind, data], 'shape':[nrow, ncols]} # A csr matrix
     mat = {'csc':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
 """
+
 # Standard Python modules
 import importlib
 import os
@@ -24,7 +25,7 @@ from scipy.sparse import spmatrix
 
 # Local modules
 from .pyOpt_error import Error
-from .types import ArrayType
+from .pyOpt_types import ArrayType
 
 # Define index mnemonics
 IROW = 0
@@ -576,7 +577,9 @@ def _broadcast_to_array(name: str, value: ArrayType, n_values: int, allow_none: 
     return value
 
 
-def try_import_compiled_module_from_path(module_name: str, path: Optional[str] = None) -> Union[types.ModuleType, str]:
+def try_import_compiled_module_from_path(
+    module_name: str, path: Optional[str] = None, raise_warning: bool = False
+) -> Union[types.ModuleType, str]:
     """
     Attempt to import a module from a given path.
 
@@ -586,6 +589,8 @@ def try_import_compiled_module_from_path(module_name: str, path: Optional[str] =
         The name of the module
     path : Optional[str]
         The path to import from. If None, the default ``sys.path`` is used.
+    raise_warning : bool
+        If true, raise an import warning. By default false.
 
     Returns
     -------
@@ -600,7 +605,7 @@ def try_import_compiled_module_from_path(module_name: str, path: Optional[str] =
     try:
         module = importlib.import_module(module_name)
     except ImportError as e:
-        if path is not None:
+        if raise_warning:
             warnings.warn(
                 f"{module_name} module could not be imported from {path}.",
                 stacklevel=2,

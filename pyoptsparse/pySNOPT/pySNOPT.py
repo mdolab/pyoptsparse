@@ -385,6 +385,7 @@ class SNOPT(Optimizer):
                 self.setOption("Total real workspace", lenrw)
 
             cw = np.empty((lencw, 8), dtype="|S1")
+            cw[:] = " "
             iw = np.zeros(leniw, np.intc)
             rw = np.zeros(lenrw, float)
             snopt.sninit(iPrint, iSumm, cw, iw, rw)
@@ -444,11 +445,6 @@ class SNOPT(Optimizer):
             start = np.array(self.getOption("Start"))
             ObjAdd = np.array(0.0, float)
             ProbNm = np.array(self.optProb.name, "c")
-            cdummy = -1111111  # this is a magic variable defined in SNOPT for undefined strings
-            cw[51, :] = cdummy  # we set these to cdummy so that a placeholder is used in printout
-            cw[52, :] = cdummy
-            cw[53, :] = cdummy
-            cw[54, :] = cdummy
             xs = np.concatenate((xs, np.zeros(ncon, float)))
             bl = np.concatenate((blx, blc))
             bu = np.concatenate((bux, buc))
@@ -701,11 +697,11 @@ class SNOPT(Optimizer):
                 if name == "Problem Type":
                     snopt.snset(value, iPrint, iSumm, inform, cw, iw, rw)
                 elif name == "Print file":
-                    snopt.snset(name + " " + f"{iPrint}", iPrint, iSumm, inform, cw, iw, rw)
+                    snopt.snset(f"{name} {iPrint}", iPrint, iSumm, inform, cw, iw, rw)
                 elif name == "Summary file":
-                    snopt.snset(name + " " + f"{iSumm}", iPrint, iSumm, inform, cw, iw, rw)
+                    snopt.snset(f"{name} {iSumm}", iPrint, iSumm, inform, cw, iw, rw)
                 else:
-                    snopt.snset(name + " " + value, iPrint, iSumm, inform, cw, iw, rw)
+                    snopt.snset(f"{name} {value}", iPrint, iSumm, inform, cw, iw, rw)
             elif isinstance(value, float):
                 snopt.snsetr(name, value, iPrint, iSumm, inform, cw, iw, rw)
             elif isinstance(value, int):

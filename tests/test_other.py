@@ -18,7 +18,7 @@ class TestImportSnoptFromPath(unittest.TestCase):
             if "snopt" in key:
                 sys.modules.pop(key)
         with self.assertWarns(UserWarning):
-            module = try_import_compiled_module_from_path("snopt", "/a/nonexistent/path")
+            module = try_import_compiled_module_from_path("snopt", "/a/nonexistent/path", raise_warning=True)
             self.assertTrue(isinstance(module, str))
 
     def test_sys_path_unchanged(self):
