@@ -18,7 +18,7 @@ from ..pyOpt_utils import try_import_compiled_module_from_path
 
 # import the compiled module
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-conmin = try_import_compiled_module_from_path("conmin", THIS_DIR)
+conmin = try_import_compiled_module_from_path("conmin", THIS_DIR, raise_warning=True)
 
 
 class CONMIN(Optimizer):
