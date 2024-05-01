@@ -1582,7 +1582,7 @@ class Optimization:
         Print Structured Optimization Problem
         """
         TOL = 1.0e-6
-        minimal_print = getattr(self, 'minimal_print', True)
+        minimal_print = getattr(self, "minimal_print", True)
 
         text = (
             f"\n\nOptimization Problem -- {self.name}\n{'=' * 80}\n    Objective Function: {self.objFun.__name__}\n\n"
