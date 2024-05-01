@@ -28,7 +28,6 @@ def objfunc(xdict):
 
 
 def sens(xdict, funcs):
-
     x0 = xdict["x0"][0]
     x1 = xdict["x1"][0]
     x2 = xdict["x2"][0]

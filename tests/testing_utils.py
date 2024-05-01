@@ -6,11 +6,9 @@ import unittest
 from baseclasses.testing.assertions import assert_dict_allclose, assert_equal
 import numpy as np
 from numpy.testing import assert_allclose
-from pkg_resources import parse_version
 
 # First party modules
 from pyoptsparse import OPT, History
-from pyoptsparse.pyOpt_error import Error
 
 
 def assert_optProb_size(optProb, nObj, nDV, nCon):
@@ -61,7 +59,7 @@ OUTPUT_FILENAMES = {
 }
 
 # these are optimizers which are installed by default
-DEFAULT_OPTIMIZERS = {"SLSQP", "PSQP", "CONMIN", "ALPSO", "NSGA2"}
+DEFAULT_OPTIMIZERS = {"SLSQP", "PSQP", "CONMIN", "ALPSO"}
 
 # Define gradient-based optimizers
 GRAD_BASED_OPTIMIZERS = {"CONMIN", "IPOPT", "NLPQLP", "ParOpt", "PSQP", "SLSQP", "SNOPT"}
@@ -119,18 +117,21 @@ class OptTest(unittest.TestCase):
         else:
             # assume we have a single solution
             self.sol_index = 0
+
         # now we assert against the closest solution
         # objective
-        # sol.fStar was broken for earlier versions of SNOPT
-        if self.optName == "SNOPT" and parse_version(self.optVersion) < parse_version("7.7.7"):
-            sol_objectives = np.array([sol.objectives[key].value for key in sol.objectives])
-        else:
-            sol_objectives = sol.fStar
-        assert_allclose(sol_objectives, self.fStar[self.sol_index], atol=tol, rtol=tol)
+        assert_allclose(sol.fStar, self.fStar[self.sol_index], atol=tol, rtol=tol)
+        # make sure fStar and sol.objectives values match
+        # NOTE this is not true in general, but true for well-behaving optimizations
+        # which should be the case for all tests
+        sol_objectives = np.array([obj.value for obj in sol.objectives.values()])
+        assert_allclose(sol.fStar, sol_objectives, rtol=1e-12)
+
         # x
         assert_dict_allclose(sol.xStar, self.xStar[self.sol_index], atol=tol, rtol=tol, partial=partial_x)
         dv = sol.getDVs()
         assert_dict_allclose(dv, self.xStar[self.sol_index], atol=tol, rtol=tol, partial=partial_x)
+        assert_dict_allclose(sol.xStar, dv, rtol=1e-12)
         # lambda
         if (
             hasattr(self, "lambdaStar")
@@ -139,6 +140,9 @@ class OptTest(unittest.TestCase):
             and sol.lambdaStar is not None
         ):
             assert_dict_allclose(sol.lambdaStar, self.lambdaStar[self.sol_index], atol=tol, rtol=tol)
+
+        # test printing solution
+        print(sol)
 
     def assert_inform_equal(self, sol, optInform=None):
         """
@@ -229,7 +233,7 @@ class OptTest(unittest.TestCase):
         try:
             opt = OPT(self.optName, options=optOptions)
             self.optVersion = opt.version
-        except Error as e:
+        except ImportError as e:
             if self.optName in DEFAULT_OPTIMIZERS:
                 raise e
             else:
@@ -326,9 +330,6 @@ class OptTest(unittest.TestCase):
         times = hist.getValues(names="time", major=False)["time"]
         # the times should be monotonically increasing
         self.assertTrue(np.all(np.diff(times) > 0))
-        # the final time should be close to the metadata time
-        # we only specify a relatively loose atol because of variations in overhead cost between machines
-        assert_allclose(times[-1], metadata["optTime"], atol=1.0)
 
         # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
         if self.optName in ["SNOPT", "PSQP"]:

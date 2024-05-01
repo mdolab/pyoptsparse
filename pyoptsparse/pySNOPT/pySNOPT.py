@@ -1,12 +1,7 @@
 """
-pySNOPT - A variation of the pySNOPT wrapper specificially designed to
+pySNOPT - A variation of the pySNOPT wrapper specifically designed to
 work with sparse optimization problems.
 """
-# Compiled module
-try:
-    from . import snopt  # isort: skip
-except ImportError:
-    snopt = None
 # Standard Python modules
 import datetime
 import os
@@ -18,24 +13,35 @@ from typing import Any, Dict, Optional, Tuple
 from baseclasses.utils import CaseInsensitiveSet
 import numpy as np
 from numpy import ndarray
+from pkg_resources import parse_version
 
 # Local modules
 from ..pyOpt_error import Error
 from ..pyOpt_optimization import Optimization
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_utils import ICOL, IDATA, INFINITY, IROW, extractRows, mapToCSC, scaleRows
+from ..pyOpt_utils import (
+    ICOL,
+    IDATA,
+    INFINITY,
+    IROW,
+    extractRows,
+    mapToCSC,
+    scaleRows,
+    try_import_compiled_module_from_path,
+)
+
+# import the compiled module
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+_IMPORT_SNOPT_FROM = os.environ.get("PYOPTSPARSE_IMPORT_SNOPT_FROM", THIS_DIR)
+snopt = try_import_compiled_module_from_path("snopt", _IMPORT_SNOPT_FROM)
 
 
 class SNOPT(Optimizer):
     """
-    SNOPT Optimizer Class - Inherited from Optimizer Abstract Class
+    SNOPT Optimizer Class
     """
 
     def __init__(self, raiseError=True, options: Dict = {}):
-        """
-        SNOPT Optimizer Class Initialization
-        """
-
         name = "SNOPT"
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
@@ -58,9 +64,9 @@ class SNOPT(Optimizer):
 
         informs = self._getInforms()
 
-        if snopt is None:
+        if isinstance(snopt, str):
             if raiseError:
-                raise Error("There was an error importing the compiled snopt module")
+                raise ImportError(snopt)
             else:
                 version = None
         else:
@@ -108,7 +114,7 @@ class SNOPT(Optimizer):
             "Total character workspace": [int, None],
             "Total integer workspace": [int, None],
             "Total real workspace": [int, None],
-            "Save major iteration variables": [list, ["step", "merit", "feasibility", "optimality", "penalty"]],
+            "Save major iteration variables": [list, []],
             "Return work arrays": [bool, False],
             "snSTOP function handle": [(type(None), type(lambda: None)), None],
         }
@@ -116,18 +122,21 @@ class SNOPT(Optimizer):
 
     @staticmethod
     def _getInforms() -> Dict[int, str]:
+        # INFO exit codes for SNOPT 7.7
         informs = {
             0: "finished successfully",
             1: "optimality conditions satisfied",
             2: "feasible point found",
             3: "requested accuracy could not be achieved",
-            4: "weak QP minimizer",
+            5: "elastic objective minimized",
+            6: "elastic infeasibilities minimized",
             10: "the problem appears to be infeasible",
             11: "infeasible linear constraints",
             12: "infeasible linear equalities",
             13: "nonlinear infeasibilities minimized",
             14: "infeasibilities minimized",
             15: "infeasible linear constraints in QP subproblem",
+            16: "infeasible nonelastic constraints",
             20: "the problem appears to be unbounded",
             21: "unbounded objective",
             22: "constraint violation limit reached",
@@ -135,17 +144,16 @@ class SNOPT(Optimizer):
             31: "iteration limit reached",
             32: "major iteration limit reached",
             33: "the superbasics limit is too small",
+            34: "time limit reached",
             40: "terminated after numerical difficulties",
             41: "current point cannot be improved",
             42: "singular basis",
             43: "cannot satisfy the general constraints",
             44: "ill-conditioned null-space basis",
+            45: "unable to compute acceptable LU factors",
             50: "error in the user-supplied functions",
             51: "incorrect objective  derivatives",
             52: "incorrect constraint derivatives",
-            53: "the QP Hessian is indefinite",
-            54: "incorrect second derivatives",
-            55: "incorrect derivatives",
             56: "irregular or badly scaled problem functions",
             60: "undefined user-supplied functions",
             61: "undefined function at the first feasible point",
@@ -153,8 +161,6 @@ class SNOPT(Optimizer):
             63: "unable to proceed into undefined region",
             70: "user requested termination",
             71: "terminated during function evaluation",
-            72: "terminated during constraint evaluation",
-            73: "terminated during objective evaluation",
             74: "terminated from monitor routine",
             80: "insufficient storage allocated",
             81: "work arrays must have at least 500 elements",
@@ -164,30 +170,11 @@ class SNOPT(Optimizer):
             90: "input arguments out of range",
             91: "invalid input argument",
             92: "basis file dimensions do not match this problem",
-            93: "the QP Hessian is indefinite",
-            100: "finished successfully",
-            101: "SPECS file read",
-            102: "Jacobian structure estimated",
-            103: "MPS file read",
-            104: "memory requirements estimated",
-            105: "user-supplied derivatives appear to be correct",
-            106: "no derivatives were checked",
-            107: "some SPECS keywords were not recognized",
-            110: "errors while processing MPS data",
-            111: "no MPS file specified",
-            112: "problem-size estimates too small",
-            113: "fatal error in the MPS file",
-            120: "errors while estimating Jacobian structure",
-            121: "cannot find Jacobian structure at given point",
-            130: "fatal errors while reading the SP",
-            131: "no SPECS file (iSpecs le 0 or iSpecs gt 99)",
-            132: "End-of-file while looking for a BEGIN",
-            133: "End-of-file while reading SPECS file",
-            134: "ENDRUN found before any valid SPECS",
             140: "system error",
             141: "wrong no of basic variables",
             142: "error in basis package",
         }
+
         return informs
 
     def __call__(
@@ -217,20 +204,20 @@ class SNOPT(Optimizer):
             None which will use SNOPT's own finite differences which
             are vastly superior to the pyOptSparse implementation. To
             explicitly use pyOptSparse gradient class to do the
-            derivatives with finite differences use 'FD'. 'sens'
-            may also be 'CS' which will cause pyOptSpare to compute
+            derivatives with finite differences use `FD`. `sens`
+            may also be `CS` which will cause pyOptSpare to compute
             the derivatives using the complex step method. Finally,
-            'sens' may be a python function handle which is expected
+            `sens` may be a python function handle which is expected
             to compute the sensitivities directly. For expensive
             function evaluations and/or problems with large numbers of
             design variables this is the preferred method.
 
         sensStep : float
             Set the step size to use for design variables. Defaults to
-            1e-6 when sens is 'FD' and 1e-40j when sens is 'CS'.
+            ``1e-6`` when sens is `FD` and ``1e-40j`` when sens is `CS`.
 
         sensMode : str
-            Use 'pgc' for parallel gradient computations. Only
+            Use `pgc` for parallel gradient computations. Only
             available with mpi4py and each objective evaluation is
             otherwise serial
 
@@ -241,8 +228,8 @@ class SNOPT(Optimizer):
         hotStart : str
             File name of the history file to "replay" for the
             optimization.  The optimization problem used to generate
-            the history file specified in 'hotStart' must be
-            **IDENTICAL** to the currently supplied 'optProb'. By
+            the history file specified in `hotStart` must be
+            **IDENTICAL** to the currently supplied `optProb`. By
             identical we mean, **EVERY SINGLE PARAMETER MUST BE
             IDENTICAL**. As soon as he requested evaluation point
             from SNOPT does not match the history, function and
@@ -256,7 +243,7 @@ class SNOPT(Optimizer):
             Specify the maximum amount of time for optimizer to run.
             Must be in seconds. This can be useful on queue systems when
             you want an optimization to cleanly finish before the
-            job runs out of time.
+            job runs out of time. From SNOPT 7.7, use the "Time limit" option instead.
 
         restartDict : dict
             A dictionary containing the necessary information for hot-starting SNOPT.
@@ -267,7 +254,7 @@ class SNOPT(Optimizer):
         sol : Solution object
             The optimization solution
         restartDict : dict
-            If 'Return work arrays' is True, a dictionary of arrays is also returned
+            If `Return work arrays` is True, a dictionary of arrays is also returned
         """
         self.startTime = time.time()
         self.callCounter = 0
@@ -323,7 +310,6 @@ class SNOPT(Optimizer):
         # We make a split here: If the rank is zero we setup the
         # problem and run SNOPT, otherwise we go to the waiting loop:
         if self.optProb.comm.rank == 0:
-
             # Determine the sparsity structure of the full Jacobian
             # -----------------------------------------------------
 
@@ -399,6 +385,7 @@ class SNOPT(Optimizer):
                 self.setOption("Total real workspace", lenrw)
 
             cw = np.empty((lencw, 8), dtype="|S1")
+            cw[:] = " "
             iw = np.zeros(leniw, np.intc)
             rw = np.zeros(lenrw, float)
             snopt.sninit(iPrint, iSumm, cw, iw, rw)
@@ -456,13 +443,8 @@ class SNOPT(Optimizer):
 
             # Setup argument list values
             start = np.array(self.getOption("Start"))
-            ObjAdd = np.array([0.0], float)
+            ObjAdd = np.array(0.0, float)
             ProbNm = np.array(self.optProb.name, "c")
-            cdummy = -1111111  # this is a magic variable defined in SNOPT for undefined strings
-            cw[51, :] = cdummy  # we set these to cdummy so that a placeholder is used in printout
-            cw[52, :] = cdummy
-            cw[53, :] = cdummy
-            cw[54, :] = cdummy
             xs = np.concatenate((xs, np.zeros(ncon, float)))
             bl = np.concatenate((blx, blc))
             bu = np.concatenate((bux, buc))
@@ -515,6 +497,12 @@ class SNOPT(Optimizer):
             sol_inform["text"] = self.informs[inform]
 
             # Create the optimization solution
+            if parse_version(self.version) > parse_version("7.7.0") and parse_version(self.version) < parse_version(
+                "7.7.7"
+            ):
+                # SNOPT obj value is buggy and returned as 0, its thus overwritten with the solution objective value
+                obj = np.array([obj.value * obj.scale for obj in self.optProb.objectives.values()])
+
             sol = self._createSolution(optTime, sol_inform, obj, xs[:nvar], multipliers=pi)
             restartDict = {
                 "cw": cw,
@@ -605,7 +593,7 @@ class SNOPT(Optimizer):
         H = np.matmul(Umat.T, Umat)
         return H
 
-    def _getPenaltyParam(self, iw, rw):
+    def _getPenaltyVector(self, iw, rw):
         """
         Retrieves the full penalty parameter vector from the work arrays.
         """
@@ -615,43 +603,51 @@ class SNOPT(Optimizer):
         return xPen
 
     # fmt: off
-    def _snstop(self, ktcond, mjrprtlvl, minimize, n, nncon, nnobj, ns, itn, nmajor, nminor, nswap, condzhz, iobj, scaleobj,
-                objadd, fobj, fmerit, penparm, step, primalinf, dualinf, maxvi, maxvirel, hs, locj, indj, jcol, scales, bl, bu, fx, fcon, gcon, gobj, ycon,
-                pi, rc, rg, x, cu, iu, ru, cw, iw, rw):
+    def _snstop(self, ktcond, mjrprtlvl, minimize, n, nncon, nnobj, ns, itn, nmajor, nminor, nswap, condzhz, iobj,
+                scaleobj, objadd, fobj, fmerit, penparm, step, primalinf, dualinf, maxvi, maxvirel, hs, locj, indj,
+                jcol, scales, bl, bu, fx, fcon, gcon, gobj, ycon, pi, rc, rg, x, cu, iu, ru, cw, iw, rw):
         # fmt: on
         """
         This routine is called every major iteration in SNOPT, after solving QP but before line search
         We use it to determine the correct major iteration counting, and save some parameters in the history file.
-        If 'snSTOP function handle' is set to a function handle, then the callback is performed at the end of this function.
+        If `snSTOP function handle` is set to a function handle, then it is called at the end of this function.
 
-        returning with iabort != 0 will terminate SNOPT immediately
+        Returns
+        -------
+        iabort : int
+            The return code expected by SNOPT. A non-zero value will terminate SNOPT immediately.
         """
         iterDict = {
             "isMajor": True,
             "nMajor": nmajor,
             "nMinor": nminor,
+            "step": step,
+            "feasibility": primalinf,
+            "optimality": dualinf,
+            "merit": fmerit,
+            "condZHZ": condzhz,
+            "penalty": penparm[2],
         }
         for saveVar in self.getOption("Save major iteration variables"):
-            if saveVar == "merit":
-                iterDict[saveVar] = fmerit
-            elif saveVar == "feasibility":
-                iterDict[saveVar] = primalinf
-            elif saveVar == "optimality":
-                iterDict[saveVar] = dualinf
-            elif saveVar == "penalty":
-                penParam = self._getPenaltyParam(iw, rw)
-                iterDict[saveVar] = penParam
+            if saveVar == "penalty_vector":
+                iterDict[saveVar] = self._getPenaltyVector(iw, rw),
             elif saveVar == "Hessian":
                 H = self._getHessian(iw, rw)
                 iterDict[saveVar] = H
-            elif saveVar == "step":
-                iterDict[saveVar] = step
-            elif saveVar == "condZHZ":
-                iterDict[saveVar] = condzhz
             elif saveVar == "slack":
                 iterDict[saveVar] = x[n:]
             elif saveVar == "lambda":
                 iterDict[saveVar] = pi
+            elif saveVar == "nS":
+                iterDict[saveVar] = ns
+            elif saveVar == "BSwap":
+                iterDict[saveVar] = nswap
+            elif saveVar == "maxVi":
+                iterDict[saveVar] = maxvi
+            else:
+                raise Error(f"Received unknown SNOPT save variable {saveVar}. "
+                            + "Please see 'Save major iteration variables' option in the pyOptSparse documentation "
+                            + "under 'SNOPT'.")
         if self.storeHistory:
             currX = x[:n]  # only the first n component is x, the rest are the slacks
             if nmajor == 0:
@@ -673,6 +669,10 @@ class SNOPT(Optimizer):
             if not self.storeHistory:
                 raise Error("snSTOP function handle must be used with storeHistory=True")
             iabort = snstop_handle(iterDict)
+            # write iterDict again if anything was inserted
+            if self.storeHistory and callCounter is not None:
+                self.hist.write(callCounter, iterDict)
+
             # if no return, assume everything went fine
             if iabort is None:
                 iabort = 0
@@ -687,7 +687,7 @@ class SNOPT(Optimizer):
         """
         # Set Options from the local options dictionary
         # ---------------------------------------------
-        inform = np.array([-1], np.intc)
+        inform = np.array(-1, np.intc)
         for name, value in self.options.items():
             # these do not get set using snset
             if name in self.specialOptions or name in self.pythonOptions:
@@ -697,11 +697,11 @@ class SNOPT(Optimizer):
                 if name == "Problem Type":
                     snopt.snset(value, iPrint, iSumm, inform, cw, iw, rw)
                 elif name == "Print file":
-                    snopt.snset(name + " " + f"{iPrint}", iPrint, iSumm, inform, cw, iw, rw)
+                    snopt.snset(f"{name} {iPrint}", iPrint, iSumm, inform, cw, iw, rw)
                 elif name == "Summary file":
-                    snopt.snset(name + " " + f"{iSumm}", iPrint, iSumm, inform, cw, iw, rw)
+                    snopt.snset(f"{name} {iSumm}", iPrint, iSumm, inform, cw, iw, rw)
                 else:
-                    snopt.snset(name + " " + value, iPrint, iSumm, inform, cw, iw, rw)
+                    snopt.snset(f"{name} {value}", iPrint, iSumm, inform, cw, iw, rw)
             elif isinstance(value, float):
                 snopt.snsetr(name, value, iPrint, iSumm, inform, cw, iw, rw)
             elif isinstance(value, int):

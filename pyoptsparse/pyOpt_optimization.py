@@ -2,9 +2,7 @@
 from collections import OrderedDict
 import copy
 import os
-import pickle
 from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
-import warnings
 
 # External modules
 import numpy as np
@@ -17,9 +15,20 @@ from .pyOpt_MPI import MPI
 from .pyOpt_constraint import Constraint
 from .pyOpt_error import Error
 from .pyOpt_objective import Objective
-from .pyOpt_utils import ICOL, IDATA, INFINITY, IROW, convertToCOO, convertToCSR, mapToCSR, scaleColumns, scaleRows
+from .pyOpt_types import Dict1DType, Dict2DType, NumpyType
+from .pyOpt_utils import (
+    ICOL,
+    IDATA,
+    INFINITY,
+    IROW,
+    _broadcast_to_array,
+    convertToCOO,
+    convertToCSR,
+    mapToCSR,
+    scaleColumns,
+    scaleRows,
+)
 from .pyOpt_variable import Variable
-from .types import Dict1DType, Dict2DType, NumpyType
 
 
 class Optimization:
@@ -227,80 +236,15 @@ class Optimization:
                 f"The 'nVars' argument to addVarGroup must be greater than or equal to 1. The bad DV is {name}."
             )
 
-        # we let type overwrite the newer varType option name
-        if "type" in kwargs:
-            varType = kwargs["type"]
-            # but we also throw a deprecation warning
-            warnings.warn("The argument `type=` is deprecated. Use `varType` in the future.")
         # Check that the type is ok
         if varType not in ["c", "i", "d"]:
             raise Error("Type must be one of 'c' for continuous, 'i' for integer or 'd' for discrete.")
 
-        # ------ Process the value argument
-        value = np.atleast_1d(value).real
-        if len(value) == 1:
-            value = value[0] * np.ones(nVars)
-        elif len(value) == nVars:
-            pass
-        else:
-            raise Error(
-                f"The length of the 'value' argument to addVarGroup is {len(value)}, "
-                + f"but the number of variables in nVars is {nVars}."
-            )
-
-        if lower is None:
-            lower = [None for i in range(nVars)]
-        elif np.isscalar(lower):
-            lower = lower * np.ones(nVars)
-        elif len(lower) == nVars:
-            lower = np.atleast_1d(lower).real
-        else:
-            raise Error(
-                "The 'lower' argument to addVarGroup is invalid. "
-                + f"It must be None, a scalar, or a list/array or length nVars={nVars}."
-            )
-
-        if upper is None:
-            upper = [None for i in range(nVars)]
-        elif np.isscalar(upper):
-            upper = upper * np.ones(nVars)
-        elif len(upper) == nVars:
-            upper = np.atleast_1d(upper).real
-        else:
-            raise Error(
-                "The 'upper' argument to addVarGroup is invalid. "
-                + f"It must be None, a scalar, or a list/array or length nVars={nVars}."
-            )
-
-        # ------ Process the scale argument
-        if scale is None:
-            scale = np.ones(nVars)
-        else:
-            scale = np.atleast_1d(scale)
-            if len(scale) == 1:
-                scale = scale[0] * np.ones(nVars)
-            elif len(scale) == nVars:
-                pass
-            else:
-                raise Error(
-                    f"The length of the 'scale' argument to addVarGroup is {len(scale)}, "
-                    + f"but the number of variables in nVars is {nVars}."
-                )
-
-        # ------ Process the offset argument
-        if offset is None:
-            offset = np.ones(nVars)
-        else:
-            offset = np.atleast_1d(offset)
-            if len(offset) == 1:
-                offset = offset[0] * np.ones(nVars)
-            elif len(offset) == nVars:
-                pass
-            else:
-                raise Error(
-                    f"The length of the 'offset' argument to addVarGroup is {len(offset)}, "
-                    + f"but the number of variables is {nVars}."
-                )
+        value = _broadcast_to_array("value", value, nVars)
+        lower = _broadcast_to_array("lower", lower, nVars, allow_none=True)
+        upper = _broadcast_to_array("upper", upper, nVars, allow_none=True)
+        scale = _broadcast_to_array("scale", scale, nVars)
+        offset = _broadcast_to_array("offset", offset, nVars)
 
         # Determine if scalar i.e. it was called from addVar():
         scalar = kwargs.pop("scalar", False)
@@ -729,7 +673,6 @@ class Optimization:
         # If we're printing vertically, add an additional text array on top
         # of the already created txt array
         if verticalPrint:
-
             # It has the same width and a height corresponding to the length
             # of the longest design variable name
             newTxt = np.zeros((longestNameLength + 1, nCol), dtype=str)
@@ -739,14 +682,12 @@ class Optimization:
             # Loop through the letters in the longest design variable name
             # and add the letters for each design variable
             for i in range(longestNameLength + 2):
-
                 # Make a space between the name and the size
                 if i >= longestNameLength:
                     txt[i, :] = " "
 
                 # Loop through each design variable
                 for j, dvGroup in enumerate(self.variables):
-
                     # Print a letter in the name if any remain
                     if i < longestNameLength and i < len(dvGroup):
                         txt[i, int(varCenters[j])] = dvGroup[i]
@@ -819,10 +760,6 @@ class Optimization:
             self._finalizeConstraints()
             self.finalized = True
 
-    def finalizeDesignVariables(self):
-        warnings.warn("finalizeDesignVariables() is deprecated, use _finalizeDesignVariables() instead.")
-        self._finalizeDesignVariables()
-
     def _finalizeDesignVariables(self):
         """
         Communicate design variables potentially from different
@@ -846,10 +783,6 @@ class Optimization:
             self.dvOffset[dvGroup] = [dvCounter, dvCounter + n, self.variables[dvGroup][0].scalar]
             dvCounter += n
         self.ndvs = dvCounter
-
-    def finalizeConstraints(self):
-        warnings.warn("finalizeConstraints() is deprecated, use _finalizeConstraints() instead.")
-        self._finalizeConstraints()
 
     def _finalizeConstraints(self):
         """
@@ -1200,7 +1133,8 @@ class Optimization:
     def processContoVec(
         self, fcon_in: Dict1DType, scaled: bool = True, dtype: str = "d", natural: bool = False
     ) -> ndarray:
-        """
+        """A function that converts a dictionary of constraints into a vector
+
         Parameters
         ----------
         fcon_in : dict
@@ -1235,7 +1169,6 @@ class Optimization:
         for iCon in self.constraints:
             con = self.constraints[iCon]
             if iCon in fcon_in:
-
                 # Make sure it is at least 1-dimensional:
                 c = np.atleast_1d(fcon_in[iCon])
                 if dtype == "d":
@@ -1271,7 +1204,8 @@ class Optimization:
     def processContoDict(
         self, fcon_in: ndarray, scaled: bool = True, dtype: str = "d", natural: bool = False, multipliers: bool = False
     ) -> Dict1DType:
-        """
+        """A function that converts an array of constraints into a dictionary
+
         Parameters
         ----------
         fcon_in : array
@@ -1780,15 +1714,7 @@ class Optimization:
         The un-serializable fields are deleted first.
         """
         d = copy.copy(self.__dict__)
-        keysToRemove = ["comm"]
-        try:
-            pickle.dumps(self.objFun)
-        except Exception:
-            # Use a blanket exception because pickle errors are unreliable
-            # Tests raise RecursionError
-            # mpi4py raises TypeError
-            keysToRemove.append("objFun")
-        for key in keysToRemove:
+        for key in ["comm"]:
             if key in d.keys():
                 del d[key]
         return d

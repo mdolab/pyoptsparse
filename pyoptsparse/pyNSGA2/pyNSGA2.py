@@ -2,12 +2,9 @@
 pyNSGA2 - A variation of the pyNSGA2 wrapper specificially designed to
 work with sparse optimization problems.
 """
-# Compiled module
-try:
-    from . import nsga2  # isort: skip
-except ImportError:
-    nsga2 = None
+
 # Standard Python modules
+import os
 import time
 
 # External modules
@@ -16,6 +13,11 @@ import numpy as np
 # Local modules
 from ..pyOpt_error import Error
 from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_utils import try_import_compiled_module_from_path
+
+# import the compiled module
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+nsga2 = try_import_compiled_module_from_path("nsga2", THIS_DIR, raise_warning=True)
 
 
 class NSGA2(Optimizer):
@@ -24,16 +26,14 @@ class NSGA2(Optimizer):
     """
 
     def __init__(self, raiseError=True, options={}):
-
         name = "NSGA-II"
         category = "Global Optimizer"
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
         super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
 
-        if nsga2 is None:
-            if raiseError:
-                raise Error("There was an error importing the compiled nsga2 module")
+        if isinstance(nsga2, str) and raiseError:
+            raise ImportError(nsga2)
 
     @staticmethod
     def _getInforms():
@@ -181,16 +181,21 @@ class NSGA2(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
-            sol_inform = {}
-            # sol_inform['value'] = inform
-            # sol_inform['text'] = self.informs[inform[0]]
+            sol_inform = {"value": "", "text": ""}
 
             xstar = [0.0] * n
             for i in range(n):
                 xstar[i] = nsga2.doubleArray_getitem(x, i)
 
+            fStar = np.zeros(len_ff)
+            if len_ff > 1:
+                for i in range(len_ff):
+                    fStar[i] = nsga2.doubleArray_getitem(f, i)
+            else:
+                fStar = nsga2.doubleArray_getitem(f, 0)
+
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff, xstar)
+            sol = self._createSolution(optTime, sol_inform, fStar, xstar)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()

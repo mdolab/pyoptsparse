@@ -1,3 +1,5 @@
+.. _ipopt:
+
 IPOPT
 =====
 IPOPT (Interior Point OPTimizer) is an open source interior point optimizer, designed for large-scale nonlinear optimization.
@@ -67,16 +69,6 @@ Here we explain a basic setup using MUMPS as the linear solver, together with ME
 
 
 #. Now clean build pyOptSparse. Verify that IPOPT works by running the relevant tests.
-
-.. note::
-
-   To get IPOPT working with pyOptSparse when using another linear solver, several things must be changed.
-
-   #. The ``setup.py`` file located in ``pyoptsparse/pyIPOPT`` must be updated accordingly.
-      In particular, the ``libraries=`` line must be changed to reflect the alternate linear solver.
-      For  example, for HSL you need to replace ``coinmumps`` and ``coinmetis`` with ``coinhsl``.
-   #. The option ``linear_solver`` in the options dictionary must be changed.
-      The default value can be changed in ``pyIPOPT.py`` so that this option does not need to be manually set in every run script.
 
 Options
 -------

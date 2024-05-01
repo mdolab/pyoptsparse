@@ -46,7 +46,7 @@ To install these dependencies, type
 
 .. prompt:: bash
 
-    pip install sphinx numpydoc sphinx-rtd-theme
+    pip install sphinx numpydoc sphinx-rtd-theme sphinx_mdolab_theme
 
 Testing
 -------

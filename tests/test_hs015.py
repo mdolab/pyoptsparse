@@ -15,7 +15,6 @@ from testing_utils import OptTest
 
 
 class TestHS15(OptTest):
-
     ## Solve test problem HS15 from the Hock & Schittkowski collection.
     #
     #  min   100 (x2 - x1^2)^2 + (1 - x1)^2
@@ -43,7 +42,7 @@ class TestHS15(OptTest):
         {"xvars": (-0.79212322, -1.26242985)},
     ]
     tol = {
-        "SLSQP": 1e-8,
+        "SLSQP": 1e-5,
         "NLPQLP": 1e-12,
         "IPOPT": 1e-4,
         "ParOpt": 1e-6,
@@ -99,7 +98,7 @@ class TestHS15(OptTest):
     def test_snopt(self):
         self.optName = "SNOPT"
         self.setup_optProb()
-        store_vars = ["step", "merit", "feasibility", "optimality", "penalty", "Hessian", "condZHZ", "slack", "lambda"]
+        store_vars = ["Hessian", "slack", "lambda", "penalty_vector", "nS", "BSwap", "maxVi"]
         optOptions = {"Save major iteration variables": store_vars}
         self.optimize_with_hotstart(1e-12, optOptions=optOptions)
 

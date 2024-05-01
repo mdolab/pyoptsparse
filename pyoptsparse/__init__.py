@@ -1,4 +1,4 @@
-__version__ = "2.9.0"
+__version__ = "2.11.0"
 
 from .pyOpt_history import History
 from .pyOpt_variable import Variable
@@ -6,8 +6,8 @@ from .pyOpt_gradient import Gradient
 from .pyOpt_constraint import Constraint
 from .pyOpt_objective import Objective
 from .pyOpt_optimization import Optimization
-from .pyOpt_optimizer import Optimizer
-from .pyOpt_optimizer import OPT
+from .pyOpt_optimizer import Optimizer, OPT, Optimizers
+from .pyOpt_solution import Solution
 
 # Now import all the individual optimizers
 from .pySNOPT.pySNOPT import SNOPT

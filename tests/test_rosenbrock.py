@@ -17,7 +17,6 @@ from testing_utils import OptTest
 
 
 class TestRosenbrock(OptTest):
-
     ## Solve unconstrained Rosenbrock problem.
     #  This problem is scalable w.r.t. design variables number.
     #  We select a problem with 4 design variables, but the
@@ -102,10 +101,8 @@ class TestRosenbrock(OptTest):
     def test_snopt(self):
         self.optName = "SNOPT"
         self.setup_optProb()
-        store_vars = ["step", "merit", "feasibility", "optimality", "penalty", "Hessian", "condZHZ", "slack", "lambda"]
-        optOptions = {
-            "Save major iteration variables": store_vars,
-        }
+        store_vars = ["Hessian", "slack", "lambda", "penalty_vector", "nS", "BSwap", "maxVi"]
+        optOptions = {"Save major iteration variables": store_vars}
         self.optimize_with_hotstart(1e-8, optOptions=optOptions)
 
         hist = History(self.histFileName, flag="r")
@@ -151,9 +148,9 @@ class TestRosenbrock(OptTest):
 
     @parameterized.expand(["IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "ParOpt"])
     def test_optimization(self, optName):
+        self.optName = optName
         if optName == "IPOPT" and sys.platform == "win32":
             raise unittest.SkipTest()
-        self.optName = optName
         self.setup_optProb()
         optOptions = self.optOptions.pop(optName, None)
         self.optimize_with_hotstart(self.tol[optName], optOptions=optOptions)

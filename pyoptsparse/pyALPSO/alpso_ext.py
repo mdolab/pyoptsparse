@@ -55,7 +55,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
     """
 
     #
-    if x0 != []:
+    if x0.size > 0:
         if isinstance(x0, list):
             x0 = np.array(x0)
         elif not isinstance(x0, np.ndarray):
@@ -110,7 +110,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
     else:
         diI = 0
 
-    if x0 != []:
+    if x0.size > 0:
         if len(x0.shape) == 1:
             nxi = 1
         else:
@@ -175,7 +175,7 @@ def alpso(dimensions, constraints, neqcons, xtype, x0, xmin, xmax, swarmsize, nh
 
             v_k[i, j] = (xmin[j] + rand.random() * (xmax[j] - xmin[j])) / dt
 
-    if x0 != []:
+    if x0.size > 0:
         if len(x0.shape) == 1:
             if scale == 1:
                 x_k[0, :] = (x0[:] - space_centre) / space_halflen

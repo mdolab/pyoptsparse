@@ -12,7 +12,6 @@ from numpy.testing import assert_allclose
 
 # First party modules
 from pyoptsparse import SNOPT, Optimization
-from pyoptsparse.pyOpt_error import Error
 
 
 def objfunc(xdict):
@@ -104,17 +103,15 @@ class TestSNOPTBug(unittest.TestCase):
         # Optimizer
         try:
             opt = SNOPT(options=optOptions)
-        except Error as e:
-            if "There was an error importing" in e.message:
-                raise unittest.SkipTest("Optimizer not available: SNOPT")
-            raise e
+        except ImportError:
+            raise unittest.SkipTest("Optimizer not available: SNOPT")
 
         sol = opt(optProb, sens=sens)
 
         # Check Solution 7.166667, -7.833334
         tol = 1e-6
-        assert_allclose(sol.variables["x"][0].value, 7.166667, atol=tol, rtol=tol)
-        assert_allclose(sol.variables["y"][0].value, -7.833333, atol=tol, rtol=tol)
+        assert_allclose(sol.xStar["x"], 7.166667, atol=tol, rtol=tol)
+        assert_allclose(sol.xStar["y"], -7.833333, atol=tol, rtol=tol)
 
     def test_opt_bug1(self):
         # Due to a new feature, there is a TypeError when you optimize a model without a constraint.
@@ -137,10 +134,8 @@ class TestSNOPTBug(unittest.TestCase):
         # Optimizer
         try:
             opt = SNOPT(options=optOptions)
-        except Error as e:
-            if "There was an error importing" in e.message:
-                raise unittest.SkipTest("Optimizer not available: SNOPT")
-            raise e
+        except ImportError:
+            raise unittest.SkipTest("Optimizer not available: SNOPT")
 
         opt(optProb, sens=sens)
 
@@ -180,10 +175,8 @@ class TestSNOPTBug(unittest.TestCase):
         # Optimizer
         try:
             opt = SNOPT(options=optOptions)
-        except Error as e:
-            if "There was an error importing" in e.message:
-                raise unittest.SkipTest("Optimizer not available: SNOPT")
-            raise e
+        except ImportError:
+            raise unittest.SkipTest("Optimizer not available: SNOPT")
 
         sol = opt(optProb, sens=sens)
 

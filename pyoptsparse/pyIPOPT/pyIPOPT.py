@@ -1,24 +1,31 @@
 """
 pyIPOPT - A python wrapper to the core IPOPT compiled module.
 """
-# Compiled module
-try:
-    from . import pyipoptcore  # isort: skip
-except ImportError:
-    pyipoptcore = None
 
 # Standard Python modules
 import copy
 import datetime
+import os
 import time
 
 # External modules
 import numpy as np
 
 # Local modules
-from ..pyOpt_error import Error
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, scaleRows
+from ..pyOpt_utils import (
+    ICOL,
+    INFINITY,
+    IROW,
+    convertToCOO,
+    extractRows,
+    scaleRows,
+    try_import_compiled_module_from_path,
+)
+
+# import the compiled module
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+pyipoptcore = try_import_compiled_module_from_path("pyipoptcore", THIS_DIR)
 
 
 class IPOPT(Optimizer):
@@ -36,9 +43,8 @@ class IPOPT(Optimizer):
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
 
-        if pyipoptcore is None:
-            if raiseError:
-                raise Error("There was an error importing the compiled IPOPT module")
+        if isinstance(pyipoptcore, str) and raiseError:
+            raise ImportError(pyipoptcore)
 
         super().__init__(
             name,
@@ -191,8 +197,8 @@ class IPOPT(Optimizer):
             jac = extractRows(jac, indices)  # Does reordering
             scaleRows(jac, fact)  # Perform logical scaling
         else:
-            blc = np.array([-INFINITY])
-            buc = np.array([INFINITY])
+            blc = np.array(-INFINITY)
+            buc = np.array(INFINITY)
             ncon = 1
 
         jac = convertToCOO(jac)  # Conver to coo format for IPOPT
@@ -201,7 +207,6 @@ class IPOPT(Optimizer):
         # problem and run IPOPT, otherwise we go to the waiting loop:
 
         if self.optProb.comm.rank == 0:
-
             # Now what we need for IPOPT is precisely the .row and
             # .col attributes of the fullJacobian array
             matStruct = (

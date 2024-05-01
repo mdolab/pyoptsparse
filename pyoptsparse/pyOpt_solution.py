@@ -1,13 +1,15 @@
 # Standard Python modules
 import copy
 
+# External modules
+import numpy as np
+
 # Local modules
 from .pyOpt_optimization import Optimization
 
 
 class Solution(Optimization):
     def __init__(self, optProb, xStar, fStar, lambdaStar, optInform, info):
-
         """
         This class is used to describe the solution of an optimization
         problem. This class inherits from Optimization which enables a
@@ -35,7 +37,7 @@ class Solution(Optimization):
             in the Solution object.
         """
 
-        Optimization.__init__(self, optProb.name, None)
+        super().__init__(optProb.name, None)
 
         # Copy over the variables, constraints, and objectives
         self.variables = copy.deepcopy(optProb.variables)
@@ -44,10 +46,18 @@ class Solution(Optimization):
         xopt = optProb._mapXtoOpt(optProb.processXtoVec(xStar))
         # Now set the x-values:
         i = 0
-        for dvGroup in self.variables:
+        for dvGroup in self.variables.keys():
             for var in self.variables[dvGroup]:
                 var.value = xopt[i]
                 i += 1
+
+        # Now set the f-values
+        if isinstance(fStar, np.ndarray) and len(fStar) == 1:
+            self.objectives[list(self.objectives.keys())[0]].value = fStar.item()
+            fStar = fStar.item()
+        else:
+            for f_name, f in self.objectives.items():
+                f.value = fStar[f_name]
 
         self.optTime = info["optTime"]
         self.userObjTime = info["userObjTime"]
@@ -84,6 +94,13 @@ class Solution(Optimization):
 
         for i in range(5, len(lines)):
             text1 += lines[i] + "\n"
+
+        inform_val = self.optInform["value"]
+        inform_text = self.optInform["text"]
+        text1 += "\n"
+        text1 += "   Exit Status\n"
+        text1 += "      Inform  Description\n"
+        text1 += f"      {inform_val:>6}  {inform_text:<0}\n"
 
         text1 += ("-" * 80) + "\n"
 

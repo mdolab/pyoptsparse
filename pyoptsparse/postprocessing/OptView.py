@@ -42,7 +42,6 @@ class Display(OVBaseClass):
     """
 
     def __init__(self, histList, outputDir, figsize):
-
         # Initialize the Tkinter object, which will contain all graphical
         # elements.
         self.root = Tk.Tk()
@@ -214,7 +213,6 @@ class Display(OVBaseClass):
                 self.error_display("No bounds information")
 
     def color_plot(self, dat, labels, a):
-
         # If the user wants the non-constraint colormap, use viridis
         if self.var_color.get():
             cmap = plt.get_cmap("viridis")
@@ -254,7 +252,6 @@ class Display(OVBaseClass):
 
         # Loop through the data sets selected by the user
         for label in labels:
-
             # Get the subarray for this particular data set and record its size
             subarray = np.array(dat[label]).T
             sub_size = subarray.shape[0]
@@ -438,7 +435,6 @@ class Display(OVBaseClass):
 
             # Plot on individual vertical axes
             elif self.var.get() == 1 and not fail:
-
                 # Set window sizing parameters for when additional axes are
                 # added
                 n = len(values)
@@ -553,7 +549,6 @@ class Display(OVBaseClass):
             # Plot color plots of rectangular pixels showing values,
             # especially useful for constraints
             elif self.var.get() == 3 and not fail:
-
                 # Remove options that aren't relevant
                 self.c4.grid_forget()
                 self.c5.grid_forget()
@@ -666,7 +661,6 @@ class Display(OVBaseClass):
                 self.plot_selected(values, dat)
 
     def set_mask(self):
-
         if self.var_mask.get():
             self.func_data = self.func_data_major
             self.var_data = self.var_data_major
@@ -751,7 +745,7 @@ class Display(OVBaseClass):
 
         num_vars = len(keys)
         num_iters = len(dat[keys[0]])
-        full_data = np.arange(num_iters, dtype=np.float_).reshape(num_iters, 1)
+        full_data = np.arange(num_iters, dtype=np.float64).reshape(num_iters, 1)
         var_names = ["Iteration"]
         for key in keys:
             small_data = np.asarray(dat[key])

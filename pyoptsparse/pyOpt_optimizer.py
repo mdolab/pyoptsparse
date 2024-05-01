@@ -2,6 +2,7 @@
 from collections import OrderedDict
 import copy
 import datetime
+from enum import Enum
 import os
 import shutil
 import tempfile
@@ -229,7 +230,6 @@ class Optimizer(BaseSolver):
         # fire it back to the specific optimizer
         timeA = time.time()
         if self.hotStart:
-
             # This is a very inexpensive check to see if point exists
             if self.hotStart.pointExists(self.callCounter):
                 # Read the actual data for this point:
@@ -241,7 +241,6 @@ class Optimizer(BaseSolver):
                 # Validated x-point point to use:
                 xuser_vec = self.optProb._mapXtoUser(x)
                 if np.isclose(xuser_vec, xuser_ref, rtol=EPS, atol=EPS).all():
-
                     # However, we may need a sens that *isn't* in the
                     # the dictionary:
                     funcs = None
@@ -593,14 +592,18 @@ class Optimizer(BaseSolver):
             for objKey in self.optProb.objectives.keys():
                 objInfo[objKey] = {"scale": self.optProb.objectives[objKey].scale}
 
-            # There is a special write for the bounds data
+            # There is a special write for additional metadata
             if self.storeHistory:
                 self.hist.writeData("varInfo", varInfo)
                 self.hist.writeData("conInfo", conInfo)
                 self.hist.writeData("objInfo", objInfo)
                 self._setMetadata()
                 self.hist.writeData("metadata", self.metadata)
-                self.hist.writeData("optProb", self.optProb)
+                # we have to get rid of some callables in optProb before serialization
+                optProb = copy.copy(self.optProb)
+                optProb.objFun = None
+                optProb.sens = None
+                self.hist.writeData("optProb", optProb)
 
         # Write history if necessary
         if self.optProb.comm.rank == 0 and writeHist and self.storeHistory:
@@ -662,7 +665,7 @@ class Optimizer(BaseSolver):
                     self._jac_map_csr_to_csc = mapToCSC(gcon_csr)
                 gcon = gcon_csr["csr"][IDATA][self._jac_map_csr_to_csc[IDATA]]
             elif self.jacType == "csr":
-                pass
+                gcon = gcon_csr["csr"][IDATA]
             elif self.jacType == "coo":
                 gcon = convertToCOO(gcon_csr)
                 gcon = gcon["coo"][IDATA]
@@ -759,9 +762,8 @@ class Optimizer(BaseSolver):
 
     def _assembleObjective(self):
         """
-        Utility function for assembling the design variables. Most
-        optimizers here use continuous variables so this chunk of code
-        can be reused.
+        Utility function for assembling the objective, fetching the information in the Objective object within the Optimization class.
+        Most optimizers use a single objective. In that case, the function will return a 0-length array (not a scalar).
         """
 
         nobj = len(self.optProb.objectives.keys())
@@ -779,6 +781,9 @@ class Optimizer(BaseSolver):
         finishes.
         """
         fStar = self.optProb._mapObjtoUser(obj)
+        # optionally convert to dict for multi-objective problems
+        if isinstance(fStar, (list, np.ndarray)) and len(fStar) > 1:
+            fStar = self.optProb.processObjtoDict(fStar, scaled=False)
         xuser = self.optProb._mapXtoUser(xopt)
         xStar = self.optProb.processXtoDict(xuser)
 
@@ -923,6 +928,9 @@ class Optimizer(BaseSolver):
 # Generic OPT Constructor
 # =============================================================================
 
+# List of optimizers as an enum
+Optimizers = Enum("Optimizers", "SNOPT IPOPT SLSQP NLPQLP CONMIN NSGA2 PSQP ALPSO ParOpt")
+
 
 def OPT(optName, *args, **kwargs):
     """
@@ -933,10 +941,11 @@ def OPT(optName, *args, **kwargs):
 
     Parameters
     ----------
-    optName : str
-       String identifying the optimizer to create
+    optName : str or enum
+       Either a string identifying the optimizer to create, e.g. "SNOPT", or
+       an enum accessed via ``pyoptsparse.Optimizers``, e.g. ``Optimizers.SNOPT``.
 
-    *args, **kwargs : varies
+    \*args, \*\*kwargs : varies
        Passed to optimizer creation.
 
     Returns
@@ -944,31 +953,32 @@ def OPT(optName, *args, **kwargs):
     opt : pyOpt_optimizer inherited optimizer
        The desired optimizer
     """
-
-    optName = optName.lower()
-    optList = ["snopt", "ipopt", "slsqp", "nlpqlp", "conmin", "nsga2", "psqp", "alpso", "paropt"]
-    if optName == "snopt":
+    if isinstance(optName, str):
+        optName = optName.lower()
+    if optName == "snopt" or optName == Optimizers.SNOPT:
         from .pySNOPT.pySNOPT import SNOPT as opt
-    elif optName == "ipopt":
+    elif optName == "ipopt" or optName == Optimizers.IPOPT:
         from .pyIPOPT.pyIPOPT import IPOPT as opt
-    elif optName == "slsqp":
+    elif optName == "slsqp" or optName == Optimizers.SLSQP:
         from .pySLSQP.pySLSQP import SLSQP as opt
-    elif optName == "nlpqlp":
+    elif optName == "nlpqlp" or optName == Optimizers.NLPQLP:
         from .pyNLPQLP.pyNLPQLP import NLPQLP as opt
-    elif optName == "psqp":
+    elif optName == "psqp" or optName == Optimizers.PSQP:
         from .pyPSQP.pyPSQP import PSQP as opt
-    elif optName == "conmin":
+    elif optName == "conmin" or optName == Optimizers.CONMIN:
         from .pyCONMIN.pyCONMIN import CONMIN as opt
-    elif optName == "nsga2":
+    elif optName == "nsga2" or optName == Optimizers.NSGA2:
         from .pyNSGA2.pyNSGA2 import NSGA2 as opt
-    elif optName == "alpso":
+    elif optName == "alpso" or optName == Optimizers.ALPSO:
         from .pyALPSO.pyALPSO import ALPSO as opt
-    elif optName == "paropt":
+    elif optName == "paropt" or optName == Optimizers.ParOpt:
         from .pyParOpt.ParOpt import ParOpt as opt
     else:
         raise Error(
-            "The optimizer specified in 'optName' was not recognized. "
-            + f"The current list of supported optimizers is: {optList}"
+            (
+                "The optimizer specified in 'optName' was not recognized. "
+                + "The current list of supported optimizers is {}"
+            ).format(list(map(str, Optimizers)))
         )
 
     # Create the optimizer and return it

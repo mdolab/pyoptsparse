@@ -70,10 +70,28 @@ Total real workspace:
     User-specified values are not overwritten.
 
 Save major iteration variables:
-  desc: >
-    This option is unique to the Python wrapper, and takes a list of values which can be saved at each iteration to the History file.
-    This specifies the list of major iteration variables to be stored in the history file.
-    ``Hessian``, ``slack``, ``lambda`` and ``condZHZ`` are also supported.
+  desc: |
+    This option is unique to the Python wrapper, and takes a list of values which can be saved at each major iteration to the History file.
+    The possible values are
+
+    - ``Hessian``
+    - ``slack``
+    - ``lambda``
+    - ``nS``
+    - ``BSwap``
+    - ``maxVi``
+    - ``penalty_vector``
+
+    In addition, a set of default parameters are saved to the history file and cannot be changed. These are
+
+    - ``nMajor``
+    - ``nMinor``
+    - ``step``
+    - ``feasibility``
+    - ``optimality``
+    - ``merit``
+    - ``condZHZ``
+    - ``penalty``
 
 Return work arrays:
   desc: >
