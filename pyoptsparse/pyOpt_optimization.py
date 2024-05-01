@@ -1577,12 +1577,11 @@ class Optimization:
         con_opt = self._mapContoOpt(con)
         return self.processContoDict(con_opt, scaled=False, natural=True)
 
-    def __str__(self):
+    def summary_str(self, minimal_print=False):
         """
         Print Structured Optimization Problem
         """
         TOL = 1.0e-6
-        minimal_print = getattr(self, "minimal_print", True)
 
         text = (
             f"\n\nOptimization Problem -- {self.name}\n{'=' * 80}\n    Objective Function: {self.objFun.__name__}\n\n"
@@ -1707,6 +1706,9 @@ class Optimization:
                     idx += 1
 
         return text
+
+    def __str__(self, minimal_print=False):
+        return self.summary_str(minimal_print)
 
     def __getstate__(self) -> dict:
         """
