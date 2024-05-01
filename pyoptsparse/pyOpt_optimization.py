@@ -1648,6 +1648,7 @@ class Optimization:
         Print Structured Optimization Problem
         """
         TOL = 1.0e-6
+        minimal_print = getattr(self,'minimal_print',True)
 
         text = (
             f"\n\nOptimization Problem -- {self.name}\n{'=' * 80}\n    Objective Function: {self.objFun.__name__}\n\n"
@@ -1708,7 +1709,8 @@ class Optimization:
                 else:
                     raise ValueError(f"Unrecognized type for variable {var.name}: {var.type}")
 
-                text += fmt.format(idx, var.name, var.type, lower, value, upper, status, width=num_c)
+                if not (minimal_print and not status):
+                    text += fmt.format(idx, var.name, var.type, lower, value, upper, status, width=num_c)
                 idx += 1
 
         if len(self.constraints) > 0:
@@ -1764,9 +1766,10 @@ class Optimization:
                             # Active upper bound
                             status += "u"
 
-                    text += fmt.format(
-                        idx, c.name, typ, lower, value, upper, status, lambdaStar[con_name][j], width=num_c
-                    )
+                    if not (minimal_print and not status):
+                        text += fmt.format(
+                            idx, c.name, typ, lower, value, upper, status, lambdaStar[con_name][j], width=num_c
+                        )
                     idx += 1
 
         return text
