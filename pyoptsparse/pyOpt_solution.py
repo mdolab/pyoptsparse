@@ -29,8 +29,8 @@ class Solution(Optimization):
         lambdaStar : dict
             The final Lagrange multipliers
 
-        optInform : int
-            The inform code returned by the optimizer
+        optInform : dict
+            The inform code and reason returned by the optimizer
 
         info : dict
             A dictionary containing timing and call counter info to be stored
@@ -95,12 +95,14 @@ class Solution(Optimization):
         for i in range(5, len(lines)):
             text1 += lines[i] + "\n"
 
-        inform_val = self.optInform["value"]
-        inform_text = self.optInform["text"]
-        text1 += "\n"
-        text1 += "   Exit Status\n"
-        text1 += "      Inform  Description\n"
-        text1 += f"      {inform_val:>6}  {inform_text:<0}\n"
+        # Only print exit status, inform, and description if the optimizer provides informs
+        if self.optInform:
+            inform_val = self.optInform["value"]
+            inform_text = self.optInform["text"]
+            text1 += "\n"
+            text1 += "   Exit Status\n"
+            text1 += "      Inform  Description\n"
+            text1 += f"      {inform_val:>6}  {inform_text:<0}\n"
 
         text1 += ("-" * 80) + "\n"
 
