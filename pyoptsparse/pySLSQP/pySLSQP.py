@@ -260,12 +260,12 @@ class SLSQP(Optimizer):
 
             # Store Results
             inform = mode.item()
-            sol_inform = {}
-            sol_inform["value"] = inform
-            sol_inform["text"] = self.informs[inform]
+            solInform = {}
+            solInform["value"] = inform
+            solInform["text"] = self.informs[inform]
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff, xs)
+            sol = self._createSolution(optTime, solInform, ff, xs)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()

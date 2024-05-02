@@ -256,12 +256,12 @@ class NLPQLP(Optimizer):
 
             # Store Results
             inform = ifail.item()
-            sol_inform = {}
-            sol_inform["value"] = inform
-            sol_inform["text"] = self.informs[inform]
+            solInform = {}
+            solInform["value"] = inform
+            solInform["text"] = self.informs[inform]
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, f, xs)
+            sol = self._createSolution(optTime, solInform, f, xs)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()

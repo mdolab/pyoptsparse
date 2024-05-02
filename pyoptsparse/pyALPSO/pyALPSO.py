@@ -191,10 +191,10 @@ class ALPSO(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
-            sol_inform = {}
+            solInform = {}
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, opt_f, opt_x)
+            sol = self._createSolution(optTime, solInform, opt_f, opt_x)
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
             sol = None

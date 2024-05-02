@@ -500,9 +500,9 @@ class SNOPT(Optimizer):
                 snopt.closeunit(self.getOption("iSumm"))
 
             # Store Results
-            sol_inform = {}
-            sol_inform["value"] = inform
-            sol_inform["text"] = self.informs[inform]
+            solInform = {}
+            solInform["value"] = inform
+            solInform["text"] = self.informs[inform]
 
             # Create the optimization solution
             if parse_version(self.version) > parse_version("7.7.0") and parse_version(self.version) < parse_version(
@@ -511,7 +511,7 @@ class SNOPT(Optimizer):
                 # SNOPT obj value is buggy and returned as 0, its thus overwritten with the solution objective value
                 obj = np.array([obj.value * obj.scale for obj in self.optProb.objectives.values()])
 
-            sol = self._createSolution(optTime, sol_inform, obj, xs[:nvar], multipliers=pi)
+            sol = self._createSolution(optTime, solInform, obj, xs[:nvar], multipliers=pi)
             restartDict = {
                 "cw": cw,
                 "iw": iw,
