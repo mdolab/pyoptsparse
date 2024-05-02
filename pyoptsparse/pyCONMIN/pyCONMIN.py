@@ -240,7 +240,7 @@ class CONMIN(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
-            sol_inform = {"value": "", "text": ""}
+            sol_inform = {}
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xs)

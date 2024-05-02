@@ -183,7 +183,7 @@ class NSGA2(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
-            sol_inform = {"value": "", "text": ""}
+            sol_inform = {}
 
             xstar = [0.0] * n
             for i in range(n):
