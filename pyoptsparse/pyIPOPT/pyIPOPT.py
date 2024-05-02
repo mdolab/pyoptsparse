@@ -283,12 +283,12 @@ class IPOPT(Optimizer):
                 self.hist.close()
 
             # Store Results
-            sol_inform = {}
-            sol_inform["value"] = status
-            sol_inform["text"] = self.informs[status]
+            solInform = {}
+            solInform["value"] = status
+            solInform["text"] = self.informs[status]
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, obj, x)
+            sol = self._createSolution(optTime, solInform, obj, x)
 
             # Indicate solution finished
             self.optProb.comm.bcast(-1, root=0)
