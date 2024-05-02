@@ -1707,8 +1707,8 @@ class Optimization:
 
         return text
 
-    def __str__(self, minimal_print=False):
-        return self.summary_str(minimal_print)
+    def __str__(self):
+        return self.summary_str(minimal_print=False)
 
     def __getstate__(self) -> dict:
         """
