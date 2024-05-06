@@ -1642,7 +1642,7 @@ class Optimization:
                 else:
                     raise ValueError(f"Unrecognized type for variable {var.name}: {var.type}")
 
-                if not (minimal_print and not status):
+                if not minimal_print or status:
                     text += fmt.format(idx, var.name, var.type, lower, value, upper, status, width=num_c)
                 idx += 1
 
