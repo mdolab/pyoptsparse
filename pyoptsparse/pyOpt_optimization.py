@@ -1699,7 +1699,7 @@ class Optimization:
                             # Active upper bound
                             status += "u"
 
-                    if not (minimal_print and not status):
+                    if not minimal_print or status:
                         text += fmt.format(
                             idx, c.name, typ, lower, value, upper, status, lambdaStar[con_name][j], width=num_c
                         )
