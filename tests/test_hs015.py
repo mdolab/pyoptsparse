@@ -193,6 +193,22 @@ class TestHS15(OptTest):
         # we should get 70/74
         self.assert_inform_equal(sol, optInform=74)
 
+    def test_snopt_failed_initial(self):
+        def failed_fun(x_dict):
+            funcs = {"obj": 0.0, "con": [np.nan, np.nan]}
+            fail = True
+            return funcs, fail
+
+        self.optName = "SNOPT"
+        self.setup_optProb()
+        # swap obj to report NaN
+        self.optProb.objFun = failed_fun
+        sol = self.optimize(optOptions={}, storeHistory=True)
+        self.assert_inform_equal(sol, optInform=61)
+        # make sure empty history does not error out
+        hist = History(self.histFileName, flag="r")
+        hist.getValues()
+
 
 if __name__ == "__main__":
     unittest.main()
