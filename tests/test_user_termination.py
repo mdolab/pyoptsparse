@@ -126,7 +126,7 @@ class TestUserTerminationStatus(unittest.TestCase):
         try:
             opt = OPT(optName, options=optOptions)
         except ImportError:
-            raise unittest.SkipTest("Optimizer not available: SNOPT")
+            raise unittest.SkipTest(f"Optimizer not available: {optName}")
 
         sol = opt(optProb, sens=termcomp.sens)
 
