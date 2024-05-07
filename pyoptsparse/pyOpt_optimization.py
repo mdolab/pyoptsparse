@@ -1583,7 +1583,7 @@ class Optimization:
 
         Parameters
         ----------
-        minimal_print : Bool
+        minimal_print : bool
             Flag to specify if the printed results should only include
             variables and constraints with a non-empty status
             (for example a violated bound).
