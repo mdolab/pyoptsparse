@@ -1213,7 +1213,7 @@ class Optimization:
 
         scaled : bool
             Flag specifying if the returned array should be scaled by
-            the pyOpt scaling. The only type this is not true is
+            the pyOpt scaling. The only time this is not true is
             when the automatic derivatives are used
 
         dtype : str
@@ -1577,9 +1577,17 @@ class Optimization:
         con_opt = self._mapContoOpt(con)
         return self.processContoDict(con_opt, scaled=False, natural=True)
 
-    def __str__(self):
+    def summary_str(self, minimal_print=False):
         """
         Print Structured Optimization Problem
+
+        Parameters
+        ----------
+        minimal_print : bool
+            Flag to specify if the printed results should only include
+            variables and constraints with a non-empty status
+            (for example a violated bound).
+            This defaults to False, which will print all results.
         """
         TOL = 1.0e-6
 
@@ -1642,7 +1650,8 @@ class Optimization:
                 else:
                     raise ValueError(f"Unrecognized type for variable {var.name}: {var.type}")
 
-                text += fmt.format(idx, var.name, var.type, lower, value, upper, status, width=num_c)
+                if not minimal_print or status:
+                    text += fmt.format(idx, var.name, var.type, lower, value, upper, status, width=num_c)
                 idx += 1
 
         if len(self.constraints) > 0:
@@ -1698,12 +1707,16 @@ class Optimization:
                             # Active upper bound
                             status += "u"
 
-                    text += fmt.format(
-                        idx, c.name, typ, lower, value, upper, status, lambdaStar[con_name][j], width=num_c
-                    )
+                    if not minimal_print or status:
+                        text += fmt.format(
+                            idx, c.name, typ, lower, value, upper, status, lambdaStar[con_name][j], width=num_c
+                        )
                     idx += 1
 
         return text
+
+    def __str__(self):
+        return self.summary_str(minimal_print=False)
 
     def __getstate__(self) -> dict:
         """
