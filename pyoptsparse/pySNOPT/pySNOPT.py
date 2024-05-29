@@ -2,10 +2,12 @@
 pySNOPT - A variation of the pySNOPT wrapper specifically designed to
 work with sparse optimization problems.
 """
+
 # Standard Python modules
 import datetime
 import os
 import re
+import sys
 import time
 from typing import Any, Dict, Optional, Tuple
 
@@ -259,6 +261,9 @@ class SNOPT(Optimizer):
         self.startTime = time.time()
         self.callCounter = 0
         self.storeSens = storeSens
+        # flush the output streams
+        sys.stdout.flush()
+        sys.stderr.flush()
 
         # Store the starting time if the keyword timeLimit is given:
         self.timeLimit = timeLimit
@@ -513,6 +518,8 @@ class SNOPT(Optimizer):
                 "pi": pi,
             }
 
+            self._on_flushFiles()
+
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
             restartDict = None
@@ -559,10 +566,7 @@ class SNOPT(Optimizer):
         elif fail == 2:
             mode = -2
 
-        # Flush the files to the buffer for all the people who like to
-        # monitor the residual
-        snopt.pyflush(self.getOption("iPrint"))
-        snopt.pyflush(self.getOption("iSumm"))
+        self._on_flushFiles()
 
         # Check if we've exceeded the timeLimit
         if self.timeLimit is not None:
