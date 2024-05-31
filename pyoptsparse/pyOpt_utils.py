@@ -8,8 +8,13 @@ We use a very simple dictionary format to represent the three most common forms 
     mat = {'csr':[rowp, colind, data], 'shape':[nrow, ncols]} # A csr matrix
     mat = {'csc':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
 """
+
 # Standard Python modules
-from typing import Tuple, Union
+import importlib
+import os
+import sys
+import types
+from typing import Optional, Tuple, Union
 import warnings
 
 # External modules
@@ -20,7 +25,7 @@ from scipy.sparse import spmatrix
 
 # Local modules
 from .pyOpt_error import Error
-from .types import ArrayType
+from .pyOpt_types import ArrayType
 
 # Define index mnemonics
 IROW = 0
@@ -570,3 +575,42 @@ def _broadcast_to_array(name: str, value: ArrayType, n_values: int, allow_none: 
     if not allow_none and any([i is None for i in value]):
         raise Error(f"The {name} argument cannot be 'None'.")
     return value
+
+
+def try_import_compiled_module_from_path(
+    module_name: str, path: Optional[str] = None, raise_warning: bool = False
+) -> Union[types.ModuleType, str]:
+    """
+    Attempt to import a module from a given path.
+
+    Parameters
+    ----------
+    module_name : str
+        The name of the module
+    path : Optional[str]
+        The path to import from. If None, the default ``sys.path`` is used.
+    raise_warning : bool
+        If true, raise an import warning. By default false.
+
+    Returns
+    -------
+    Union[types.ModuleType, str]
+        If importable, the imported module is returned.
+        If not importable, the error message is instead returned.
+    """
+    orig_path = sys.path
+    if path is not None:
+        path = os.path.abspath(os.path.expandvars(os.path.expanduser(path)))
+        sys.path = [path]
+    try:
+        module = importlib.import_module(module_name)
+    except ImportError as e:
+        if raise_warning:
+            warnings.warn(
+                f"{module_name} module could not be imported from {path}.",
+                stacklevel=2,
+            )
+        module = str(e)
+    finally:
+        sys.path = orig_path
+    return module

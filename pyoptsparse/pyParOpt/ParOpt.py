@@ -6,34 +6,27 @@ import time
 # External modules
 import numpy as np
 
-# isort: off
-# Attempt to import mpi4py.
+# Local modules
+from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_utils import INFINITY, try_import_compiled_module_from_path
+
+# Attempt to import ParOpt/mpi4py
 # If PYOPTSPARSE_REQUIRE_MPI is set to a recognized positive value, attempt import
 # and raise exception on failure. If set to anything else, no import is attempted.
-if "PYOPTSPARSE_REQUIRE_MPI" in os.environ:
-    if os.environ["PYOPTSPARSE_REQUIRE_MPI"].lower() in ["always", "1", "true", "yes"]:
-        try:
-            from paropt import ParOpt as _ParOpt
-            from mpi4py import MPI
-        except ImportError:
-            _ParOpt = None
-    else:
-        _ParOpt = None
+if "PYOPTSPARSE_REQUIRE_MPI" in os.environ and os.environ["PYOPTSPARSE_REQUIRE_MPI"].lower() not in [
+    "always",
+    "1",
+    "true",
+    "yes",
+]:
+    _ParOpt = "ParOpt was not imported, as requested by the environment variable 'PYOPTSPARSE_REQUIRE_MPI'"
+    MPI = "mpi4py was not imported, as requested by the environment variable 'PYOPTSPARSE_REQUIRE_MPI'"
 # If PYOPTSPARSE_REQUIRE_MPI is unset, attempt to import mpi4py.
 # Since ParOpt requires mpi4py, if either _ParOpt or mpi4py is unavailable
 # we disable the optimizer.
 else:
-    try:
-        from paropt import ParOpt as _ParOpt
-        from mpi4py import MPI
-    except ImportError:
-        _ParOpt = None
-# isort: on
-
-# Local modules
-from ..pyOpt_error import Error
-from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_utils import INFINITY
+    _ParOpt = try_import_compiled_module_from_path("paropt.ParOpt")
+    MPI = try_import_compiled_module_from_path("mpi4py.MPI")
 
 
 class ParOpt(Optimizer):
@@ -48,9 +41,9 @@ class ParOpt(Optimizer):
     def __init__(self, raiseError=True, options={}):
         name = "ParOpt"
         category = "Local Optimizer"
-        if _ParOpt is None:
-            if raiseError:
-                raise Error("There was an error importing ParOpt")
+        for mod in [_ParOpt, MPI]:
+            if isinstance(mod, str) and raiseError:
+                raise ImportError(mod)
 
         # Create and fill-in the dictionary of default option values
         self.defOpts = {}
@@ -173,7 +166,7 @@ class ParOpt(Optimizer):
 
             class Problem(_ParOpt.Problem):
                 def __init__(self, ptr, n, m, xs, blx, bux):
-                    super().__init__(MPI.COMM_SELF, n, m)
+                    super().__init__(MPI.COMM_SELF, nvars=n, ncon=m)
                     self.ptr = ptr
                     self.n = n
                     self.m = m
@@ -242,9 +235,7 @@ class ParOpt(Optimizer):
             # Create the optimization solution. Note that the signs on the multipliers
             # are switch since ParOpt uses a formulation with c(x) >= 0, while pyOpt
             # uses g(x) = -c(x) <= 0. Therefore the multipliers are reversed.
-            sol_inform = {}
-            sol_inform["value"] = None
-            sol_inform["text"] = None
+            sol_inform = {"value": "", "text": ""}
 
             # If number of constraints is zero, ParOpt returns z as None.
             # Thus if there is no constraints, should pass an empty list

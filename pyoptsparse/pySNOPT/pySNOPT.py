@@ -6,10 +6,8 @@ work with sparse optimization problems.
 import datetime
 import os
 import re
-import sys
 import time
 from typing import Any, Dict, Optional, Tuple
-import warnings
 
 # External modules
 from baseclasses.utils import CaseInsensitiveSet
@@ -21,39 +19,21 @@ from pkg_resources import parse_version
 from ..pyOpt_error import Error
 from ..pyOpt_optimization import Optimization
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_utils import ICOL, IDATA, INFINITY, IROW, extractRows, mapToCSC, scaleRows
+from ..pyOpt_utils import (
+    ICOL,
+    IDATA,
+    INFINITY,
+    IROW,
+    extractRows,
+    mapToCSC,
+    scaleRows,
+    try_import_compiled_module_from_path,
+)
 
-
-def _import_snopt_from_path(path):
-    """Attempt to import snopt from a specific path. Return the loaded module, or `None` if snopt cannot be imported."""
-    path = os.path.abspath(os.path.expandvars(os.path.expanduser(path)))
-    orig_path = sys.path
-    sys.path = [path]
-    try:
-        import snopt  # isort: skip
-    except ImportError:
-        warnings.warn(
-            f"`snopt` module could not be imported from {path}.",
-            ImportWarning,
-            stacklevel=2,
-        )
-        snopt = None
-    finally:
-        sys.path = orig_path
-    return snopt
-
-
-# Compiled module
-_IMPORT_SNOPT_FROM = os.environ.get("PYOPTSPARSE_IMPORT_SNOPT_FROM", None)
-if _IMPORT_SNOPT_FROM is not None:
-    # if a specific import path is specified, attempt to load SNOPT from it
-    snopt = _import_snopt_from_path(_IMPORT_SNOPT_FROM)
-else:
-    # otherwise, load it relative to this file
-    try:
-        from . import snopt  # isort: skip
-    except ImportError:
-        snopt = None
+# import the compiled module
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+_IMPORT_SNOPT_FROM = os.environ.get("PYOPTSPARSE_IMPORT_SNOPT_FROM", THIS_DIR)
+snopt = try_import_compiled_module_from_path("snopt", _IMPORT_SNOPT_FROM)
 
 
 class SNOPT(Optimizer):
@@ -84,9 +64,9 @@ class SNOPT(Optimizer):
 
         informs = self._getInforms()
 
-        if snopt is None:
+        if isinstance(snopt, str):
             if raiseError:
-                raise Error("There was an error importing the compiled snopt module")
+                raise ImportError(snopt)
             else:
                 version = None
         else:
@@ -405,6 +385,7 @@ class SNOPT(Optimizer):
                 self.setOption("Total real workspace", lenrw)
 
             cw = np.empty((lencw, 8), dtype="|S1")
+            cw[:] = " "
             iw = np.zeros(leniw, np.intc)
             rw = np.zeros(lenrw, float)
             snopt.sninit(iPrint, iSumm, cw, iw, rw)
@@ -464,11 +445,6 @@ class SNOPT(Optimizer):
             start = np.array(self.getOption("Start"))
             ObjAdd = np.array(0.0, float)
             ProbNm = np.array(self.optProb.name, "c")
-            cdummy = -1111111  # this is a magic variable defined in SNOPT for undefined strings
-            cw[51, :] = cdummy  # we set these to cdummy so that a placeholder is used in printout
-            cw[52, :] = cdummy
-            cw[53, :] = cdummy
-            cw[54, :] = cdummy
             xs = np.concatenate((xs, np.zeros(ncon, float)))
             bl = np.concatenate((blx, blc))
             bu = np.concatenate((bux, buc))
@@ -731,11 +707,11 @@ class SNOPT(Optimizer):
                 if name == "Problem Type":
                     snopt.snset(value, iPrint, iSumm, inform, cw, iw, rw)
                 elif name == "Print file":
-                    snopt.snset(name + " " + f"{iPrint}", iPrint, iSumm, inform, cw, iw, rw)
+                    snopt.snset(f"{name} {iPrint}", iPrint, iSumm, inform, cw, iw, rw)
                 elif name == "Summary file":
-                    snopt.snset(name + " " + f"{iSumm}", iPrint, iSumm, inform, cw, iw, rw)
+                    snopt.snset(f"{name} {iSumm}", iPrint, iSumm, inform, cw, iw, rw)
                 else:
-                    snopt.snset(name + " " + value, iPrint, iSumm, inform, cw, iw, rw)
+                    snopt.snset(f"{name} {value}", iPrint, iSumm, inform, cw, iw, rw)
             elif isinstance(value, float):
                 snopt.snsetr(name, value, iPrint, iSumm, inform, cw, iw, rw)
             elif isinstance(value, int):

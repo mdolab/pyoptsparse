@@ -2,6 +2,7 @@
 pyALPSO - A pyOptSparse interface to ALPSO
 work with sparse optimization problems.
 """
+
 # Standard Python modules
 import datetime
 import time
@@ -10,6 +11,7 @@ import time
 import numpy as np
 
 # Local modules
+from . import alpso
 from ..pyOpt_error import Error
 from ..pyOpt_optimizer import Optimizer
 
@@ -25,9 +27,7 @@ class ALPSO(Optimizer):
     - pll_type -> STR: ALPSO Parallel Implementation (None, SPM- Static, DPM- Dynamic, POA-Parallel Analysis), *Default* = None
     """
 
-    def __init__(self, raiseError=True, options={}):
-        from . import alpso
-
+    def __init__(self, options={}):
         self.alpso = alpso
 
         category = "Global Optimizer"
@@ -192,9 +192,7 @@ class ALPSO(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
-            sol_inform = {}
-            # sol_inform['value'] = inform
-            # sol_inform['text'] = self.informs[inform[0]]
+            sol_inform = {"value": "", "text": ""}
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, opt_f, opt_x)

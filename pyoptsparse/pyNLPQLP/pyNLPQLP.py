@@ -2,11 +2,6 @@
 pyNLPQLP - A pyOptSparse wrapper for Schittkowski's NLPQLP
 optimization algorithm.
 """
-# Compiled module
-try:
-    from . import nlpqlp  # isort: skip
-except ImportError:
-    nlpqlp = None
 # Standard Python modules
 import datetime
 import os
@@ -18,6 +13,11 @@ import numpy as np
 # Local modules
 from ..pyOpt_error import Error
 from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_utils import try_import_compiled_module_from_path
+
+# import the compiled module
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+nlpqlp = try_import_compiled_module_from_path("nlpqlp", THIS_DIR)
 
 
 class NLPQLP(Optimizer):
@@ -30,9 +30,8 @@ class NLPQLP(Optimizer):
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
-        if nlpqlp is None:
-            if raiseError:
-                raise Error("There was an error importing the compiled nlpqlp module")
+        if isinstance(nlpqlp, str) and raiseError:
+            raise ImportError(nlpqlp)
 
         super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
         # NLPQLP needs Jacobians in dense format
