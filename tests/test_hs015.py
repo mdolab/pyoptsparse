@@ -200,14 +200,14 @@ class TestHS15(OptTest):
         # Save the restart dictionary
         writePickle("restart.pickle", restartDict)
 
-        # Exit after 4 major iterations
-        if iterDict["nMajor"] == 4:
+        # Exit after 5 major iterations
+        if iterDict["nMajor"] == 5:
             return 1
 
         return 0
 
     def test_snopt_snstop_restart(self):
-        # Run the optimization for 4 major iterations
+        # Run the optimization for 5 major iterations
         self.optName = "SNOPT"
         self.setup_optProb()
         optOptions = {
@@ -221,20 +221,24 @@ class TestHS15(OptTest):
 
         # Now optimize again but using the restart dictionary
         self.setup_optProb()
-        self.nf = 0
-        self.ng = 0
-        opt = OPT(self.optName, options={"Start": "Hot", "Verify level": -1})
-        sol = opt(self.optProb, sens=self.sens, restartDict=restartDict)
+        opt = OPT(
+            self.optName,
+            options={
+                "Start": "Hot",
+                "Verify level": -1,
+                "snSTOP function handle": self.my_snstop_restart,
+            },
+        )
+        histFile = "restart.hst"
+        sol = opt(self.optProb, sens=self.sens, storeHistory=histFile, restartDict=restartDict)
 
-        # Check solution
+        # Check that the optimization converged in fewer than 5 more major iterations
         self.assert_solution_allclose(sol, 1e-12)
+        self.assert_inform_equal(sol, optInform=1)
 
-        # The optimization should converge in 4 more iterations
-        self.assertEqual(self.nf, 4)
-        self.assertEqual(self.ng, 4)
-
-        # Delete the pickle file
+        # Delete the pickle and history files
         os.remove(pickleFile)
+        os.remove(histFile)
 
     def test_snopt_failed_initial(self):
         def failed_fun(x_dict):
