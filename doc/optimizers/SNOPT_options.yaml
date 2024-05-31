@@ -104,3 +104,13 @@ snSTOP function handle:
   desc: >
     This option is unique to the Python wrapper.
     A function handle can be supplied which is called at the end of each major iteration.
+    The following is an example of a callback function that saves the restart dictionary.
+    This is useful if you want to restart an optimization that did not exit cleanly.
+
+      .. code-block:: python
+
+        def snstopCallback(iterDict, restartDict):
+            # Save the restart dictionary
+            writePickle("restart.pickle", restartDict)
+
+            return 0
