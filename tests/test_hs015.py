@@ -1,9 +1,11 @@
 """Test solution of problem HS15 from the Hock & Schittkowski collection"""
 
 # Standard Python modules
+import os
 import unittest
 
 # External modules
+from baseclasses.utils import readPickle, writePickle
 import numpy as np
 from parameterized import parameterized
 
@@ -192,6 +194,47 @@ class TestHS15(OptTest):
         # Check informs
         # we should get 70/74
         self.assert_inform_equal(sol, optInform=74)
+
+    @staticmethod
+    def my_snstop_restart(iterDict, restartDict):
+        # Save the restart dictionary
+        writePickle("restart.pickle", restartDict)
+
+        # Exit after 4 major iterations
+        if iterDict["nMajor"] == 4:
+            return 1
+
+        return 0
+
+    def test_snopt_snstop_restart(self):
+        # Run the optimization for 4 major iterations
+        self.optName = "SNOPT"
+        self.setup_optProb()
+        optOptions = {
+            "snSTOP function handle": self.my_snstop_restart,
+        }
+        sol = self.optimize(optOptions=optOptions, storeHistory=True)
+
+        # Read the restart dictionary pickle file saved by snstop
+        pickleFile = "restart.pickle"
+        restartDict = readPickle(pickleFile)
+
+        # Now optimize again but using the restart dictionary
+        self.setup_optProb()
+        self.nf = 0
+        self.ng = 0
+        opt = OPT(self.optName, options={"Start": "Hot", "Verify level": -1})
+        sol = opt(self.optProb, sens=self.sens, restartDict=restartDict)
+
+        # Check solution
+        self.assert_solution_allclose(sol, 1e-12)
+
+        # The optimization should converge in 4 more iterations
+        self.assertEqual(self.nf, 4)
+        self.assertEqual(self.ng, 4)
+
+        # Delete the pickle file
+        os.remove(pickleFile)
 
     def test_snopt_failed_initial(self):
         def failed_fun(x_dict):
