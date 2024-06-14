@@ -178,7 +178,7 @@ class TestHS15(OptTest):
         self.assertEqual(self.ng, 1)
 
     @staticmethod
-    def my_snstop(iterDict, restartDict):
+    def my_snstop(iterDict):
         """manually terminate SNOPT after 1 major iteration"""
         if iterDict["nMajor"] == 1:
             return 1
@@ -212,6 +212,7 @@ class TestHS15(OptTest):
         self.setup_optProb()
         optOptions = {
             "snSTOP function handle": self.my_snstop_restart,
+            "snSTOP arguments": ["restartDict"],
         }
         sol = self.optimize(optOptions=optOptions, storeHistory=True)
 
@@ -227,6 +228,7 @@ class TestHS15(OptTest):
                 "Start": "Hot",
                 "Verify level": -1,
                 "snSTOP function handle": self.my_snstop_restart,
+                "snSTOP arguments": ["restartDict"],
             },
         )
         histFile = "restart.hst"

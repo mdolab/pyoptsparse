@@ -61,6 +61,7 @@ class SNOPT(Optimizer):
                 "Save major iteration variables",
                 "Return work arrays",
                 "snSTOP function handle",
+                "snSTOP arguments",
             }
         )
 
@@ -119,6 +120,7 @@ class SNOPT(Optimizer):
             "Save major iteration variables": [list, []],
             "Return work arrays": [bool, False],
             "snSTOP function handle": [(type(None), type(lambda: None)), None],
+            "snSTOP arguments": [list, []],
         }
         return defOpts
 
@@ -680,9 +682,17 @@ class SNOPT(Optimizer):
         # perform callback if requested
         snstop_handle = self.getOption("snSTOP function handle")
         if snstop_handle is not None:
+
+            # Get the arguments to pass in to snstop_handle
+            # iterDict is always included
+            snstopArgs = [iterDict]
+            for snstopArg in self.getOption("snSTOP arguments"):
+                if snstopArg == "restartDict":
+                    snstopArgs.append(restartDict)
+
             if not self.storeHistory:
                 raise Error("snSTOP function handle must be used with storeHistory=True")
-            iabort = snstop_handle(iterDict, restartDict)
+            iabort = snstop_handle(*snstopArgs)
             # write iterDict again if anything was inserted
             if self.storeHistory and callCounter is not None:
                 self.hist.write(callCounter, iterDict)
