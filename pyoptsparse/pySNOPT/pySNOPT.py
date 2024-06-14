@@ -696,6 +696,10 @@ class SNOPT(Optimizer):
             for snstopArg in self.getOption("snSTOP arguments"):
                 if snstopArg == "restartDict":
                     snstopArgs.append(restartDict)
+                else:
+                    raise Error(f"Received unknown snSTOP argument {snstopArg}. "
+                                + "Please see 'snSTOP arguments' option in the pyOptSparse documentation "
+                                + "under 'SNOPT'.")
 
             if not self.storeHistory:
                 raise Error("snSTOP function handle must be used with storeHistory=True")
