@@ -242,6 +242,40 @@ class TestHS15(OptTest):
         os.remove(pickleFile)
         os.remove(histFile)
 
+    def test_snopt_work_arrays_save(self):
+        # Run the optimization for 5 major iterations
+        self.optName = "SNOPT"
+        self.setup_optProb()
+        pickleFile = "work_arrays_save.pickle"
+        optOptions = {
+            "snSTOP function handle": self.my_snstop,
+            "Work arrays save file": pickleFile,
+        }
+        sol = self.optimize(optOptions=optOptions, storeHistory=True)
+
+        # Read the restart dictionary pickle file saved by snstop
+        restartDict = readPickle(pickleFile)
+
+        # Now optimize again but using the restart dictionary
+        self.setup_optProb()
+        opt = OPT(
+            self.optName,
+            options={
+                "Start": "Hot",
+                "Verify level": -1,
+            },
+        )
+        histFile = "work_arrays_save.hst"
+        sol = opt(self.optProb, sens=self.sens, storeHistory=histFile, restartDict=restartDict)
+
+        # Check that the optimization converged in fewer than 5 more major iterations
+        self.assert_solution_allclose(sol, 1e-12)
+        self.assert_inform_equal(sol, optInform=1)
+
+        # Delete the pickle and history files
+        os.remove(pickleFile)
+        os.remove(histFile)
+
     def test_snopt_failed_initial(self):
         def failed_fun(x_dict):
             funcs = {"obj": 0.0, "con": [np.nan, np.nan]}

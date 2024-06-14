@@ -12,7 +12,7 @@ import time
 from typing import Any, Dict, Optional, Tuple
 
 # External modules
-from baseclasses.utils import CaseInsensitiveSet
+from baseclasses.utils import CaseInsensitiveSet, writePickle
 import numpy as np
 from numpy import ndarray
 from pkg_resources import parse_version
@@ -60,6 +60,7 @@ class SNOPT(Optimizer):
             {
                 "Save major iteration variables",
                 "Return work arrays",
+                "Work arrays save file",
                 "snSTOP function handle",
                 "snSTOP arguments",
             }
@@ -119,6 +120,7 @@ class SNOPT(Optimizer):
             "Total real workspace": [int, None],
             "Save major iteration variables": [list, []],
             "Return work arrays": [bool, False],
+            "Work arrays save file": [(type(None), str), None],
             "snSTOP function handle": [(type(None), type(lambda: None)), None],
             "snSTOP arguments": [list, []],
         }
@@ -678,6 +680,11 @@ class SNOPT(Optimizer):
             "hs": hs,
             "pi": pi,
         }
+
+        workArraysSave = self.getOption("Work arrays save file")
+        if workArraysSave is not None:
+            # Save the restart dictionary
+            writePickle(workArraysSave, restartDict)
 
         # perform callback if requested
         snstop_handle = self.getOption("snSTOP function handle")
