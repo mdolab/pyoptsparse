@@ -91,7 +91,7 @@ class IPOPT(Optimizer):
             "sb": [str, "yes"],
             "print_user_options": [str, "yes"],
             "output_file": [str, "IPOPT.out"],
-            "linear_solver": [str, "mumps"],
+            "linear_solver": [str, "ma86"],
         }
         return defOpts
 
@@ -161,7 +161,7 @@ class IPOPT(Optimizer):
 
         if len(optProb.constraints) == 0:
             # If the user *actually* has an unconstrained problem,
-            # snopt sort of chokes with that....it has to have at
+            # IPOPT sort of chokes with that....it has to have at
             # least one constraint. So we will add one
             # automatically here:
             self.unconstrained = True
