@@ -217,19 +217,25 @@ class IPOPT(Optimizer):
             # Define the 4 call back functions that ipopt needs:
             def eval_f(x, user_data=None):
                 fobj, fail = self._masterFunc(x, ["fobj"])
-                if fail == 2:
+                if fail == 1:
+                    fobj = np.array(np.NaN)
+                elif fail == 2:
                     self.userRequestedTermination = True
                 return fobj
 
             def eval_g(x, user_data=None):
                 fcon, fail = self._masterFunc(x, ["fcon"])
-                if fail == 2:
+                if fail == 1:
+                    fcon = np.array(np.NaN)
+                elif fail == 2:
                     self.userRequestedTermination = True
                 return fcon.copy()
 
             def eval_grad_f(x, user_data=None):
                 gobj, fail = self._masterFunc(x, ["gobj"])
-                if fail == 2:
+                if fail == 1:
+                    gobj = np.array(np.NaN)
+                elif fail == 2:
                     self.userRequestedTermination = True
                 return gobj.copy()
 
@@ -238,7 +244,9 @@ class IPOPT(Optimizer):
                     return copy.deepcopy(matStruct)
                 else:
                     gcon, fail = self._masterFunc(x, ["gcon"])
-                    if fail == 2:
+                    if fail == 1:
+                        gcon = np.array(np.NaN)
+                    elif fail == 2:
                         self.userRequestedTermination = True
                     return gcon.copy()
 
