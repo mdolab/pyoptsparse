@@ -5,10 +5,12 @@ import unittest
 
 # External modules
 import numpy as np
+from parameterized import parameterized
 
 # First party modules
 from pyoptsparse import OPT, Optimization
 
+MASTERFUNC_OUTPUTS = ["fobj", "fcon", "gobj", "gcon"]
 
 class TestOptimizer(unittest.TestCase):
     tol = 1e-12
@@ -135,23 +137,26 @@ class TestOptimizer(unittest.TestCase):
         _, fail = self.opt._masterFunc(x, ["fobj"])
         self.assertTrue(fail)
 
-    def test_masterFunc_fobj_fail_cache(self):
+    @parameterized.expand(MASTERFUNC_OUTPUTS)
+    def test_masterFunc_output_fail_cache(self, output):
         """
-        Test that if the objective fails when _masterFunc is called
+        Test that if an output fails when _masterFunc is called
         and it is then called again with the same x vector,
         the fail flag is returned with the expected value.
         """
         nDV = [4]
-        self.setup_optProb(failFlag=(0, 100), nDV=nDV)
+        # Set fail flag to (0, 1) so we know for sure that it's using
+        # the cache since the only failure is on the first call
+        self.setup_optProb(failFlag=(0, 1), nDV=nDV)
 
         x = np.ones(np.sum(nDV), dtype=float)
 
         # Fail
-        _, _, fail = self.opt._masterFunc(x, ["fcon", "fobj"])
+        _, fail = self.opt._masterFunc(x, [output])
         self.assertTrue(fail)
 
         # Should fail with the same x vector using the cache
-        _, fail = self.opt._masterFunc(x, ["fobj"])
+        _, fail = self.opt._masterFunc(x, [output])
         self.assertTrue(fail)
 
     def test_masterFunc_gobj_fail_cache(self):
@@ -161,7 +166,7 @@ class TestOptimizer(unittest.TestCase):
         the fail flag is returned with the expected value.
         """
         nDV = [4]
-        self.setup_optProb(failFlag=(0, 100), nDV=nDV)
+        self.setup_optProb(failFlag=True, nDV=nDV)
 
         x = np.ones(np.sum(nDV), dtype=float)
 
@@ -226,15 +231,15 @@ class TestOptimizer(unittest.TestCase):
         fail flag for the gradient too.
         """
         nDV = [4, 5]
-        self.setup_optProb(failFlag=(0, 1000), nDV=nDV)
+        self.setup_optProb(failFlag=True, nDV=nDV)
 
         x = np.ones(np.sum(nDV), dtype=float) + 5
 
-        # Fail obj gradient on DVs that haven't been evaluated
+        # Fail obj gradient on DVs that haven't been evaluated when the primal fails
         _, fail = self.opt._masterFunc(x, ["gobj"])
         self.assertTrue(fail)
 
-        # Fail con gradient on DVs that haven't been evaluated
+        # Fail con gradient on DVs that haven't been evaluated when the primal fails
         x += 1
         _, fail = self.opt._masterFunc(x, ["gcon"])
         self.assertTrue(fail)
