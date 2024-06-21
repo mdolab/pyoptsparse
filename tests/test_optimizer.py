@@ -135,6 +135,44 @@ class TestOptimizer(unittest.TestCase):
         _, fail = self.opt._masterFunc(x, ["fobj"])
         self.assertTrue(fail)
 
+    def test_masterFunc_fobj_fail_cache(self):
+        """
+        Test that if the objective fails when _masterFunc is called
+        and it is then called again with the same x vector,
+        the fail flag is returned with the expected value.
+        """
+        nDV = [4]
+        self.setup_optProb(failFlag=(0, 100), nDV=nDV)
+
+        x = np.ones(np.sum(nDV), dtype=float)
+
+        # Fail
+        _, _, fail = self.opt._masterFunc(x, ["fcon", "fobj"])
+        self.assertTrue(fail)
+
+        # Should fail with the same x vector using the cache
+        _, fail = self.opt._masterFunc(x, ["fobj"])
+        self.assertTrue(fail)
+
+    def test_masterFunc_gobj_fail_cache(self):
+        """
+        Test that if the gradient fails when _masterFunc is called
+        and it is then called again with the same x vector,
+        the fail flag is returned with the expected value.
+        """
+        nDV = [4]
+        self.setup_optProb(failFlag=(0, 100), nDV=nDV)
+
+        x = np.ones(np.sum(nDV), dtype=float)
+
+        # Fail
+        _, _, fail = self.opt._masterFunc(x, ["gcon", "gobj"])
+        self.assertTrue(fail)
+
+        # Should fail with the same x vector using the cache
+        _, fail = self.opt._masterFunc(x, ["gobj"])
+        self.assertTrue(fail)
+
     def test_masterFunc_fobj_fcon_cache_fail(self):
         """
         Test that if the objective fails when _masterFunc is called
