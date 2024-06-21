@@ -12,6 +12,7 @@ from pyoptsparse import OPT, Optimization
 
 MASTERFUNC_OUTPUTS = ["fobj", "fcon", "gobj", "gcon"]
 
+
 class TestOptimizer(unittest.TestCase):
     tol = 1e-12
 
