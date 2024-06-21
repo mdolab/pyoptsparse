@@ -49,10 +49,7 @@ class TestOptimizer(unittest.TestCase):
             if isinstance(failFlag, tuple):
                 if not len(failFlag) == 2:
                     raise ValueError("Fail flag must be a tuple of (iter start fail, iter end fail) or a boolean")
-                if failFlag[0] <= iters < failFlag[1]:
-                    fail = True
-                else:
-                    fail = False
+                fail = failFlag[0] <= iters < failFlag[1]
             elif isinstance(failFlag, bool):
                 fail = failFlag
             else:
