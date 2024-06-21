@@ -91,7 +91,7 @@ class IPOPT(Optimizer):
             "sb": [str, "yes"],
             "print_user_options": [str, "yes"],
             "output_file": [str, "IPOPT.out"],
-            "linear_solver": [str, "ma86"],
+            "linear_solver": [str, "mumps"],
         }
         return defOpts
 
