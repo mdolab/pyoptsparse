@@ -188,12 +188,17 @@ class TestOptimizer(unittest.TestCase):
         fail flag for the gradient too.
         """
         nDV = [4, 5]
-        self.setup_optProb(failFlag=(0, 1), nDV=nDV)
+        self.setup_optProb(failFlag=(0, 1000), nDV=nDV)
 
         x = np.ones(np.sum(nDV), dtype=float) + 5
 
-        # Fail
-        _, _, fail = self.opt._masterFunc(x, ["gobj", "gcon"])
+        # Fail obj gradient on DVs that haven't been evaluated
+        _, fail = self.opt._masterFunc(x, ["gobj"])
+        self.assertTrue(fail)
+
+        # Fail con gradient on DVs that haven't been evaluated
+        x += 1
+        _, fail = self.opt._masterFunc(x, ["gcon"])
         self.assertTrue(fail)
 
     def test_masterFunc_succeed_grad_after_fail_func(self):
