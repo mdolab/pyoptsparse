@@ -159,6 +159,10 @@ class TestOptimizer(unittest.TestCase):
         _, fail = self.opt._masterFunc(x, [output])
         self.assertTrue(fail)
 
+        # Do the same thing one more time to make sure the cache is really really working
+        _, fail = self.opt._masterFunc(x, [output])
+        self.assertTrue(fail)
+
     def test_masterFunc_gobj_fail_cache(self):
         """
         Test that if the gradient fails when _masterFunc is called
