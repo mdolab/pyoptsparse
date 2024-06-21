@@ -20,6 +20,7 @@ class TestOptimizer(unittest.TestCase):
         """
         # Initialize iters to infinite so the fail flag is never thrown on setup
         iters = np.inf
+
         def objfunc(xdict):
             """
             This is a simple quadratic test function with linear constraints.
@@ -43,7 +44,7 @@ class TestOptimizer(unittest.TestCase):
                 for x in xdict.keys():
                     for j in range(nc):
                         funcs[conName][j] = (iCon + 1) * np.sum(xdict[x])
-            
+
             # Throw the fail flag if it's in the specified range or True
             nonlocal iters
             if isinstance(failFlag, tuple):
