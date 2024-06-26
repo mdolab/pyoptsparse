@@ -81,7 +81,7 @@ class Optimizer(BaseSolver):
         self.storeSens: bool = True
 
         # Cache storage
-        self.cache: Dict[str, Any] = {"x": None, "fobj": None, "fcon": None, "gobj": None, "gcon": None}
+        self.cache: Dict[str, Any] = {"x": None, "fobj": None, "fcon": None, "gobj": None, "gcon": None, "fail": None}
 
         # A second-level cache for optimizers that require callbacks
         # for each constraint. (eg. PSQP etc)
@@ -392,6 +392,7 @@ class Optimizer(BaseSolver):
 
                 # Update fail flag
                 masterFail = max(masterFail, fail)
+                self.cache["fail"] = masterFail
 
             # fobj is now in cache
             returns.append(self.cache["fobj"])
@@ -445,6 +446,7 @@ class Optimizer(BaseSolver):
 
                 # Update fail flag
                 masterFail = max(masterFail, fail)
+                self.cache["fail"] = masterFail
 
             # fcon is now in cache
             returns.append(self.cache["fcon"])
@@ -455,10 +457,13 @@ class Optimizer(BaseSolver):
                 # The previous evaluated point is different than the point requested for the derivative
                 # OR this is the first call to _masterFunc2 in a hot started optimization
                 # Recursively call the routine with ['fobj', 'fcon']
-                self._masterFunc2(x, ["fobj", "fcon"], writeHist=False)
+                _, _, fail = self._masterFunc2(x, ["fobj", "fcon"], writeHist=False)
                 # We *don't* count that extra call, since that will
                 # screw up the numbering...so we subtract the last call.
                 self.callCounter -= 1
+                # Update fail flag
+                masterFail = max(masterFail, fail)
+                self.cache["fail"] = masterFail
             # Now, the point has been evaluated correctly so we
             # determine if we have to run the sens calc:
 
@@ -499,6 +504,7 @@ class Optimizer(BaseSolver):
 
                 # Update fail flag
                 masterFail = max(masterFail, fail)
+                self.cache["fail"] = masterFail
 
             # gobj is now in the cache
             returns.append(self.cache["gobj"])
@@ -510,10 +516,13 @@ class Optimizer(BaseSolver):
                 # The previous evaluated point is different than the point requested for the derivative
                 # OR this is the first call to _masterFunc2 in a hot started optimization
                 # Recursively call the routine with ['fobj', 'fcon']
-                self._masterFunc2(x, ["fobj", "fcon"], writeHist=False)
+                _, _, fail = self._masterFunc2(x, ["fobj", "fcon"], writeHist=False)
                 # We *don't* count that extra call, since that will
                 # screw up the numbering...so we subtract the last call.
                 self.callCounter -= 1
+                # Update fail flag
+                masterFail = max(masterFail, fail)
+                self.cache["fail"] = masterFail
             # Now, the point has been evaluated correctly so we
             # determine if we have to run the sens calc:
             if self.cache["gcon"] is None:
@@ -552,13 +561,15 @@ class Optimizer(BaseSolver):
 
                 # Update fail flag
                 masterFail = max(masterFail, fail)
+                self.cache["fail"] = masterFail
 
             # gcon is now in the cache
             returns.append(self.cache["gcon"])
             if self.storeSens:
                 hist["funcsSens"] = self.cache["funcsSens"]
 
-        # Put the fail flag in the history:
+        # Update the fail flag with any cached failure and put the fail flag in the history
+        masterFail = max(self.cache["fail"], masterFail)
         hist["fail"] = masterFail
 
         # Put the iteration counter in the history
