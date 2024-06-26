@@ -22,13 +22,13 @@ The optimization class is created using the following call:
 
 .. code-block:: python
 
-  optProb = Optimization("name", objFun)
+  optProb = Optimization("name", objconFun)
 
-The general template of the objective function is as follows:
+The general template of the objective and constraint function is as follows:
 
 .. code-block:: python
 
-  def obj_fun(xdict):
+  def objconFun(xdict):
       funcs = {}
       funcs["obj_name"] = function(xdict)
       funcs["con_name"] = function(xdict)
@@ -196,16 +196,29 @@ This argument is a dictionary, and the keys must match the design variable sets 
 Essentially what we have done is specified the which blocks of the constraint rows are non-zero,
 and provided the sparsity structure of ones that are sparse.
 
-For linear constraints the values in ``jac`` are meaningful:
-they must be the actual linear constraint Jacobian values (which do not change).
-For non-linear constraints, only the sparsity structure (i.e. which entries are nonzero) is significant.
-The values themselves will be determined by a call to the ``sens()`` function.
-
-Also note, that the ``wrt`` and ``jac`` keyword arguments are only supported when user-supplied sensitivity is used.
+Note that the ``wrt`` and ``jac`` keyword arguments are only supported when user-supplied sensitivity is used.
 If automatic gradients from pyOptSparse are used, the constraint Jacobian will necessarily be dense.
 
 .. note::
     Currently, only the optimizers SNOPT and IPOPT support sparse Jacobians.
+
+Linear Constraints
+~~~~~~~~~~~~~~~~~~
+Linear constraints in pyOptSparse are defined exclusively by ``jac``, ``lower``, and ``upper`` entries of the ``addConGroup`` method.
+For linear constraint :math:`g_L \leq Ax + b \leq g_U`, the constraint definition would look like:
+
+.. code-block:: python
+  
+  optProb.addConGroup("con", num_cons, linear=True, wrt=["xvars"], jac={"xvars": A}, lower=gL - b, upper=gU - b)
+
+Users should not provide the linear constraint values (i.e., :math:`g = Ax + b`) in a user-defined objective/constraint function.
+pyOptSparse will raise an error if you do so.
+
+For linear constraints, the values in ``jac`` are meaningful:
+they must be the actual linear constraint Jacobian values (which do not change).
+For non-linear constraints, only the sparsity structure (i.e. which entries are nonzero) is significant.
+The values themselves will be determined by a call to the ``sens()`` function.
+
 
 Objectives
 ++++++++++
