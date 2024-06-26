@@ -30,8 +30,6 @@ class TerminateComp:
         funcs = {}
 
         funcs["obj"] = (x - 3.0) ** 2 + x * y + (y + 4.0) ** 2 - 3.0
-        conval = -x + y
-        funcs["con"] = conval
 
         if self.obj_count > self.max_obj:
             fail = 2
