@@ -209,15 +209,15 @@ For linear constraint :math:`g_L \leq Ax + b \leq g_U`, the constraint definitio
 
 .. code-block:: python
   
-  optProb.addConGroup("con", num_cons, linear=True, wrt=["xvars"], jac={"xvars": A}, lower=g_L - b, upper=g_U - b)
+  optProb.addConGroup("con", num_cons, linear=True, wrt=["xvars"], jac={"xvars": A}, lower=gL - b, upper=gU - b)
+
+Users should not provide the linear constraint values (i.e., :math:`g = Ax + b`) in a user-defined objective/constraint function.
+pyOptSparse will raise an error if you do so.
 
 For linear constraints, the values in ``jac`` are meaningful:
 they must be the actual linear constraint Jacobian values (which do not change).
 For non-linear constraints, only the sparsity structure (i.e. which entries are nonzero) is significant.
 The values themselves will be determined by a call to the ``sens()`` function.
-
-Users do not need to (and should not) provide the linear constraint values (i.e., :math:`g = Ax + b`) in a user-defined function such as ``objconFun``.
-Even if you do compute the value in the function, pyOptSparse will ignore it and only refers to ``jac``, ``lower``, and ``upper`` entries.
 
 
 Objectives
