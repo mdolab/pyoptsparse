@@ -212,6 +212,39 @@ class ParOpt(Optimizer):
                         A[i][:] = -gcon[i][:]
                     return fail
 
+                def evalSparseCon(self, x, out):
+                    """Evaluate the sparse constraints.
+
+                    Give the design variable vector x, compute the sparse constraints.
+
+                    Parameters
+                    ----------
+                    x : array
+                        Design variable vector
+                    out : array
+                        Sparse constraint values
+                    """
+                    pass
+
+                def addSparseJacobian(self, alpha, x, px, out):
+                    """Compute the Jacobian-vector product of the sparse constraints.
+
+                    This code computes the action of the Jacobian of the sparse constraint matrix on the input vector px
+                    , to compute out = alpha*J(x)*px.
+
+                    Parameters
+                    ----------
+                    alpha : float
+                        Scaling factor for the Jacobian-vector product
+                    x : array
+                        Design variable vector
+                    px : array
+                        Array to multiply the Jacobian by
+                    out : array
+                        Vector to store the result of the Jacobian-vector product
+                    """
+                    pass
+
             optTime = MPI.Wtime()
 
             # Optimize the problem
