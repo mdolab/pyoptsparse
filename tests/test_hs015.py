@@ -195,29 +195,32 @@ class TestHS15(OptTest):
         # we should get 70/74
         self.assert_inform_equal(sol, optInform=74)
 
-    @staticmethod
-    def my_snstop_restart(iterDict, restartDict):
-        # Save the restart dictionary
-        writePickle("restart.pickle", restartDict)
-
-        # Exit after 5 major iterations
-        if iterDict["nMajor"] == 5:
-            return 1
-
-        return 0
-
     def test_snopt_snstop_restart(self):
+        pickleFile = "restart.pickle"
+
+        def my_snstop_restart(iterDict, restartDict):
+            # Save the restart dictionary
+            writePickle(pickleFile, restartDict)
+
+            # Exit after 5 major iterations
+            if iterDict["nMajor"] == 5:
+                return 1
+
+            return 0
+
         # Run the optimization for 5 major iterations
         self.optName = "SNOPT"
         self.setup_optProb()
         optOptions = {
-            "snSTOP function handle": self.my_snstop_restart,
+            "snSTOP function handle": my_snstop_restart,
             "snSTOP arguments": ["restartDict"],
         }
         sol = self.optimize(optOptions=optOptions, storeHistory=True)
 
+        # Check that the optimization exited with 74
+        self.assert_inform_equal(sol, optInform=74)
+
         # Read the restart dictionary pickle file saved by snstop
-        pickleFile = "restart.pickle"
         restartDict = readPickle(pickleFile)
 
         # Now optimize again but using the restart dictionary
@@ -227,7 +230,7 @@ class TestHS15(OptTest):
             options={
                 "Start": "Hot",
                 "Verify level": -1,
-                "snSTOP function handle": self.my_snstop_restart,
+                "snSTOP function handle": my_snstop_restart,
                 "snSTOP arguments": ["restartDict"],
             },
         )
