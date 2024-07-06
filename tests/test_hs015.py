@@ -271,7 +271,7 @@ class TestHS15(OptTest):
         histFile = "work_arrays_save.hst"
         sol = opt(self.optProb, sens=self.sens, storeHistory=histFile, restartDict=restartDict)
 
-        # Check that the optimization converged in fewer than 5 more major iterations
+        # Check that the optimization converged
         self.assert_solution_allclose(sol, 1e-12)
         self.assert_inform_equal(sol, optInform=1)
 
