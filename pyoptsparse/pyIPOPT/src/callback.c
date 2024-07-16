@@ -135,7 +135,7 @@ eval_f(Index n, Number * x, Bool new_x, Number * obj_value, UserDataPtr data)
 
 	import_array1(FALSE);
 	PyObject *arrayx =
-	    PyArray_SimpleNewFromData(1, dims, PyArray_DOUBLE, (char *)x);
+	    PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, (char *)x);
 	if (!arrayx)
 		return FALSE;
 
@@ -209,11 +209,11 @@ eval_grad_f(Index n, Number * x, Bool new_x, Number * grad_f, UserDataPtr data)
 	import_array1(FALSE);
 
 	/*
-	 * PyObject *arrayx = PyArray_FromDimsAndData(1, dims, PyArray_DOUBLE
+	 * PyObject *arrayx = PyArray_FromDimsAndData(1, dims, NPY_DOUBLE
 	 * , (char*) x);
 	 */
 	PyObject *arrayx =
-	    PyArray_SimpleNewFromData(1, dims, PyArray_DOUBLE, (char *)x);
+	    PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, (char *)x);
 	if (!arrayx)
 		return FALSE;
 
@@ -287,11 +287,11 @@ eval_g(Index n, Number * x, Bool new_x, Index m, Number * g, UserDataPtr data)
 	import_array1(FALSE);
 
 	/*
-	 * PyObject *arrayx = PyArray_FromDimsAndData(1, dims, PyArray_DOUBLE
+	 * PyObject *arrayx = PyArray_FromDimsAndData(1, dims, NPY_DOUBLE
 	 * , (char*) x);
 	 */
 	PyObject *arrayx =
-	    PyArray_SimpleNewFromData(1, dims, PyArray_DOUBLE, (char *)x);
+	    PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, (char *)x);
 	if (!arrayx)
 		return FALSE;
 
@@ -372,7 +372,7 @@ eval_jac_g(Index n, Number * x, Bool new_x,
 		import_array1(FALSE);
 
 		PyObject *arrayx =
-		    PyArray_SimpleNewFromData(1, dims, PyArray_DOUBLE,
+		    PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE,
 					      (char *)x);
 		if (!arrayx)
 			return FALSE;
@@ -420,7 +420,7 @@ eval_jac_g(Index n, Number * x, Bool new_x,
 		//logger("[Callback:R] eval_jac_g(1)");
 	} else {
 		PyObject *arrayx =
-		    PyArray_SimpleNewFromData(1, dims, PyArray_DOUBLE,
+		    PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE,
 					      (char *)x);
 
 		if (!arrayx)
@@ -580,7 +580,7 @@ eval_h(Index n, Number * x, Bool new_x, Number obj_factor,
 
 		dims[0] = n;
 		PyObject *arrayx =
-		    PyArray_SimpleNewFromData(1, dims, PyArray_DOUBLE,
+		    PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE,
 					      (char *)x);
 		if (!arrayx)
 			return FALSE;
@@ -601,7 +601,7 @@ eval_h(Index n, Number * x, Bool new_x, Number obj_factor,
 		}
 		dims2[0] = m;
 		PyObject *lagrangex = PyArray_SimpleNewFromData(
-        1, dims2, PyArray_DOUBLE, (char *)lambda);
+        1, dims2, NPY_DOUBLE, (char *)lambda);
 		if (!lagrangex)
 			return FALSE;
 

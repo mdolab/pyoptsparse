@@ -631,7 +631,7 @@ PyObject *solve(PyObject * self, PyObject * args)
 	n = dim[0];
 	dX[0] = n;
 
-	x = (PyArrayObject *) PyArray_SimpleNew(1, dX, PyArray_DOUBLE);
+	x = (PyArrayObject *) PyArray_SimpleNew(1, dX, NPY_DOUBLE);
 	if (!x) {
 		retval = PyErr_NoMemory();
 		/* clean up and return */
@@ -663,11 +663,11 @@ PyObject *solve(PyObject * self, PyObject * args)
 
 	/* Allocate multiplier arrays */ 
 
-	mL = (PyArrayObject *) PyArray_SimpleNew(1, dX, PyArray_DOUBLE);
-	mU = (PyArrayObject *) PyArray_SimpleNew(1, dX, PyArray_DOUBLE);
+	mL = (PyArrayObject *) PyArray_SimpleNew(1, dX, NPY_DOUBLE);
+	mU = (PyArrayObject *) PyArray_SimpleNew(1, dX, NPY_DOUBLE);
 	dlambda[0] = m;
 	lambda = (PyArrayObject *) PyArray_SimpleNew(1, dlambda, 
-						     PyArray_DOUBLE);
+						     NPY_DOUBLE);
 
 	/* For status code, see IpReturnCodes_inc.h in Ipopt */
 
