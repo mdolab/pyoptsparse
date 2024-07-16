@@ -11,17 +11,16 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
         numpy_version: ["1.21.6", "1.25.2", "2.0.0"]
     steps:
-      - uses: actions/checkout@v2
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: 3.9
-          miniforge-variant: Mambaforge
+          python-version: 3.10
           channels: conda-forge,defaults
           channel-priority: strict
           activate-environment: pyos-build
@@ -30,7 +29,7 @@ jobs:
         shell: bash -l {0}
         run: |
           conda activate pyos-build
-          mamba install libpgmath
+          conda install libpgmath
       - name: Build and install pyoptsparse
         shell: cmd /C CALL {0}
         run: |
@@ -42,8 +41,10 @@ jobs:
           python -m build -n -x .
           pip install --no-deps --no-index --find-links dist pyoptsparse
       - name: Install runtime numpy ${{ matrix.numpy_version }}
+        shell: bash -l {0}
         run: |
-          mamba install numpy==${{ matrix.numpy_version }}
+          conda activate pyos-build
+          conda install numpy==${{ matrix.numpy_version }}
       - name: Run tests
         shell: bash -l {0}
         run: |
