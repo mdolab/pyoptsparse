@@ -102,6 +102,7 @@ if __name__ == "__main__":
         platforms=["Linux"],
         keywords="optimization",
         install_requires=[
+            "packaging",
             "sqlitedict>=1.6",
             "numpy>=1.21,<2",
             "scipy>=1.7",

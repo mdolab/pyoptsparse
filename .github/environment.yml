@@ -10,6 +10,7 @@ dependencies:
   - pip
   - setuptools
   - build
+  - packaging
 # testing
   - parameterized
   - testflo

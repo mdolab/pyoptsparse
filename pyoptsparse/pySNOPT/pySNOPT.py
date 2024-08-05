@@ -15,7 +15,7 @@ from typing import Any, Dict, Optional, Tuple
 from baseclasses.utils import CaseInsensitiveSet, writePickle
 import numpy as np
 from numpy import ndarray
-from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 
 # Local modules
 from ..pyOpt_error import Error
