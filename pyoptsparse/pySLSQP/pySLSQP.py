@@ -166,7 +166,7 @@ class SLSQP(Optimizer):
             # SLSQP - Objective/Constraint Values Function
             # =================================================================
             def slfunc(m, me, la, n, f, g, x):
-                fobj, fcon, fail = self._masterFunc(x, ["fobj", "fcon"])
+                fobj, fcon, fail = self._masterFunc(np.clip(x, blx, bux), ["fobj", "fcon"])
                 f = fobj
                 g[0:m] = -fcon
                 slsqp.pyflush(self.getOption("IOUT"))
@@ -176,7 +176,7 @@ class SLSQP(Optimizer):
             # SLSQP - Objective/Constraint Gradients Function
             # =================================================================
             def slgrad(m, me, la, n, f, g, df, dg, x):
-                gobj, gcon, fail = self._masterFunc(x, ["gobj", "gcon"])
+                gobj, gcon, fail = self._masterFunc(np.clip(x, blx, bux), ["gobj", "gcon"])
                 df[0:n] = gobj.copy()
                 dg[0:m, 0:n] = -gcon.copy()
                 slsqp.pyflush(self.getOption("IOUT"))
