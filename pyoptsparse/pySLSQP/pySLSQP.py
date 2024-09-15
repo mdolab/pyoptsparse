@@ -220,6 +220,10 @@ class SLSQP(Optimizer):
             # fmt: on
             optTime = time.time() - t0
 
+            # Clip final result to user bounds (this occurs during the optimization as well
+            # so this just makes the output consistent with what the optimizer sees)
+            xs = np.clip(xs, blx, bux)
+
             # some entries of W include the lagrange multipliers
             # for each constraint, there are two entries (lower, upper).
             # if only one is active, look for the nonzero. If both are active, take the first one
