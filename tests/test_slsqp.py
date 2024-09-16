@@ -1,12 +1,13 @@
 """Test class for SLSQP specific tests"""
 
-# First party modules
-from pyoptsparse import Optimization, OPT
+# Standard Python modules
 import unittest
+
+# First party modules
+from pyoptsparse import OPT, Optimization
 
 
 class TestSLSQP(unittest.TestCase):
-
     def test_slsqp_strong_bound_enforcement(self):
         """
         Test that SLSQP will never evaluate the function or gradient outside
