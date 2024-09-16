@@ -21,7 +21,7 @@ class TestSLSQP(unittest.TestCase):
             funcs = {}
             if x[0] < 0:
                 raise ValueError("Function cannot be evaluated below 0.")
-            funcs["obj"] = (x[0] - 1.0) ** 2
+            funcs["obj"] = (x[0] + 1.0) ** 2
             fail = False
             return funcs, fail
 
