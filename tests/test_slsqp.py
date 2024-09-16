@@ -2,12 +2,10 @@
 
 # First party modules
 from pyoptsparse import Optimization, OPT
-
-# Local modules
-from testing_utils import OptTest
+import unittest
 
 
-class TestSLSQP(OptTest):
+class TestSLSQP(unittest.TestCase):
 
     def test_slsqp_strong_bound_enforcement(self):
         """
