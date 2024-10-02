@@ -8,7 +8,7 @@ from numpy import ndarray
 # Local modules
 from .pyOpt_MPI import MPI
 from .pyOpt_optimization import Optimization
-from .types import Dict1DType, Dict2DType
+from .pyOpt_types import Dict1DType, Dict2DType
 
 
 class Gradient:

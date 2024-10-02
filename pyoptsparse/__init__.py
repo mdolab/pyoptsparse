@@ -1,4 +1,4 @@
-__version__ = "2.10.1"
+__version__ = "2.12.0"
 
 from .pyOpt_history import History
 from .pyOpt_variable import Variable
@@ -19,3 +19,25 @@ from .pyNLPQLP.pyNLPQLP import NLPQLP
 from .pyNSGA2.pyNSGA2 import NSGA2
 from .pyALPSO.pyALPSO import ALPSO
 from .pyParOpt.ParOpt import ParOpt
+
+__all__ = [
+    "History",
+    "Variable",
+    "Gradient",
+    "Constraint",
+    "Objective",
+    "Optimization",
+    "Optimizer",
+    "OPT",
+    "Optimizers",
+    "Solution",
+    "SNOPT",
+    "IPOPT",
+    "SLSQP",
+    "CONMIN",
+    "PSQP",
+    "NLPQLP",
+    "NSGA2",
+    "ALPSO",
+    "ParOpt",
+]

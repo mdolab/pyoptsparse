@@ -1,24 +1,31 @@
 """
 pyIPOPT - A python wrapper to the core IPOPT compiled module.
 """
-# Compiled module
-try:
-    from . import pyipoptcore  # isort: skip
-except ImportError:
-    pyipoptcore = None
 
 # Standard Python modules
 import copy
 import datetime
+import os
 import time
 
 # External modules
 import numpy as np
 
 # Local modules
-from ..pyOpt_error import Error
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, scaleRows
+from ..pyOpt_utils import (
+    ICOL,
+    INFINITY,
+    IROW,
+    convertToCOO,
+    extractRows,
+    scaleRows,
+    try_import_compiled_module_from_path,
+)
+
+# import the compiled module
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+pyipoptcore = try_import_compiled_module_from_path("pyipoptcore", THIS_DIR)
 
 
 class IPOPT(Optimizer):
@@ -36,9 +43,8 @@ class IPOPT(Optimizer):
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
 
-        if pyipoptcore is None:
-            if raiseError:
-                raise Error("There was an error importing the compiled IPOPT module")
+        if isinstance(pyipoptcore, str) and raiseError:
+            raise ImportError(pyipoptcore)
 
         super().__init__(
             name,
@@ -155,7 +161,7 @@ class IPOPT(Optimizer):
 
         if len(optProb.constraints) == 0:
             # If the user *actually* has an unconstrained problem,
-            # snopt sort of chokes with that....it has to have at
+            # IPOPT sort of chokes with that....it has to have at
             # least one constraint. So we will add one
             # automatically here:
             self.unconstrained = True
@@ -211,19 +217,25 @@ class IPOPT(Optimizer):
             # Define the 4 call back functions that ipopt needs:
             def eval_f(x, user_data=None):
                 fobj, fail = self._masterFunc(x, ["fobj"])
-                if fail == 2:
+                if fail == 1:
+                    fobj = np.array(np.NaN)
+                elif fail == 2:
                     self.userRequestedTermination = True
                 return fobj
 
             def eval_g(x, user_data=None):
                 fcon, fail = self._masterFunc(x, ["fcon"])
-                if fail == 2:
+                if fail == 1:
+                    fcon = np.array(np.NaN)
+                elif fail == 2:
                     self.userRequestedTermination = True
                 return fcon.copy()
 
             def eval_grad_f(x, user_data=None):
                 gobj, fail = self._masterFunc(x, ["gobj"])
-                if fail == 2:
+                if fail == 1:
+                    gobj = np.array(np.NaN)
+                elif fail == 2:
                     self.userRequestedTermination = True
                 return gobj.copy()
 
@@ -232,7 +244,9 @@ class IPOPT(Optimizer):
                     return copy.deepcopy(matStruct)
                 else:
                     gcon, fail = self._masterFunc(x, ["gcon"])
-                    if fail == 2:
+                    if fail == 1:
+                        gcon = np.array(np.NaN)
+                    elif fail == 2:
                         self.userRequestedTermination = True
                     return gcon.copy()
 

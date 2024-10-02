@@ -102,9 +102,10 @@ if __name__ == "__main__":
         platforms=["Linux"],
         keywords="optimization",
         install_requires=[
+            "packaging",
             "sqlitedict>=1.6",
-            "numpy>=1.16",
-            "scipy>1.2",
+            "numpy>=1.21,<2",
+            "scipy>=1.7",
             "mdolab-baseclasses>=1.3.1",
         ],
         extras_require={
@@ -134,7 +135,7 @@ if __name__ == "__main__":
         package_data={
             "": ["*.so", "*.lib", "*.pyd", "*.pdb", "*.dylib", "assets/*", "LICENSE"],
         },
-        python_requires=">=3.7",
+        python_requires=">=3.9",
         entry_points={
             "gui_scripts": [
                 "optview = pyoptsparse.postprocessing.OptView:main",

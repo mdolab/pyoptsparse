@@ -9,7 +9,6 @@ from numpy.testing import assert_allclose
 
 # First party modules
 from pyoptsparse import OPT, History
-from pyoptsparse.pyOpt_error import Error
 
 
 def assert_optProb_size(optProb, nObj, nDV, nCon):
@@ -118,11 +117,16 @@ class OptTest(unittest.TestCase):
         else:
             # assume we have a single solution
             self.sol_index = 0
+
         # now we assert against the closest solution
         # objective
         assert_allclose(sol.fStar, self.fStar[self.sol_index], atol=tol, rtol=tol)
         # make sure fStar and sol.objectives values match
-        assert_allclose(sol.fStar, [obj.value for obj in sol.objectives.values()], rtol=1e-12)
+        # NOTE this is not true in general, but true for well-behaving optimizations
+        # which should be the case for all tests
+        sol_objectives = np.array([obj.value for obj in sol.objectives.values()])
+        assert_allclose(sol.fStar, sol_objectives, rtol=1e-12)
+
         # x
         assert_dict_allclose(sol.xStar, self.xStar[self.sol_index], atol=tol, rtol=tol, partial=partial_x)
         dv = sol.getDVs()
@@ -136,6 +140,9 @@ class OptTest(unittest.TestCase):
             and sol.lambdaStar is not None
         ):
             assert_dict_allclose(sol.lambdaStar, self.lambdaStar[self.sol_index], atol=tol, rtol=tol)
+
+        # test printing solution
+        print(sol)
 
     def assert_inform_equal(self, sol, optInform=None):
         """
@@ -226,7 +233,7 @@ class OptTest(unittest.TestCase):
         try:
             opt = OPT(self.optName, options=optOptions)
             self.optVersion = opt.version
-        except Error as e:
+        except ImportError as e:
             if self.optName in DEFAULT_OPTIMIZERS:
                 raise e
             else:
