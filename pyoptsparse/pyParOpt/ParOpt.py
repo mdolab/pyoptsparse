@@ -1,3 +1,5 @@
+from pyoptsparse.pyOpt_error import Error
+
 try:
     from paropt.paropt_pyoptsparse import ParOptSparse as ParOpt
 except:
