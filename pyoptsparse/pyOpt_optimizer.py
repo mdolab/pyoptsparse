@@ -367,6 +367,10 @@ class Optimizer(BaseSolver):
                 self.userObjTime += time.time() - timeA
                 self.userObjCalls += 1
 
+                # Make sure the user-defined function does *not* return linear constraint values
+                if self.callCounter == 0:
+                    self._checkLinearConstraints(funcs)
+
                 # Discard zero imaginary components in funcs
                 for key, val in funcs.items():
                     funcs[key] = np.real(val)
@@ -416,6 +420,10 @@ class Optimizer(BaseSolver):
 
                 self.userObjTime += time.time() - timeA
                 self.userObjCalls += 1
+
+                # Make sure the user-defined function does *not* return linear constraint values
+                if self.callCounter == 0:
+                    self._checkLinearConstraints(funcs)
 
                 # Discard zero imaginary components in funcs
                 for key, val in funcs.items():
@@ -866,6 +874,18 @@ class Optimizer(BaseSolver):
         Set Optimizer Option Value (Optimizer Specific Routine)
         """
         pass
+
+    def _checkLinearConstraints(self, funcs):
+        """
+        Makes sure that the user-defined obj/con function does not compute the linear constraint values
+        because the linear constraints are exclusively defined by jac and bounds in addConGroup.
+        """
+        for conName in self.optProb.constraints:
+            if self.optProb.constraints[conName].linear and conName in funcs:
+                raise Error(
+                    "Value for linear constraint returned from user obj function. Linear constraints "
+                    + "are evaluated internally and should not be returned from the user's function."
+                )
 
     def setOption(self, name, value=None):
         """
