@@ -7,7 +7,7 @@ work with sparse optimization problems.
 import datetime
 import os
 import time
-import warnings
+from ..pyOpt_error import pyOptSparseWarning
 
 # External modules
 import numpy as np
@@ -168,8 +168,8 @@ class SLSQP(Optimizer):
             # =================================================================
             def slfunc(m, me, la, n, f, g, x):
                 if (x < blx).any() or (x > bux).any():
-                    warnings.warn("Values in x were outside bounds during a "
-                                  "minimize step, clipping to bounds", RuntimeWarning)
+                    pyOptSparseWarning("Values in x were outside bounds during"
+                                       " a minimize step, clipping to bounds")YY
                 fobj, fcon, fail = self._masterFunc(np.clip(x, blx, bux), ["fobj", "fcon"])
                 f = fobj
                 g[0:m] = -fcon
