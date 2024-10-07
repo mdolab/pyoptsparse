@@ -169,7 +169,7 @@ class SLSQP(Optimizer):
             def slfunc(m, me, la, n, f, g, x):
                 if (x < blx).any() or (x > bux).any():
                     pyOptSparseWarning("Values in x were outside bounds during"
-                                       " a minimize step, clipping to bounds")YY
+                                       " a minimize step, clipping to bounds")
                 fobj, fcon, fail = self._masterFunc(np.clip(x, blx, bux), ["fobj", "fcon"])
                 f = fobj
                 g[0:m] = -fcon
