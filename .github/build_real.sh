@@ -9,6 +9,7 @@ fi
 
 # temporarily disable pip constraints file for build-time dependencies
 mv ~/.config/pip/constraints.txt ~/.config/pip/constraints.txt.bkup
+touch  ~/.config/pip/constraints.txt
 
 pip install .[optview,testing] -v
 
