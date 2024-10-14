@@ -7,4 +7,7 @@ if [[ $IMAGE == "private" ]]; then
     cp -r $HOME/SNOPT/* pyoptsparse/pySNOPT/source
 fi
 
+# temporarily disable pip constraints file for build-time dependencies
+unset PIP_CONSTRAINT
+
 pip install .[optview,testing] -v
