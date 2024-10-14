@@ -8,6 +8,9 @@ if [[ $IMAGE == "private" ]]; then
 fi
 
 # temporarily disable pip constraints file for build-time dependencies
-unset PIP_CONSTRAINT
+mv ~/.config/pip/constraints.txt ~/.config/pip/constraints.txt.bkup
 
 pip install .[optview,testing] -v
+
+# move pip constraints file back
+mv ~/.config/pip/constraints.txt.bkup ~/.config/pip/constraints.txt
