@@ -12,6 +12,7 @@ import time
 import numpy as np
 
 # Local modules
+from ..pyOpt_error import pyOptSparseWarning
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_utils import try_import_compiled_module_from_path
 
@@ -166,7 +167,9 @@ class SLSQP(Optimizer):
             # SLSQP - Objective/Constraint Values Function
             # =================================================================
             def slfunc(m, me, la, n, f, g, x):
-                fobj, fcon, fail = self._masterFunc(x, ["fobj", "fcon"])
+                if (x < blx).any() or (x > bux).any():
+                    pyOptSparseWarning("Values in x were outside bounds during" " a minimize step, clipping to bounds")
+                fobj, fcon, fail = self._masterFunc(np.clip(x, blx, bux), ["fobj", "fcon"])
                 f = fobj
                 g[0:m] = -fcon
                 slsqp.pyflush(self.getOption("IOUT"))
@@ -176,7 +179,7 @@ class SLSQP(Optimizer):
             # SLSQP - Objective/Constraint Gradients Function
             # =================================================================
             def slgrad(m, me, la, n, f, g, df, dg, x):
-                gobj, gcon, fail = self._masterFunc(x, ["gobj", "gcon"])
+                gobj, gcon, fail = self._masterFunc(np.clip(x, blx, bux), ["gobj", "gcon"])
                 df[0:n] = gobj.copy()
                 dg[0:m, 0:n] = -gcon.copy()
                 slsqp.pyflush(self.getOption("IOUT"))
@@ -219,6 +222,10 @@ class SLSQP(Optimizer):
                         ngrad, slfunc, slgrad)
             # fmt: on
             optTime = time.time() - t0
+
+            # Clip final result to user bounds (this occurs during the optimization as well
+            # so this just makes the output consistent with what the optimizer sees)
+            xs = np.clip(xs, blx, bux)
 
             # some entries of W include the lagrange multipliers
             # for each constraint, there are two entries (lower, upper).
