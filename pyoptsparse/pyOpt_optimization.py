@@ -1656,7 +1656,7 @@ class Optimization:
 
         if len(self.constraints) > 0:
             # must be an instance of the Solution class
-            if not isinstance(self, Optimization) and self.lambdaStar is not None:
+            if hasattr(self, "lambdaStar") and self.lambdaStar is not None:
                 lambdaStar = self.lambdaStar
                 lambdaStar_label = "Lagrange Multiplier"
             else:
