@@ -213,6 +213,17 @@ class TestHS71(OptTest):
         self.assert_solution_allclose(sol, self.tol[optName])
         # Check informs
         self.assert_inform_equal(sol)
+        # Check the lagrange multipliers in the solution text
+        lines = str(sol).split('\n')
+        constraint_header_line_num = [i for i, line in enumerate(lines) if "Constraints" in line][0]
+        con1_line_num = constraint_header_line_num + 2
+        con2_line_num = constraint_header_line_num + 3
+        lambda_con1 = float(lines[con1_line_num].split()[-1])
+        lambda_con2 = float(lines[con2_line_num].split()[-1])
+        if optName in ("IPOPT", "SNOPT"):
+            assert_allclose([lambda_con1, lambda_con2], self.lambdaStar[0]["con"], rtol=1.0E-5, atol=1.0E-5)
+        else:
+            assert_allclose([lambda_con1, lambda_con2], [9.E100, 9.E100], rtol=1.0E-5, atol=1.0E-5)
 
 
 if __name__ == "__main__":
