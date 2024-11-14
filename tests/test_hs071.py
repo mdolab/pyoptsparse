@@ -220,7 +220,7 @@ class TestHS71(OptTest):
         con2_line_num = constraint_header_line_num + 3
         lambda_con1 = float(lines[con1_line_num].split()[-1])
         lambda_con2 = float(lines[con2_line_num].split()[-1])
-        if optName in ("IPOPT", "SNOPT"):
+        if optName in ("IPOPT", "SNOPT", "ParOpt"):
             assert_allclose([lambda_con1, lambda_con2], self.lambdaStar[0]["con"], rtol=1.0E-5, atol=1.0E-5)
         else:
             assert_allclose([lambda_con1, lambda_con2], [9.E100, 9.E100], rtol=1.0E-5, atol=1.0E-5)
