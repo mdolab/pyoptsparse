@@ -569,9 +569,9 @@ class SNOPT(Optimizer):
                 # Get function handle and make call
                 snstop_handle = self.getOption("snSTOP function handle")
                 if snstop_handle is not None:
-                  snstop_handle(*info)
+                    snstop_handle(*info)
             else:
-                raise Error("Wait loop recieved code %d must be -1, 0, or 1 "%mode)
+                raise Error("Wait loop recieved code %d must be -1, 0, or 1 " % mode)
 
     def _userfg_wrap(self, mode, nnJac, x, fobj, gobj, fcon, gcon, nState, cu, iu, ru):
         """
