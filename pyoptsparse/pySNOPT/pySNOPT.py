@@ -538,7 +538,10 @@ class SNOPT(Optimizer):
 
     def _waitLoop(self):
         """Non-root processors go into this waiting loop while the
-        root proc does all the work in the optimization algorithm"""
+        root proc does all the work in the optimization algorithm
+
+        This function overwrites the namesake in the Optimizer class to add a new mode enabling parallel snstop function
+        """
 
         mode = None
         info = None
@@ -741,6 +744,7 @@ class SNOPT(Optimizer):
             if not self.storeHistory:
                 raise Error("snSTOP function handle must be used with storeHistory=True")
 
+            # Broadcasting flag to call user snstop function
             self.optProb.comm.bcast(1, root=0)
             self.optProb.comm.bcast(snstopArgs, root=0)
             iabort = snstop_handle(*snstopArgs)
