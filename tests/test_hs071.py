@@ -222,10 +222,14 @@ class TestHS71(OptTest):
         lambda_con1 = float(lines[con1_line_num].split()[-1])
         lambda_con2 = float(lines[con2_line_num].split()[-1])
         if optName in ("IPOPT", "SNOPT", "ParOpt"):
-            lambda_sign = -1.0 if optName == 'IPOPT' else 1.0
-            assert_allclose([lambda_con1, lambda_con2],
-                            lambda_sign * np.asarray(self.lambdaStar[0]["con"]),
-                            rtol=1.0e-5, atol=1.0e-5)
+            # IPOPT returns Lagrange multipliers with opposite sign than SNOPT and ParOpt
+            lambda_sign = -1.0 if optName == "IPOPT" else 1.0
+            assert_allclose(
+                [lambda_con1, lambda_con2],
+                lambda_sign * np.asarray(self.lambdaStar[0]["con"]),
+                rtol=1.0e-5,
+                atol=1.0e-5,
+            )
         else:
             assert_allclose([lambda_con1, lambda_con2], [9.0e100, 9.0e100], rtol=1.0e-5, atol=1.0e-5)
 

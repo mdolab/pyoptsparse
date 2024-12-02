@@ -144,9 +144,7 @@ class OptTest(unittest.TestCase):
             and sol.lambdaStar is not None
         ):
             lamStar = {con: lambda_sign * lam for con, lam in sol.lambdaStar.items()}
-            assert_dict_allclose(lamStar,
-                                 self.lambdaStar[self.sol_index],
-                                 atol=tol, rtol=tol)
+            assert_dict_allclose(lamStar, self.lambdaStar[self.sol_index], atol=tol, rtol=tol)
 
         # test printing solution
         print(sol)
