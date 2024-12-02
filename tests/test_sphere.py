@@ -9,9 +9,12 @@ from parameterized import parameterized
 
 # First party modules
 from pyoptsparse import Optimization
+from pyoptsparse.pyOpt_optimizer import Optimizers
 
 # Local modules
 from testing_utils import OptTest
+
+ALL_OPTIMIZERS = [e.name for e in Optimizers]
 
 
 class TestSphere(OptTest):
@@ -40,7 +43,7 @@ class TestSphere(OptTest):
     xStar = {"xvars": np.zeros(N)}
 
     # Tolerances
-    tol = {"ALPSO": 1e-3}
+    tol = {k: 1e-3 for k in ALL_OPTIMIZERS}
 
     optOptions = {
         "ALPSO": {  # sphere
@@ -50,7 +53,14 @@ class TestSphere(OptTest):
             "c2": 1.25,  # Social Parameter
             "stopCriteria": 0,  # 0: maxOuterIter, 1: convergence
             "seed": 1235,
-        }
+        },
+        "NSGA2": {
+            "PopSize": 10,
+            "maxGen": 10,
+        },
+        "SNOPT": {
+            "Major iterations limit": 10,
+        },
     }
 
     def objfunc(self, xdict):
@@ -85,7 +95,7 @@ class TestSphere(OptTest):
         # Objective
         self.optProb.addObj("obj")
 
-    @parameterized.expand(["ALPSO"])
+    @parameterized.expand(ALL_OPTIMIZERS)
     def test_optimization(self, optName):
         self.optName = optName
         self.setup_optProb()
