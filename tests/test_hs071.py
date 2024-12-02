@@ -210,7 +210,8 @@ class TestHS71(OptTest):
         optOptions = self.optOptions.pop(optName, None)
         sol = self.optimize(optOptions=optOptions)
         # Check Solution
-        self.assert_solution_allclose(sol, self.tol[optName])
+        lambda_sign = -1.0 if optName == "IPOPT" else 1.0
+        self.assert_solution_allclose(sol, self.tol[optName], lambda_sign=lambda_sign)
         # Check informs
         self.assert_inform_equal(sol)
         # Check the lagrange multipliers in the solution text
@@ -221,7 +222,10 @@ class TestHS71(OptTest):
         lambda_con1 = float(lines[con1_line_num].split()[-1])
         lambda_con2 = float(lines[con2_line_num].split()[-1])
         if optName in ("IPOPT", "SNOPT", "ParOpt"):
-            assert_allclose([lambda_con1, lambda_con2], self.lambdaStar[0]["con"], rtol=1.0e-5, atol=1.0e-5)
+            lambda_sign = -1.0 if optName == 'IPOPT' else 1.0
+            assert_allclose([lambda_con1, lambda_con2],
+                            lambda_sign * np.asarray(self.lambdaStar[0]["con"]),
+                            rtol=1.0e-5, atol=1.0e-5)
         else:
             assert_allclose([lambda_con1, lambda_con2], [9.0e100, 9.0e100], rtol=1.0e-5, atol=1.0e-5)
 

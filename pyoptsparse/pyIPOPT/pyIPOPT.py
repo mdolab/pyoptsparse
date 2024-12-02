@@ -296,7 +296,7 @@ class IPOPT(Optimizer):
             sol_inform["text"] = self.informs[status]
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, obj, x, multipliers=-constraint_multipliers)
+            sol = self._createSolution(optTime, sol_inform, obj, x, multipliers=constraint_multipliers)
 
             # Indicate solution finished
             self.optProb.comm.bcast(-1, root=0)
