@@ -30,6 +30,7 @@ jobs:
         run: |
           conda activate pyos-build
           conda install libpgmath
+          conda list -v
       - name: Build and install pyoptsparse
         shell: cmd /C CALL {0}
         run: |
