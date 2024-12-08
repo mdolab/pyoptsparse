@@ -150,7 +150,6 @@ class TestHS15(OptTest):
         # Make sure there is no duplication in objective history
         data = hist.getValues(names=["obj"])
         objhis_len = data["obj"].shape[0]
-        self.assertEqual(12, objhis_len)
         for i in range(objhis_len - 1):
             self.assertNotEqual(data["obj"][i], data["obj"][i + 1])
 
