@@ -8,6 +8,7 @@ import numpy as np
 
 try:
     HAS_MPI = True
+    # External modules
     from mpi4py import MPI
 
     # import sabani
@@ -20,7 +21,6 @@ from pyoptsparse import Optimization
 
 # Local modules
 from testing_utils import OptTest
-
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
