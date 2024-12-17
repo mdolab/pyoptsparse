@@ -10,17 +10,17 @@ try:
     HAS_MPI = True
     # External modules
     from mpi4py import MPI
-
-    # import sabani
 except ImportError:
     HAS_MPI = False
-    raise unittest.SkipTest("MPI not available")
 
 # First party modules
 from pyoptsparse import Optimization
 
 # Local modules
 from testing_utils import OptTest
+
+if not HAS_MPI:
+    raise unittest.SkipTest("MPI not available")
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
