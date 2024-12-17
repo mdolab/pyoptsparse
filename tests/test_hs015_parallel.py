@@ -107,10 +107,11 @@ class TestHS15(OptTest):
         """manually terminate SNOPT after 1 major iteration if"""
 
         return_idx = 0
-        if rank == 1 and iterDict["nMajor"] == 1:
-            return_idx = comm.bcast(1, root=1)
-        return_idx = comm.bcast(return_idx, root=1)
-
+        if iterDict["nMajor"] == 1:
+            if comm.rank == 1:
+                comm.send(1, dest=0, tag=comm.rank)
+            elif comm.rank == 0:
+                return_idx = comm.recv(source=1)
         return return_idx
 
     def test_optimization(self):
