@@ -21,11 +21,6 @@ from pyoptsparse import Optimization
 from testing_utils import OptTest
 
 
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
-size = comm.Get_size()
-
-
 class TestHS15(OptTest):
     ## Solve test problem HS15 from the Hock & Schittkowski collection.
     #
@@ -42,6 +37,10 @@ class TestHS15(OptTest):
 
     if not HAS_MPI:
         raise unittest.SkipTest("MPI not available")
+
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    size = comm.Get_size()
 
     N_PROCS = 2  # Run case on two procs
 
