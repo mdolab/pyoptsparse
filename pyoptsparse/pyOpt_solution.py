@@ -75,7 +75,7 @@ class Solution(Optimization):
         """
         Print Structured Solution
         """
-        text0 = super().__str__()
+        text0 = self.summary_str(minimal_print=False, print_multipliers=True)
         text1 = ""
         lines = text0.split("\n")
         lines[1] = lines[1][len("Optimization Problem -- ") :]
