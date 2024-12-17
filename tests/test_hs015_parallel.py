@@ -24,6 +24,7 @@ from pyoptsparse import Optimization
 from testing_utils import OptTest
 
 
+@unittest.skipIf(not HAS_MPI, "MPI not available")
 class TestHS15(OptTest):
     ## Solve test problem HS15 from the Hock & Schittkowski collection.
     #
@@ -38,8 +39,8 @@ class TestHS15(OptTest):
     #  at (-0.79212, -1.26243), with final objective = 360.4.
     ##
 
-    if not HAS_MPI:
-        raise unittest.SkipTest("MPI not available")
+    # if not HAS_MPI:
+    #     raise unittest.SkipTest("MPI not available")
 
     N_PROCS = 2  # Run case on two procs
 
