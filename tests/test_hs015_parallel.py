@@ -13,12 +13,18 @@ try:
     # import sabani
 except ImportError:
     HAS_MPI = False
+    raise unittest.SkipTest("MPI not available")
 
 # First party modules
 from pyoptsparse import Optimization
 
 # Local modules
 from testing_utils import OptTest
+
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+size = comm.Get_size()
 
 
 class TestHS15(OptTest):
@@ -34,13 +40,6 @@ class TestHS15(OptTest):
     #  Sometimes the solver converges to another local minimum
     #  at (-0.79212, -1.26243), with final objective = 360.4.
     ##
-
-    if not HAS_MPI:
-        raise unittest.SkipTest("MPI not available")
-
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-    size = comm.Get_size()
 
     N_PROCS = 2  # Run case on two procs
 
