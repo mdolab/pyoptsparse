@@ -15,6 +15,7 @@ try:
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()
+
 except ImportError:
     HAS_MPI = False
 
