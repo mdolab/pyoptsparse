@@ -11,6 +11,7 @@ try:
     # External modules
     from mpi4py import MPI
 
+    # Setting up MPI communicators
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()
@@ -38,9 +39,6 @@ class TestHS15(OptTest):
     #  Sometimes the solver converges to another local minimum
     #  at (-0.79212, -1.26243), with final objective = 360.4.
     ##
-
-    # if not HAS_MPI:
-    #     raise unittest.SkipTest("MPI not available")
 
     N_PROCS = 2  # Run case on two procs
 
@@ -106,14 +104,12 @@ class TestHS15(OptTest):
     @staticmethod
     def my_snstop(iterDict):
         """manually terminate SNOPT after 1 major iteration if"""
-        # print("Iteration", iterDict["nMajor"])
-        # print("Rank", rank)
+
         return_idx = 0
         if rank == 1 and iterDict["nMajor"] == 1:
             return_idx = comm.bcast(1, root=1)
         return_idx = comm.bcast(return_idx, root=1)
-        # comm.Barrier()
-        # print(f"return_iDX on {rank}", return_idx)
+
         return return_idx
 
     def test_optimization(self):
