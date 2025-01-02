@@ -1577,7 +1577,7 @@ class Optimization:
         con_opt = self._mapContoOpt(con)
         return self.processContoDict(con_opt, scaled=False, natural=True)
 
-    def summary_str(self, minimal_print=False):
+    def summary_str(self, minimal_print=False, print_multipliers=False):
         """
         Print Structured Optimization Problem
 
@@ -1588,6 +1588,8 @@ class Optimization:
             variables and constraints with a non-empty status
             (for example a violated bound).
             This defaults to False, which will print all results.
+        print_multipliers : bool
+            If True, print the Lagrange multipliers associated with the constraints.
         """
         TOL = 1.0e-6
 
@@ -1656,7 +1658,7 @@ class Optimization:
 
         if len(self.constraints) > 0:
             # must be an instance of the Solution class
-            if not isinstance(self, Optimization) and self.lambdaStar is not None:
+            if print_multipliers and self.lambdaStar is not None:
                 lambdaStar = self.lambdaStar
                 lambdaStar_label = "Lagrange Multiplier"
             else:
@@ -1716,7 +1718,7 @@ class Optimization:
         return text
 
     def __str__(self):
-        return self.summary_str(minimal_print=False)
+        return self.summary_str(minimal_print=False, print_multipliers=False)
 
     def __getstate__(self) -> dict:
         """
