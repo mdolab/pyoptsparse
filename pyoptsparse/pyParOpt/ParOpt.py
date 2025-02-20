@@ -1,6 +1,8 @@
+# First party modules
 from pyoptsparse.pyOpt_error import Error
 
 try:
+    # External modules
     from paropt.paropt_pyoptsparse import ParOptSparse as ParOpt
 except:
 
