@@ -18,8 +18,6 @@ jobs:
         numpy_version: ["1.21.6", "1.25.2"]
     steps:
       - uses: actions/checkout@v4
-      - name: Setup MSVC compiler
-        uses: ilammy/msvc-dev-cmd@v1
       - uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: "3.10"
@@ -37,6 +35,9 @@ jobs:
         run: |
           call conda activate pyos-build
           set IPOPT_DIR=%CONDA_PREFIX%\Library
+          set CC=cl
+          set FC=flang
+          set CC_LD=link
           python -m build -n -x .
           pip install --no-deps --no-index --find-links dist pyoptsparse
       - name: Install runtime numpy ${{ matrix.numpy_version }}
