@@ -107,7 +107,6 @@ if __name__ == "__main__":
             "numpy>=1.21",
             "scipy>=1.7",
             "mdolab-baseclasses>=1.3.1",
-            "setuptools",
         ],
         extras_require={
             "optview": [
