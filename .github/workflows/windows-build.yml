@@ -43,7 +43,6 @@ jobs:
           set "CMAKE_GENERATOR=MinGW Makefiles"
           set CC=gcc
           set FC=gfortran
-          set CC_LD=ld
           python -m build -n -x .
           pip install --no-deps --no-index --find-links dist pyoptsparse
       - name: Install runtime numpy ${{ matrix.numpy_version }}
