@@ -35,9 +35,15 @@ jobs:
         run: |
           call conda activate pyos-build
           set IPOPT_DIR=%CONDA_PREFIX%\Library
-          set CC=cl
-          set FC=flang
-          set CC_LD=link
+
+          # We want to use the clang linker `ld-lld.exe`
+          # The conda-forge clang packages set the LD environment variable and LDFLAGS for that linker.
+          # But meson doesn't respect the LD environment variable - so set `<compiler entry>_LD`
+          # https://mesonbuild.com/howtox.html#set-linker
+          set CC_LD=%LD%
+          set CXX_LD=%LD%
+          set FC_LD=%LD%
+
           python -m build -n -x .
           pip install --no-deps --no-index --find-links dist pyoptsparse
       - name: Install runtime numpy ${{ matrix.numpy_version }}
