@@ -34,7 +34,6 @@ jobs:
         shell: cmd /C CALL {0}
         run: |
           call conda activate pyos-build
-          call conda list
           set IPOPT_DIR=%CONDA_PREFIX%\Library
 
           # We want to use the clang linker `ld-lld.exe`
