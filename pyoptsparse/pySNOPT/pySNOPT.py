@@ -536,6 +536,46 @@ class SNOPT(Optimizer):
         else:
             return commSol
 
+    def _waitLoop(self):
+        """Non-root processors go into this waiting loop while the
+        root proc does all the work in the optimization algorithm
+
+        This function overwrites the namesake in the Optimizer class to add a new mode enabling parallel snstop function
+        """
+
+        mode = None
+        info = None
+        while True:
+            # * Note*: No checks for MPI here since this code is
+            # * only run in parallel, which assumes mpi4py is working
+
+            # Receive mode and quit if mode is -1:
+            mode = self.optProb.comm.bcast(mode, root=0)
+
+            # mode = 0 call masterfunc2 as broadcast by root in masterfunc
+            if mode == 0:
+                # Receive info from shell function
+                info = self.optProb.comm.bcast(info, root=0)
+
+                # Call the generic internal function. We don't care
+                # about return values on these procs
+                self._masterFunc2(*info)
+
+            # mode = -1 exit wait loop
+            elif mode == -1:
+                break
+
+            # mode = 1 call user snSTOP function
+            elif mode == 1:
+                # Receive function arguments from root
+                info = self.optProb.comm.bcast(info, root=0)
+                # Get function handle and make call
+                snstop_handle = self.getOption("snSTOP function handle")
+                if snstop_handle is not None:
+                    snstop_handle(*info)
+            else:
+                raise Error("Wait loop recieved code %d must be -1, 0, or 1 " % mode)
+
     def _userfg_wrap(self, mode, nnJac, x, fobj, gobj, fcon, gcon, nState, cu, iu, ru):
         """
         The snopt user function. This is what is actually called from snopt.
@@ -703,6 +743,10 @@ class SNOPT(Optimizer):
 
             if not self.storeHistory:
                 raise Error("snSTOP function handle must be used with storeHistory=True")
+
+            # Broadcasting flag to call user snstop function
+            self.optProb.comm.bcast(1, root=0)
+            self.optProb.comm.bcast(snstopArgs, root=0)
             iabort = snstop_handle(*snstopArgs)
             # write iterDict again if anything was inserted
             if self.storeHistory and callCounter is not None:
