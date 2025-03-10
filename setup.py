@@ -104,7 +104,7 @@ if __name__ == "__main__":
         install_requires=[
             "packaging",
             "sqlitedict>=1.6",
-            "numpy>=1.21,<2",
+            "numpy>=1.21",
             "scipy>=1.7",
             "mdolab-baseclasses>=1.3.1",
         ],
