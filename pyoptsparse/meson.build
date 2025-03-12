@@ -66,7 +66,7 @@ inc_f2py = include_directories(incdir_f2py)
 #)
 
 subdir('pySNOPT')
-subdir('pyIPOPT')
+# subdir('pyIPOPT')
 subdir('pySLSQP')
 subdir('pyCONMIN')
 subdir('pyNLPQLP')
