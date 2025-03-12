@@ -35,7 +35,7 @@ class IPOPT(Optimizer):
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
-        if cyipopt is None  and raiseError:
+        if cyipopt is None and raiseError:
             raise ImportError("Could not import cyipopt")
 
         super().__init__(
@@ -239,8 +239,10 @@ class IPOPT(Optimizer):
                     elif fail == 2:
                         self.userRequestedTermination = True
                     return gcon.copy()
+
                 def jacobianstructure(_):
                     return copy.deepcopy(matStruct)
+
                 # Define intermediate callback. If this method returns false,
                 # Ipopt will terminate with the User_Requested_Stop status.
                 def intermediate(_, *args, **kwargs):
