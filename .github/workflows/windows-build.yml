@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        numpy_version: ["1.21.6", "1.25.2"]
+        numpy_version: ["1.21.6", "1.25.2", "2.1.3"]
     steps:
       - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v3
