@@ -8,8 +8,13 @@ import datetime
 import time
 
 # External modules
-import cyipopt
 import numpy as np
+
+try:
+    # External modules
+    import cyipopt
+except ImportError:
+    cyipopt = None
 
 # Local modules
 from ..pyOpt_optimizer import Optimizer
@@ -30,6 +35,8 @@ class IPOPT(Optimizer):
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
+        if cyipopt is None  and raiseError:
+            raise ImportError("Could not import cyipopt")
 
         super().__init__(
             name,
