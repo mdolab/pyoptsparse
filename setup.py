@@ -6,11 +6,6 @@ import subprocess
 
 
 def run_meson_build():
-    # check if ipopt dir is specified
-    ipopt_dir_opt = ""
-    if "IPOPT_DIR" in os.environ:
-        ipopt_dir = os.environ["IPOPT_DIR"]
-        ipopt_dir_opt = f"-Dipopt_dir={ipopt_dir}"
     prefix = os.path.join(os.getcwd(), staging_dir)
     purelibdir = "."
 
@@ -18,15 +13,12 @@ def run_meson_build():
     meson_args = ""
     if "MESON_ARGS" in os.environ:
         meson_args = os.environ["MESON_ARGS"]
-    # check to make sure ipopt dir isnt specified twice
-    if "-Dipopt_dir" in meson_args and ipopt_dir_opt != "":
-        raise RuntimeError("IPOPT_DIR environment variable is set and '-Dipopt_dir' in MESON_ARGS")
 
     # configure
     meson_path = shutil.which("meson")
     meson_call = (
         f"{meson_path} setup {staging_dir} --prefix={prefix} "
-        + f"-Dpython.purelibdir={purelibdir} -Dpython.platlibdir={purelibdir} {ipopt_dir_opt} {meson_args}"
+        + f"-Dpython.purelibdir={purelibdir} -Dpython.platlibdir={purelibdir} {meson_args}"
     )
     sysargs = meson_call.split(" ")
     sysargs = [arg for arg in sysargs if arg != ""]
