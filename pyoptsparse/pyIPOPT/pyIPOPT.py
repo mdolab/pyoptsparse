@@ -5,27 +5,15 @@ pyIPOPT - A python wrapper to the core IPOPT compiled module.
 # Standard Python modules
 import copy
 import datetime
-import os
 import time
 
 # External modules
+import cyipopt
 import numpy as np
 
 # Local modules
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_utils import (
-    ICOL,
-    INFINITY,
-    IROW,
-    convertToCOO,
-    extractRows,
-    scaleRows,
-    try_import_compiled_module_from_path,
-)
-
-# import the compiled module
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-pyipoptcore = try_import_compiled_module_from_path("pyipoptcore", THIS_DIR)
+from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, scaleRows
 
 
 class IPOPT(Optimizer):
@@ -42,9 +30,6 @@ class IPOPT(Optimizer):
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
-
-        if isinstance(pyipoptcore, str) and raiseError:
-            raise ImportError(pyipoptcore)
 
         super().__init__(
             name,
@@ -214,73 +199,63 @@ class IPOPT(Optimizer):
                 jac["coo"][ICOL].copy().astype("int_"),
             )
 
-            # Define the 4 call back functions that ipopt needs:
-            def eval_f(x, user_data=None):
-                fobj, fail = self._masterFunc(x, ["fobj"])
-                if fail == 1:
-                    fobj = np.array(np.NaN)
-                elif fail == 2:
-                    self.userRequestedTermination = True
-                return fobj
+            class CyIPOPTProblem:
+                # Define the 4 call back functions that ipopt needs:
+                def objective(_, x):
+                    fobj, fail = self._masterFunc(x, ["fobj"])
+                    if fail == 1:
+                        fobj = np.array(np.NaN)
+                    elif fail == 2:
+                        self.userRequestedTermination = True
+                    return fobj
 
-            def eval_g(x, user_data=None):
-                fcon, fail = self._masterFunc(x, ["fcon"])
-                if fail == 1:
-                    fcon = np.array(np.NaN)
-                elif fail == 2:
-                    self.userRequestedTermination = True
-                return fcon.copy()
+                def constraints(_, x):
+                    fcon, fail = self._masterFunc(x, ["fcon"])
+                    if fail == 1:
+                        fcon = np.array(np.NaN)
+                    elif fail == 2:
+                        self.userRequestedTermination = True
+                    return fcon.copy()
 
-            def eval_grad_f(x, user_data=None):
-                gobj, fail = self._masterFunc(x, ["gobj"])
-                if fail == 1:
-                    gobj = np.array(np.NaN)
-                elif fail == 2:
-                    self.userRequestedTermination = True
-                return gobj.copy()
+                def gradient(_, x):
+                    gobj, fail = self._masterFunc(x, ["gobj"])
+                    if fail == 1:
+                        gobj = np.array(np.NaN)
+                    elif fail == 2:
+                        self.userRequestedTermination = True
+                    return gobj.copy()
 
-            def eval_jac_g(x, flag, user_data=None):
-                if flag:
-                    return copy.deepcopy(matStruct)
-                else:
+                def jacobian(_, x):
                     gcon, fail = self._masterFunc(x, ["gcon"])
                     if fail == 1:
                         gcon = np.array(np.NaN)
                     elif fail == 2:
                         self.userRequestedTermination = True
                     return gcon.copy()
-
-            # Define intermediate callback. If this method returns false,
-            # Ipopt will terminate with the User_Requested_Stop status.
-            def eval_intermediate_callback(*args, **kwargs):
-                if self.userRequestedTermination is True:
-                    return False
-                else:
-                    return True
+                def jacobianstructure(_):
+                    return copy.deepcopy(matStruct)
+                # Define intermediate callback. If this method returns false,
+                # Ipopt will terminate with the User_Requested_Stop status.
+                def intermediate(_, *args, **kwargs):
+                    if self.userRequestedTermination is True:
+                        return False
+                    else:
+                        return True
 
             timeA = time.time()
-            nnzj = len(matStruct[0])
-            nnzh = 0
 
-            nlp = pyipoptcore.create(
-                len(xs),
-                blx,
-                bux,
-                ncon,
-                blc,
-                buc,
-                nnzj,
-                nnzh,
-                eval_f,
-                eval_grad_f,
-                eval_g,
-                eval_jac_g,
+            nlp = cyipopt.Problem(
+                n=len(xs),
+                m=ncon,
+                problem_obj=CyIPOPTProblem(),
+                lb=blx,
+                ub=bux,
+                cl=blc,
+                cu=buc,
             )
 
-            nlp.set_intermediate_callback(eval_intermediate_callback)
-
             self._set_ipopt_options(nlp)
-            x, zl, zu, constraint_multipliers, obj, status = nlp.solve(xs)
+            x, info = nlp.solve(xs)
             nlp.close()
             optTime = time.time() - timeA
 
@@ -292,11 +267,11 @@ class IPOPT(Optimizer):
 
             # Store Results
             sol_inform = {}
-            sol_inform["value"] = status
-            sol_inform["text"] = self.informs[status]
+            sol_inform["value"] = info["status"]
+            sol_inform["text"] = self.informs[info["status"]]
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, obj, x, multipliers=constraint_multipliers)
+            sol = self._createSolution(optTime, sol_inform, info["obj_val"], x, multipliers=info["mult_g"])
 
             # Indicate solution finished
             self.optProb.comm.bcast(-1, root=0)
@@ -317,11 +292,4 @@ class IPOPT(Optimizer):
         # ---------------------------------------------
 
         for name, value in self.options.items():
-            if isinstance(value, str):
-                nlp.str_option(name, value)
-            elif isinstance(value, float):
-                nlp.num_option(name, value)
-            elif isinstance(value, int):
-                nlp.int_option(name, value)
-            else:
-                print("invalid option type", type(value))
+            nlp.add_option(name, value)
