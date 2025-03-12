@@ -107,7 +107,7 @@ if __name__ == "__main__":
                 "matplotlib",
             ],
             "docs": docs_require,
-            "testing": ["testflo>=1.4.5", "parameterized"],
+            "testing": ["testflo>=1.4.5", "parameterized", "cyipopt"],
         },
         classifiers=[
             "Development Status :: 5 - Production/Stable",

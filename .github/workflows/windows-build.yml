@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        numpy_version: ["1.21.6", "1.25.2"]
+        numpy_version: ["1.21.6", "1.25.2", "2.1.3"]
     steps:
       - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v3
@@ -34,7 +34,6 @@ jobs:
         shell: cmd /C CALL {0}
         run: |
           call conda activate pyos-build
-          set IPOPT_DIR=%CONDA_PREFIX%\Library
 
           # We want to use the clang linker `ld-lld.exe`
           # The conda-forge clang packages set the LD environment variable and LDFLAGS for that linker.
