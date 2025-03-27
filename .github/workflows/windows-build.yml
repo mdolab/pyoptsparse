@@ -34,7 +34,7 @@ jobs:
         shell: bash -l {0}
         run: |
           conda activate pyos-build
-          export IPOPT_DIR=$CONDA_PREFIX\Library
+          export IPOPT_DIR=$CONDA_PREFIX/Library
 
           # We want to use the clang linker `ld-lld.exe`
           # The conda-forge clang packages set the LD environment variable and LDFLAGS for that linker.
