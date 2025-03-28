@@ -10,6 +10,7 @@ dependencies:
   - pip
   - setuptools
   - build
+  - flang 5*
 # runtime
   - packaging
   - mdolab-baseclasses >=1.3.1

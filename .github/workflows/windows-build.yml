@@ -34,7 +34,6 @@ jobs:
         shell: cmd /C CALL {0}
         run: |
           call conda activate pyos-build
-          set IPOPT_DIR=%CONDA_PREFIX%\Library
 
           :: debug - list conda environment
           call conda list
@@ -42,13 +41,7 @@ jobs:
           :: debug - list environment vars
           set
 
-          :: We want to use the clang linker `ld-lld.exe`
-          :: The conda-forge clang packages set the LD environment variable and LDFLAGS for that linker.
-          :: But meson doesn't respect the LD environment variable - so set `<compiler entry>_LD`
-          :: https://mesonbuild.com/howtox.html#set-linker
-          set CC_LD=%LD%
-          set CXX_LD=%LD%
-          set FC_LD=%LD%
+          set MESON_ARGS=-Dipopt_dir=%CONDA_PREFIX%\Library\
 
           python -m build -n -x .
 
