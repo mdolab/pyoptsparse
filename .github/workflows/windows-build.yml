@@ -41,6 +41,9 @@ jobs:
           :: debug - list environment vars
           set
 
+          :: set fortran compiler, flang 5 activation doesn't seem to do it
+          set FC=flang-new.exe
+
           set MESON_ARGS=-Dipopt_dir=%CONDA_PREFIX%\Library\
 
           python -m build -n -x .
