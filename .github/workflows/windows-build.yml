@@ -25,11 +25,6 @@ jobs:
           channel-priority: strict
           activate-environment: pyos-build
           environment-file: .github/environment.yml
-      - name: Install libpgmath
-        shell: bash -l {0}
-        run: |
-          conda activate pyos-build
-          conda install libpgmath
       - name: Build and install pyoptsparse
         shell: cmd /C CALL {0}
         run: |
