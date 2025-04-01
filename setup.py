@@ -31,24 +31,22 @@ def run_meson_build():
     sysargs = meson_call.split(" ")
     sysargs = [arg for arg in sysargs if arg != ""]
     p1 = subprocess.run(sysargs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    print(p1.stdout.decode())
     setup_log = os.path.join(staging_dir, "setup.log")
     with open(setup_log, "wb") as f:
         f.write(p1.stdout)
     if p1.returncode != 0:
-        with open(setup_log, "r") as f:
-            print(f.read())
         raise OSError(sysargs, f"The meson setup command failed! Check the log at {setup_log} for more information.")
 
     # build
     meson_call = f"{meson_path} compile -C {staging_dir}"
     sysargs = meson_call.split(" ")
     p2 = subprocess.run(sysargs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    print(p2.stdout.decode())
     compile_log = os.path.join(staging_dir, "compile.log")
     with open(compile_log, "wb") as f:
         f.write(p2.stdout)
     if p2.returncode != 0:
-        with open(compile_log, "r") as f:
-            print(f.read())
         raise OSError(
             sysargs, f"The meson compile command failed! Check the log at {compile_log} for more information."
         )

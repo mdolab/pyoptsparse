@@ -10,6 +10,8 @@ dependencies:
   - pip
   - setuptools
   - build
+  - flang 5*
+  - libpgmath
 # runtime
   - packaging
   - mdolab-baseclasses >=1.3.1
