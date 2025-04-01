@@ -24,18 +24,6 @@ if HAS_NLPQLP
     include_directories: [inc_np, inc_f2py],
     dependencies : py3_dep,
     subdir: 'pyoptsparse/pyNLPQLP',
-    install : false
+    install: true
   )
 endif
-
-#python_sources = [
-#    '__init__.py',
-#    'pyNLPQLP.py',
-#    'LICENSE'
-#]
-#
-#py3_target.install_sources(
-#  python_sources,
-#  pure: false,
-#  subdir: 'pyoptsparse/pyNLPQLP'
-#)
