@@ -20,24 +20,10 @@ if HAS_SNOPT
 
   py3_target.extension_module('snopt',
     snopt_source,
-    fortranobject_c,
     snopt_source_files,
-    include_directories: [inc_np, inc_f2py],
-    dependencies : py3_dep,
+    dependencies : [fortranobject_dep],
     subdir: 'pyoptsparse/pySNOPT',
-    install : false,
+    install: true,
     fortran_args: '-ffixed-line-length-80'
   )
 endif
-
-#python_sources = [
-#    '__init__.py',
-#    'pySNOPT.py',
-#    'LICENSE'
-#]
-
-#py3_target.install_sources(
-#  python_sources,
-#  pure: false,
-#  subdir: 'pyoptsparse/pySNOPT'
-#)
