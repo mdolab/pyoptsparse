@@ -10,19 +10,10 @@ project(
   ],
 )
 
-# from scipy
-# <!--
+# <!-- from scipy meson.build
 
 cc = meson.get_compiler('c')
 cpp = meson.get_compiler('cpp')
-
-_global_c_args = cc.get_supported_arguments(
-  '-Wno-unused-but-set-variable',
-  '-Wno-unused-function',
-  '-Wno-conversion',
-  '-Wno-misleading-indentation',
-)
-add_project_arguments(_global_c_args, language : 'c')
 
 py3 = import('python').find_installation(pure: false)
 py3_dep = py3.dependency()
@@ -58,6 +49,9 @@ endif
 
 # --!>
 
+# install python sources
 install_subdir('pyoptsparse', install_dir: py3.get_install_dir())
+
+# install non-python sources
 subdir('pyoptsparse')
 
