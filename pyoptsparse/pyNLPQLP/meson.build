@@ -15,7 +15,7 @@ if HAS_NLPQLP
     '--lower', '--build-dir', 'pyoptsparse/pyNLPQLP']
   )
 
-  py3_target.extension_module('nlpqlp',
+  py3.extension_module('nlpqlp',
     'source/wrapper.F90',
     'source/NLPQLP.F',
     'source/QL.F',
