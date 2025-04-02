@@ -1,3 +1,40 @@
 [build-system]
-requires = ["setuptools>=42", "meson>=0.60.0", "ninja", "numpy>=2.0", "swig"]
-build-backend = "setuptools.build_meta"
+requires = ["meson-python", "setuptools", "numpy>=2.0", "swig"]
+build-backend = "mesonpy"
+
+[project]
+name = "pyoptsparse"
+description = "Python package for formulating and solving nonlinear constrained optimization problems"
+version = "0.0.0"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.9"
+dependencies = [
+    "packaging",
+    "sqlitedict>=1.6",
+    "numpy>=1.21",
+    "scipy>=1.7",
+    "mdolab-baseclasses>=1.3.1"
+]
+
+[project.optional-dependencies]
+optview = [
+    "dash",
+    "plotly",
+    "matplotlib"
+]
+docs = [
+    "sphinx",
+    "sphinx_rtd_theme"
+]
+testing = [
+    "testflo>=1.4.5",
+    "parameterized"
+]
+
+[project.urls]
+Homepage = "https://github.com/mdolab/pyoptsparse"
+
+[project.scripts]
+optview = "pyoptsparse.postprocessing.OptView:main"
+optview_dash = "pyoptsparse.postprocessing.OptView_dash:main"
