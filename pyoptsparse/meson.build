@@ -57,6 +57,6 @@ subdir('pyIPOPT')
 subdir('pySLSQP')
 subdir('pyCONMIN')
 subdir('pyNLPQLP')
-# subdir('pyNSGA2') # mostly working with issues, C implicit warning
+subdir('pyNSGA2')
 subdir('pyPSQP')
 
