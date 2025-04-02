@@ -18,7 +18,7 @@ if HAS_SNOPT
     '--lower', '--build-dir', 'pyoptsparse/pySNOPT']
   )
 
-  py3_target.extension_module('snopt',
+  py3.extension_module('snopt',
     snopt_source,
     snopt_source_files,
     dependencies : [fortranobject_dep],
