@@ -5,6 +5,7 @@ dependencies:
   - ipopt
   - swig
   - meson >=1.3.2
+  - meson-python
   - compilers
   - pkg-config
   - pip
