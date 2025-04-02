@@ -15,4 +15,4 @@ py3.extension_module('psqp',
                 psqp_source,
                 dependencies: [fortranobject_dep],
                 subdir: 'pyoptsparse/pyPSQP',
-                install: false)
+                install: true)
