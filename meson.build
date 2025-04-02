@@ -27,8 +27,6 @@ add_project_arguments(_global_c_args, language : 'c')
 py3 = import('python').find_installation(pure: false)
 py3_dep = py3.dependency()
 
-generate_f2pymod = find_program('tools/generate_f2pymod.py')
-
 # We need -lm for all C code (assuming it uses math functions, which is safe to
 # assume for SciPy). For C++ it isn't needed, because libstdc++/libc++ is
 # guaranteed to depend on it. For Fortran code, Meson already adds `-lm`.
