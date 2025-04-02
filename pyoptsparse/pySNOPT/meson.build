@@ -14,7 +14,7 @@ if HAS_SNOPT
   snopt_source = custom_target('snoptmodule.c',
     input : ['source/f2py/snopt.pyf'],
     output : ['snoptmodule.c'],
-    command: [py3_command, '-m', 'numpy.f2py', '@INPUT@',
+    command: [py3, '-m', 'numpy.f2py', '@INPUT@',
     '--lower', '--build-dir', 'pyoptsparse/pySNOPT']
   )
 
