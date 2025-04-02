@@ -7,7 +7,6 @@ if incdir_numpy == 'not-given'
     [
       '-c',
       '''import os
-os.chdir(os.path.join("..", "tools"))
 import numpy as np
 try:
   incdir = os.path.relpath(np.get_include())
