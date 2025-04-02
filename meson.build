@@ -10,7 +10,7 @@ project(
   ],
 )
 
-# <!-- from scipy meson.build
+# <!-- from https://github.com/scipy/scipy/blob/4d9f5e65af06d4cc3f770407f1a66a185675eea9/meson.build
 
 cc = meson.get_compiler('c')
 cpp = meson.get_compiler('cpp')

@@ -1,5 +1,5 @@
-# from scipy
-# <!--
+# 
+# <!-- from https://github.com/scipy/scipy/blob/4d9f5e65af06d4cc3f770407f1a66a185675eea9/scipy/meson.build
 
 incdir_numpy = meson.get_external_property('numpy-include-dir', 'not-given')
 if incdir_numpy == 'not-given'
