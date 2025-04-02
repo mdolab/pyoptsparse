@@ -1,11 +1,10 @@
 [build-system]
-requires = ["meson-python", "setuptools", "numpy"]
+requires = ["meson-python", "numpy"]
 build-backend = "mesonpy"
 
 [project]
 name = "pyoptsparse"
 description = "Python package for formulating and solving nonlinear constrained optimization problems"
-version = "0.0.0"
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.9"
@@ -16,6 +15,7 @@ dependencies = [
     "scipy>=1.7",
     "mdolab-baseclasses>=1.3.1"
 ]
+dynamic = ["version"]  # version is dynamically populated from meson project
 
 [project.optional-dependencies]
 optview = [
