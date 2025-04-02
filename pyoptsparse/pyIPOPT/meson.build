@@ -38,7 +38,7 @@ if get_option('ipopt_dir') != '' or fs.is_dir('Ipopt')
         error('IPOPT include directory not found: ', ipopt_dir)
     endif
 
-    py3_target.extension_module('pyipoptcore',
+    py3.extension_module('pyipoptcore',
                     'src/callback.c',
                     'src/pyipoptcoremodule.c',
                     include_directories: [inc_np, 'src', ipopt_inc],
