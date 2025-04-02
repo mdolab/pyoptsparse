@@ -38,23 +38,13 @@ if get_option('ipopt_dir') != '' or fs.is_dir('Ipopt')
         error('IPOPT include directory not found: ', ipopt_dir)
     endif
 
-    py3_target.extension_module('pyipoptcore',
+    py3.extension_module('pyipoptcore',
                     'src/callback.c',
                     'src/pyipoptcoremodule.c',
                     include_directories: [inc_np, 'src', ipopt_inc],
                     dependencies : [py3_dep, ipopt_dep],
                     subdir: 'pyoptsparse/pyIPOPT',
                     link_language: 'c',
-                    install : false)
+                    install: true)
 endif
 
-#python_sources = [
-#    '__init__.py',
-#    'pyIPOPT.py',
-#]
-#
-#py3_target.install_sources(
-#  python_sources,
-#  pure: false,
-#  subdir: 'pyoptsparse/pyIPOPT'
-#)
