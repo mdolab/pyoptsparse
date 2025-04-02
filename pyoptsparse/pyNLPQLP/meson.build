@@ -11,7 +11,7 @@ if HAS_NLPQLP
   nlpqlp_source = custom_target('nlpqlpmodule.c',
     input : ['source/f2py/nlpqlp.pyf'],
     output : ['nlpqlpmodule.c'],
-    command: [py3_command, '-m', 'numpy.f2py', '@INPUT@',
+    command: [py3, '-m', 'numpy.f2py', '@INPUT@',
     '--lower', '--build-dir', 'pyoptsparse/pyNLPQLP']
   )
 
