@@ -211,7 +211,7 @@ class IPOPT(Optimizer):
                 def objective(_, x):
                     fobj, fail = self._masterFunc(x, ["fobj"])
                     if fail == 1:
-                        fobj = np.array(np.NaN)
+                        fobj = np.array(np.nan)
                     elif fail == 2:
                         self.userRequestedTermination = True
                     return fobj
@@ -219,7 +219,7 @@ class IPOPT(Optimizer):
                 def constraints(_, x):
                     fcon, fail = self._masterFunc(x, ["fcon"])
                     if fail == 1:
-                        fcon = np.array(np.NaN)
+                        fcon = np.full_like(fcon, np.nan)
                     elif fail == 2:
                         self.userRequestedTermination = True
                     return fcon.copy()
@@ -227,7 +227,7 @@ class IPOPT(Optimizer):
                 def gradient(_, x):
                     gobj, fail = self._masterFunc(x, ["gobj"])
                     if fail == 1:
-                        gobj = np.array(np.NaN)
+                        gobj = np.full_like(gobj, np.nan)
                     elif fail == 2:
                         self.userRequestedTermination = True
                     return gobj.copy()
@@ -235,7 +235,7 @@ class IPOPT(Optimizer):
                 def jacobian(_, x):
                     gcon, fail = self._masterFunc(x, ["gcon"])
                     if fail == 1:
-                        gcon = np.array(np.NaN)
+                        gcon = np.full_like(gcon, np.nan)
                     elif fail == 2:
                         self.userRequestedTermination = True
                     return gcon.copy()
