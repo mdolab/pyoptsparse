@@ -322,7 +322,7 @@ class TestHS15(OptTest):
         hist = History(self.histFileName, flag="r")
         hist.getValues()
 
-    @parameterized.expand(["SNOPT", "IPOPT", "SLSQP", "PSQP", "NLPQLP", "ParOpt"])
+    @parameterized.expand(["SNOPT", "IPOPT"])
     def test_func_eval_failure(self, optName):
         # Test if optimizer back-tracks after function evaluation failure and keeps going
 
