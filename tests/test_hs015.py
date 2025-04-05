@@ -351,7 +351,7 @@ class TestHS15(OptTest):
         # swap obj to simulate eval failure
         self.optProb.objFun = objFun_eval_failure
         sol = self.optimize(optOptions={}, storeHistory=True)
-        # sheck solution and informs
+        # check solution and informs
         self.assert_solution_allclose(sol, 1e-5)
         self.assert_inform_equal(sol)
 
