@@ -184,19 +184,6 @@ An ``environment.yml`` file is provided in the ``pyoptsparse`` repo:
     conda config --env --set channel_priority strict
 
     conda env update -f .github\environment.yml
-    conda install libpgmath
-
-Next, we need to tell the compiler where to find IPOPT:
-
-.. tabs::
-
-  .. code-tab:: bash Linux/OSX
-
-    export IPOPT_DIR="$CONDA_PREFIX"
-
-  .. code-tab:: powershell Windows
-
-    set IPOPT_DIR=%CONDA_PREFIX%\Library
 
 Finally, build the wheel and install it using pip:
 

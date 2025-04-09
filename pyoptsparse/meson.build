@@ -53,7 +53,6 @@ fortranobject_dep = declare_dependency(
 # --!>
 
 subdir('pySNOPT')
-subdir('pyIPOPT')
 subdir('pySLSQP')
 subdir('pyCONMIN')
 subdir('pyNLPQLP')
