@@ -29,7 +29,8 @@ docs = [
 ]
 testing = [
     "testflo>=1.4.5",
-    "parameterized"
+    "parameterized",
+    "cyipopt"
 ]
 
 [project.urls]
