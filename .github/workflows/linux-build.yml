@@ -15,17 +15,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        numpy_version: ["1.21.1", "1.25.2", "2.1.3"]
-        python_version: ["3.10", "3.11", "3.12", "3.13"]
+        versions: [{python: "3.10", numpy: "1.22"}, {python: "3.11", numpy: "1.25"}, {python: "3.12", numpy: "2.1"}]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5 
         with:
-          python-version: ${{ matrix.python_version }}
-      - name: Install runtime numpy ${{ matrix.numpy_version }}
+          python-version: ${{ matrix.versions.python }}
+      - name: Install runtime numpy ${{ matrix.versions.numpy }}
         run: |
           pip install -U pip wheel
-          pip install numpy==${{ matrix.numpy_version }}
+          pip install numpy==${{ matrix.versions.numpy }}
       - name: Build and install pyoptsparse
         run: |
           pip install .['testing']
