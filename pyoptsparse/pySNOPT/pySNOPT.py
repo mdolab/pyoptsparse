@@ -653,8 +653,8 @@ class SNOPT(Optimizer):
                 iterDict[saveVar] = maxvi
             else:
                 raise ValueError(f"Received unknown SNOPT save variable {saveVar}. "
-                            + "Please see 'Save major iteration variables' option in the pyOptSparse documentation "
-                            + "under 'SNOPT'.")
+                                 + "Please see 'Save major iteration variables' option in the pyOptSparse "
+                                 + "documentation under 'SNOPT'.")
         if self.storeHistory:
             currX = x[:n]  # only the first n component is x, the rest are the slacks
             if nmajor == 0:
@@ -697,8 +697,8 @@ class SNOPT(Optimizer):
                     snstopArgs.append(restartDict)
                 else:
                     raise ValueError(f"Received unknown snSTOP argument {snstopArg}. "
-                                + "Please see 'snSTOP arguments' option in the pyOptSparse documentation "
-                                + "under 'SNOPT'.")
+                                     + "Please see 'snSTOP arguments' option in the pyOptSparse documentation "
+                                     + "under 'SNOPT'.")
 
             if not self.storeHistory:
                 raise ValueError("snSTOP function handle must be used with storeHistory=True")
