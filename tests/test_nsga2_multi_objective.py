@@ -1,4 +1,4 @@
-""" Test NSGA2."""
+"""Test NSGA2."""
 
 # Standard Python modules
 import unittest
@@ -9,7 +9,6 @@ from parameterized import parameterized
 
 # First party modules
 from pyoptsparse import Optimization
-from pyoptsparse.pyNSGA2 import nsga2
 
 # Local modules
 from testing_utils import OptTest
