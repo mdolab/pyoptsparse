@@ -9,6 +9,7 @@ from parameterized import parameterized
 
 # First party modules
 from pyoptsparse import Optimization
+from pyoptsparse.pyNSGA2 import nsga2
 
 # Local modules
 from testing_utils import OptTest
@@ -18,13 +19,6 @@ class TestNSGA2(OptTest):
     name = "quadratic"
     optName = "NSGA2"
     histFileName = None
-
-    def setUp(self):
-        try:
-            # First party modules
-            from pyoptsparse.pyNSGA2 import nsga2  # noqa: F401
-        except ImportError:
-            raise unittest.SkipTest("Optimizer not available: NSGA2")
 
     def objfunc(self, xdict):
         x = xdict["x"]
