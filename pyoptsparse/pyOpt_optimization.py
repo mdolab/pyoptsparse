@@ -13,7 +13,6 @@ from sqlitedict import SqliteDict
 # Local modules
 from .pyOpt_MPI import MPI
 from .pyOpt_constraint import Constraint
-from .pyOpt_error import Error
 from .pyOpt_objective import Objective
 from .pyOpt_types import Dict1DType, Dict2DType, NumpyType
 from .pyOpt_utils import (
@@ -238,7 +237,7 @@ class Optimization:
 
         # Check that the type is ok
         if varType not in ["c", "i", "d"]:
-            raise Error("Type must be one of 'c' for continuous, 'i' for integer or 'd' for discrete.")
+            raise ValueError("Type must be one of 'c' for continuous, 'i' for integer or 'd' for discrete.")
 
         value = _broadcast_to_array("value", value, nVars)
         lower = _broadcast_to_array("lower", lower, nVars, allow_none=True)
@@ -270,10 +269,10 @@ class Optimization:
         if name in self.variables:
             # Check that the variables happen to be the same
             if not len(self.variables[name]) == len(varList):
-                raise Error(f"The supplied name '{name}' for a variable group has already been used!")
+                raise KeyError(f"The supplied name '{name}' for a variable group has already been used!")
             for i in range(len(varList)):
                 if not varList[i] == self.variables[name][i]:
-                    raise Error(f"The supplied name '{name}' for a variable group has already been used!")
+                    raise KeyError(f"The supplied name '{name}' for a variable group has already been used!")
             # We we got here, we know that the variables we wanted to
             # add are **EXACTLY** the same so that's cool. We'll just
             # overwrite with the varList below.
@@ -459,7 +458,7 @@ class Optimization:
         """
         self.finalized = False
         if name in self.constraints:
-            raise Error(f"The supplied name '{name}' for a constraint group has already been used.")
+            raise KeyError(f"The supplied name '{name}' for a constraint group has already been used.")
 
         # Simply add constraint object
         self.constraints[name] = Constraint(name, nCon, linear, wrt, jac, lower, upper, scale)
@@ -550,7 +549,7 @@ class Optimization:
             self.setDVs(hist[key]["xuser"])
             hist.close()
         else:
-            raise Error(f"History file '{histFile}' not found!.")
+            raise FileNotFoundError(f"History file '{histFile}' not found!.")
 
     def printSparsity(self, verticalPrint=False):
         """
@@ -1016,10 +1015,10 @@ class Optimization:
                     xg[dvGroup] = x[..., istart]
                 else:
                     xg[dvGroup] = x[..., istart:iend].copy()
-            except IndexError:
-                raise Error("Error processing x. There is a mismatch in the number of variables.")
+            except IndexError as e:
+                raise ValueError("Error processing x. There is a mismatch in the number of variables.") from e
         if imax != self.ndvs:
-            raise Error("Error processing x. There is a mismatch in the number of variables.")
+            raise ValueError("Error processing x. There is a mismatch in the number of variables.")
         return xg
 
     def processXtoVec(self, x: dict) -> ndarray:
@@ -1053,10 +1052,10 @@ class Optimization:
                     x_array[..., istart] = x[dvGroup]
                 else:
                     x_array[..., istart:iend] = x[dvGroup]
-            except IndexError:
-                raise Error("Error deprocessing x. There is a mismatch in the number of variables.")
+            except IndexError as e:
+                raise ValueError("Error deprocessing x. There is a mismatch in the number of variables.") from e
         if imax != self.ndvs:
-            raise Error("Error deprocessing x. There is a mismatch in the number of variables.")
+            raise ValueError("Error deprocessing x. There is a mismatch in the number of variables.")
 
         return x_array
 
@@ -1084,13 +1083,13 @@ class Optimization:
             if objKey in funcs:
                 try:
                     f = np.squeeze(funcs[objKey]).item()
-                except ValueError:
-                    raise Error(f"The objective return value, '{objKey}' must be a scalar!")
+                except ValueError as e:
+                    raise ValueError(f"The objective return value, '{objKey}' must be a scalar!") from e
                 # Store objective for printing later
                 self.objectives[objKey].value = np.real(f)
                 fobj.append(f)
             else:
-                raise Error(f"The key for the objective, '{objKey}' was not found.")
+                raise KeyError(f"The key for the objective, '{objKey}' was not found.")
 
         # scale the objective
         if scaled:
@@ -1124,8 +1123,8 @@ class Optimization:
             iObj = self.objectiveIdx[objKey]
             try:
                 fobj[objKey] = fobj_in[iObj]
-            except IndexError:
-                raise Error("The input array shape is incorrect!")
+            except IndexError as e:
+                raise ValueError("The input array shape is incorrect!") from e
         if scaled:
             fobj = self._mapObjtoOpt(fobj)
         return fobj
@@ -1420,12 +1419,11 @@ class Optimization:
                 ndvs = ss[1] - ss[0]
 
                 gotDerivative = False
-                try:
-                    if dvGroup in gcon[iCon]:
-                        tmp = convertToCOO(gcon[iCon][dvGroup])
-                        gotDerivative = True
-                except KeyError:
-                    raise Error(
+                if dvGroup in gcon[iCon]:
+                    tmp = convertToCOO(gcon[iCon][dvGroup])
+                    gotDerivative = True
+                else:
+                    raise KeyError(
                         f"The constraint Jacobian entry for '{con.name}' with respect to '{dvGroup}', "
                         + "as was defined in addConGroup(), was not found in constraint Jacobian dictionary provided."
                     )
@@ -1433,7 +1431,7 @@ class Optimization:
                     # All keys for this constraint must be returned
                     # since the user has explicitly specified the wrt.
                     if not con.partialReturnOk:
-                        raise Error(
+                        raise ValueError(
                             f"Constraint '{con.name}' was expecting a Jacobian with respect to dvGroup "
                             + f"'{dvGroup}' as was supplied in addConGroup(). "
                             + "This was not found in the constraint Jacobian dictionary"
@@ -1445,7 +1443,7 @@ class Optimization:
 
                 # Now check that the Jacobian is the correct shape
                 if not (tmp["shape"][0] == con.ncon and tmp["shape"][1] == ndvs):
-                    raise Error(
+                    raise ValueError(
                         f"The shape of the supplied constraint Jacobian for constraint {con.name} with respect to {dvGroup} is incorrect. "
                         + f"Expected an array of shape ({con.ncon}, {ndvs}), but received an array of shape ({tmp['shape'][0]}, {tmp['shape'][1]})."
                     )
@@ -1453,7 +1451,7 @@ class Optimization:
                 # Now check that supplied coo matrix has same length
                 # of data array
                 if len(tmp["coo"][2]) != len(con.jac[dvGroup]["coo"][2]):
-                    raise Error(
+                    raise ValueError(
                         f"The number of nonzero elements for constraint group '{con.name}' with respect to {dvGroup} was not the correct size. "
                         + f"The supplied Jacobian has {len(tmp['coo'][2])} nonzero entries, but must contain {len(con.jac[dvGroup]['coo'][2])} nonzero entries."
                     )
