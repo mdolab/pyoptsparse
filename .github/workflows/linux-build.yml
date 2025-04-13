@@ -27,7 +27,7 @@ jobs:
           pip install numpy==${{ matrix.numpy_version }}
       - name: Build and install pyoptsparse
         run: |
-          pip install .
+          pip install .['testing']
       - name: Run tests
         run: |
           cd tests
