@@ -24,7 +24,8 @@ jobs:
           python-version: ${{ matrix.python_version }}
       - name: Install runtime numpy ${{ matrix.numpy_version }}
         run: |
-          pip install wheel numpy==${{ matrix.numpy_version }}
+          pip install -U pip wheel
+          pip install numpy==${{ matrix.numpy_version }}
       - name: Build and install pyoptsparse
         run: |
           pip install .['testing']
