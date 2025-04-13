@@ -194,7 +194,7 @@ class CONMIN(Optimizer):
             if self.getOption("IPRINT") >= 0 and self.getOption("IPRINT") <= 4:
                 iprint = self.getOption("IPRINT")
             else:
-                raise Error("IPRINT option must be >= 0 and <= 4")
+                raise ValueError("IPRINT option must be >= 0 and <= 4")
 
             iout = self.getOption("IOUT")
             ifile = self.getOption("IFILE")

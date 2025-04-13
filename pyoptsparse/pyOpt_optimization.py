@@ -232,7 +232,7 @@ class Optimization:
         self.finalized = False
         # Check that the nVars is > 0.
         if nVars < 1:
-            raise Error(
+            raise ValueError(
                 f"The 'nVars' argument to addVarGroup must be greater than or equal to 1. The bad DV is {name}."
             )
 
@@ -1177,7 +1177,7 @@ class Optimization:
                 if c.shape[-1] == self.constraints[iCon].ncon:
                     fcon[..., con.rs : con.re] = c
                 else:
-                    raise Error(
+                    raise ValueError(
                         f"{len(fcon_in[iCon])} constraint values were returned in {iCon}, "
                         + f"but expected {self.constraints[iCon].ncon}."
                     )
@@ -1185,7 +1185,7 @@ class Optimization:
                 # Store constraint values for printing later
                 con.value = np.real(copy.copy(c))
             else:
-                raise Error(f"No constraint values were found for the constraint '{iCon}'.")
+                raise KeyError(f"No constraint values were found for the constraint '{iCon}'.")
 
         # Perform scaling on the original Jacobian:
         if scaled:
@@ -1330,14 +1330,14 @@ class Optimization:
                             # Everything checks out so set:
                             gobj[iObj, ss[0] : ss[1]] = tmp
                         else:
-                            raise Error(
+                            raise ValueError(
                                 f"The shape of the objective derivative for dvGroup '{dvGroup}' is the incorrect length. "
                                 + f"Expecting a shape of {(ss[1] - ss[0],)} but received a shape of {funcsSens[objKey][dvGroup].shape}."
                             )
                     else:
-                        raise Error(f"The dvGroup key '{dvGroup}' is not valid")
+                        raise KeyError(f"The dvGroup key '{dvGroup}' is not valid")
             else:
-                raise Error(f"The key for the objective gradient, '{objKey}', was not found.")
+                raise KeyError(f"The key for the objective gradient, '{objKey}', was not found.")
             iObj += 1
 
         # Note that we looped over the keys in funcsSens[objKey]
@@ -1434,7 +1434,7 @@ class Optimization:
                     # since the user has explicitly specified the wrt.
                     if not con.partialReturnOk:
                         raise Error(
-                            f"Constraint '{con.name}' was expecting a jacobain with respect to dvGroup "
+                            f"Constraint '{con.name}' was expecting a Jacobian with respect to dvGroup "
                             + f"'{dvGroup}' as was supplied in addConGroup(). "
                             + "This was not found in the constraint Jacobian dictionary"
                         )
