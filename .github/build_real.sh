@@ -16,6 +16,7 @@ touch  ~/.config/pip/constraints.txt
 export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$IPOPT_DIR/lib/pkgconfig
 
 pip install .[optview,testing] -v
+pip install cyipopt # for testing IPOPT
 
 # move pip constraints file back
 mv ~/.config/pip/constraints.txt.bkup ~/.config/pip/constraints.txt
