@@ -60,7 +60,22 @@ endif
 # --!>
 
 # install python sources
-install_subdir('pyoptsparse', install_dir: py3.get_install_dir())
+install_subdir('pyoptsparse',
+  exclude_directories: [
+    'pyCONMIN/source',
+    'pyCONMIN/README',
+    'pyNLPQLP/source',
+    'pyNLPQLP/README',
+    'pyNSGA2/source',
+    'pyNSGA2/README',
+    'pyPSQP/source',
+    'pyPSQP/README',
+    'pySLSQP/source',
+    'pySLSQP/README',
+    'pySNOPT/source',
+    'pySNOPT/README'
+  ],
+  install_dir: py3.get_install_dir())
 
 # install non-python sources
 subdir('pyoptsparse')
