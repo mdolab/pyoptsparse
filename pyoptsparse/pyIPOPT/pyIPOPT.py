@@ -276,10 +276,10 @@ class IPOPT(Optimizer):
                 self.hist.close()
 
             # Store optimizer exit condition and reason
-            solInform = SolutionInform(status, self.informs[status])
+            solInform = SolutionInform(info["status"], self.informs[status])
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, info["obj_val"], x, multipliers=info["mult_g"])
+            sol = self._createSolution(optTime, solInform, info["obj_val"], x, multipliers=info["mult_g"])
 
             # Indicate solution finished
             self.optProb.comm.bcast(-1, root=0)
