@@ -22,6 +22,7 @@ from ..pyOpt_utils import (
     scaleRows,
     try_import_compiled_module_from_path,
 )
+from ..pyOpt_solution import SolutionInform
 
 # import the compiled module
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -282,10 +283,8 @@ class IPOPT(Optimizer):
                 self.hist.writeData("metadata", self.metadata)
                 self.hist.close()
 
-            # Store Results
-            solInform = {}
-            solInform["value"] = status
-            solInform["text"] = self.informs[status]
+            # Store optimizer exit condition and reason
+            solInform = SolutionInform(status, self.informs[status])
 
             # Create the optimization solution
             sol = self._createSolution(optTime, solInform, obj, x)
