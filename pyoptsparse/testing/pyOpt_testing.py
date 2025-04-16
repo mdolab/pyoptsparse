@@ -157,16 +157,16 @@ class OptTest(unittest.TestCase):
         ----------
         sol : Solution object
             The solution object after optimization
-        optInform : int, optional
+        optInform : SolutionInform or None, optional
             The expected inform. If None, the default inform is used, which corresponds to
             a successful optimization termination.
         """
         if optInform is not None:
-            self.assertEqual(sol.optInform["value"], optInform)
+            self.assertEqual(sol.optInform.value, optInform)
         else:
             # some optimizers do not have informs
             if self.optName in SUCCESS_INFORM:
-                self.assertEqual(sol.optInform["value"], SUCCESS_INFORM[self.optName])
+                self.assertEqual(sol.optInform.value, SUCCESS_INFORM[self.optName])
 
     def get_default_hst_name(self):
         # self.id() is provided by unittest.TestCase automatically
