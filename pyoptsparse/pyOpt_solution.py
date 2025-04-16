@@ -10,10 +10,12 @@ from .pyOpt_optimization import Optimization
 
 
 @dataclass(frozen=True)
-class SolutionInform():
+class SolutionInform:
     """Data class that contains the optimizer solution value and reason"""
+
     value: int
     reason: str
+
 
 class Solution(Optimization):
     def __init__(self, optProb, xStar, fStar, lambdaStar, optInform: SolutionInform | None, info):

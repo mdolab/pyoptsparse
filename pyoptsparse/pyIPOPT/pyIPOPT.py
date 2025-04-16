@@ -19,6 +19,7 @@ except ImportError:
 # Local modules
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, scaleRows
+from ..pyOpt_solution import SolutionInform
 
 
 class IPOPT(Optimizer):
