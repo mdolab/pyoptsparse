@@ -221,7 +221,7 @@ class History:
 
         if self.metadata["version"] != __version__:
             pyOptSparseWarning(
-                f"The version of pyoptsparse used to generate the history file (v{self.metadata["version"]}) does not match the one being run right now (v{__version__}). There may be compatibility issues."
+                f"The version of pyoptsparse used to generate the history file (v{self.metadata['version']}) does not match the one being run right now (v{__version__}). There may be compatibility issues."
             )
 
     def getIterKeys(self):
