@@ -20,6 +20,7 @@ from packaging.version import parse as parse_version
 # Local modules
 from ..pyOpt_optimization import Optimization
 from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_solution import SolutionInform
 from ..pyOpt_utils import (
     ICOL,
     IDATA,
@@ -30,7 +31,6 @@ from ..pyOpt_utils import (
     scaleRows,
     try_import_compiled_module_from_path,
 )
-from ..pyOpt_solution import SolutionInform
 
 # import the compiled module
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
