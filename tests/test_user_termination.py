@@ -14,7 +14,6 @@ from parameterized import parameterized
 
 # First party modules
 from pyoptsparse import OPT, Optimization
-from pyoptsparse.pyOpt_error import Error
 
 
 class TerminateComp:
@@ -31,8 +30,6 @@ class TerminateComp:
         funcs = {}
 
         funcs["obj"] = (x - 3.0) ** 2 + x * y + (y + 4.0) ** 2 - 3.0
-        conval = -x + y
-        funcs["con"] = conval
 
         if self.obj_count > self.max_obj:
             fail = 2
@@ -105,10 +102,8 @@ class TestUserTerminationStatus(unittest.TestCase):
 
         try:
             opt = OPT(optName, options=optOptions)
-        except Error as e:
-            if "There was an error importing" in e.message:
-                raise unittest.SkipTest(f"Optimizer not available: {optName}")
-            raise e
+        except ImportError:
+            raise unittest.SkipTest(f"Optimizer not available: {optName}")
 
         sol = opt(optProb, sens=termcomp.sens)
 
@@ -128,10 +123,8 @@ class TestUserTerminationStatus(unittest.TestCase):
 
         try:
             opt = OPT(optName, options=optOptions)
-        except Error as e:
-            if "There was an error importing" in e.message:
-                raise unittest.SkipTest("Optimizer not available: SNOPT")
-            raise e
+        except ImportError:
+            raise unittest.SkipTest(f"Optimizer not available: {optName}")
 
         sol = opt(optProb, sens=termcomp.sens)
 

@@ -93,7 +93,7 @@ void nsga2func (int nreal, int nbin, int nobj, int ncon, double *xreal, double *
 	{
 		Py_XINCREF(py_fobjcon);
 		Py_XINCREF(arglist);
-		result = PyEval_CallObject(py_fobjcon, arglist);
+		result = PyObject_CallObject(py_fobjcon, arglist);
 		Py_XINCREF(result);
 		Py_XDECREF(py_fobjcon);
 		Py_XDECREF(arglist);

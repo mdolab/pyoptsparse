@@ -6,11 +6,9 @@ import unittest
 from baseclasses.testing.assertions import assert_dict_allclose, assert_equal
 import numpy as np
 from numpy.testing import assert_allclose
-from pkg_resources import parse_version
 
 # First party modules
 from pyoptsparse import OPT, History
-from pyoptsparse.pyOpt_error import Error
 
 
 def assert_optProb_size(optProb, nObj, nDV, nCon):
@@ -61,7 +59,7 @@ OUTPUT_FILENAMES = {
 }
 
 # these are optimizers which are installed by default
-DEFAULT_OPTIMIZERS = {"SLSQP", "PSQP", "CONMIN", "ALPSO", "NSGA2"}
+DEFAULT_OPTIMIZERS = {"SLSQP", "PSQP", "CONMIN", "ALPSO"}
 
 # Define gradient-based optimizers
 GRAD_BASED_OPTIMIZERS = {"CONMIN", "IPOPT", "NLPQLP", "ParOpt", "PSQP", "SLSQP", "SNOPT"}
@@ -87,7 +85,7 @@ class OptTest(unittest.TestCase):
     def setUp(self):
         self.histFileName = None
 
-    def assert_solution_allclose(self, sol, tol, partial_x=False):
+    def assert_solution_allclose(self, sol, tol, partial_x=False, lambda_sign=1.0):
         """
         An assertion method to check that the solution object matches the expected
         optimum values defined in the class.
@@ -102,6 +100,10 @@ class OptTest(unittest.TestCase):
             Whether partial assertion of the design variables ``x`` is allowed.
             For large problems, we may not have the full x vector available at the optimum,
             so we only check a few entries.
+        lambda_sign : float
+            The sign of the Lagrange multipliers returned by the optimizer. By convention,
+            SNOPT and ParOpt return a sign that agrees with the test data, while IPOPT
+            returns the opposite sign.
         """
         if not isinstance(self.xStar, list):
             self.xStar = [self.xStar]
@@ -119,18 +121,21 @@ class OptTest(unittest.TestCase):
         else:
             # assume we have a single solution
             self.sol_index = 0
+
         # now we assert against the closest solution
         # objective
-        # sol.fStar was broken for earlier versions of SNOPT
-        if self.optName == "SNOPT" and parse_version(self.optVersion) < parse_version("7.7.7"):
-            sol_objectives = np.array([sol.objectives[key].value for key in sol.objectives])
-        else:
-            sol_objectives = sol.fStar
-        assert_allclose(sol_objectives, self.fStar[self.sol_index], atol=tol, rtol=tol)
+        assert_allclose(sol.fStar, self.fStar[self.sol_index], atol=tol, rtol=tol)
+        # make sure fStar and sol.objectives values match
+        # NOTE this is not true in general, but true for well-behaving optimizations
+        # which should be the case for all tests
+        sol_objectives = np.array([obj.value for obj in sol.objectives.values()])
+        assert_allclose(sol.fStar, sol_objectives, rtol=1e-12)
+
         # x
         assert_dict_allclose(sol.xStar, self.xStar[self.sol_index], atol=tol, rtol=tol, partial=partial_x)
         dv = sol.getDVs()
         assert_dict_allclose(dv, self.xStar[self.sol_index], atol=tol, rtol=tol, partial=partial_x)
+        assert_dict_allclose(sol.xStar, dv, rtol=1e-12)
         # lambda
         if (
             hasattr(self, "lambdaStar")
@@ -138,7 +143,11 @@ class OptTest(unittest.TestCase):
             and self.lambdaStar is not None
             and sol.lambdaStar is not None
         ):
-            assert_dict_allclose(sol.lambdaStar, self.lambdaStar[self.sol_index], atol=tol, rtol=tol)
+            lamStar = {con: lambda_sign * lam for con, lam in sol.lambdaStar.items()}
+            assert_dict_allclose(lamStar, self.lambdaStar[self.sol_index], atol=tol, rtol=tol)
+
+        # test printing solution
+        print(sol)
 
     def assert_inform_equal(self, sol, optInform=None):
         """
@@ -229,11 +238,11 @@ class OptTest(unittest.TestCase):
         try:
             opt = OPT(self.optName, options=optOptions)
             self.optVersion = opt.version
-        except Error as e:
+        except ImportError as e:
             if self.optName in DEFAULT_OPTIMIZERS:
                 raise e
             else:
-                raise unittest.SkipTest("Optimizer not available: ", self.optName)
+                raise unittest.SkipTest(f"Optimizer not available: {self.optName}")
 
         if isinstance(setDV, str):
             self.optProb.setDVsFromHistory(setDV)

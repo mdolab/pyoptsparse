@@ -12,7 +12,6 @@ from numpy.testing import assert_allclose
 
 # First party modules
 from pyoptsparse import SNOPT, Optimization
-from pyoptsparse.pyOpt_error import Error
 
 
 def objfunc(xdict):
@@ -22,35 +21,6 @@ def objfunc(xdict):
     funcs = {}
 
     funcs["obj"] = (x - 3.0) ** 2 + x * y + (y + 4.0) ** 2 - 3.0
-    conval = -x + y
-    funcs["con"] = conval
-
-    fail = False
-    return funcs, fail
-
-
-def objfunc_no_con(xdict):
-    """Evaluates the equation f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3"""
-    x = xdict["x"]
-    y = xdict["y"]
-    funcs = {}
-
-    funcs["obj"] = (x - 3.0) ** 2 + x * y + (y + 4.0) ** 2 - 3.0
-
-    fail = False
-    return funcs, fail
-
-
-def objfunc_2con(xdict):
-    """Evaluates the equation f(x,y) = (x-3)^2 + xy + (y+4)^2 - 3"""
-    x = xdict["x"]
-    y = xdict["y"]
-    funcs = {}
-
-    funcs["obj"] = (x - 3.0) ** 2 + x * y + (y + 4.0) ** 2 - 3.0
-    conval = -x + y
-    funcs["con"] = conval * np.ones(2)
-    funcs["con2"] = (conval + 1) * np.ones(3)
 
     fail = False
     return funcs, fail
@@ -104,10 +74,8 @@ class TestSNOPTBug(unittest.TestCase):
         # Optimizer
         try:
             opt = SNOPT(options=optOptions)
-        except Error as e:
-            if "There was an error importing" in e.message:
-                raise unittest.SkipTest("Optimizer not available: SNOPT")
-            raise e
+        except ImportError:
+            raise unittest.SkipTest("Optimizer not available: SNOPT")
 
         sol = opt(optProb, sens=sens)
 
@@ -118,7 +86,7 @@ class TestSNOPTBug(unittest.TestCase):
 
     def test_opt_bug1(self):
         # Due to a new feature, there is a TypeError when you optimize a model without a constraint.
-        optProb = Optimization("Paraboloid", objfunc_no_con)
+        optProb = Optimization("Paraboloid", objfunc)
 
         # Design Variables
         optProb.addVarGroup("x", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
@@ -137,16 +105,14 @@ class TestSNOPTBug(unittest.TestCase):
         # Optimizer
         try:
             opt = SNOPT(options=optOptions)
-        except Error as e:
-            if "There was an error importing" in e.message:
-                raise unittest.SkipTest("Optimizer not available: SNOPT")
-            raise e
+        except ImportError:
+            raise unittest.SkipTest("Optimizer not available: SNOPT")
 
         opt(optProb, sens=sens)
 
     def test_opt_bug_print_2con(self):
         # Optimization Object
-        optProb = Optimization("Paraboloid", objfunc_2con)
+        optProb = Optimization("Paraboloid", objfunc)
 
         # Design Variables
         optProb.addVarGroup("x", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
@@ -180,10 +146,8 @@ class TestSNOPTBug(unittest.TestCase):
         # Optimizer
         try:
             opt = SNOPT(options=optOptions)
-        except Error as e:
-            if "There was an error importing" in e.message:
-                raise unittest.SkipTest("Optimizer not available: SNOPT")
-            raise e
+        except ImportError:
+            raise unittest.SkipTest("Optimizer not available: SNOPT")
 
         sol = opt(optProb, sens=sens)
 

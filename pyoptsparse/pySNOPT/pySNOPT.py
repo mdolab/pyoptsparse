@@ -2,6 +2,7 @@
 pySNOPT - A variation of the pySNOPT wrapper specifically designed to
 work with sparse optimization problems.
 """
+
 # Standard Python modules
 import datetime
 import os
@@ -9,50 +10,32 @@ import re
 import sys
 import time
 from typing import Any, Dict, Optional, Tuple
-import warnings
 
 # External modules
-from baseclasses.utils import CaseInsensitiveSet
+from baseclasses.utils import CaseInsensitiveSet, writePickle
 import numpy as np
 from numpy import ndarray
+from packaging.version import parse as parse_version
 
 # Local modules
 from ..pyOpt_error import Error
 from ..pyOpt_optimization import Optimization
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_utils import ICOL, IDATA, INFINITY, IROW, extractRows, mapToCSC, scaleRows
+from ..pyOpt_utils import (
+    ICOL,
+    IDATA,
+    INFINITY,
+    IROW,
+    extractRows,
+    mapToCSC,
+    scaleRows,
+    try_import_compiled_module_from_path,
+)
 
-
-def _import_snopt_from_path(path):
-    """Attempt to import snopt from a specific path. Return the loaded module, or `None` if snopt cannot be imported."""
-    path = os.path.abspath(os.path.expandvars(os.path.expanduser(path)))
-    orig_path = sys.path
-    sys.path = [path]
-    try:
-        import snopt  # isort: skip
-    except ImportError:
-        warnings.warn(
-            f"`snopt` module could not be imported from {path}.",
-            ImportWarning,
-            stacklevel=2,
-        )
-        snopt = None
-    finally:
-        sys.path = orig_path
-    return snopt
-
-
-# Compiled module
-_IMPORT_SNOPT_FROM = os.environ.get("PYOPTSPARSE_IMPORT_SNOPT_FROM", None)
-if _IMPORT_SNOPT_FROM is not None:
-    # if a specific import path is specified, attempt to load SNOPT from it
-    snopt = _import_snopt_from_path(_IMPORT_SNOPT_FROM)
-else:
-    # otherwise, load it relative to this file
-    try:
-        from . import snopt  # isort: skip
-    except ImportError:
-        snopt = None
+# import the compiled module
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+_IMPORT_SNOPT_FROM = os.environ.get("PYOPTSPARSE_IMPORT_SNOPT_FROM", THIS_DIR)
+snopt = try_import_compiled_module_from_path("snopt", _IMPORT_SNOPT_FROM)
 
 
 class SNOPT(Optimizer):
@@ -77,15 +60,17 @@ class SNOPT(Optimizer):
             {
                 "Save major iteration variables",
                 "Return work arrays",
+                "Work arrays save file",
                 "snSTOP function handle",
+                "snSTOP arguments",
             }
         )
 
         informs = self._getInforms()
 
-        if snopt is None:
+        if isinstance(snopt, str):
             if raiseError:
-                raise Error("There was an error importing the compiled snopt module")
+                raise ImportError(snopt)
             else:
                 version = None
         else:
@@ -135,7 +120,9 @@ class SNOPT(Optimizer):
             "Total real workspace": [int, None],
             "Save major iteration variables": [list, []],
             "Return work arrays": [bool, False],
+            "Work arrays save file": [(type(None), str), None],
             "snSTOP function handle": [(type(None), type(lambda: None)), None],
+            "snSTOP arguments": [list, []],
         }
         return defOpts
 
@@ -278,6 +265,9 @@ class SNOPT(Optimizer):
         self.startTime = time.time()
         self.callCounter = 0
         self.storeSens = storeSens
+        # flush the output streams
+        sys.stdout.flush()
+        sys.stderr.flush()
 
         # Store the starting time if the keyword timeLimit is given:
         self.timeLimit = timeLimit
@@ -404,6 +394,7 @@ class SNOPT(Optimizer):
                 self.setOption("Total real workspace", lenrw)
 
             cw = np.empty((lencw, 8), dtype="|S1")
+            cw[:] = " "
             iw = np.zeros(leniw, np.intc)
             rw = np.zeros(lenrw, float)
             snopt.sninit(iPrint, iSumm, cw, iw, rw)
@@ -461,13 +452,8 @@ class SNOPT(Optimizer):
 
             # Setup argument list values
             start = np.array(self.getOption("Start"))
-            ObjAdd = np.array([0.0], float)
+            ObjAdd = np.array(0.0, float)
             ProbNm = np.array(self.optProb.name, "c")
-            cdummy = -1111111  # this is a magic variable defined in SNOPT for undefined strings
-            cw[51, :] = cdummy  # we set these to cdummy so that a placeholder is used in printout
-            cw[52, :] = cdummy
-            cw[53, :] = cdummy
-            cw[54, :] = cdummy
             xs = np.concatenate((xs, np.zeros(ncon, float)))
             bl = np.concatenate((blx, blc))
             bu = np.concatenate((bux, buc))
@@ -520,6 +506,12 @@ class SNOPT(Optimizer):
             sol_inform["text"] = self.informs[inform]
 
             # Create the optimization solution
+            if parse_version(self.version) > parse_version("7.7.0") and parse_version(self.version) < parse_version(
+                "7.7.7"
+            ):
+                # SNOPT obj value is buggy and returned as 0, its thus overwritten with the solution objective value
+                obj = np.array([obj.value * obj.scale for obj in self.optProb.objectives.values()])
+
             sol = self._createSolution(optTime, sol_inform, obj, xs[:nvar], multipliers=pi)
             restartDict = {
                 "cw": cw,
@@ -529,6 +521,8 @@ class SNOPT(Optimizer):
                 "hs": hs,
                 "pi": pi,
             }
+
+            self._on_flushFiles()
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
@@ -576,10 +570,7 @@ class SNOPT(Optimizer):
         elif fail == 2:
             mode = -2
 
-        # Flush the files to the buffer for all the people who like to
-        # monitor the residual
-        snopt.pyflush(self.getOption("iPrint"))
-        snopt.pyflush(self.getOption("iSumm"))
+        self._on_flushFiles()
 
         # Check if we've exceeded the timeLimit
         if self.timeLimit is not None:
@@ -680,12 +671,39 @@ class SNOPT(Optimizer):
                 if "funcs" in self.cache.keys():
                     iterDict["funcs"].update(self.cache["funcs"])
 
+        # Create the restart dictionary to be passed to snstop_handle
+        restartDict = {
+            "cw": cw,
+            "iw": iw,
+            "rw": rw,
+            "xs": x,  # x is the same as xs; we call it x here to be consistent with the SNOPT subroutine snSTOP
+            "hs": hs,
+            "pi": pi,
+        }
+
+        workArraysSave = self.getOption("Work arrays save file")
+        if workArraysSave is not None:
+            # Save the restart dictionary
+            writePickle(workArraysSave, restartDict)
+
         # perform callback if requested
         snstop_handle = self.getOption("snSTOP function handle")
         if snstop_handle is not None:
+
+            # Get the arguments to pass in to snstop_handle
+            # iterDict is always included
+            snstopArgs = [iterDict]
+            for snstopArg in self.getOption("snSTOP arguments"):
+                if snstopArg == "restartDict":
+                    snstopArgs.append(restartDict)
+                else:
+                    raise Error(f"Received unknown snSTOP argument {snstopArg}. "
+                                + "Please see 'snSTOP arguments' option in the pyOptSparse documentation "
+                                + "under 'SNOPT'.")
+
             if not self.storeHistory:
                 raise Error("snSTOP function handle must be used with storeHistory=True")
-            iabort = snstop_handle(iterDict)
+            iabort = snstop_handle(*snstopArgs)
             # write iterDict again if anything was inserted
             if self.storeHistory and callCounter is not None:
                 self.hist.write(callCounter, iterDict)
@@ -704,7 +722,7 @@ class SNOPT(Optimizer):
         """
         # Set Options from the local options dictionary
         # ---------------------------------------------
-        inform = np.array([-1], np.intc)
+        inform = np.array(-1, np.intc)
         for name, value in self.options.items():
             # these do not get set using snset
             if name in self.specialOptions or name in self.pythonOptions:
@@ -714,11 +732,11 @@ class SNOPT(Optimizer):
                 if name == "Problem Type":
                     snopt.snset(value, iPrint, iSumm, inform, cw, iw, rw)
                 elif name == "Print file":
-                    snopt.snset(name + " " + f"{iPrint}", iPrint, iSumm, inform, cw, iw, rw)
+                    snopt.snset(f"{name} {iPrint}", iPrint, iSumm, inform, cw, iw, rw)
                 elif name == "Summary file":
-                    snopt.snset(name + " " + f"{iSumm}", iPrint, iSumm, inform, cw, iw, rw)
+                    snopt.snset(f"{name} {iSumm}", iPrint, iSumm, inform, cw, iw, rw)
                 else:
-                    snopt.snset(name + " " + value, iPrint, iSumm, inform, cw, iw, rw)
+                    snopt.snset(f"{name} {value}", iPrint, iSumm, inform, cw, iw, rw)
             elif isinstance(value, float):
                 snopt.snsetr(name, value, iPrint, iSumm, inform, cw, iw, rw)
             elif isinstance(value, int):

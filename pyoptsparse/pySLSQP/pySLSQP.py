@@ -2,11 +2,7 @@
 pySLSQP - A variation of the pySLSQP wrapper specificially designed to
 work with sparse optimization problems.
 """
-# Compiled module
-try:
-    from . import slsqp  # isort: skip
-except ImportError:
-    slsqp = None
+
 # Standard Python modules
 import datetime
 import os
@@ -16,8 +12,13 @@ import time
 import numpy as np
 
 # Local modules
-from ..pyOpt_error import Error
+from ..pyOpt_error import pyOptSparseWarning
 from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_utils import try_import_compiled_module_from_path
+
+# import the compiled module
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+slsqp = try_import_compiled_module_from_path("slsqp", THIS_DIR, raise_warning=True)
 
 
 class SLSQP(Optimizer):
@@ -30,9 +31,8 @@ class SLSQP(Optimizer):
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
-        if slsqp is None:
-            if raiseError:
-                raise Error("There was an error importing the compiled slsqp module")
+        if isinstance(slsqp, str) and raiseError:
+            raise ImportError(slsqp)
 
         self.set_options = []
         super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
@@ -167,7 +167,9 @@ class SLSQP(Optimizer):
             # SLSQP - Objective/Constraint Values Function
             # =================================================================
             def slfunc(m, me, la, n, f, g, x):
-                fobj, fcon, fail = self._masterFunc(x, ["fobj", "fcon"])
+                if (x < blx).any() or (x > bux).any():
+                    pyOptSparseWarning("Values in x were outside bounds during" " a minimize step, clipping to bounds")
+                fobj, fcon, fail = self._masterFunc(np.clip(x, blx, bux), ["fobj", "fcon"])
                 f = fobj
                 g[0:m] = -fcon
                 slsqp.pyflush(self.getOption("IOUT"))
@@ -177,7 +179,7 @@ class SLSQP(Optimizer):
             # SLSQP - Objective/Constraint Gradients Function
             # =================================================================
             def slgrad(m, me, la, n, f, g, df, dg, x):
-                gobj, gcon, fail = self._masterFunc(x, ["gobj", "gcon"])
+                gobj, gcon, fail = self._masterFunc(np.clip(x, blx, bux), ["gobj", "gcon"])
                 df[0:n] = gobj.copy()
                 dg[0:m, 0:n] = -gcon.copy()
                 slsqp.pyflush(self.getOption("IOUT"))
@@ -188,7 +190,7 @@ class SLSQP(Optimizer):
             gg = np.zeros([la], float)
             df = np.zeros([n + 1], float)
             dg = np.zeros([la, n + 1], float)
-            acc = np.array([self.getOption("ACC")], float)
+            acc = np.array(self.getOption("ACC"), float)
             maxit = self.getOption("MAXIT")
             iprint = self.getOption("IPRINT")
             iout = self.getOption("IOUT")
@@ -204,13 +206,13 @@ class SLSQP(Optimizer):
             lsei = ((n + 1) + mineq) * ((n + 1) - meq) + 2 * meq + (n + 1)
             slsqpb = (n + 1) * (n / 2) + 2 * m + 3 * n + 3 * (n + 1) + 1
             lwM = lsq + lsi + lsei + slsqpb + n + m
-            lw = np.array([lwM], int)
+            lw = np.array(lwM, int)
             w = np.zeros(lw, float)
             ljwM = max(mineq, (n + 1) - meq)
-            ljw = np.array([ljwM], int)
+            ljw = np.array(ljwM, int)
             jw = np.zeros(ljw, np.intc)
-            nfunc = np.array([0], int)
-            ngrad = np.array([0], int)
+            nfunc = np.array(0, int)
+            ngrad = np.array(0, int)
 
             # Run SLSQP
             t0 = time.time()
@@ -220,6 +222,10 @@ class SLSQP(Optimizer):
                         ngrad, slfunc, slgrad)
             # fmt: on
             optTime = time.time() - t0
+
+            # Clip final result to user bounds (this occurs during the optimization as well
+            # so this just makes the output consistent with what the optimizer sees)
+            xs = np.clip(xs, blx, bux)
 
             # some entries of W include the lagrange multipliers
             # for each constraint, there are two entries (lower, upper).

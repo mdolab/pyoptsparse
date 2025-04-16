@@ -2,12 +2,9 @@
 pyNSGA2 - A variation of the pyNSGA2 wrapper specificially designed to
 work with sparse optimization problems.
 """
-# Compiled module
-try:
-    from . import nsga2  # isort: skip
-except ImportError:
-    nsga2 = None
+
 # Standard Python modules
+import os
 import time
 
 # External modules
@@ -16,6 +13,11 @@ import numpy as np
 # Local modules
 from ..pyOpt_error import Error
 from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_utils import try_import_compiled_module_from_path
+
+# import the compiled module
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+nsga2 = try_import_compiled_module_from_path("nsga2", THIS_DIR)
 
 
 class NSGA2(Optimizer):
@@ -30,9 +32,8 @@ class NSGA2(Optimizer):
         informs = self._getInforms()
         super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
 
-        if nsga2 is None:
-            if raiseError:
-                raise Error("There was an error importing the compiled nsga2 module")
+        if isinstance(nsga2, str) and raiseError:
+            raise ImportError(nsga2)
 
     @staticmethod
     def _getInforms():
@@ -180,7 +181,7 @@ class NSGA2(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Store Results
-            sol_inform = {}
+            sol_inform = {"value": "", "text": ""}
 
             xstar = [0.0] * n
             for i in range(n):

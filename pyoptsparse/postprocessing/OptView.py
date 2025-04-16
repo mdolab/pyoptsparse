@@ -745,7 +745,7 @@ class Display(OVBaseClass):
 
         num_vars = len(keys)
         num_iters = len(dat[keys[0]])
-        full_data = np.arange(num_iters, dtype=np.float_).reshape(num_iters, 1)
+        full_data = np.arange(num_iters, dtype=np.float64).reshape(num_iters, 1)
         var_names = ["Iteration"]
         for key in keys:
             small_data = np.asarray(dat[key])
