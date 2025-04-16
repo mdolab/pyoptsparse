@@ -276,7 +276,7 @@ class IPOPT(Optimizer):
                 self.hist.close()
 
             # Store optimizer exit condition and reason
-            solInform = SolutionInform(info["status"], self.informs[status])
+            solInform = SolutionInform(info["status"], self.informs["status"])
 
             # Create the optimization solution
             sol = self._createSolution(optTime, solInform, info["obj_val"], x, multipliers=info["mult_g"])
