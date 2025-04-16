@@ -5,6 +5,7 @@ pyIPOPT - A python wrapper to the core IPOPT compiled module.
 # Standard Python modules
 import copy
 import datetime
+import os
 import time
 
 # External modules
