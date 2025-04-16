@@ -15,6 +15,7 @@ import numpy as np
 from ..pyOpt_error import pyOptSparseWarning
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_utils import try_import_compiled_module_from_path
+from ..pyOpt_solution import SolutionInform
 
 # import the compiled module
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -258,11 +259,9 @@ class SLSQP(Optimizer):
             # Broadcast a -1 to indcate SLSQP has finished
             self.optProb.comm.bcast(-1, root=0)
 
-            # Store Results
+            # Store optimizer exit condition and reason
             inform = mode.item()
-            solInform = {}
-            solInform["value"] = inform
-            solInform["text"] = self.informs[inform]
+            solInform = SolutionInform(inform, self.informs[inform])
 
             # Create the optimization solution
             sol = self._createSolution(optTime, solInform, ff, xs)

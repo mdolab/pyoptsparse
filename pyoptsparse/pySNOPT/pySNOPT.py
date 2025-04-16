@@ -30,6 +30,7 @@ from ..pyOpt_utils import (
     scaleRows,
     try_import_compiled_module_from_path,
 )
+from ..pyOpt_solution import SolutionInform
 
 # import the compiled module
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -499,10 +500,8 @@ class SNOPT(Optimizer):
             if iSumm != 0 and iSumm != 6:
                 snopt.closeunit(self.getOption("iSumm"))
 
-            # Store Results
-            solInform = {}
-            solInform["value"] = inform
-            solInform["text"] = self.informs[inform]
+            # Store optimizer exit condition and reason
+            solInform = SolutionInform(inform, self.informs[inform])
 
             # Create the optimization solution
             if parse_version(self.version) > parse_version("7.7.0") and parse_version(self.version) < parse_version(

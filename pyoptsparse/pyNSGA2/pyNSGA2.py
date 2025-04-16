@@ -182,8 +182,8 @@ class NSGA2(Optimizer):
             # Broadcast a -1 to indcate NSGA2 has finished
             self.optProb.comm.bcast(-1, root=0)
 
-            # Store Results
-            solInform = {}
+            # Optimizer has no exit conditions, so nothing to set
+            solInform = None
 
             xstar = [0.0] * n
             for i in range(n):

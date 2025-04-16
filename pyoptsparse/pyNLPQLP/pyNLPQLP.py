@@ -14,6 +14,7 @@ import numpy as np
 # Local modules
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_utils import try_import_compiled_module_from_path
+from ..pyOpt_solution import SolutionInform
 
 # import the compiled module
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -254,11 +255,9 @@ class NLPQLP(Optimizer):
                 self.hist.writeData("metadata", self.metadata)
                 self.hist.close()
 
-            # Store Results
+            # Store optimizer exit condition and reason
             inform = ifail.item()
-            solInform = {}
-            solInform["value"] = inform
-            solInform["text"] = self.informs[inform]
+            solInform = SolutionInform(inform, self.informs[inform])
 
             # Create the optimization solution
             sol = self._createSolution(optTime, solInform, f, xs)
