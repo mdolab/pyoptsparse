@@ -1,5 +1,6 @@
 # Standard Python modules
 import copy
+from dataclasses import dataclass
 
 # External modules
 import numpy as np
@@ -8,8 +9,14 @@ import numpy as np
 from .pyOpt_optimization import Optimization
 
 
+@dataclass(frozen=True)
+class SolutionInform():
+    """Data class that contains the optimizer solution value and reason"""
+    value: int
+    reason: str
+
 class Solution(Optimization):
-    def __init__(self, optProb, xStar, fStar, lambdaStar, optInform, info):
+    def __init__(self, optProb, xStar, fStar, lambdaStar, optInform: SolutionInform | None, info):
         """
         This class is used to describe the solution of an optimization
         problem. This class inherits from Optimization which enables a
@@ -29,8 +36,9 @@ class Solution(Optimization):
         lambdaStar : dict
             The final Lagrange multipliers
 
-        optInform : dict
-            The inform code and reason returned by the optimizer
+        optInform : SolutionInform or None
+            Object containing the inform code and reason returned by the optimizer.
+            Optimizers that do not have inform exit codes do not set this variable.
 
         info : dict
             A dictionary containing timing and call counter info to be stored
@@ -97,8 +105,8 @@ class Solution(Optimization):
 
         # Only print exit status, inform, and description if the optimizer provides informs
         if self.optInform:
-            inform_val = self.optInform["value"]
-            inform_text = self.optInform["text"]
+            inform_val = self.optInform.value
+            inform_text = self.optInform.reason
             text1 += "\n"
             text1 += "   Exit Status\n"
             text1 += "      Inform  Description\n"
