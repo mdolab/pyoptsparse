@@ -41,6 +41,6 @@ class TestSLSQP(unittest.TestCase):
         optProb.addObj("obj")
         opt = OPT("SLSQP")
         sol = opt(optProb, sens=sens)
-        self.assertEqual(sol.optInform["value"], 0)
+        self.assertEqual(sol.optInform.value, 0)
         self.assertGreaterEqual(sol.xStar["xvars"][0], 0)
         self.assertAlmostEqual(sol.xStar["xvars"][0], 0, places=9)
