@@ -651,7 +651,10 @@ class History:
         # reshape lists into numpy arrays
         for name in names:
             # we just stack along axis 0
-            data[name] = np.stack(data[name], axis=0)
+            if len(data[name]) > 0:
+                data[name] = np.stack(data[name], axis=0)
+            else:
+                data[name] = np.array(data[name])
             # we cast 1D arrays to 2D, for scalar values
             if data[name].ndim == 1:
                 data[name] = np.expand_dims(data[name], 1)

@@ -4,7 +4,7 @@ tags:
   - optimization
   - Python
 authors:
-  - name: Neil Wu
+  - name: Ella Wu
     orcid: 0000-0001-8856-9661
     affiliation: 1
   - name: Gaetan Kenway

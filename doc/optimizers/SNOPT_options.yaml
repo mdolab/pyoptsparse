@@ -100,7 +100,37 @@ Return work arrays:
     These arrays can be used to hot start a subsequent optimization.
     The SNOPT option 'Sticky parameters' will also be automatically set to 'Yes' to facilitate the hot start.
 
+Work arrays save file:
+  desc: >
+    This option is unique to the Python wrapper.
+    The SNOPT work arrays will be pickled and saved to this file after each major iteration.
+    This file is useful if you want to restart an optimization that did not exit cleanly.
+    If None, the work arrays are not saved.
+
 snSTOP function handle:
   desc: >
     This option is unique to the Python wrapper.
     A function handle can be supplied which is called at the end of each major iteration.
+    The following is an example of a callback function that saves the restart dictionary
+    to a different file after each major iteration.
+
+      .. code-block:: python
+
+        def snstopCallback(iterDict, restartDict):
+            # Get the major iteration number
+            nMajor = iterDict["nMajor"]
+
+            # Save the restart dictionary
+            writePickle(f"restart_{nMajor}.pickle", restartDict)
+
+            return 0
+
+snSTOP arguments:
+  desc: |
+    This option is unique to the Python wrapper.
+    It specifies a list of arguments that will be passed to the snSTOP function handle.
+    ``iterDict`` is always passed as an argument.
+    Additional arguments are passed in the same order as this list.
+    The possible values are
+
+    - ``restartDict``

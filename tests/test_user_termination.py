@@ -30,8 +30,6 @@ class TerminateComp:
         funcs = {}
 
         funcs["obj"] = (x - 3.0) ** 2 + x * y + (y + 4.0) ** 2 - 3.0
-        conval = -x + y
-        funcs["con"] = conval
 
         if self.obj_count > self.max_obj:
             fail = 2
@@ -126,7 +124,7 @@ class TestUserTerminationStatus(unittest.TestCase):
         try:
             opt = OPT(optName, options=optOptions)
         except ImportError:
-            raise unittest.SkipTest("Optimizer not available: SNOPT")
+            raise unittest.SkipTest(f"Optimizer not available: {optName}")
 
         sol = opt(optProb, sens=termcomp.sens)
 

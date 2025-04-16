@@ -85,7 +85,7 @@ class OptTest(unittest.TestCase):
     def setUp(self):
         self.histFileName = None
 
-    def assert_solution_allclose(self, sol, tol, partial_x=False):
+    def assert_solution_allclose(self, sol, tol, partial_x=False, lambda_sign=1.0):
         """
         An assertion method to check that the solution object matches the expected
         optimum values defined in the class.
@@ -100,6 +100,10 @@ class OptTest(unittest.TestCase):
             Whether partial assertion of the design variables ``x`` is allowed.
             For large problems, we may not have the full x vector available at the optimum,
             so we only check a few entries.
+        lambda_sign : float
+            The sign of the Lagrange multipliers returned by the optimizer. By convention,
+            SNOPT and ParOpt return a sign that agrees with the test data, while IPOPT
+            returns the opposite sign.
         """
         if not isinstance(self.xStar, list):
             self.xStar = [self.xStar]
@@ -139,7 +143,8 @@ class OptTest(unittest.TestCase):
             and self.lambdaStar is not None
             and sol.lambdaStar is not None
         ):
-            assert_dict_allclose(sol.lambdaStar, self.lambdaStar[self.sol_index], atol=tol, rtol=tol)
+            lamStar = {con: lambda_sign * lam for con, lam in sol.lambdaStar.items()}
+            assert_dict_allclose(lamStar, self.lambdaStar[self.sol_index], atol=tol, rtol=tol)
 
         # test printing solution
         print(sol)
@@ -237,7 +242,7 @@ class OptTest(unittest.TestCase):
             if self.optName in DEFAULT_OPTIMIZERS:
                 raise e
             else:
-                raise unittest.SkipTest("Optimizer not available: ", self.optName)
+                raise unittest.SkipTest(f"Optimizer not available: {self.optName}")
 
         if isinstance(setDV, str):
             self.optProb.setDVsFromHistory(setDV)

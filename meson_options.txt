@@ -1,6 +1,3 @@
-option('ipopt_dir', type: 'string', value: '',
-        description: 'Top-level dir for ipopt')
-
 option('incdir_numpy', type: 'string', value: '',
     description: 'Include directory for numpy. If left empty Meson will try to find it on its own.')
 
