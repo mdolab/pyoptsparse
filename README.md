@@ -23,7 +23,7 @@ ALPSO, CONMIN, IPOPT, NLPQLP, NSGA2, PSQP, SLSQP, ParOpt and SNOPT are currently
 
 We do not provide the source code for SNOPT and NLPQLP, due to their restrictive license requirements.
 Please contact the authors of the respective optimizers if you wish to obtain them.
-Furthermore, ParOpt and IPOPT are available as a open source package but must be installed separately.
+Furthermore, ParOpt and IPOPT are available as open source packages but must be installed separately.
 Please see the documentation page of each optimizer for purchase and installation instructions.
 
 ## Integration into other frameworks

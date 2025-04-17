@@ -34,7 +34,6 @@ pyOptSparse has the following dependencies:
   We recommend ``gcc`` and ``gfortran`` which can be installed via the package manager for your operating system.
 
 Please make sure these are installed and available for use.
-In order to use NSGA2, SWIG (v1.3+) is also required, which can be installed via the package manager.
 Python dependencies are automatically handled by ``pip``, so they do not need to be installed separately.
 
 .. note::

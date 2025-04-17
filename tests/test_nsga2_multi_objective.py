@@ -1,4 +1,4 @@
-""" Test NSGA2."""
+"""Test NSGA2."""
 
 # Standard Python modules
 import unittest
@@ -18,13 +18,6 @@ class TestNSGA2(OptTest):
     name = "quadratic"
     optName = "NSGA2"
     histFileName = None
-
-    def setUp(self):
-        try:
-            # First party modules
-            from pyoptsparse.pyNSGA2 import nsga2  # noqa: F401
-        except ImportError:
-            raise unittest.SkipTest("Optimizer not available: NSGA2")
 
     def objfunc(self, xdict):
         x = xdict["x"]
