@@ -13,6 +13,7 @@ import numpy as np
 # Local modules
 from ..pyOpt_error import Error
 from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_solution import SolutionInform
 from ..pyOpt_utils import try_import_compiled_module_from_path
 
 # import the compiled module
@@ -254,14 +255,12 @@ class NLPQLP(Optimizer):
                 self.hist.writeData("metadata", self.metadata)
                 self.hist.close()
 
-            # Store Results
+            # Store optimizer exit condition and reason
             inform = ifail.item()
-            sol_inform = {}
-            sol_inform["value"] = inform
-            sol_inform["text"] = self.informs[inform]
+            solInform = SolutionInform(inform, self.informs[inform])
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, f, xs)
+            sol = self._createSolution(optTime, solInform, f, xs)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()

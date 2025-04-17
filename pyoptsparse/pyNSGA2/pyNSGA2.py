@@ -180,8 +180,8 @@ class NSGA2(Optimizer):
             # Broadcast a -1 to indcate NSGA2 has finished
             self.optProb.comm.bcast(-1, root=0)
 
-            # Store Results
-            sol_inform = {"value": "", "text": ""}
+            # Optimizer has no exit conditions, so nothing to set
+            solInform = None
 
             xstar = [0.0] * n
             for i in range(n):
@@ -195,7 +195,7 @@ class NSGA2(Optimizer):
                 fStar = nsga2.doubleArray_getitem(f, 0)
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, fStar, xstar)
+            sol = self._createSolution(optTime, solInform, fStar, xstar)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()

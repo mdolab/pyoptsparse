@@ -12,6 +12,7 @@ import numpy as np
 # Local modules
 from ..pyOpt_error import Error
 from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_solution import SolutionInform
 from ..pyOpt_utils import try_import_compiled_module_from_path
 
 # import the compiled module
@@ -259,9 +260,7 @@ class PSQP(Optimizer):
             inform = iterm.item()
             if inform < 0 and inform not in self.informs:
                 inform = -10
-            sol_inform = {}
-            sol_inform["value"] = inform
-            sol_inform["text"] = self.informs[inform]
+            solInform = SolutionInform(inform, self.informs[inform])
             if self.storeHistory:
                 self.metadata["endTime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 self.metadata["optTime"] = optTime
@@ -269,7 +268,7 @@ class PSQP(Optimizer):
                 self.hist.close()
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff, xs)
+            sol = self._createSolution(optTime, solInform, ff, xs)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
