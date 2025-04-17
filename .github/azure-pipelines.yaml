@@ -18,3 +18,4 @@ extends:
     IMAGE: auto
     ISORT: true
     COVERAGE: true
+    TIMEOUT_BUILD: 30
