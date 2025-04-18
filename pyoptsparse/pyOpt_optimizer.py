@@ -1014,3 +1014,15 @@ def OPT(optName, *args, **kwargs):
 
     # Create the optimizer and return it
     return opt(*args, **kwargs)
+
+
+def list_optimizers() -> list[Optimizers]:
+    """List all optimizers which were installed successfully and available for use"""
+    all_optimizers = []
+    for opt in Optimizers:
+        try:
+            OPT(opt)
+            all_optimizers.append(opt)
+        except ImportError:
+            pass
+    return all_optimizers

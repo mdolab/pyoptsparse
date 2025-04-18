@@ -68,6 +68,12 @@ If you plan to modify pyOptSparse, installing with the developer option, i.e. wi
   Some optimizers are proprietary, and their sources are not distributed with pyOptSparse.
   To use them, please follow the instructions on specific optimizer pages.
 
+To see the list of installed optimizers, use the following:
+
+.. prompt:: bash
+
+  python -c "import pyoptsparse; print(pyoptsparse.list_optimizers())"
+
 Specifying compilers
 ~~~~~~~~~~~~~~~~~~~~
 To specify a non-default compiler (e.g. something other than ``/usr/bin/gcc``), meson recognizes certain `special environment variables <https://mesonbuild.com/Reference-tables.html#compiler-and-linker-selection-variables>`__.
