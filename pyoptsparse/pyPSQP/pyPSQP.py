@@ -1,6 +1,7 @@
 """
 pyPSQP - the pyPSQP wrapper
 """
+
 # Standard Python modules
 import datetime
 import os
@@ -10,7 +11,6 @@ import time
 import numpy as np
 
 # Local modules
-from ..pyOpt_error import Error
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_utils import try_import_compiled_module_from_path
 
@@ -231,7 +231,7 @@ class PSQP(Optimizer):
             opt = self.getOption
 
             if not opt("IPRINT") <= 2:
-                raise Error("Incorrect output level setting (IPRINT) option. Must be <= 2")
+                raise ValueError("Incorrect output level setting (IPRINT) option. Must be <= 2")
 
             if opt("IPRINT") != 0:
                 if os.path.isfile(opt("IFILE")):

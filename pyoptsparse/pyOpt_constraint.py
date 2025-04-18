@@ -7,7 +7,7 @@ from typing import Dict, Iterable, List, Optional, Union
 import numpy as np
 
 # Local modules
-from .pyOpt_error import Error, pyOptSparseWarning
+from .pyOpt_error import pyOptSparseWarning
 from .pyOpt_types import Dict1DType
 from .pyOpt_utils import INFINITY, _broadcast_to_array, convertToCOO
 
@@ -204,7 +204,7 @@ class Constraint:
                 try:
                     self.wrt = list(self.wrt)
                 except Exception:
-                    raise Error(f"The 'wrt' argument to constraint '{self.name}' must be an iterable list")
+                    raise TypeError(f"The 'wrt' argument to constraint '{self.name}' must be an iterable list")
 
             # We allow 'None' to be in the list...they are null so
             # just pop them out:
@@ -214,7 +214,7 @@ class Constraint:
             # *actually* are variables
             for dvGroup in self.wrt:
                 if dvGroup not in variables:
-                    raise Error(
+                    raise KeyError(
                         f"The supplied dvGroup '{dvGroup}' in 'wrt' for the {self.name} constraint, does not exist. "
                         + "It must be added with a call to addVar() or addVarGroup()."
                     )
@@ -254,7 +254,7 @@ class Constraint:
             # sparse constraints.
 
             if self.linear:
-                raise Error(
+                raise ValueError(
                     "The 'jac' keyword to argument to addConGroup() must be supplied for a linear constraint. "
                     + f"The constraint in error is {self.name}."
                 )
@@ -274,7 +274,7 @@ class Constraint:
         else:
             # First sanitize input:
             if not isinstance(self.jac, dict):
-                raise Error(
+                raise TypeError(
                     "The 'jac' keyword argument to addConGroup() must be a dictionary. "
                     + f"The constraint in error is {self.name}."
                 )
@@ -301,7 +301,7 @@ class Constraint:
 
                 # Generically check the shape:
                 if self.jac[dvGroup]["shape"][0] != self.ncon or self.jac[dvGroup]["shape"][1] != ndvs:
-                    raise Error(
+                    raise ValueError(
                         f"The supplied Jacobian for dvGroup {dvGroup}' in constraint {self.name}, was the incorrect size. "
                         + f"Expecting a Jacobian of size ({self.ncon}, {ndvs}) but received a Jacobian of size "
                         + f"({self.jac[dvGroup]['shape'][0]}, {self.jac[dvGroup]['shape'][1]})."

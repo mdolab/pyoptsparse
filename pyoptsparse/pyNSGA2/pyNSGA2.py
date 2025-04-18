@@ -11,7 +11,6 @@ import time
 import numpy as np
 
 # Local modules
-from ..pyOpt_error import Error
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_utils import try_import_compiled_module_from_path
 
@@ -161,7 +160,7 @@ class NSGA2(Optimizer):
             if self.getOption("PrintOut") >= 0 and self.getOption("PrintOut") <= 2:
                 printout = self.getOption("PrintOut")
             else:
-                raise Error("Incorrect option PrintOut")
+                raise ValueError("Incorrect option PrintOut")
 
             seed = self.getOption("seed")
             if seed == 0:

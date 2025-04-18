@@ -12,7 +12,6 @@ import time
 import numpy as np
 
 # Local modules
-from ..pyOpt_error import Error
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_utils import try_import_compiled_module_from_path
 
@@ -194,7 +193,7 @@ class CONMIN(Optimizer):
             if self.getOption("IPRINT") >= 0 and self.getOption("IPRINT") <= 4:
                 iprint = self.getOption("IPRINT")
             else:
-                raise Error("IPRINT option must be >= 0 and <= 4")
+                raise ValueError("IPRINT option must be >= 0 and <= 4")
 
             iout = self.getOption("IOUT")
             ifile = self.getOption("IFILE")

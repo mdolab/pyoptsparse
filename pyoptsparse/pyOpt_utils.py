@@ -24,7 +24,6 @@ from scipy import sparse
 from scipy.sparse import spmatrix
 
 # Local modules
-from .pyOpt_error import Error
 from .pyOpt_types import ArrayType
 
 # Define index mnemonics
@@ -242,12 +241,12 @@ def convertToCOO(mat: Union[dict, spmatrix, ndarray]):
         # Now try to do it with a numpy matrix:
         try:
             return _denseToCOO(np.atleast_2d(np.array(mat)))
-        except Exception:
-            raise Error(
+        except Exception as e:
+            raise ValueError(
                 "Unknown matrix format. "
                 + "Must be a dense numpy array or a pyOptSparse sparse matrix format of COO, CSR or CSC. "
                 + f"See documentation for correct format. Supplied Matrix is: {repr(mat)}"
-            )
+            ) from e
 
 
 def convertToCSR(mat: Union[dict, spmatrix, ndarray]) -> dict:
@@ -390,15 +389,15 @@ def convertToDense(mat: Union[dict, spmatrix, ndarray]) -> ndarray:
 
 
 def scaleColumns(mat: dict, factor):
-    """d=
+    """
     Scale the columns of the matrix. Must be CSR format
     """
     if not isinstance(mat, dict):
-        raise Error("mat for scaleColumbs must be pyoptsparse matrix format")
+        raise TypeError("mat for scaleColumns must be pyoptsparse matrix format")
     if "csr" not in mat:
-        raise Error("scaleColumns only works for CSR pyoptsparse matrix format")
+        raise ValueError("scaleColumns only works for CSR pyoptsparse matrix format")
     if mat["shape"][1] != len(factor):
-        raise Error("Length of factor is incorrect")
+        raise ValueError("Length of factor is incorrect")
     for i in range(mat["shape"][0]):
         iStart = mat["csr"][IROWP][i]
         iEnd = mat["csr"][IROWP][i + 1]
@@ -410,11 +409,11 @@ def scaleRows(mat: dict, factor):
     Scale the rows of the matrix. Must be CSR format
     """
     if not isinstance(mat, dict):
-        raise Error("mat for scaleRows must be pyoptsparse matrix format")
+        raise TypeError("mat for scaleRows must be pyoptsparse matrix format")
     if "csr" not in mat:
-        raise Error("scaleRows only works for CSR pyoptsparse matrix format")
+        raise ValueError("scaleRows only works for CSR pyoptsparse matrix format")
     if mat["shape"][0] != len(factor):
-        raise Error("Length of factor is incorrect")
+        raise ValueError("Length of factor is incorrect")
     for i in range(mat["shape"][0]):
         iStart = mat["csr"][IROWP][i]
         iEnd = mat["csr"][IROWP][i + 1]
@@ -559,7 +558,7 @@ def _broadcast_to_array(name: str, value: ArrayType, n_values: int, allow_none: 
 
     Raises
     ------
-    Error
+    ValueError
         If either the input is not broadcastable, or if the input contains None and ``allow_none=False``.
 
     Warnings
@@ -568,12 +567,12 @@ def _broadcast_to_array(name: str, value: ArrayType, n_values: int, allow_none: 
     """
     try:
         value = np.broadcast_to(value, n_values)
-    except ValueError:
-        raise Error(
+    except ValueError as e:
+        raise ValueError(
             f"The '{name}' argument is invalid. It must be None, a scalar, or a list/array or length {n_values}."
-        )
+        ) from e
     if not allow_none and any([i is None for i in value]):
-        raise Error(f"The {name} argument cannot be 'None'.")
+        raise ValueError(f"The {name} argument cannot be 'None'.")
     return value
 
 
