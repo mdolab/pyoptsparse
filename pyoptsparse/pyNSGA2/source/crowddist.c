@@ -26,7 +26,7 @@ void assign_crowding_distance_list (population *pop, list *lst, int front_size, 
         pop->ind[lst->child->index].crowd_dist = INF;
         return;
     }
-    obj_array = (int **)malloc(global.nobj*sizeof(int));
+    obj_array = (int **)malloc(global.nobj*sizeof(int *));
     dist = (int *)malloc(front_size*sizeof(int));
     for (i=0; i<global.nobj; i++)
     {
@@ -66,7 +66,7 @@ void assign_crowding_distance_indices (population *pop, int c1, int c2, Global g
         pop->ind[c2].crowd_dist = INF;
         return;
     }
-    obj_array = (int **)malloc(global.nobj*sizeof(int));
+    obj_array = (int **)malloc(global.nobj*sizeof(int *));
     dist = (int *)malloc(front_size*sizeof(int));
     for (i=0; i<global.nobj; i++)
     {

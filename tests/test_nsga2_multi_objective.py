@@ -52,7 +52,7 @@ class TestNSGA2(OptTest):
     @parameterized.expand(
         [
             (1,),
-            # (2,), # skipping flaky multi-objective test
+            (2,),
         ]
     )
     def test_opt(self, n_obj):
