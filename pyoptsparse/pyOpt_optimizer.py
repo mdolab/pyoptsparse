@@ -964,7 +964,7 @@ Optimizers = Enum("Optimizers", "SNOPT IPOPT SLSQP NLPQLP CONMIN NSGA2 PSQP ALPS
 
 
 def OPT(optName, *args, **kwargs):
-    r"""
+    """
     This is a simple utility function that enables creating an
     optimizer based on the 'optName' string. This can be useful for
     doing optimization studies with respect to optimizer since you
@@ -976,7 +976,7 @@ def OPT(optName, *args, **kwargs):
        Either a string identifying the optimizer to create, e.g. "SNOPT", or
        an enum accessed via ``pyoptsparse.Optimizers``, e.g. ``Optimizers.SNOPT``.
 
-    *args, **kwargs : varies
+    \*args, \*\*kwargs : varies
        Passed to optimizer creation.
 
     Returns
