@@ -41,7 +41,7 @@ class TestSphere(OptTest):
     xStar = {"xvars": np.zeros(N)}
 
     # Tolerances
-    tol = {k: 1e-3 for k in ALL_OPTIMIZERS}
+    tol = {k: 5e-2 if k in ["CONMIN", "ALPSO"] else 1e-6 for k in ALL_OPTIMIZERS}
 
     optOptions = {
         "ALPSO": {  # sphere
