@@ -73,8 +73,7 @@ class TestSphere(OptTest):
     def sens(self, xdict, _funcs):
         self.ng += 1
         x = xdict["xvars"]
-
-        funcsSens = {"obj": {"xvars": 2 * np.ones(len(x))}}
+        funcsSens = {"obj": {"xvars": 2 * x}}
 
         fail = False
         return funcsSens, fail
