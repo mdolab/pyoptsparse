@@ -48,7 +48,7 @@ If the Optimization problem is unconstrained, ``funcs`` will contain only the ob
 Design Variables
 ++++++++++++++++
 The simplest way to add a single continuous variable with no bounds (side constraints) and initial value of 0.0 is
-to simply call :meth:`addVar <pyoptsparse.pyOpt_optimization.Optimization.addVar>`:
+to simply call :meth:`~pyoptsparse.pyOpt_optimization.Optimization.addVar`:
 
 .. code-block:: python
 
@@ -78,8 +78,8 @@ The ``scale`` keyword will result in the following:
 The purpose of the scale factor is ensure that design variables of widely different magnitudes can be used in the same optimization.
 It is desirable to have the magnitude of all variables within an order of magnitude or two of each other.
 
-The :meth:`addVarGroup <pyoptsparse.pyOpt_optimization.Optimization.addVarGroup>` call is similar to 
-:meth:`addVar <pyoptsparse.pyOpt_optimization.Optimization.addVar>` except that it adds a group of 1 or more variables.
+The :meth:`~pyoptsparse.pyOpt_optimization.Optimization.addVarGroup` call is similar to
+:meth:`~pyoptsparse.pyOpt_optimization.Optimization.addVar` except that it adds a group of 1 or more variables.
 These variables are then returned as a numpy array within the x-dictionary.
 For example, to add 10 variables with no lower bound, and a scale factor of 0.1:
 
@@ -92,7 +92,7 @@ Constraints
 +++++++++++
 
 The simplest way to add a single constraint with no bounds (i.e., not a very useful constraint!) is
-to use the function :meth:`addCon <pyoptsparse.pyOpt_optimization.Optimization.addCon>`:
+to use the function :meth:`~pyoptsparse.pyOpt_optimization.Optimization.addCon`:
 
 .. code-block:: python
 
@@ -149,7 +149,7 @@ Consider the optimization problem given below::
 
 The ``X``'s denote which parts of the Jacobian have non-zero values.
 pyOptSparse does not determine the sparsity structure of the Jacobian automatically,
-it must be specified by the user during calls to :meth:`addCon <pyoptsparse.pyOpt_optimization.Optimization.addCon>` and :meth:`addConGroup <pyoptsparse.pyOpt_optimization.Optimization.addConGroup>`.
+it must be specified by the user during calls to :meth:`~pyoptsparse.pyOpt_optimization.Optimization.addCon` and :meth:`~pyoptsparse.pyOpt_optimization.Optimization.addConGroup`.
 By way of example, the code that generates the  hypothetical optimization problem is as follows:
 
 .. code-block:: python
@@ -226,7 +226,7 @@ Objectives
 ++++++++++
 
 Each optimization will require at least one objective to be added.
-This is accomplished using a the call to :meth:`addObj <pyoptsparse.pyOpt_optimization.Optimization.addObj>`:
+This is accomplished using a the call to :meth:`~pyoptsparse.pyOpt_optimization.Optimization.addObj`:
 
 .. code-block:: python
 
@@ -277,7 +277,7 @@ The first, and most explicit approach is to directly import the optimizer class,
   opt = SLSQP(options=options)
 
 However, in order to easily switch between different optimizers without having to import each class, a convenience function called
-:meth:`OPT <pyoptsparse.pyOpt_optimizer.OPT>` is provided.
+:meth:`~pyoptsparse.pyOpt_optimizer.OPT` is provided.
 It accepts a string argument in addition to the usual options, and instantiates the optimizer object based on the string:
 
 .. code-block:: python
