@@ -22,6 +22,7 @@ The optimization class is created using the following call:
 
 .. code-block:: python
 
+  from pyoptsparse import Optimization
   optProb = Optimization("name", objconFun)
 
 The general template of the objective and constraint function is as follows:
@@ -182,6 +183,7 @@ By way of example, the call instead may be as follows:
 
 .. code-block:: python
 
+  from scipy import sparse
   jac = sparse.lil_matrix((3, 3))
   jac[0, 0] = 1.0
   jac[1, 1] = 4.0
@@ -262,12 +264,6 @@ For example, if the optimization problem has one objective ``obj``, two constrai
 
   {"obj": {"xvars": [1, 2, 3]}, "con": {"xvars": [[4, 5, 6], [7, 8, 9]]}}
 
-Once this function is constructed, users can pass its function handle to the optimizer when it's called via:
-
-.. code-block:: python
-
-  sol = opt(optProb, sens=sens, ...)
-
 
 Optimizer Instantiation
 +++++++++++++++++++++++
@@ -278,7 +274,7 @@ The first, and most explicit approach is to directly import the optimizer class,
 
   from pyoptsparse import SLSQP
 
-  opt = SLSQP(...)
+  opt = SLSQP(options=options)
 
 However, in order to easily switch between different optimizers without having to import each class, a convenience function called
 :meth:`OPT <pyoptsparse.pyOpt_optimizer.OPT>` is provided.
@@ -288,7 +284,30 @@ It accepts a string argument in addition to the usual options, and instantiates 
 
   from pyoptsparse import OPT
 
-  opt = OPT("SLSQP", ...)
+  opt = OPT("SLSQP", options=options)
 
 Note that the name of the optimizer is case-insensitive, so ``slsqp`` can also be used.
 This makes it easy to for example choose the optimizer from the command-line, or more generally select the optimizer using strings without preemptively importing all classes.
+
+Calling the Optimizer
++++++++++++++++++++++
+
+The optimization is started by invoking the ``__call__`` function of the optimizer object with the optimization problem as an argument.
+For example, to use finite difference, the call would look like:
+
+.. code-block:: python
+
+  sol = opt(optProb, sens="FD")
+
+To provide analytic gradients, the call would look like:
+
+.. code-block:: python
+
+  sol = opt(optProb, sens=sens)
+
+Some of the optimizers also have additional options that can be passed in.
+See the optimizer-specific documentation page for more details.
+
+Postprocessing
+++++++++++++++
+The result of the optimization is returned in a :class:`pyoptsparse.pyOpt_solution.Solution` object.

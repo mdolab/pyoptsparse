@@ -27,7 +27,7 @@ To turn the history recording on, use the ``storeHistory`` attribute when invoki
 
 .. code-block:: python
 
-  sol = opt(optProb, sens=sens, storeHistory="<your-history-file-name>.hst", ...)
+  sol = opt(optProb, sens=sens, storeHistory="history_file.hst")
 
 
 Hot start
@@ -75,7 +75,7 @@ To enable this feature, use the ``timeLimit`` option when invoking the optimizer
 
 .. code-block:: python
 
-  sol = opt(optProb, sens=sens, timeLimit=24 * 3600, ...)
+  sol = opt(optProb, sens=sens, timeLimit=24 * 3600)
 
 Note that the attribute takes the maximum wall time *in seconds* as an integer number.
 
