@@ -73,6 +73,13 @@ class TestNSGA2(OptTest):
             assert_allclose(sol.fStar["obj1"], 12.0, atol=tol, rtol=tol)
             assert_allclose(sol.fStar["obj2"], 0.0, atol=tol, rtol=tol)
 
+    def test_options(self):
+        with self.assertRaises(ValueError):
+            # PopSize must be a multiple of 4
+            self.setup_optProb(1)
+            optOptions = {"PopSize": 5}
+            sol = self.optimize(optOptions=optOptions)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -32,7 +32,7 @@ void selection (population *old_pop, population *new_pop, Global global, int *nr
         a2[rand] = a2[i];
         a2[i] = temp;
     }
-    for (i=0; i<global.popsize-4; i+=4)
+    for (i=0; i<global.popsize; i+=4)
     {
         parent1 = tournament (&old_pop->ind[a1[i]], &old_pop->ind[a1[i+1]], global);
         parent2 = tournament (&old_pop->ind[a1[i+2]], &old_pop->ind[a1[i+3]], global);
