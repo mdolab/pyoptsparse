@@ -78,7 +78,7 @@ class TestNSGA2(OptTest):
             # PopSize must be a multiple of 4
             self.setup_optProb(1)
             optOptions = {"PopSize": 5}
-            sol = self.optimize(optOptions=optOptions)
+            self.optimize(optOptions=optOptions)
 
 
 if __name__ == "__main__":
