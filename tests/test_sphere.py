@@ -53,7 +53,7 @@ class TestSphere(OptTest):
             "seed": 1235,
         },
         "NSGA2": {
-            "PopSize": 10,
+            "PopSize": 12,
             "maxGen": 10,
         },
         "SNOPT": {
