@@ -34,6 +34,9 @@ class NSGA2(Optimizer):
         if isinstance(nsga2, str) and raiseError:
             raise ImportError(nsga2)
 
+        if self.getOption("PopSize") % 4 != 0:
+            raise ValueError("Option 'PopSize' must be a multiple of 4")
+
     @staticmethod
     def _getInforms():
         informs = {}

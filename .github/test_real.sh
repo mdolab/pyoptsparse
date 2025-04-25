@@ -11,4 +11,4 @@ cd tests
 # we have to copy over the coveragerc file to make sure it's in the
 # same directory where codecov is run
 cp ../.coveragerc .
-testflo --pre_announce --disallow_deprecations -v --coverage --coverpkg pyoptsparse $EXTRA_FLAGS
+testflo -i --pre_announce --disallow_deprecations -v --coverage --coverpkg pyoptsparse $EXTRA_FLAGS

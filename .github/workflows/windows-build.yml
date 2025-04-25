@@ -52,4 +52,4 @@ jobs:
         run: |
           conda activate pyos-build
           cd tests
-          testflo --pre_announce -v -n 1 .
+          testflo -i --pre_announce -v -n 1 .
