@@ -2,6 +2,7 @@
 pyNLPQLP - A pyOptSparse wrapper for Schittkowski's NLPQLP
 optimization algorithm.
 """
+
 # Standard Python modules
 import datetime
 import os
@@ -11,7 +12,6 @@ import time
 import numpy as np
 
 # Local modules
-from ..pyOpt_error import Error
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_utils import try_import_compiled_module_from_path
 
@@ -225,10 +225,10 @@ class NLPQLP(Optimizer):
             d = np.zeros(nmax)
             go = self.getOption
             if go("iPrint") < 0 or go("iPrint") > 4:
-                raise Error("Incorrect iPrint option. Must be >=0 and <= 4")
+                raise ValueError("Incorrect iPrint option. Must be >=0 and <= 4")
 
             if not (go("mode") >= 0 and go("mode") <= 18):
-                raise Error("Incorrect mode option. Must be >= 0 and <= 18.")
+                raise ValueError("Incorrect mode option. Must be >= 0 and <= 18.")
 
             if os.path.isfile(go("iFile")):
                 os.remove(go("iFile"))
