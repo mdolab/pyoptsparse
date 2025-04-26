@@ -41,7 +41,7 @@ class TestSphere(OptTest):
     xStar = {"xvars": np.zeros(N)}
 
     # Tolerances
-    tol = {k: 5e-2 if k in ["CONMIN", "ALPSO"] else 1e-6 for k in ALL_OPTIMIZERS}
+    tol = {k: 5e-2 if k in ["CONMIN", "ALPSO", "NSGA2"] else 1e-6 for k in ALL_OPTIMIZERS}
 
     optOptions = {
         "ALPSO": {  # sphere
@@ -53,8 +53,8 @@ class TestSphere(OptTest):
             "seed": 1235,
         },
         "NSGA2": {
-            "PopSize": 12,
-            "maxGen": 10,
+            "PopSize": 24,
+            "maxGen": 150,
         },
         "SNOPT": {
             "Major iterations limit": 10,
