@@ -53,8 +53,9 @@ class TestSphere(OptTest):
             "seed": 1235,
         },
         "NSGA2": {
-            "PopSize": 24,
-            "maxGen": 150,
+            "PopSize": 32,
+            "maxGen": 100,
+            "seed": 123,
         },
         "SNOPT": {
             "Major iterations limit": 10,
