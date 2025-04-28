@@ -109,6 +109,7 @@ class TestLarge(OptTest):
             ("SNOPT", True),
             ("IPOPT", True),
             ("SNOPT", False),
+            ("ParOpt", False),
         ]
     )
     def test_opt(self, optName, sparse):
