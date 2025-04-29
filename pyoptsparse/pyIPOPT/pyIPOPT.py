@@ -18,6 +18,7 @@ except ImportError:
 
 # Local modules
 from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_solution import SolutionInform
 from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, scaleRows
 
 
@@ -274,13 +275,11 @@ class IPOPT(Optimizer):
                 self.hist.writeData("metadata", self.metadata)
                 self.hist.close()
 
-            # Store Results
-            sol_inform = {}
-            sol_inform["value"] = info["status"]
-            sol_inform["text"] = self.informs[info["status"]]
+            # Store optimizer exit condition and reason
+            solInform = SolutionInform(info["status"], self.informs[info["status"]])
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, info["obj_val"], x, multipliers=info["mult_g"])
+            sol = self._createSolution(optTime, solInform, info["obj_val"], x, multipliers=info["mult_g"])
 
             # Indicate solution finished
             self.optProb.comm.bcast(-1, root=0)
