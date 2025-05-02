@@ -8,7 +8,6 @@ import unittest
 
 # First party modules
 from pyoptsparse import SLSQP, Optimization
-from pyoptsparse.pyOpt_error import Error
 
 
 def objfunc(xdict):
@@ -32,7 +31,7 @@ class TestLinearConstraintCheck(unittest.TestCase):
         optProb.addConGroup("con", 1, lower=1.0, linear=True, wrt=["x"], jac={"x": [1.0]})
 
         opt = SLSQP()
-        with self.assertRaises(Error) as context:
+        with self.assertRaises(ValueError) as context:
             opt(optProb, sens="FD")
 
         # check if we get the expected error message

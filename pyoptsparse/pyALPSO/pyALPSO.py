@@ -12,7 +12,6 @@ import numpy as np
 
 # Local modules
 from . import alpso
-from ..pyOpt_error import Error
 from ..pyOpt_optimizer import Optimizer
 
 # isort: off
@@ -161,10 +160,10 @@ class ALPSO(Optimizer):
                 self.setOption("minInnerIter", opt("maxInnerIter"))
 
             if opt("stopCriteria") not in [0, 1]:
-                raise Error("Incorrect Stopping Criteria Setting")
+                raise ValueError("Incorrect Stopping Criteria Setting")
 
             if opt("fileout") not in [0, 1, 2, 3]:
-                raise Error("Incorrect fileout Setting")
+                raise ValueError("Incorrect fileout Setting")
 
             # Run ALPSO
             t0 = time.time()

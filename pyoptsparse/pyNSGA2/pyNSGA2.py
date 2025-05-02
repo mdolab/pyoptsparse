@@ -11,13 +11,12 @@ import time
 import numpy as np
 
 # Local modules
-from ..pyOpt_error import Error
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_utils import try_import_compiled_module_from_path
 
 # import the compiled module
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-nsga2 = try_import_compiled_module_from_path("nsga2", THIS_DIR)
+nsga2 = try_import_compiled_module_from_path("nsga2", THIS_DIR, raise_warning=True)
 
 
 class NSGA2(Optimizer):
@@ -34,6 +33,9 @@ class NSGA2(Optimizer):
 
         if isinstance(nsga2, str) and raiseError:
             raise ImportError(nsga2)
+
+        if self.getOption("PopSize") % 4 != 0:
+            raise ValueError("Option 'PopSize' must be a multiple of 4")
 
     @staticmethod
     def _getInforms():
@@ -161,7 +163,7 @@ class NSGA2(Optimizer):
             if self.getOption("PrintOut") >= 0 and self.getOption("PrintOut") <= 2:
                 printout = self.getOption("PrintOut")
             else:
-                raise Error("Incorrect option PrintOut")
+                raise ValueError("Incorrect option PrintOut")
 
             seed = self.getOption("seed")
             if seed == 0:

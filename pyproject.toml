@@ -1,5 +1,5 @@
 [build-system]
-requires = ["meson-python", "numpy"]
+requires = ["meson-python", "numpy", "swig"]
 build-backend = "mesonpy"
 
 [project]
