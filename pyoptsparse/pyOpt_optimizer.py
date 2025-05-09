@@ -976,7 +976,7 @@ def OPT(optName, *args, **kwargs):
        Either a string identifying the optimizer to create, e.g. "SNOPT", or
        an enum accessed via ``pyoptsparse.Optimizers``, e.g. ``Optimizers.SNOPT``.
 
-    \*args, \*\*kwargs : varies
+    ``*args``, ``**kwargs`` : varies
        Passed to optimizer creation.
 
     Returns
