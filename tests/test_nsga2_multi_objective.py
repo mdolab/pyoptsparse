@@ -1,4 +1,4 @@
-""" Test NSGA2."""
+"""Test NSGA2."""
 
 # Standard Python modules
 import unittest
@@ -18,13 +18,6 @@ class TestNSGA2(OptTest):
     name = "quadratic"
     optName = "NSGA2"
     histFileName = None
-
-    def setUp(self):
-        try:
-            # First party modules
-            from pyoptsparse.pyNSGA2 import nsga2  # noqa: F401
-        except ImportError:
-            raise unittest.SkipTest("Optimizer not available: NSGA2")
 
     def objfunc(self, xdict):
         x = xdict["x"]
@@ -52,7 +45,7 @@ class TestNSGA2(OptTest):
     @parameterized.expand(
         [
             (1,),
-            # (2,), # skipping flaky multi-objective test
+            (2,),
         ]
     )
     def test_opt(self, n_obj):
@@ -72,6 +65,13 @@ class TestNSGA2(OptTest):
             assert_allclose(sol.xStar["y"], 1.0, atol=tol, rtol=tol)
             assert_allclose(sol.fStar["obj1"], 12.0, atol=tol, rtol=tol)
             assert_allclose(sol.fStar["obj2"], 0.0, atol=tol, rtol=tol)
+
+    def test_options(self):
+        with self.assertRaises(ValueError):
+            # PopSize must be a multiple of 4
+            self.setup_optProb(1)
+            optOptions = {"PopSize": 5}
+            self.optimize(optOptions=optOptions)
 
 
 if __name__ == "__main__":

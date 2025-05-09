@@ -278,21 +278,82 @@ class TestHS15(OptTest):
         os.remove(pickleFile)
         os.remove(histFile)
 
-    def test_snopt_failed_initial(self):
+    @parameterized.expand(["SNOPT", "IPOPT"])
+    def test_failed_initial_func(self, optName):
+        # Test if we get the correct inform when the initial function call fails
         def failed_fun(x_dict):
             funcs = {"obj": 0.0, "con": [np.nan, np.nan]}
             fail = True
             return funcs, fail
 
-        self.optName = "SNOPT"
+        self.optName = optName
         self.setup_optProb()
         # swap obj to report NaN
         self.optProb.objFun = failed_fun
         sol = self.optimize(optOptions={}, storeHistory=True)
-        self.assert_inform_equal(sol, optInform=61)
+        if self.optName == "SNOPT":
+            inform_ref = 61
+        elif self.optName == "IPOPT":
+            inform_ref = -13
+        self.assert_inform_equal(sol, optInform=inform_ref)
         # make sure empty history does not error out
         hist = History(self.histFileName, flag="r")
         hist.getValues()
+
+    @parameterized.expand(["SNOPT", "IPOPT"])
+    def test_failed_initial_sens(self, optName):
+        # Test if we get the correct inform when the initial sensitivity call fails
+        def failed_sens(xdict, funcs):
+            funcsSens = {}
+            funcsSens["obj"] = {"xvars": [np.nan, np.nan]}
+            funcsSens["con"] = {"xvars": [[np.nan, np.nan], [np.nan, np.nan]]}
+            fail = True
+            return funcsSens, fail
+
+        self.optName = optName
+        self.setup_optProb()
+        sol = self.optimize(sens=failed_sens, optOptions={}, storeHistory=True)
+        if self.optName == "SNOPT":
+            inform_ref = 61
+        elif self.optName == "IPOPT":
+            inform_ref = -13
+        self.assert_inform_equal(sol, optInform=inform_ref)
+        # make sure empty history does not error out
+        hist = History(self.histFileName, flag="r")
+        hist.getValues()
+
+    @parameterized.expand(["SNOPT", "IPOPT"])
+    def test_func_eval_failure(self, optName):
+        # Test if optimizer back-tracks after function evaluation failure and keeps going
+
+        # This function is the same as original except it will fail at 3rd call
+        def objFun_eval_failure(x_dict):
+            self.nf += 1
+            x = x_dict["xvars"]
+            funcs = {}
+            funcs["obj"] = [100 * (x[1] - x[0] ** 2) ** 2 + (1 - x[0]) ** 2]
+            conval = np.zeros(2, "D")
+            conval[0] = x[0] * x[1]
+            conval[1] = x[0] + x[1] ** 2
+            funcs["con"] = conval
+            # extra keys
+            funcs["extra1"] = 0.0
+            funcs["extra2"] = 1.0
+            fail = False
+            if self.nf == 3:
+                funcs["obj"] = [np.nan]
+                funcs["con"] = [np.nan, np.nan]
+                fail = True
+            return funcs, fail
+
+        self.optName = optName
+        self.setup_optProb()
+        # swap obj to simulate eval failure
+        self.optProb.objFun = objFun_eval_failure
+        sol = self.optimize(optOptions={}, storeHistory=True)
+        # check solution and informs
+        self.assert_solution_allclose(sol, 1e-5)
+        self.assert_inform_equal(sol)
 
 
 if __name__ == "__main__":

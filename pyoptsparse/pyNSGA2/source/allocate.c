@@ -30,7 +30,7 @@ void allocate_memory_ind (individual *ind, Global global)
     if (global.nbin != 0)
     {
         ind->xbin = (double *)malloc(global.nbin*sizeof(double));
-        ind->gene = (int **)malloc(global.nbin*sizeof(int));
+        ind->gene = (int **)malloc(global.nbin*sizeof(int *));
         for (j=0; j<global.nbin; j++)
         {
             ind->gene[j] = (int *)malloc(global.nbits[j]*sizeof(int));
