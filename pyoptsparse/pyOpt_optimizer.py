@@ -716,7 +716,7 @@ class Optimizer(BaseSolver):
             elif mode == -1:
                 break
             else:
-                raise Error("Wait loop recieved code %d must be -1 or 0" % mode)
+                raise ValueError("Wait loop recieved code %d must be -1 or 0" % mode)
 
     def _setInitialCacheValues(self):
         """
