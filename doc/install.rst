@@ -34,7 +34,6 @@ pyOptSparse has the following dependencies:
   We recommend ``gcc`` and ``gfortran`` which can be installed via the package manager for your operating system.
 
 Please make sure these are installed and available for use.
-In order to use NSGA2, SWIG (v1.3+) is also required, which can be installed via the package manager.
 Python dependencies are automatically handled by ``pip``, so they do not need to be installed separately.
 
 .. note::
@@ -67,6 +66,12 @@ If you plan to modify pyOptSparse, installing with the developer option, i.e. wi
 .. note::
   Some optimizers are proprietary, and their sources are not distributed with pyOptSparse.
   To use them, please follow the instructions on specific optimizer pages.
+
+To see the list of installed optimizers, use the following:
+
+.. prompt:: bash
+
+  python -c "import pyoptsparse; print(pyoptsparse.list_optimizers())"
 
 Specifying compilers
 ~~~~~~~~~~~~~~~~~~~~
@@ -184,19 +189,6 @@ An ``environment.yml`` file is provided in the ``pyoptsparse`` repo:
     conda config --env --set channel_priority strict
 
     conda env update -f .github\environment.yml
-    conda install libpgmath
-
-Next, we need to tell the compiler where to find IPOPT:
-
-.. tabs::
-
-  .. code-tab:: bash Linux/OSX
-
-    export IPOPT_DIR="$CONDA_PREFIX"
-
-  .. code-tab:: powershell Windows
-
-    set IPOPT_DIR=%CONDA_PREFIX%\Library
 
 Finally, build the wheel and install it using pip:
 

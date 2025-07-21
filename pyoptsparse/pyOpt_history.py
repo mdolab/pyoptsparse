@@ -8,7 +8,7 @@ import numpy as np
 from sqlitedict import SqliteDict
 
 # Local modules
-from .pyOpt_error import Error, pyOptSparseWarning
+from .pyOpt_error import pyOptSparseWarning
 from .pyOpt_utils import EPS
 
 
@@ -53,7 +53,7 @@ class History:
                 )
             self._processDB()
         else:
-            raise Error("The flag argument to History must be 'r' or 'n'.")
+            raise ValueError("The flag argument to History must be 'r' or 'n'.")
         self.temp = temp
         self.fileName = fileName
 
@@ -578,7 +578,7 @@ class History:
             allNames.add("xuser")
         # error if names isn't either a DV, con or obj
         if not names.issubset(allNames):
-            raise Error(
+            raise KeyError(
                 "The names provided are not one of DVNames, conNames or objNames.\n"
                 + f"The names must be a subset of {allNames}"
             )

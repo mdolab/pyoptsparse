@@ -1,0 +1,34 @@
+name: PyOptSparse Linux Actions
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        versions: [{python: "3.10", numpy: "1.22"}, {python: "3.11", numpy: "1.25"}, {python: "3.12", numpy: "2.1"}]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5 
+        with:
+          python-version: ${{ matrix.versions.python }}
+      - name: Install runtime numpy ${{ matrix.versions.numpy }}
+        run: |
+          pip install -U pip wheel
+          pip install numpy~=${{ matrix.versions.numpy }}
+      - name: Build and install pyoptsparse
+        run: |
+          pip install .['testing']
+      - name: Run tests
+        run: |
+          cd tests
+          testflo -i --pre_announce -v -n 1 .

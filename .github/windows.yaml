@@ -27,7 +27,6 @@ jobs:
       displayName: Install mamba and update environment
 
     - script: |
-        set IPOPT_DIR=%CONDA_PREFIX%\Library
         set CC=cl
         set FC=flang
         set CC_LD=link
