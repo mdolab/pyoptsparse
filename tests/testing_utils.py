@@ -53,7 +53,7 @@ OUTPUT_FILENAMES = {
     "PSQP": {"IFILE": ".out"},
     "CONMIN": {"IFILE": ".out"},
     "NLPQLP": {"iFile": ".out"},
-    "ParOpt": {"output_file": ".out"},
+    "ParOpt": {"output_file": ".out", "tr_output_file": ".tr", "mma_output_file": ".mma"},
     "ALPSO": {"filename": ".out"},
     "NSGA2": {},
 }
