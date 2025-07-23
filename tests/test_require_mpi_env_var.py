@@ -45,32 +45,35 @@ class TestRequireMPIEnvVar(unittest.TestCase):
 class TestRequireMPIEnvVarOnParOpt(unittest.TestCase):
     # Check how the environment variable affects using ParOpt
     def setUp(self):
-        # Just check to see if ParOpt is installed before doing any testing
+        # Skip these tests if ParOpt is not installed
         try:
-            from paropt import ParOpt as _ParOpt  # noqa: F401
+            from paropt import ParOpt
         except ImportError:
             raise unittest.SkipTest("Optimizer not available: paropt")
 
     def test_require_mpi_check_paropt(self):
+        """If we require MPI, we should be able to import and instantiate a ParOpt instance."""
         os.environ["PYOPTSPARSE_REQUIRE_MPI"] = "1"
         import pyoptsparse.pyParOpt.ParOpt
 
         importlib.reload(pyoptsparse.pyParOpt.ParOpt)
-        self.assertIsNotNone(pyoptsparse.pyParOpt.ParOpt._ParOpt)
+        pyoptsparse.pyParOpt.ParOpt.ParOpt()
 
     def test_no_mpi_requirement_given_check_paropt(self):
+        """If the environment variable is not set, we should be able to import ParOpt if we have mpi4py."""
         os.environ.pop("PYOPTSPARSE_REQUIRE_MPI", None)
         import pyoptsparse.pyParOpt.ParOpt
 
         importlib.reload(pyoptsparse.pyParOpt.ParOpt)
-        self.assertIsNotNone(pyoptsparse.pyParOpt.ParOpt._ParOpt)
+        pyoptsparse.pyParOpt.ParOpt.ParOpt()
 
     def test_do_not_use_mpi_check_paropt(self):
+        """If we explicitly require pyoptsparse not to use MPI then we should get an import error when when try to instantiate ParOpt."""
         os.environ["PYOPTSPARSE_REQUIRE_MPI"] = "0"
         import pyoptsparse.pyParOpt.ParOpt
 
         importlib.reload(pyoptsparse.pyParOpt.ParOpt)
-        self.assertTrue(isinstance(pyoptsparse.pyParOpt.ParOpt._ParOpt, str))
+        self.assertRaises(ImportError, pyoptsparse.pyParOpt.ParOpt.ParOpt)
 
 
 if __name__ == "__main__":
