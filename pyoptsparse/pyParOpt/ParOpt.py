@@ -18,7 +18,7 @@ if "PYOPTSPARSE_REQUIRE_MPI" in os.environ and os.environ["PYOPTSPARSE_REQUIRE_M
 ]:
 
     class ParOpt(Optimizer):
-        def __init__(self, raiseError=True, options={}):
+        def __init__(self, raiseError=True, options={}, sparse=True):
             super().__init__(
                 NAME,
                 CATEGORY,
@@ -37,7 +37,7 @@ else:
     except ImportError:
 
         class ParOpt(Optimizer):
-            def __init__(self, raiseError=True, options={}):
+            def __init__(self, raiseError=True, options={}, sparse=True):
                 super().__init__(
                     NAME,
                     CATEGORY,
@@ -51,7 +51,7 @@ else:
     except ImportError:
 
         class ParOpt(Optimizer):
-            def __init__(self, raiseError=True, options={}):
+            def __init__(self, raiseError=True, options={}, sparse=True):
                 super().__init__(
                     NAME,
                     CATEGORY,
