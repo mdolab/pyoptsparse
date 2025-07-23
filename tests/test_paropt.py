@@ -13,17 +13,21 @@ ParOpt Test
 # ==============================================================================
 import unittest
 
+# External modules
 # ==============================================================================
 # External Python modules
 # ==============================================================================
 import numpy as np
-import scipy.sparse as sp
 import parameterized
+import scipy.sparse as sp
 
+# First party modules
 # ==============================================================================
 # Extension modules
 # ==============================================================================
-from pyoptsparse import Optimization, OPT
+from pyoptsparse import OPT, Optimization
+
+# Local modules
 from testing_utils import OptTest
 
 
@@ -216,6 +220,7 @@ class TestParOpt(OptTest):
 
 
 if __name__ == "__main__":
+    # Standard Python modules
     import unittest
 
     unittest.main()

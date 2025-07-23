@@ -1,3 +1,4 @@
+# Standard Python modules
 import os
 
 # First party modules
@@ -31,6 +32,7 @@ if "PYOPTSPARSE_REQUIRE_MPI" in os.environ and os.environ["PYOPTSPARSE_REQUIRE_M
 # In all other cases, we attempt to import ParOpt and mpi4py. If either import fails, we disable the optimizer.
 else:
     try:
+        # External modules
         from mpi4py import MPI
     except ImportError:
 
@@ -44,6 +46,7 @@ else:
                     raise ImportError("There was an error importing mpi4py, which is required for ParOpt")
 
     try:
+        # External modules
         from paropt.paropt_pyoptsparse import ParOptSparse as ParOpt
     except ImportError:
 
