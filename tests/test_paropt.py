@@ -126,8 +126,8 @@ class TestParOpt(OptTest):
 
         if self.constrained:
             # Linear constraints: x0 <= x1 <= x2 <= ... <= xN
-            # x0 - x1 <= 0
-            # x1 - x2 <= 0
+            # -1 <= x0 - x1 <= 0
+            # -1 <= x1 - x2 <= 0
             # ...
             rowInds = []
             colInds = []
