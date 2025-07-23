@@ -236,7 +236,10 @@ class OptTest(unittest.TestCase):
         optOptions = self.update_OptOptions_output(optOptions)
         # Optimizer
         try:
-            opt = OPT(self.optName, options=optOptions)
+            if hasattr(self, "setup_optimizer"):
+                opt = self.setup_optimizer(optOptions=optOptions)
+            else:
+                opt = OPT(self.optName, options=optOptions)
             self.optVersion = opt.version
         except ImportError as e:
             if self.optName in DEFAULT_OPTIMIZERS:
