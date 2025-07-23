@@ -18,7 +18,6 @@ from numpy import ndarray
 from packaging.version import parse as parse_version
 
 # Local modules
-from ..pyOpt_error import Error
 from ..pyOpt_optimization import Optimization
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_utils import (
@@ -309,7 +308,7 @@ class SNOPT(Optimizer):
 
         # Make sure restartDict is provided if using hot start
         if self.getOption("Start") == "Hot" and restartDict is None:
-            raise Error("restartDict must be provided if using a hot start")
+            raise ValueError("restartDict must be provided if using a hot start")
         # If user requested the work arrays, then we need to set sticky parameter
         # to make sure that the work arrays are re-usable at the next hot start
         if self.getOption("Return work arrays"):
@@ -360,14 +359,14 @@ class SNOPT(Optimizer):
             if iPrint != 0 and iPrint != 6:
                 ierror = snopt.openunit(iPrint, PrintFile, "replace", "sequential")
                 if ierror != 0:
-                    raise Error(f"Failed to properly open {PrintFile}, ierror = {ierror:3}")
+                    raise ValueError(f"Failed to properly open {PrintFile}, ierror = {ierror:3}")
 
             iSumm = self.getOption("iSumm")
             SummFile = os.path.join(self.getOption("Summary file"))
             if iSumm != 0 and iSumm != 6:
                 ierror = snopt.openunit(iSumm, SummFile, "replace", "sequential")
                 if ierror != 0:
-                    raise Error(f"Failed to properly open {SummFile}, ierror = {ierror:3}")
+                    raise ValueError(f"Failed to properly open {SummFile}, ierror = {ierror:3}")
 
             # Calculate the length of the work arrays
             # ---------------------------------------
@@ -653,9 +652,9 @@ class SNOPT(Optimizer):
             elif saveVar == "maxVi":
                 iterDict[saveVar] = maxvi
             else:
-                raise Error(f"Received unknown SNOPT save variable {saveVar}. "
-                            + "Please see 'Save major iteration variables' option in the pyOptSparse documentation "
-                            + "under 'SNOPT'.")
+                raise ValueError(f"Received unknown SNOPT save variable {saveVar}. "
+                                 + "Please see 'Save major iteration variables' option in the pyOptSparse "
+                                 + "documentation under 'SNOPT'.")
         if self.storeHistory:
             currX = x[:n]  # only the first n component is x, the rest are the slacks
             if nmajor == 0:
@@ -697,12 +696,12 @@ class SNOPT(Optimizer):
                 if snstopArg == "restartDict":
                     snstopArgs.append(restartDict)
                 else:
-                    raise Error(f"Received unknown snSTOP argument {snstopArg}. "
-                                + "Please see 'snSTOP arguments' option in the pyOptSparse documentation "
-                                + "under 'SNOPT'.")
+                    raise ValueError(f"Received unknown snSTOP argument {snstopArg}. "
+                                     + "Please see 'snSTOP arguments' option in the pyOptSparse documentation "
+                                     + "under 'SNOPT'.")
 
             if not self.storeHistory:
-                raise Error("snSTOP function handle must be used with storeHistory=True")
+                raise ValueError("snSTOP function handle must be used with storeHistory=True")
             iabort = snstop_handle(*snstopArgs)
             # write iterDict again if anything was inserted
             if self.storeHistory and callCounter is not None:

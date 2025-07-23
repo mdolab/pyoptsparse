@@ -4,6 +4,7 @@ import sys
 import unittest
 
 # First party modules
+from pyoptsparse import Optimizers, list_optimizers
 from pyoptsparse.pyOpt_utils import try_import_compiled_module_from_path
 
 # we have to unset this environment variable because otherwise
@@ -25,3 +26,13 @@ class TestImportSnoptFromPath(unittest.TestCase):
         path = tuple(sys.path)
         try_import_compiled_module_from_path("snopt", "/some/path")
         self.assertEqual(tuple(sys.path), path)
+
+
+class TestListOpt(unittest.TestCase):
+    def test_list_optimizers(self):
+        all_opt = list_optimizers()
+        self.assertIn(Optimizers.SLSQP, all_opt)
+        self.assertIn(Optimizers.CONMIN, all_opt)
+        self.assertIn(Optimizers.PSQP, all_opt)
+        self.assertIn(Optimizers.ALPSO, all_opt)
+        self.assertIn(Optimizers.NSGA2, all_opt)

@@ -6,11 +6,6 @@ import subprocess
 
 
 def run_meson_build():
-    # check if ipopt dir is specified
-    ipopt_dir_opt = ""
-    if "IPOPT_DIR" in os.environ:
-        ipopt_dir = os.environ["IPOPT_DIR"]
-        ipopt_dir_opt = f"-Dipopt_dir={ipopt_dir}"
     prefix = os.path.join(os.getcwd(), staging_dir)
     purelibdir = "."
 
@@ -18,37 +13,32 @@ def run_meson_build():
     meson_args = ""
     if "MESON_ARGS" in os.environ:
         meson_args = os.environ["MESON_ARGS"]
-    # check to make sure ipopt dir isnt specified twice
-    if "-Dipopt_dir" in meson_args and ipopt_dir_opt != "":
-        raise RuntimeError("IPOPT_DIR environment variable is set and '-Dipopt_dir' in MESON_ARGS")
 
     # configure
     meson_path = shutil.which("meson")
     meson_call = (
         f"{meson_path} setup {staging_dir} --prefix={prefix} "
-        + f"-Dpython.purelibdir={purelibdir} -Dpython.platlibdir={purelibdir} {ipopt_dir_opt} {meson_args}"
+        + f"-Dpython.purelibdir={purelibdir} -Dpython.platlibdir={purelibdir} {meson_args}"
     )
     sysargs = meson_call.split(" ")
     sysargs = [arg for arg in sysargs if arg != ""]
     p1 = subprocess.run(sysargs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    print(p1.stdout.decode())
     setup_log = os.path.join(staging_dir, "setup.log")
     with open(setup_log, "wb") as f:
         f.write(p1.stdout)
     if p1.returncode != 0:
-        with open(setup_log, "r") as f:
-            print(f.read())
         raise OSError(sysargs, f"The meson setup command failed! Check the log at {setup_log} for more information.")
 
     # build
     meson_call = f"{meson_path} compile -C {staging_dir}"
     sysargs = meson_call.split(" ")
     p2 = subprocess.run(sysargs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    print(p2.stdout.decode())
     compile_log = os.path.join(staging_dir, "compile.log")
     with open(compile_log, "wb") as f:
         f.write(p2.stdout)
     if p2.returncode != 0:
-        with open(compile_log, "r") as f:
-            print(f.read())
         raise OSError(
             sysargs, f"The meson compile command failed! Check the log at {compile_log} for more information."
         )
@@ -104,7 +94,7 @@ if __name__ == "__main__":
         install_requires=[
             "packaging",
             "sqlitedict>=1.6",
-            "numpy>=1.21,<2",
+            "numpy>=1.21",
             "scipy>=1.7",
             "mdolab-baseclasses>=1.3.1",
         ],

@@ -16,7 +16,7 @@ from numpy import ndarray
 
 # Local modules
 from .pyOpt_MPI import MPI
-from .pyOpt_error import Error, pyOptSparseWarning
+from .pyOpt_error import pyOptSparseWarning
 from .pyOpt_gradient import Gradient
 from .pyOpt_history import History
 from .pyOpt_optimization import Optimization
@@ -126,7 +126,7 @@ class Optimizer(BaseSolver):
                 self.setOption("Derivative level", 0)
                 self.sens = None
             else:
-                raise Error(
+                raise ValueError(
                     "'None' value given for sens. "
                     + "Must be one of 'FD', 'FDR', 'CD', 'CDR', 'CS' or a user supplied function."
                 )
@@ -138,7 +138,7 @@ class Optimizer(BaseSolver):
             # the user supplied function
             self.sens = Gradient(self.optProb, sens.lower(), sensStep, sensMode, self.optProb.comm)
         else:
-            raise Error(
+            raise ValueError(
                 "Unknown value given for sens. Must be one of [None,'FD','FDR','CD','CDR','CS'] or a python function handle"
             )
 
@@ -356,7 +356,7 @@ class Optimizer(BaseSolver):
                     funcs = args[0]
                     fail = args[1]
                 elif args is None:
-                    raise Error(
+                    raise ValueError(
                         "No return values from user supplied objective function. "
                         + "The function must return 'funcs' or 'funcs, fail'"
                     )
@@ -410,7 +410,7 @@ class Optimizer(BaseSolver):
                     funcs = args[0]
                     fail = args[1]
                 elif args is None:
-                    raise Error(
+                    raise ValueError(
                         "No return values from user supplied objective function. "
                         + "The function must return 'funcs' *OR* 'funcs, fail'"
                     )
@@ -475,7 +475,7 @@ class Optimizer(BaseSolver):
                     funcsSens = args[0]
                     fail = args[1]
                 elif args is None:
-                    raise Error(
+                    raise ValueError(
                         "No return values from user supplied sensitivity function. "
                         + "The function must return 'funcsSens' or 'funcsSens, fail'"
                     )
@@ -534,7 +534,7 @@ class Optimizer(BaseSolver):
                     funcsSens = args[0]
                     fail = args[1]
                 elif args is None:
-                    raise Error(
+                    raise ValueError(
                         "No return values from user supplied sensitivity function. "
                         + "The function must 'return 'funcsSens' or 'funcsSens, fail'"
                     )
@@ -739,7 +739,7 @@ class Optimizer(BaseSolver):
                     xs.append(var.value)
 
                 else:
-                    raise Error(f"{self.name} cannot handle integer or discrete design variables")
+                    raise ValueError(f"{self.name} cannot handle integer or discrete design variables")
 
         blx = np.array(blx)
         bux = np.array(bux)
@@ -788,7 +788,7 @@ class Optimizer(BaseSolver):
         nobj = len(self.optProb.objectives.keys())
         ff = []
         if nobj == 0:
-            raise Error("No objective function was supplied! One can be added using a call to optProb.addObj()")
+            raise ValueError("No objective function was supplied! One can be added using a call to optProb.addObj()")
         for objKey in self.optProb.objectives:
             ff.append(self.optProb.objectives[objKey].value)
 
@@ -882,7 +882,7 @@ class Optimizer(BaseSolver):
         """
         for conName in self.optProb.constraints:
             if self.optProb.constraints[conName].linear and conName in funcs:
-                raise Error(
+                raise ValueError(
                     "Value for linear constraint returned from user obj function. Linear constraints "
                     + "are evaluated internally and should not be returned from the user's function."
                 )
@@ -976,7 +976,7 @@ def OPT(optName, *args, **kwargs):
        Either a string identifying the optimizer to create, e.g. "SNOPT", or
        an enum accessed via ``pyoptsparse.Optimizers``, e.g. ``Optimizers.SNOPT``.
 
-    \*args, \*\*kwargs : varies
+    \\*args, \\*\\*kwargs : varies
        Passed to optimizer creation.
 
     Returns
@@ -1005,7 +1005,7 @@ def OPT(optName, *args, **kwargs):
     elif optName == "paropt" or optName == Optimizers.ParOpt:
         from .pyParOpt.ParOpt import ParOpt as opt
     else:
-        raise Error(
+        raise ValueError(
             (
                 "The optimizer specified in 'optName' was not recognized. "
                 + "The current list of supported optimizers is {}"
@@ -1014,3 +1014,15 @@ def OPT(optName, *args, **kwargs):
 
     # Create the optimizer and return it
     return opt(*args, **kwargs)
+
+
+def list_optimizers() -> list[Optimizers]:
+    """List all optimizers which were installed successfully and available for use"""
+    all_optimizers = []
+    for opt in Optimizers:
+        try:
+            OPT(opt)
+            all_optimizers.append(opt)
+        except ImportError:
+            pass
+    return all_optimizers
