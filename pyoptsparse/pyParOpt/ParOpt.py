@@ -1,5 +1,4 @@
 # First party modules
-from pyoptsparse.pyOpt_error import Error
 from pyoptsparse.pyOpt_optimizer import Optimizer
 
 try:
@@ -21,4 +20,4 @@ except ImportError:
                 options=options,
             )
             if raiseError:
-                raise Error("There was an error importing ParOpt")
+                raise ImportError("There was an error importing ParOpt")
