@@ -47,7 +47,7 @@ class TestRequireMPIEnvVarOnParOpt(unittest.TestCase):
     def setUp(self):
         # Skip these tests if ParOpt is not installed
         try:
-            from paropt import ParOpt
+            from paropt import ParOpt  # noqa:F401
         except ImportError:
             raise unittest.SkipTest("Optimizer not available: paropt")
 

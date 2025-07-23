@@ -33,7 +33,22 @@ if "PYOPTSPARSE_REQUIRE_MPI" in os.environ and os.environ["PYOPTSPARSE_REQUIRE_M
 else:
     try:
         # External modules
-        from mpi4py import MPI
+        from mpi4py import MPI  # noqa:F401
+
+        try:
+            # External modules
+            from paropt.paropt_pyoptsparse import ParOptSparse as ParOpt
+        except ImportError:
+
+            class ParOpt(Optimizer):
+                def __init__(self, raiseError=True, options={}, sparse=True):
+                    super().__init__(
+                        NAME,
+                        CATEGORY,
+                    )
+                    if raiseError:
+                        raise ImportError("There was an error importing ParOpt")
+
     except ImportError:
 
         class ParOpt(Optimizer):
@@ -44,17 +59,3 @@ else:
                 )
                 if raiseError:
                     raise ImportError("There was an error importing mpi4py, which is required for ParOpt")
-
-    try:
-        # External modules
-        from paropt.paropt_pyoptsparse import ParOptSparse as ParOpt
-    except ImportError:
-
-        class ParOpt(Optimizer):
-            def __init__(self, raiseError=True, options={}, sparse=True):
-                super().__init__(
-                    NAME,
-                    CATEGORY,
-                )
-                if raiseError:
-                    raise ImportError("There was an error importing ParOpt")

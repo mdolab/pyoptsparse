@@ -8,23 +8,12 @@ ParOpt Test
 @Description :
 """
 
-# ==============================================================================
-# Standard Python modules
-# ==============================================================================
-import unittest
-
 # External modules
-# ==============================================================================
-# External Python modules
-# ==============================================================================
 import numpy as np
 import parameterized
 import scipy.sparse as sp
 
 # First party modules
-# ==============================================================================
-# Extension modules
-# ==============================================================================
 from pyoptsparse import OPT, Optimization
 
 # Local modules
@@ -122,8 +111,6 @@ class TestParOpt(OptTest):
         return funcsSens, fail
 
     def setup_optProb(self):
-        rng = np.random.default_rng(1234)
-
         optProb = Optimization("Rosenbrock Problem", self.objfunc)
         optProb.addObj("obj")
         optProb.addVarGroup("x", self.N, lower=0.5, upper=4.0, value=0.5)
@@ -224,10 +211,3 @@ if __name__ == "__main__":
     import unittest
 
     unittest.main()
-    # from pyoptsparse import OPT
-
-    # optProb, sens = generateOptProb(100, True)  # Example with 10 variables and constraints
-    # # opt = OPT("ParOpt", sparse=False, options={"algorithm": "ip"})
-    # opt = OPT("SNOPT")
-    # sol = opt(optProb, sens=sens)
-    # print("Solution:", sol)
