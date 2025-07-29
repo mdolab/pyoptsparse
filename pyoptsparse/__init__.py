@@ -8,6 +8,7 @@ from .pyOpt_objective import Objective
 from .pyOpt_optimization import Optimization
 from .pyOpt_optimizer import Optimizer, OPT, Optimizers, list_optimizers
 from .pyOpt_solution import Solution
+from . import testing
 
 # Now import all the individual optimizers
 from .pySNOPT.pySNOPT import SNOPT

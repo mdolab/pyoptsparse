@@ -11,9 +11,7 @@ from sqlitedict import SqliteDict
 
 # First party modules
 from pyoptsparse import History, Optimization
-
-# Local modules
-from testing_utils import OptTest
+from pyoptsparse.testing import OptTest
 
 
 class TestRosenbrock(OptTest):

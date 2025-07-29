@@ -11,9 +11,7 @@ from parameterized import parameterized
 
 # First party modules
 from pyoptsparse import OPT, History, Optimization
-
-# Local modules
-from testing_utils import OptTest
+from pyoptsparse.testing import OptTest
 
 
 class TestHS15(OptTest):
