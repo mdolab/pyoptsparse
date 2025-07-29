@@ -179,7 +179,7 @@ class TestTP109(OptTest):
         sol = self.optimize(optOptions={"Time Limit": 1e-15})
         self.assert_inform_equal(sol, 34)
 
-    @parameterized.expand(["SLSQP", "PSQP", "NLPQLP"])  # ParOpt Can't solve this problem
+    @parameterized.expand(["SLSQP", "PSQP", "NLPQLP"])
     def test_optimization(self, optName):
         self.optName = optName
         self.setup_optProb()

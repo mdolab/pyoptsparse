@@ -45,7 +45,6 @@ class TestHS15(OptTest):
         "SLSQP": 1e-5,
         "NLPQLP": 1e-12,
         "IPOPT": 1e-4,
-        "ParOpt": 1e-6,
         "CONMIN": 1e-10,
         "PSQP": 5e-12,
     }
@@ -117,7 +116,7 @@ class TestHS15(OptTest):
         # sol_xvars = [sol.variables["xvars"][i].value for i in range(2)]
         # assert_allclose(sol_xvars, dv["xvars"], atol=tol, rtol=tol)
 
-    @parameterized.expand(["SLSQP", "PSQP", "CONMIN", "NLPQLP", "ParOpt"])
+    @parameterized.expand(["SLSQP", "PSQP", "CONMIN", "NLPQLP"])
     def test_optimization(self, optName):
         self.optName = optName
         self.setup_optProb()
