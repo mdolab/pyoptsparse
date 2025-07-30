@@ -10,7 +10,7 @@ except ImportError:
         def __init__(self, raiseError=True, options={}):
             name = "ParOpt"
             category = "Local Optimizer"
-            self.set_options = {}
+            self.defOpts = {}
             self.informs = {}
             super().__init__(
                 name,
