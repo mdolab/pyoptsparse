@@ -10,9 +10,7 @@ from parameterized import parameterized
 
 # First party modules
 from pyoptsparse import History, Optimization
-
-# Local modules
-from testing_utils import OptTest
+from pyoptsparse.testing import OptTest
 
 
 class TestHS71(OptTest):
@@ -33,7 +31,6 @@ class TestHS71(OptTest):
         "SLSQP": 1e-6,
         "CONMIN": 1e-3,
         "PSQP": 1e-6,
-        "ParOpt": 1e-6,
     }
     optOptions = {
         "CONMIN": {
@@ -203,7 +200,7 @@ class TestHS71(OptTest):
         sol = self.optimize(optOptions={"MIT": 1})
         self.assert_inform_equal(sol, 11)
 
-    @parameterized.expand(["SNOPT", "IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "ParOpt"])
+    @parameterized.expand(["SNOPT", "IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP"])
     def test_optimization(self, optName):
         self.optName = optName
         self.setup_optProb()
@@ -221,8 +218,8 @@ class TestHS71(OptTest):
         con2_line_num = constraint_header_line_num + 3
         lambda_con1 = float(lines[con1_line_num].split()[-1])
         lambda_con2 = float(lines[con2_line_num].split()[-1])
-        if optName in ("IPOPT", "SNOPT", "ParOpt"):
-            # IPOPT returns Lagrange multipliers with opposite sign than SNOPT and ParOpt
+        if optName in ("IPOPT", "SNOPT"):
+            # IPOPT returns Lagrange multipliers with opposite sign than SNOPT
             lambda_sign = -1.0 if optName == "IPOPT" else 1.0
             assert_allclose(
                 [lambda_con1, lambda_con2],
