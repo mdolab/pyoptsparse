@@ -11,9 +11,7 @@ from sqlitedict import SqliteDict
 
 # First party modules
 from pyoptsparse import History, Optimization
-
-# Local modules
-from testing_utils import OptTest
+from pyoptsparse.testing import OptTest
 
 
 class TestRosenbrock(OptTest):
@@ -49,7 +47,6 @@ class TestRosenbrock(OptTest):
         "SLSQP": 1e-6,
         "CONMIN": 1e-9,
         "PSQP": 1e-8,
-        "ParOpt": 1e-8,
     }
     optOptions = {
         "SLSQP": {"ACC": 1e-10},
@@ -146,7 +143,7 @@ class TestRosenbrock(OptTest):
         # The first is from a call we deleted and the second is the call after 'last'
         self.assertEqual(self.ng, 2)
 
-    @parameterized.expand(["IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "ParOpt"])
+    @parameterized.expand(["IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP"])
     def test_optimization(self, optName):
         self.optName = optName
         if optName == "IPOPT" and sys.platform == "win32":

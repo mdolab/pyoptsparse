@@ -27,17 +27,17 @@ Test uses Schittkowski's TP109 constraint problem.
     f*1 = 0.536206927538e+04
     x*1 = [0.674888100445e+03, 0.113417039470e+04, 0.133569060261e+00, -0.371152592466e+00, 0.252e+03, 0.252e+03, 0.201464535316e+03, 0.426660777226e+03, 0.368494083867e+03]
 """
+
 # Standard Python modules
 import unittest
 
 # External modules
 import numpy as np
+from parameterized import parameterized
 
 # First party modules
 from pyoptsparse import History, Optimization
-
-# Local modules
-from testing_utils import OptTest
+from pyoptsparse.testing import OptTest
 
 USE_LINEAR = True
 
@@ -179,8 +179,9 @@ class TestTP109(OptTest):
         sol = self.optimize(optOptions={"Time Limit": 1e-15})
         self.assert_inform_equal(sol, 34)
 
-    def test_slsqp(self):
-        self.optName = "SLSQP"
+    @parameterized.expand(["SLSQP", "PSQP", "NLPQLP"])
+    def test_optimization(self, optName):
+        self.optName = optName
         self.setup_optProb()
         sol = self.optimize(sens="CS")
         self.assert_solution_allclose(sol, 1e-7)
