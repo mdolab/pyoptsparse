@@ -501,7 +501,7 @@ class SNOPT(Optimizer):
                 snopt.closeunit(self.getOption("iSumm"))
 
             # Store optimizer exit condition and message
-            solInform = SolutionInform(inform, self.informs[inform])
+            solInform = SolutionInform.from_informs(self.informs, inform)
 
             # Create the optimization solution
             if parse_version(self.version) > parse_version("7.7.0") and parse_version(self.version) < parse_version(

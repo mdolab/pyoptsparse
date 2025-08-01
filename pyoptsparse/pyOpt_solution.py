@@ -15,7 +15,13 @@ class SolutionInform:
     """Data class that contains the optimizer solution value and message"""
 
     value: int
+    """The integer return code"""
     message: str
+    """The message string accompanying the return code"""
+
+    @classmethod
+    def from_informs(cls, informs: dict[int, str], value: int):
+        return cls(value=value, message=informs[value])
 
 
 class Solution(Optimization):

@@ -257,7 +257,7 @@ class NLPQLP(Optimizer):
 
             # Store optimizer exit condition and message
             inform = ifail.item()
-            solInform = SolutionInform(inform, self.informs[inform])
+            solInform = SolutionInform.from_informs(self.informs, inform)
 
             # Create the optimization solution
             sol = self._createSolution(optTime, solInform, f, xs)

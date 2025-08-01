@@ -260,7 +260,7 @@ class PSQP(Optimizer):
             inform = iterm.item()
             if inform < 0 and inform not in self.informs:
                 inform = -10
-            solInform = SolutionInform(inform, self.informs[inform])
+            solInform = SolutionInform.from_informs(self.informs, inform)
             if self.storeHistory:
                 self.metadata["endTime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 self.metadata["optTime"] = optTime
