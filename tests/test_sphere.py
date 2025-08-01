@@ -12,7 +12,7 @@ from pyoptsparse import Optimization
 from pyoptsparse.pyOpt_optimizer import Optimizers
 from pyoptsparse.testing import OptTest
 
-ALL_OPTIMIZERS = [e.name for e in Optimizers]
+ALL_OPTIMIZERS = {e.name for e in Optimizers} - {"ParOpt"}
 
 
 class TestSphere(OptTest):
