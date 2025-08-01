@@ -255,7 +255,7 @@ class NLPQLP(Optimizer):
                 self.hist.writeData("metadata", self.metadata)
                 self.hist.close()
 
-            # Store optimizer exit condition and reason
+            # Store optimizer exit condition and message
             inform = ifail.item()
             solInform = SolutionInform(inform, self.informs[inform])
 

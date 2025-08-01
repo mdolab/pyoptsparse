@@ -288,7 +288,7 @@ class IPOPT(Optimizer):
                 self.hist.writeData("metadata", self.metadata)
                 self.hist.close()
 
-            # Store optimizer exit condition and reason
+            # Store optimizer exit condition and message
             solInform = SolutionInform(info["status"], self.informs[info["status"]])
 
             # Create the optimization solution

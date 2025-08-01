@@ -169,7 +169,7 @@ class SLSQP(Optimizer):
             # =================================================================
             def slfunc(m, me, la, n, f, g, x):
                 if (x < blx).any() or (x > bux).any():
-                    pyOptSparseWarning("Values in x were outside bounds during" " a minimize step, clipping to bounds")
+                    pyOptSparseWarning("Values in x were outside bounds during a minimize step, clipping to bounds")
                 fobj, fcon, fail = self._masterFunc(np.clip(x, blx, bux), ["fobj", "fcon"])
                 f = fobj
                 g[0:m] = -fcon
@@ -259,7 +259,7 @@ class SLSQP(Optimizer):
             # Broadcast a -1 to indcate SLSQP has finished
             self.optProb.comm.bcast(-1, root=0)
 
-            # Store optimizer exit condition and reason
+            # Store optimizer exit condition and message
             inform = mode.item()
             solInform = SolutionInform(inform, self.informs[inform])
 

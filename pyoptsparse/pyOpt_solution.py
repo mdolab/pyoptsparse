@@ -12,10 +12,10 @@ from .pyOpt_optimization import Optimization
 
 @dataclass(frozen=True)
 class SolutionInform:
-    """Data class that contains the optimizer solution value and reason"""
+    """Data class that contains the optimizer solution value and message"""
 
     value: int
-    reason: str
+    message: str
 
 
 class Solution(Optimization):
@@ -40,7 +40,7 @@ class Solution(Optimization):
             The final Lagrange multipliers
 
         optInform : SolutionInform or None
-            Object containing the inform code and reason returned by the optimizer.
+            Object containing the inform code and message returned by the optimizer.
             Optimizers that do not have inform exit codes do not set this variable.
 
         info : dict
@@ -109,7 +109,7 @@ class Solution(Optimization):
         # Only print exit status, inform, and description if the optimizer provides informs
         if self.optInform:
             inform_val = self.optInform.value
-            inform_text = self.optInform.reason
+            inform_text = self.optInform.message
             text1 += "\n"
             text1 += "   Exit Status\n"
             text1 += "      Inform  Description\n"

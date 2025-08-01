@@ -500,7 +500,7 @@ class SNOPT(Optimizer):
             if iSumm != 0 and iSumm != 6:
                 snopt.closeunit(self.getOption("iSumm"))
 
-            # Store optimizer exit condition and reason
+            # Store optimizer exit condition and message
             solInform = SolutionInform(inform, self.informs[inform])
 
             # Create the optimization solution
