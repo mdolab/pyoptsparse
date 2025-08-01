@@ -5,7 +5,6 @@ pyIPOPT - A python wrapper to the core IPOPT compiled module.
 # Standard Python modules
 import copy
 import datetime
-import os
 import time
 
 # External modules
@@ -20,19 +19,7 @@ except ImportError:
 # Local modules
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_solution import SolutionInform
-from ..pyOpt_utils import (
-    ICOL,
-    INFINITY,
-    IROW,
-    convertToCOO,
-    extractRows,
-    scaleRows,
-    try_import_compiled_module_from_path,
-)
-
-# import the compiled module
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-pyipoptcore = try_import_compiled_module_from_path("pyipoptcore", THIS_DIR)
+from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, scaleRows
 
 
 class IPOPT(Optimizer):
