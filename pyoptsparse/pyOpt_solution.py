@@ -1,5 +1,7 @@
 # Standard Python modules
 import copy
+from dataclasses import dataclass
+from typing import Optional
 
 # External modules
 import numpy as np
@@ -8,8 +10,22 @@ import numpy as np
 from .pyOpt_optimization import Optimization
 
 
+@dataclass(frozen=True)
+class SolutionInform:
+    """Data class that contains the optimizer solution value and message"""
+
+    value: int
+    """The integer return code"""
+    message: str
+    """The message string accompanying the return code"""
+
+    @classmethod
+    def from_informs(cls, informs: dict[int, str], value: int):
+        return cls(value=value, message=informs[value])
+
+
 class Solution(Optimization):
-    def __init__(self, optProb, xStar, fStar, lambdaStar, optInform, info):
+    def __init__(self, optProb, xStar, fStar, lambdaStar, optInform: Optional[SolutionInform], info):
         """
         This class is used to describe the solution of an optimization
         problem. This class inherits from Optimization which enables a
@@ -29,8 +45,9 @@ class Solution(Optimization):
         lambdaStar : dict
             The final Lagrange multipliers
 
-        optInform : int
-            The inform code returned by the optimizer
+        optInform : SolutionInform or None
+            Object containing the inform code and message returned by the optimizer.
+            Optimizers that do not have inform exit codes do not set this variable.
 
         info : dict
             A dictionary containing timing and call counter info to be stored
@@ -95,12 +112,14 @@ class Solution(Optimization):
         for i in range(5, len(lines)):
             text1 += lines[i] + "\n"
 
-        inform_val = self.optInform["value"]
-        inform_text = self.optInform["text"]
-        text1 += "\n"
-        text1 += "   Exit Status\n"
-        text1 += "      Inform  Description\n"
-        text1 += f"      {inform_val:>6}  {inform_text:<0}\n"
+        # Only print exit status, inform, and description if the optimizer provides informs
+        if self.optInform:
+            inform_val = self.optInform.value
+            inform_text = self.optInform.message
+            text1 += "\n"
+            text1 += "   Exit Status\n"
+            text1 += "      Inform  Description\n"
+            text1 += f"      {inform_val:>6}  {inform_text:<0}\n"
 
         text1 += ("-" * 80) + "\n"
 

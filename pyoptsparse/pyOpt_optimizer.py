@@ -794,7 +794,7 @@ class Optimizer(BaseSolver):
 
         return np.real(np.squeeze(ff))
 
-    def _createSolution(self, optTime, sol_inform, obj, xopt, multipliers=None) -> Solution:
+    def _createSolution(self, optTime, solInform, obj, xopt, multipliers=None) -> Solution:
         """
         Generic routine to create the solution after an optimizer
         finishes.
@@ -824,7 +824,7 @@ class Optimizer(BaseSolver):
             "interfaceTime": self.interfaceTime - self.userSensTime - self.userObjTime,
             "optCodeTime": optTime - self.interfaceTime,
         }
-        sol = Solution(self.optProb, xStar, fStar, multipliers, sol_inform, info)
+        sol = Solution(self.optProb, xStar, fStar, multipliers, solInform, info)
 
         return sol
 
