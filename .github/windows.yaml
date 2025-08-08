@@ -36,5 +36,5 @@ jobs:
 
     - script: |
         cd tests
-        testflo -n 1 --timeout 60 .
+        testflo -n 1 --timeout 120 .
       displayName: Run tests

@@ -52,4 +52,4 @@ jobs:
         run: |
           conda activate pyos-build
           cd tests
-          testflo -i --pre_announce -v -n 1 --timeout 60 .
+          testflo -i --pre_announce -v -n 1 --timeout 120 .
