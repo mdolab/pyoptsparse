@@ -21,8 +21,6 @@ except ImportError:
 
 # First party modules
 from pyoptsparse import Optimization
-
-# Local modules
 from pyoptsparse.testing import OptTest
 
 
