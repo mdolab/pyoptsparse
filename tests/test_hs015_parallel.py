@@ -23,7 +23,7 @@ except ImportError:
 from pyoptsparse import Optimization
 
 # Local modules
-from testing_utils import OptTest
+from pyoptsparse.testing import OptTest
 
 
 @unittest.skipIf(not HAS_MPI, "MPI not available")
