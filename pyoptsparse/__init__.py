@@ -1,4 +1,4 @@
-__version__ = "2.13.2"
+__version__ = "2.14.0"
 
 from .pyOpt_history import History
 from .pyOpt_variable import Variable
@@ -8,6 +8,7 @@ from .pyOpt_objective import Objective
 from .pyOpt_optimization import Optimization
 from .pyOpt_optimizer import Optimizer, OPT, Optimizers, list_optimizers
 from .pyOpt_solution import Solution
+from . import testing
 
 # Now import all the individual optimizers
 from .pySNOPT.pySNOPT import SNOPT

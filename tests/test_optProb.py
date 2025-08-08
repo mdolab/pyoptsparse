@@ -10,9 +10,7 @@ from numpy.testing import assert_allclose
 
 # First party modules
 from pyoptsparse import OPT, Optimization
-
-# Local modules
-from testing_utils import assert_optProb_size
+from pyoptsparse.testing.pyOpt_testing import assert_optProb_size
 
 
 class TestOptProb(unittest.TestCase):

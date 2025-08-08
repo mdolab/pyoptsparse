@@ -15,9 +15,7 @@ from parameterized import parameterized
 
 # First party modules
 from pyoptsparse import Optimization
-
-# Local modules
-from testing_utils import OptTest
+from pyoptsparse.testing import OptTest
 
 
 class TestLarge(OptTest):
