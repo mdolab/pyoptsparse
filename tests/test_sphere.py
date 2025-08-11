@@ -52,7 +52,7 @@ class TestSphere(OptTest):
             "stopCriteria": 0,  # 0: maxOuterIter, 1: convergence
             "seed": 1235,
         },
-        "NSGA2": {
+        "NSGA2": {  # not tested due to NSGA2 testing issues but option is kept here for reference
             "PopSize": 32,
             "maxGen": 100,
             "seed": 123,
