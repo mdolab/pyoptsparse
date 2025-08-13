@@ -274,7 +274,9 @@ class OptTest(unittest.TestCase):
         hist = History(self.histFileName, flag="r")
         # Metadata checks
         metadata = hist.getMetadata()
-        self.assertEqual(metadata["optimizer"], self.optName)
+        # NSGA2's official name is NSGA-II
+        if self.optName != "NSGA2":
+            self.assertEqual(metadata["optimizer"], self.optName)
         metadata_def_keys = [
             "optName",
             "optOptions",
