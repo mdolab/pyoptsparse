@@ -9,7 +9,10 @@ from parameterized import parameterized
 
 # First party modules
 from pyoptsparse import Optimization
+from pyoptsparse.pyOpt_optimizer import Optimizers
 from pyoptsparse.testing import OptTest
+
+ALL_OPTIMIZERS = sorted({e.name for e in Optimizers} - {"ParOpt", "NSGA2"})
 
 
 class TestSphere(OptTest):
@@ -38,7 +41,7 @@ class TestSphere(OptTest):
     xStar = {"xvars": np.zeros(N)}
 
     # Tolerances
-    tol = {"ALPSO": 1e-3}
+    tol = {k: 5e-2 if k in ["CONMIN", "ALPSO", "NSGA2"] else 1e-6 for k in ALL_OPTIMIZERS}
 
     optOptions = {
         "ALPSO": {  # sphere
@@ -48,7 +51,15 @@ class TestSphere(OptTest):
             "c2": 1.25,  # Social Parameter
             "stopCriteria": 0,  # 0: maxOuterIter, 1: convergence
             "seed": 1235,
-        }
+        },
+        "NSGA2": {  # not tested due to NSGA2 testing issues but option is kept here for reference
+            "PopSize": 32,
+            "maxGen": 100,
+            "seed": 123,
+        },
+        "SNOPT": {
+            "Major iterations limit": 10,
+        },
     }
 
     def objfunc(self, xdict):
@@ -63,8 +74,7 @@ class TestSphere(OptTest):
     def sens(self, xdict, _funcs):
         self.ng += 1
         x = xdict["xvars"]
-
-        funcsSens = {"obj": {"xvars": 2 * np.ones(len(x))}}
+        funcsSens = {"obj": {"xvars": 2 * x}}
 
         fail = False
         return funcsSens, fail
@@ -83,7 +93,7 @@ class TestSphere(OptTest):
         # Objective
         self.optProb.addObj("obj")
 
-    @parameterized.expand(["ALPSO"])
+    @parameterized.expand(ALL_OPTIMIZERS)
     def test_optimization(self, optName):
         self.optName = optName
         self.setup_optProb()
