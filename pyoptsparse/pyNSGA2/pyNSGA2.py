@@ -190,7 +190,7 @@ class NSGA2(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Optimizer has no exit conditions, so nothing to set
-            solInform = None
+            sol_inform = None
 
             xstar = [0.0] * n
             for i in range(n):
@@ -204,7 +204,7 @@ class NSGA2(Optimizer):
                 fStar = nsga2.doubleArray_getitem(f, 0)
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, solInform, fStar, xstar)
+            sol = self._createSolution(optTime, sol_inform, fStar, xstar)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()

@@ -257,10 +257,10 @@ class NLPQLP(Optimizer):
 
             # Store optimizer exit condition and message
             inform = ifail.item()
-            solInform = SolutionInform.from_informs(self.informs, inform)
+            sol_inform = SolutionInform.from_informs(self.informs, inform)
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, solInform, f, xs)
+            sol = self._createSolution(optTime, sol_inform, f, xs)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()

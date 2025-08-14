@@ -240,10 +240,10 @@ class CONMIN(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Optimizer has no exit conditions, so nothing to set
-            solInform = None
+            sol_inform = None
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, solInform, ff, xs)
+            sol = self._createSolution(optTime, sol_inform, ff, xs)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
