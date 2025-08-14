@@ -20,6 +20,7 @@ from packaging.version import parse as parse_version
 # Local modules
 from ..pyOpt_optimization import Optimization
 from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_solution import SolutionInform
 from ..pyOpt_utils import (
     ICOL,
     IDATA,
@@ -499,10 +500,8 @@ class SNOPT(Optimizer):
             if iSumm != 0 and iSumm != 6:
                 snopt.closeunit(self.getOption("iSumm"))
 
-            # Store Results
-            sol_inform = {}
-            sol_inform["value"] = inform
-            sol_inform["text"] = self.informs[inform]
+            # Store optimizer exit condition and message
+            sol_inform = SolutionInform.from_informs(self.informs, inform)
 
             # Create the optimization solution
             if parse_version(self.version) > parse_version("7.7.0") and parse_version(self.version) < parse_version(

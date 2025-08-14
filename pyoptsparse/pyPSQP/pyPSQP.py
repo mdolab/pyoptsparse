@@ -12,6 +12,7 @@ import numpy as np
 
 # Local modules
 from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_solution import SolutionInform
 from ..pyOpt_utils import try_import_compiled_module_from_path
 
 # import the compiled module
@@ -259,9 +260,7 @@ class PSQP(Optimizer):
             inform = iterm.item()
             if inform < 0 and inform not in self.informs:
                 inform = -10
-            sol_inform = {}
-            sol_inform["value"] = inform
-            sol_inform["text"] = self.informs[inform]
+            sol_inform = SolutionInform.from_informs(self.informs, inform)
             if self.storeHistory:
                 self.metadata["endTime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 self.metadata["optTime"] = optTime
