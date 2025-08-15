@@ -239,8 +239,8 @@ class CONMIN(Optimizer):
             # Broadcast a -1 to indcate SLSQP has finished
             self.optProb.comm.bcast(-1, root=0)
 
-            # Store Results
-            sol_inform = {"value": "", "text": ""}
+            # Optimizer has no exit conditions, so nothing to set
+            sol_inform = None
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xs)

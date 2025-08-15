@@ -14,6 +14,7 @@ import numpy as np
 # Local modules
 from ..pyOpt_error import pyOptSparseWarning
 from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_solution import SolutionInform
 from ..pyOpt_utils import try_import_compiled_module_from_path
 
 # import the compiled module
@@ -168,7 +169,7 @@ class SLSQP(Optimizer):
             # =================================================================
             def slfunc(m, me, la, n, f, g, x):
                 if (x < blx).any() or (x > bux).any():
-                    pyOptSparseWarning("Values in x were outside bounds during" " a minimize step, clipping to bounds")
+                    pyOptSparseWarning("Values in x were outside bounds during a minimize step, clipping to bounds")
                 fobj, fcon, fail = self._masterFunc(np.clip(x, blx, bux), ["fobj", "fcon"])
                 f = fobj
                 g[0:m] = -fcon
@@ -258,11 +259,9 @@ class SLSQP(Optimizer):
             # Broadcast a -1 to indcate SLSQP has finished
             self.optProb.comm.bcast(-1, root=0)
 
-            # Store Results
+            # Store optimizer exit condition and message
             inform = mode.item()
-            sol_inform = {}
-            sol_inform["value"] = inform
-            sol_inform["text"] = self.informs[inform]
+            sol_inform = SolutionInform.from_informs(self.informs, inform)
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, ff, xs)

@@ -110,7 +110,7 @@ class TestUserTerminationStatus(unittest.TestCase):
         self.assertEqual(termcomp.obj_count, 3)
 
         # Exit code for user requested termination.
-        self.assertEqual(sol.optInform["value"], self.optExitCode[optName])
+        self.assertEqual(sol.optInform.value, self.optExitCode[optName])
 
     @parameterized.expand(["IPOPT", "SNOPT"])
     def test_sens(self, optName):
@@ -131,7 +131,7 @@ class TestUserTerminationStatus(unittest.TestCase):
         self.assertEqual(termcomp.sens_count, 4)
 
         # Exit code for user requested termination.
-        self.assertEqual(sol.optInform["value"], self.optExitCode[optName])
+        self.assertEqual(sol.optInform.value, self.optExitCode[optName])
 
 
 if __name__ == "__main__":
