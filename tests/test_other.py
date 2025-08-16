@@ -5,6 +5,7 @@ import unittest
 
 # First party modules
 from pyoptsparse import Optimizers, list_optimizers
+from pyoptsparse.pyOpt_solution import SolutionInform
 from pyoptsparse.pyOpt_utils import try_import_compiled_module_from_path
 
 # we have to unset this environment variable because otherwise
@@ -36,3 +37,12 @@ class TestListOpt(unittest.TestCase):
         self.assertIn(Optimizers.PSQP, all_opt)
         self.assertIn(Optimizers.ALPSO, all_opt)
         self.assertIn(Optimizers.NSGA2, all_opt)
+
+
+class TestSolInform(unittest.TestCase):
+    def test_sol_inform_key_access(self):
+        sol = SolutionInform(value=1, message="test message")
+        assert sol.value == 1
+        assert sol["value"] == 1
+        assert sol.message == "test message"
+        assert sol["text"] == "test message"
