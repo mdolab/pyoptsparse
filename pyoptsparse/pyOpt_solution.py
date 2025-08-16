@@ -1,6 +1,6 @@
 # Standard Python modules
 import copy
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Optional
 
 # External modules
@@ -22,6 +22,10 @@ class SolutionInform:
     @classmethod
     def from_informs(cls, informs: dict[int, str], value: int):
         return cls(value=value, message=informs[value])
+
+    def __getitem__(self, key):
+        d = asdict(self)
+        return d[key]
 
 
 class Solution(Optimization):
