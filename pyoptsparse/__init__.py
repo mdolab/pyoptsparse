@@ -1,4 +1,4 @@
-__version__ = "2.14.1"
+__version__ = "2.14.1.post1"
 
 from .pyOpt_history import History
 from .pyOpt_variable import Variable
