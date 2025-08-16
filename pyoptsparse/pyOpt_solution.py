@@ -25,6 +25,8 @@ class SolutionInform:
 
     def __getitem__(self, key):
         d = asdict(self)
+        if key == "text":
+            return d["message"]
         return d[key]
 
 
