@@ -964,7 +964,7 @@ Optimizers = Enum("Optimizers", "SNOPT IPOPT SLSQP NLPQLP CONMIN NSGA2 PSQP ALPS
 """Special enum containing all possible optimizers"""
 
 
-def OPT(optName, *args, **kwargs):
+def OPT(optName, *args, **kwargs) -> Optimizer:
     r"""
     This is a simple utility function that enables creating an
     optimizer based on the 'optName' string. This can be useful for
