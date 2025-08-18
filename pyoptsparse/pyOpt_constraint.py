@@ -1,7 +1,7 @@
 # Standard Python modules
 from collections import OrderedDict
 import copy
-from typing import Dict, Iterable, List, Optional, Union
+from typing import Iterable, Optional, Union
 
 # External modules
 import numpy as np
@@ -67,12 +67,12 @@ class Constraint:
         # automatically.
 
         # This keeps track of the equality constraints:
-        equalityConstraints: Dict[str, List] = {"value": [], "ind": [], "fact": []}
+        equalityConstraints: dict[str, list] = {"value": [], "ind": [], "fact": []}
 
         # All (inequality) constraints get added to
         # "twoSidedConstraints". This will be used in optimizers that
         # can do two-sided constraints properly
-        twoSidedConstraints: Dict[str, List] = {"lower": [], "upper": [], "ind": [], "fact": []}
+        twoSidedConstraints: dict[str, list] = {"lower": [], "upper": [], "ind": [], "fact": []}
 
         # All (inequality) constraints are also added to
         # "oneSidedConstraints". These are processed such that the
@@ -82,7 +82,7 @@ class Constraint:
         # defined which is precisely 1.0 or -1.0. The -1.0 appears
         # when a greater-than-constraint is turned into a
         # less-than-constraint.
-        oneSidedConstraints: Dict[str, List] = {"lower": [], "upper": [], "ind": [], "fact": []}
+        oneSidedConstraints: dict[str, list] = {"lower": [], "upper": [], "ind": [], "fact": []}
 
         for icon in range(self.ncon):
             # Check for equality constraint:
