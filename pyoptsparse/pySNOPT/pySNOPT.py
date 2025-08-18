@@ -9,11 +9,12 @@ import os
 import re
 import sys
 import time
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Optional
+
+import numpy as np
 
 # External modules
 from baseclasses.utils import CaseInsensitiveSet, writePickle
-import numpy as np
 from numpy import ndarray
 from packaging.version import parse as parse_version
 
@@ -43,7 +44,7 @@ class SNOPT(Optimizer):
     SNOPT Optimizer Class
     """
 
-    def __init__(self, raiseError=True, options: Optional[Dict] = None):
+    def __init__(self, raiseError=True, options: dict | None = None):
         if options is None:
             options = {}
         name = "SNOPT"
@@ -101,10 +102,10 @@ class SNOPT(Optimizer):
         self.jacType = "csc"
 
         # SNOPT specific Jacobian map
-        self._snopt_jac_map_csr_to_csc: Optional[Tuple[ndarray, ndarray, ndarray]] = None
+        self._snopt_jac_map_csr_to_csc: Optional[tuple[ndarray, ndarray, ndarray]] = None
 
     @staticmethod
-    def _getDefaultOptions() -> Dict[str, Any]:
+    def _getDefaultOptions() -> dict[str, Any]:
         defOpts = {
             "iPrint": [int, 18],
             "iSumm": [int, 19],
@@ -129,7 +130,7 @@ class SNOPT(Optimizer):
         return defOpts
 
     @staticmethod
-    def _getInforms() -> Dict[int, str]:
+    def _getInforms() -> dict[int, str]:
         # INFO exit codes for SNOPT 7.7
         informs = {
             0: "finished successfully",

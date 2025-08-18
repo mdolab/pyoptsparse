@@ -1,24 +1,26 @@
 # Standard Python modules
-from collections import OrderedDict
 import copy
 import datetime
-from enum import Enum
 import os
 import shutil
 import tempfile
 import time
-from typing import Any, Callable, Dict, List, Optional, Union
+from collections import OrderedDict
+from enum import Enum
+from typing import Any, Callable, Optional, Union
+
+import numpy as np
 
 # External modules
 from baseclasses import BaseSolver
-import numpy as np
 from numpy import ndarray
 
-# Local modules
-from .pyOpt_MPI import MPI
 from .pyOpt_error import pyOptSparseWarning
 from .pyOpt_gradient import Gradient
 from .pyOpt_history import History
+
+# Local modules
+from .pyOpt_MPI import MPI
 from .pyOpt_optimization import Optimization
 from .pyOpt_solution import Solution
 from .pyOpt_utils import EPS, IDATA, INFINITY, convertToCOO, convertToDense, extractRows, mapToCSC, scaleRows
@@ -31,9 +33,9 @@ class Optimizer(BaseSolver):
         self,
         name: str,
         category: str,
-        defaultOptions: Optional[Dict[str, Any]] = None,
-        informs: Optional[Dict[int, str]] = None,
-        options: Optional[Dict[str, Any]] = None,
+        defaultOptions: dict[str, Any] | None = None,
+        informs: dict[int, str] | None = None,
+        options: dict[str, Any] | None = None,
         checkDefaultOptions: bool = True,
         caseSensitiveOptions: bool = True,
         version: Optional[str] = None,
@@ -87,17 +89,17 @@ class Optimizer(BaseSolver):
         self.storeSens: bool = True
 
         # Cache storage
-        self.cache: Dict[str, Any] = {"x": None, "fobj": None, "fcon": None, "gobj": None, "gcon": None, "fail": None}
+        self.cache: dict[str, Any] = {"x": None, "fobj": None, "fcon": None, "gobj": None, "gcon": None, "fail": None}
 
         # A second-level cache for optimizers that require callbacks
         # for each constraint. (eg. PSQP etc)
-        self.storedData: Dict[str, Any] = {"x": None}
+        self.storedData: dict[str, Any] = {"x": None}
 
         # Store the Jacobian conversion maps
         self._jac_map_csr_to_csc = None
 
         # Initialize metadata
-        self.metadata: Dict[str, Any] = {}
+        self.metadata: dict[str, Any] = {}
         self.startTime = None
 
     def _clearTimings(self):
@@ -205,7 +207,7 @@ class Optimizer(BaseSolver):
                     self.hist.writeData("metadata", self.metadata)
         self.optProb.comm.Barrier()
 
-    def _masterFunc(self, x: ndarray, evaluate: List[str]):
+    def _masterFunc(self, x: ndarray, evaluate: list[str]):
         """
         This is the master function that **ALL** optimizers call from
         the specific signature functions. The reason for this is that

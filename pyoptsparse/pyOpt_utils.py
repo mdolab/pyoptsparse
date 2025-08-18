@@ -15,8 +15,8 @@ import importlib
 import os
 import sys
 import types
-from typing import Literal, Sequence, Tuple, Union
 import warnings
+from typing import Literal, Sequence, Union
 
 # External modules
 import numpy as np
@@ -44,7 +44,7 @@ INFINITY = 1e20
 EPS = np.finfo(np.float64).eps
 
 
-def mapToCSR(mat: dict) -> Tuple[ndarray, ndarray, ndarray]:
+def mapToCSR(mat: dict) -> tuple[ndarray, ndarray, ndarray]:
     """
     Given a pyoptsparse matrix definition, return a tuple containing a
     map of the matrix to the CSR format.
@@ -117,7 +117,7 @@ def mapToCSR(mat: dict) -> Tuple[ndarray, ndarray, ndarray]:
     return row_p, col_idx, idx_data
 
 
-def mapToCSC(mat: dict) -> Tuple[ndarray, ndarray, ndarray]:
+def mapToCSC(mat: dict) -> tuple[ndarray, ndarray, ndarray]:
     """
     Given a pyoptsparse matrix definition, return a tuple containing a
     map of the matrix to the CSC format.
