@@ -1,5 +1,5 @@
 # Standard Python modules
-from typing import Tuple, Union
+from typing import Union
 
 # External modules
 import numpy as np
@@ -58,7 +58,7 @@ class Gradient:
         else:
             self.mydvs = list(range(ndvs))
 
-    def _eval_func(self, x: ndarray) -> Tuple[ndarray, ndarray, bool]:
+    def _eval_func(self, x: ndarray) -> tuple[ndarray, ndarray, bool]:
         """Internal method to call function and extract obj, con"""
 
         xCall = self.optProb.processXtoDict(x)
@@ -76,7 +76,7 @@ class Gradient:
 
         return fobj, fcon, fail
 
-    def __call__(self, x: Dict1DType, funcs: Dict1DType) -> Tuple[Dict2DType, bool]:
+    def __call__(self, x: Dict1DType, funcs: Dict1DType) -> tuple[Dict2DType, bool]:
         """
         We need to make this object "look" the same as a user supplied
         function handle. That way, the optimizers need not care how

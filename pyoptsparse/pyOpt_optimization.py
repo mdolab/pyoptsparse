@@ -1,9 +1,9 @@
 # Standard Python modules
-from collections import OrderedDict
 import copy
 import os
-from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 import warnings
+from collections import OrderedDict
+from typing import Callable, Iterable, Optional, Union
 
 # External modules
 import numpy as np
@@ -11,9 +11,10 @@ from numpy import ndarray
 from scipy.sparse import coo_matrix
 from sqlitedict import SqliteDict
 
+from .pyOpt_constraint import Constraint
+
 # Local modules
 from .pyOpt_MPI import MPI
-from .pyOpt_constraint import Constraint
 from .pyOpt_objective import Objective
 from .pyOpt_types import Dict1DType, Dict2DType, NumpyType
 from .pyOpt_utils import (
@@ -78,7 +79,7 @@ class Optimization:
         self.invXScale: ndarray = None
         self.xOffset: ndarray = None
         self.dummyConstraint = False
-        self.objectiveIdx: Dict[str, int] = {}
+        self.objectiveIdx: dict[str, int] = {}
         self.finalized: bool = False
         self.jacIndices: ndarray = None
         self.fact: ndarray = None
@@ -161,7 +162,7 @@ class Optimization:
         upper=None,
         scale=1.0,
         offset=0.0,
-        choices: List[str] = [],
+        choices: list[str] = [],
         **kwargs,
     ):
         """
@@ -702,7 +703,7 @@ class Optimization:
         for i in range(len(txt)):
             print("".join(txt[i]))
 
-    def getDVConIndex(self, startIndex: int = 1, printIndex: bool = True) -> Tuple[OrderedDict, OrderedDict]:
+    def getDVConIndex(self, startIndex: int = 1, printIndex: bool = True) -> tuple[OrderedDict, OrderedDict]:
         """
         Return the index of a scalar DV/constraint, or the beginning
         and end index (inclusive) of a DV/constraint array.
@@ -892,8 +893,8 @@ class Optimization:
                 con.linearJacobian = coo_matrix((data, (row, col)), shape=[con.ncon, self.ndvs]).tocsr()
 
     def getOrdering(
-        self, conOrder: List[str], oneSided: bool, noEquality: bool = False
-    ) -> Tuple[ndarray, ndarray, ndarray, ndarray]:
+        self, conOrder: list[str], oneSided: bool, noEquality: bool = False
+    ) -> tuple[ndarray, ndarray, ndarray, ndarray]:
         """
         Internal function that is used to produce a index list that
         reorders the constraints the way a particular optimizer needs.
