@@ -7,7 +7,7 @@ import os
 import shutil
 import tempfile
 import time
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 # External modules
 from baseclasses import BaseSolver
@@ -31,9 +31,9 @@ class Optimizer(BaseSolver):
         self,
         name: str,
         category: str,
-        defaultOptions: Dict[str, Any] = {},
-        informs: Dict[int, str] = {},
-        options: Dict[str, Any] = {},
+        defaultOptions: dict[str, Any] = {},
+        informs: dict[int, str] = {},
+        options: dict[str, Any] = {},
         checkDefaultOptions: bool = True,
         caseSensitiveOptions: bool = True,
         version: Optional[str] = None,
@@ -81,17 +81,17 @@ class Optimizer(BaseSolver):
         self.storeSens: bool = True
 
         # Cache storage
-        self.cache: Dict[str, Any] = {"x": None, "fobj": None, "fcon": None, "gobj": None, "gcon": None, "fail": None}
+        self.cache: dict[str, Any] = {"x": None, "fobj": None, "fcon": None, "gobj": None, "gcon": None, "fail": None}
 
         # A second-level cache for optimizers that require callbacks
         # for each constraint. (eg. PSQP etc)
-        self.storedData: Dict[str, Any] = {"x": None}
+        self.storedData: dict[str, Any] = {"x": None}
 
         # Store the Jacobian conversion maps
         self._jac_map_csr_to_csc = None
 
         # Initialize metadata
-        self.metadata: Dict[str, Any] = {}
+        self.metadata: dict[str, Any] = {}
         self.startTime = None
 
     def _clearTimings(self):
@@ -199,7 +199,7 @@ class Optimizer(BaseSolver):
                     self.hist.writeData("metadata", self.metadata)
         self.optProb.comm.Barrier()
 
-    def _masterFunc(self, x: ndarray, evaluate: List[str]):
+    def _masterFunc(self, x: ndarray, evaluate: list[str]):
         """
         This is the master function that **ALL** optimizers call from
         the specific signature functions. The reason for this is that
