@@ -26,10 +26,6 @@ version = re.findall(
 
 # -- General configuration ---------------------------------------------------
 
-# more intersphinx
-intersphinx_mapping["scipy"] = ("https://docs.scipy.org/doc/scipy/", None)
-intersphinx_mapping["numpy"] = ("https://docs.scipy.org/doc/numpy/", None)
-
 # mock import for autodoc
 autodoc_mock_imports = ["baseclasses", "scipy", "numpy", "sqlitedict"]
 
