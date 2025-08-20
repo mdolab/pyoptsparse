@@ -28,8 +28,8 @@ For the TP37, the objective function is a simple analytic function:
 Notes:
 
 *   The ``xdict`` variable is a dictionary whose keys are the names from each 
-    :meth:`addVar <pyoptsparse.pyOpt_optimization.Optimization.addVar>` and 
-    :meth:`addVarGroup <pyoptsparse.pyOpt_optimization.Optimization.addVarGroup>` call. The line
+    :meth:`~pyoptsparse.pyOpt_optimization.Optimization.addVar` and 
+    :meth:`~pyoptsparse.pyOpt_optimization.Optimization.addVarGroup` call. The line
 
     .. code-block:: python
 
@@ -45,9 +45,9 @@ Notes:
 
     creates a list of length 2, which stores the numerical values of the two constraints.
     The ``funcs`` dictionary return must contain keys that match the constraint names from
-    :meth:`addCon <pyoptsparse.pyOpt_optimization.Optimization.addCon>` and
-    :meth:`addConGroup <pyoptsparse.pyOpt_optimization.Optimization.addConGroup>`
-    as well as the objectives from :meth:`addObj <pyoptsparse.pyOpt_optimization.Optimization.addObj>` calls.
+    :meth:`~pyoptsparse.pyOpt_optimization.Optimization.addCon` and
+    :meth:`~pyoptsparse.pyOpt_optimization.Optimization.addConGroup`
+    as well as the objectives from :meth:`~pyoptsparse.pyOpt_optimization.Optimization.addObj` calls.
     This is done in the following calls:
 
     .. code-block:: python
@@ -87,7 +87,7 @@ This call adds two variables with name ``con``.
 There is no lower bound for the variables and the upper bound is 0.0. 
 
 We must also assign the the key value for the objective using the
-:meth:`addObj <pyoptsparse.pyOpt_optimization.Optimization.addObj>` call:
+:meth:`~pyoptsparse.pyOpt_optimization.Optimization.addObj` call:
 
 .. literalinclude:: ../examples/tp037.py
    :start-after: # rst begin addObj

@@ -961,10 +961,11 @@ class Optimizer(BaseSolver):
 
 # List of optimizers as an enum
 Optimizers = Enum("Optimizers", "SNOPT IPOPT SLSQP NLPQLP CONMIN NSGA2 PSQP ALPSO ParOpt")
+"""Special enum containing all possible optimizers"""
 
 
-def OPT(optName, *args, **kwargs):
-    """
+def OPT(optName, *args, **kwargs) -> Optimizer:
+    r"""
     This is a simple utility function that enables creating an
     optimizer based on the 'optName' string. This can be useful for
     doing optimization studies with respect to optimizer since you
@@ -974,9 +975,9 @@ def OPT(optName, *args, **kwargs):
     ----------
     optName : str or enum
        Either a string identifying the optimizer to create, e.g. "SNOPT", or
-       an enum accessed via ``pyoptsparse.Optimizers``, e.g. ``Optimizers.SNOPT``.
+       an enum accessed via :class:`~pyoptsparse.pyOpt_optimizer.Optimizers`, e.g. ``pyoptsparse.Optimizers.SNOPT``.
 
-    \\*args, \\*\\*kwargs : varies
+    \*args, \*\*kwargs : varies
        Passed to optimizer creation.
 
     Returns

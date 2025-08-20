@@ -3,9 +3,5 @@
 Optimizer
 ---------
 
-.. currentmodule:: pyoptsparse.pyOpt_optimizer
-
-.. autoclass:: Optimizer
+.. automodule:: pyoptsparse.pyOpt_optimizer
    :members:
-
-.. autofunction:: pyoptsparse.pyOpt_optimizer.OPT
