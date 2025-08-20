@@ -1,0 +1,2 @@
+# OptView and related files need to be fixed eventually
+extend-exclude = [ "pyoptsparse/postprocessing/**" ]
