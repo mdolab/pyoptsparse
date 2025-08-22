@@ -1,7 +1,6 @@
 syntax: glob
 
 # Ignore ruff and pre-commit config files
-ruff.toml
 .pre-commit-config.yaml
 
 build
