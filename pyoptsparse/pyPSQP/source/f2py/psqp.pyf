@@ -35,7 +35,7 @@ python module psqp__user__routines
         end subroutine dcon
     end interface psqp_user_interface
 end python module psqp__user__routines
-python module psqp ! in 
+python module psqp ! in
     interface  ! in :psqp
         subroutine psqp_wrap(nf,nc,x,ix,xl,xu,cf,ic,cl,cu,mit,mfv,met,mec,xmax,tolx,tolc,tolg,rpf,f,gmax,cmax,iprnt,iout,ifile,iterm) ! in :psqp:source/psqp_wrap.f
             use psqp__user__routines

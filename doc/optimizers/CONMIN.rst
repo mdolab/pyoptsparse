@@ -16,4 +16,3 @@ API
 
 .. autoclass:: CONMIN
    :members: __call__
-

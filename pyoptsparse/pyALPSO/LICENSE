@@ -2,7 +2,7 @@ ALPSO - Augmented Lagrangian Particle Swarm Optimizer
 Copyright (c) 2011, Dr. Ruben E. Perez (Ruben.Perez@rmc.ca)
                 and Peter W. Jansen (Peter.Jansen@rmc.ca)
 
-ALPSO is free software: you can redistribute it and/or modify it 
+ALPSO is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 any later version.
@@ -15,19 +15,19 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-Non-free versions of ALPSO are available under terms different 
-from those of the General Public License. For more information 
-related to such a license, future developments and/or technical 
-support, contact Dr. Ruben E. Perez (Ruben.Perez@rmc.ca) or 
+Non-free versions of ALPSO are available under terms different
+from those of the General Public License. For more information
+related to such a license, future developments and/or technical
+support, contact Dr. Ruben E. Perez (Ruben.Perez@rmc.ca) or
 Peter W. Jansen (Peter.Jansen@rmc.ca).
 
-In addition, we kindly ask you to acknowledge the code authors in 
-any program, application or publication in which you use it. For 
+In addition, we kindly ask you to acknowledge the code authors in
+any program, application or publication in which you use it. For
 published works that use ALPSO we suggest referencing:
 
-P. Jansen and R. Perez, "Constrained Structural Design Optimization 
-via a Parallel Augmented Lagrangian Particle Swarm Optimization 
-Approach", International Journal of Computers and Structures, 
+P. Jansen and R. Perez, "Constrained Structural Design Optimization
+via a Parallel Augmented Lagrangian Particle Swarm Optimization
+Approach", International Journal of Computers and Structures,
 Vol. 89, No. 13-14, pp. 1352–1366, 2011.
 
 ----------------------------------------------------------------------

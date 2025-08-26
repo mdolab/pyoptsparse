@@ -93,7 +93,7 @@ To install pyOptSparse including those dependencies, run
 
     pip install .[optview]
 
-If you encounter a ``no module named tkinter`` error when trying to run optview, you may need to `install tkinter on your system <https://stackoverflow.com/questions/25905540/importerror-no-module-named-tkinter>`__. 
+If you encounter a ``no module named tkinter`` error when trying to run optview, you may need to `install tkinter on your system <https://stackoverflow.com/questions/25905540/importerror-no-module-named-tkinter>`__.
 
 Testing
 -------

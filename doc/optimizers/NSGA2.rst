@@ -26,4 +26,3 @@ API
 
 .. autoclass:: NSGA2
    :members: __call__
-
