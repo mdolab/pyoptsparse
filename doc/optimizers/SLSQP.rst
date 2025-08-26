@@ -27,4 +27,3 @@ API
 
 .. autoclass:: SLSQP
    :members: __call__
-

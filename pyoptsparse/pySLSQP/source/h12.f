@@ -78,4 +78,3 @@ C     ****** APPLY THE TRANSFORMATION  I+U*(U**T)/B  TO C ******
    60         I4=I4+ICE
    70     CONTINUE
    80 END
-   

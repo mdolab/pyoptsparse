@@ -639,7 +639,8 @@ class Optimizer(BaseSolver):
     def _internalEval(self, x):
         """
         Special internal evaluation for optimizers that have a
-        separate callback for each constraint"""
+        separate callback for each constraint
+        """
 
         fobj, fcon, gobj, gcon, fail = self._masterFunc(x, ["fobj", "fcon", "gobj", "gcon"])
 
@@ -694,7 +695,8 @@ class Optimizer(BaseSolver):
 
     def _waitLoop(self):
         """Non-root processors go into this waiting loop while the
-        root proc does all the work in the optimization algorithm"""
+        root proc does all the work in the optimization algorithm
+        """
 
         mode = None
         info = None

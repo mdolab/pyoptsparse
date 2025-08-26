@@ -1,4 +1,8 @@
 syntax: glob
+
+# Ignore ruff and pre-commit config files
+.pre-commit-config.yaml
+
 build
 doc/_build
 *.pyc

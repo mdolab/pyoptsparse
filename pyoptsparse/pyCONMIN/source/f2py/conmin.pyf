@@ -1,8 +1,8 @@
 !    -*- f90 -*-
 ! Note: the context of this file is case sensitive.
 
-python module conmin__user__routines 
-    interface conmin_user_interface 
+python module conmin__user__routines
+    interface conmin_user_interface
         subroutine cnmnfun(n1,n2,x,aobj,g)
             integer intent(in) :: n1
             integer intent(in) :: n2
@@ -24,7 +24,7 @@ python module conmin__user__routines
         end subroutine cnmngrd
     end interface conmin_user_interface
 end python module conmin__user__routines
-python module conmin ! in 
+python module conmin ! in
     interface  ! in :conmin
         subroutine conmin(ndv_,ncon_,x_,vlb_,vub_,obj_,g_,n1,n2,n3,n4,n5,iprint_,iout_,ifile,itmax_,delfun_,dabfun_,itrm_,nfeasct_,nfdg_,nfun_,ngrd_,cnmnfun,cnmngrd) ! in :conmin:source/conmin.f
             use conmin__user__routines
@@ -99,5 +99,5 @@ python module conmin ! in
         subroutine closeunit(unitnum) ! in :conmin:source/closeunit.f
             integer intent(in) :: unitnum
         end subroutine closeunit
-    end interface 
+    end interface
 end python module conmin

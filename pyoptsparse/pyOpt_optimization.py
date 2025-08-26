@@ -211,9 +211,9 @@ class Optimization:
         Examples
         --------
         >>> # Add a single design variable 'alpha'
-        >>> optProb.addVar('alpha', varType='c', value=2.0, lower=0.0, upper=10.0, scale=0.1)
+        >>> optProb.addVar("alpha", varType="c", value=2.0, lower=0.0, upper=10.0, scale=0.1)
         >>> # Add 10 unscaled variables of 0.5 between 0 and 1 with name 'y'
-        >>> optProb.addVarGroup('y', varType='c', value=0.5, lower=0.0, upper=1.0, scale=1.0)
+        >>> optProb.addVarGroup("y", varType="c", value=0.5, lower=0.0, upper=1.0, scale=1.0)
 
         Notes
         -----

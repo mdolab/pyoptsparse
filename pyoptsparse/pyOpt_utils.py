@@ -4,9 +4,9 @@ This is designed to replace the SciPy sparse matrix formats, which have no way t
 a constant sparsity structure as required by the optimizers.
 We use a very simple dictionary format to represent the three most common forms of sparse matrices::
 
-    mat = {'coo':[row,  col,    data], 'shape':[nrow, ncols]} # A coo matrix
-    mat = {'csr':[rowp, colind, data], 'shape':[nrow, ncols]} # A csr matrix
-    mat = {'csc':[colp, rowind, data], 'shape':[nrow, ncols]} # A csc matrix
+    mat = {"coo": [row, col, data], "shape": [nrow, ncols]}  # A coo matrix
+    mat = {"csr": [rowp, colind, data], "shape": [nrow, ncols]}  # A csr matrix
+    mat = {"csc": [colp, rowind, data], "shape": [nrow, ncols]}  # A csc matrix
 """
 
 # Standard Python modules

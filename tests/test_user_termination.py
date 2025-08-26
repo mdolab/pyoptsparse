@@ -5,6 +5,7 @@ termination has been requested by the user.
 
 The proper response of the pyIPOPT and pySNOPT optimizers are tested.
 """
+
 # Standard Python modules
 import unittest
 
@@ -102,8 +103,8 @@ class TestUserTerminationStatus(unittest.TestCase):
 
         try:
             opt = OPT(optName, options=optOptions)
-        except ImportError:
-            raise unittest.SkipTest(f"Optimizer not available: {optName}")
+        except ImportError as e:
+            raise unittest.SkipTest(f"Optimizer not available: {optName}") from e
 
         sol = opt(optProb, sens=termcomp.sens)
 
@@ -123,8 +124,8 @@ class TestUserTerminationStatus(unittest.TestCase):
 
         try:
             opt = OPT(optName, options=optOptions)
-        except ImportError:
-            raise unittest.SkipTest(f"Optimizer not available: {optName}")
+        except ImportError as e:
+            raise unittest.SkipTest(f"Optimizer not available: {optName}") from e
 
         sol = opt(optProb, sens=termcomp.sens)
 

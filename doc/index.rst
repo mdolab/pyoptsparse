@@ -12,7 +12,7 @@ Some key features of pyOptSparse include:
 
 
 pyOptSparse is a fork of `pyOpt <http://www.pyopt.org/>`_.
-However, it is not backwards compatible with pyOpt and thus optimization scripts will need to be modified to use pyOptSparse. 
+However, it is not backwards compatible with pyOpt and thus optimization scripts will need to be modified to use pyOptSparse.
 
 Getting Started
 ===============

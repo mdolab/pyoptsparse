@@ -22,4 +22,3 @@ API
 
 .. autoclass:: PSQP
    :members: __call__
-

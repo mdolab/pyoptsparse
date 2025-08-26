@@ -31,7 +31,7 @@ python module nlpqlp__user__routines
         end subroutine nlgrad
     end interface nlpqlp_user_interface
 end python module nlpqlp__user__routiness
-python module nlpqlp ! in 
+python module nlpqlp ! in
     interface  ! in :nlpqlp
        subroutine wrapper(np, m, me, mmax, n, nmax, mnn2, x, f, g, df, dg, u, xl, xu, &
             c, d, acc, accqp, stpmin, maxfun, maxit, maxnm, rho, mode, iprint, iout, &

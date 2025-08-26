@@ -211,8 +211,8 @@ class ALPSO(Optimizer):
                     from . import alpso_ext
 
                     self.alpso = alpso_ext
-                except ImportError:
-                    raise ImportError("pyALPSO: ALPSO EXT shared library failed to import.")
+                except ImportError as e:
+                    raise ImportError("pyALPSO: ALPSO EXT shared library failed to import.") from e
 
     def _communicateSolution(self, sol):
         if sol is not None:

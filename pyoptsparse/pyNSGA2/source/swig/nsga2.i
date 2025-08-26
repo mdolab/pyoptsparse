@@ -44,7 +44,7 @@ void set_pyfunc(PyObject *pyfunc);
 static PyObject *py_fobjcon = NULL;
 
 /* Initialize Python callback function pointer */
-void set_pyfunc(PyObject *pyfunc) 
+void set_pyfunc(PyObject *pyfunc)
 {
 	Py_XDECREF(py_fobjcon);
 	Py_XINCREF(pyfunc);
@@ -55,40 +55,40 @@ void set_pyfunc(PyObject *pyfunc)
 /* C <-> Python callback */
 void nsga2func (int nreal, int nbin, int nobj, int ncon, double *xreal, double *xbin, int **gene, double *obj, double *constr)
 {
-	
+
 	int i, j, k;
 	double getval;
 	PyObject *arglist, *result, *xx, *ff, *gg;
-	
+
 	arglist = PyTuple_New(6);
-	
+
 	PyTuple_SetItem(arglist,0,PyLong_FromLong(nreal));
-	
+
 	PyTuple_SetItem(arglist,1,PyLong_FromLong(nobj));
-	
+
 	PyTuple_SetItem(arglist,2,PyLong_FromLong(ncon));
-	
+
 	xx = PyList_New(nreal);
 	for (i=0;i<nreal;i++)
 	{
 		PyList_SetItem(xx,i,PyFloat_FromDouble(xreal[i]));
 	}
 	PyTuple_SetItem(arglist,3,xx);
-	
+
 	ff = PyList_New(nobj);
 	for (k=0;k<nobj;k++)
 	{
 		PyList_SetItem(ff,k,PyFloat_FromDouble(obj[k]));
 	}
 	PyTuple_SetItem(arglist,4,ff);
-	
+
 	gg = PyList_New(ncon);
 	for (j=0;j<ncon;j++)
 	{
 		PyList_SetItem(gg,j,PyFloat_FromDouble(constr[j]));
 	}
 	PyTuple_SetItem(arglist,5,gg);
-	
+
 	if (py_fobjcon != NULL)
 	{
 		Py_XINCREF(py_fobjcon);
@@ -97,26 +97,26 @@ void nsga2func (int nreal, int nbin, int nobj, int ncon, double *xreal, double *
 		Py_XINCREF(result);
 		Py_XDECREF(py_fobjcon);
 		Py_XDECREF(arglist);
-		
+
 		ff = PyTuple_GetItem(result,0);
 		for (k=0;k<nobj;k++)
 		{
 			obj[k] = PyFloat_AsDouble(PyList_GetItem(ff,k));
 		}
-		
+
 		gg = PyTuple_GetItem(result,1);
 		for (j=0;j<ncon;j++)
 		{
 			constr[j] = PyFloat_AsDouble(PyList_GetItem(gg,j));
 		}
-		
+
 		Py_XDECREF(result);
 	}
 	else
 	{
 		PyErr_SetString(PyExc_TypeError, "python function has not been assigned");
 	}
-	
+
 	return;
 }
 

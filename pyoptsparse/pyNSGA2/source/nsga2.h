@@ -1,8 +1,8 @@
 /* -------------------------------------------------------------------------------
  *
  *  Header File for nsga2.c
- *  
- * ---------------------------------------------------------------------------- */ 
+ *
+ * ---------------------------------------------------------------------------- */
 
 # ifndef _GLOBAL_H_
 # define _GLOBAL_H_
@@ -75,7 +75,7 @@ typedef struct
 	double *max_realvar;
 	double *min_binvar;
 	double *max_binvar;
-	int bitlength;	
+	int bitlength;
 }
 Global;
 

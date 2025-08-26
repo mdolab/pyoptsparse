@@ -15,8 +15,8 @@ The following list summarizes some of the changes/improvements made to pyOpt to 
 * User specification of design variable scaling
 * User specification of constraint scaling
 * Design variable returns in dictionary format only
-* Specification of linear constraints, dense or sparse 
-* Sparse non-linear Jacobians 
+* Specification of linear constraints, dense or sparse
+* Sparse non-linear Jacobians
 * New history file format. Uses SQLite dictionaries.
 * Fixed hot start bug where first call to user functions is a gradient. It is now guaranteed, that the first call is to the function evaluation, not the gradient.
 * Various bug fixes in SNOPT

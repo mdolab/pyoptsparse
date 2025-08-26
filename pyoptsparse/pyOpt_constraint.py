@@ -203,8 +203,8 @@ class Constraint:
             else:
                 try:
                     self.wrt = list(self.wrt)
-                except Exception:
-                    raise TypeError(f"The 'wrt' argument to constraint '{self.name}' must be an iterable list")
+                except Exception as e:
+                    raise TypeError(f"The 'wrt' argument to constraint '{self.name}' must be an iterable list") from e
 
             # We allow 'None' to be in the list...they are null so
             # just pop them out:
