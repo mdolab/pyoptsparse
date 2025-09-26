@@ -579,7 +579,7 @@ def _broadcast_to_array(name: str, value: ArrayType, n_values: int, allow_none: 
 def import_module(
     module_name: str,
     path: Sequence[str] = (),
-    on_error: Literal["raise"] | Literal["return"] = "return",
+    on_error: Literal["raise", "return"] = "return",
 ) -> Union[types.ModuleType, Exception]:
     """
     Attempt to import a module from a given path.
