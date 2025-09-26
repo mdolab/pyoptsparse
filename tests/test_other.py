@@ -6,7 +6,7 @@ import unittest
 # First party modules
 from pyoptsparse import Optimizers, list_optimizers
 from pyoptsparse.pyOpt_solution import SolutionInform
-from pyoptsparse.pyOpt_utils import try_import_compiled_module_from_path
+from pyoptsparse.pyOpt_utils import import_module
 
 # we have to unset this environment variable because otherwise
 # the snopt module gets automatically imported, thus failing the import test below
@@ -19,13 +19,12 @@ class TestImportSnoptFromPath(unittest.TestCase):
         for key in list(sys.modules.keys()):
             if "snopt" in key:
                 sys.modules.pop(key)
-        with self.assertWarns(UserWarning):
-            module = try_import_compiled_module_from_path("snopt", "/a/nonexistent/path", raise_warning=True)
-            self.assertTrue(isinstance(module, str))
+        with self.assertRaises(ImportError):
+            module = import_module("snopt", "/a/nonexistent/path", on_error="raise")
 
     def test_sys_path_unchanged(self):
         path = tuple(sys.path)
-        try_import_compiled_module_from_path("snopt", "/some/path")
+        import_module("snopt", "/some/path")
         self.assertEqual(tuple(sys.path), path)
 
 

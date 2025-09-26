@@ -13,11 +13,11 @@ import numpy as np
 # Local modules
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_solution import SolutionInform
-from ..pyOpt_utils import try_import_compiled_module_from_path
+from ..pyOpt_utils import import_module
 
 # import the compiled module
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-psqp = try_import_compiled_module_from_path("psqp", THIS_DIR)
+psqp = import_module("psqp", [THIS_DIR])
 
 
 class PSQP(Optimizer):
@@ -31,8 +31,8 @@ class PSQP(Optimizer):
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
 
-        if isinstance(psqp, str) and raiseError:
-            raise ImportError(psqp)
+        if isinstance(psqp, Exception) and raiseError:
+            raise psqp
 
         super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
 

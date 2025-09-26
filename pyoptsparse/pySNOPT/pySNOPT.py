@@ -27,15 +27,14 @@ from ..pyOpt_utils import (
     INFINITY,
     IROW,
     extractRows,
+    import_module,
     mapToCSC,
     scaleRows,
-    try_import_compiled_module_from_path,
 )
 
 # import the compiled module
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-_IMPORT_SNOPT_FROM = os.environ.get("PYOPTSPARSE_IMPORT_SNOPT_FROM", THIS_DIR)
-snopt = try_import_compiled_module_from_path("snopt", _IMPORT_SNOPT_FROM)
+snopt = import_module("snopt", [THIS_DIR])
 
 
 class SNOPT(Optimizer):
@@ -68,9 +67,9 @@ class SNOPT(Optimizer):
 
         informs = self._getInforms()
 
-        if isinstance(snopt, str):
+        if isinstance(snopt, Exception):
             if raiseError:
-                raise ImportError(snopt)
+                raise snopt
             else:
                 version = None
         else:
