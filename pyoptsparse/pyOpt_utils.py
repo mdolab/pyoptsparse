@@ -599,8 +599,8 @@ def import_module(
         If importable, the imported module is returned.
         If not importable, the exception is returned.
     """
-    if on_error.lower() not in ("raise", "exception"):
-        raise ValueError("`on_error` must be 'raise' or 'exception'")
+    if on_error.lower() not in ("raise", "return"):
+        raise ValueError("`on_error` must be 'raise' or 'return'")
     orig_path = sys.path
     if path:
         path = [os.path.abspath(os.path.expandvars(os.path.expanduser(p))) for p in path]
