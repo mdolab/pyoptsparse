@@ -34,7 +34,8 @@ from ..pyOpt_utils import (
 
 # import the compiled module
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-snopt = import_module("snopt", [THIS_DIR])
+_IMPORT_SNOPT_FROM = os.environ.get("PYOPTSPARSE_IMPORT_SNOPT_FROM", None) or THIS_DIR
+snopt = import_module("snopt", [_IMPORT_SNOPT_FROM])
 
 
 class SNOPT(Optimizer):
