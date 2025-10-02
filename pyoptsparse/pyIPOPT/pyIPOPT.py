@@ -255,7 +255,8 @@ class IPOPT(Optimizer):
                 def intermediate(self_cyipopt, alg_mod, iter_count, obj_value, inf_pr, inf_du, mu, d_norm, regularization_size, alpha_du, alpha_pr, ls_trials):
                     # fmt: on
                     if self.storeHistory:
-                        iter_dict = {
+                        iterDict = {
+                            "isMajor": True,
                             "feasibility": inf_pr,
                             "optimality": inf_du,
                             "mu": mu,
