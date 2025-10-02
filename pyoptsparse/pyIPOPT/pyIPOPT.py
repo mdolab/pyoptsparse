@@ -207,7 +207,7 @@ class IPOPT(Optimizer):
                 jac["coo"][ICOL].copy().astype("int_"),
             )
 
-            class CyIPOPTProblem:
+            class CyIPOPTProblem(cyipopt.Problem):
                 # Define the 4 call back functions that ipopt needs:
                 def objective(_, x):
                     fobj, fail = self._masterFunc(x, ["fobj"])
@@ -246,7 +246,29 @@ class IPOPT(Optimizer):
 
                 # Define intermediate callback. If this method returns false,
                 # Ipopt will terminate with the User_Requested_Stop status.
-                def intermediate(_, *args, **kwargs):
+                # Also save iteration info in the history file. This callback is called every "major" iteration but not in line search iterations.
+                # fmt: off
+                def intermediate(self_cyipopt, alg_mod, iter_count, obj_value, inf_pr, inf_du, mu, d_norm, regularization_size, alpha_du, alpha_pr, ls_trials):
+                    # fmt: on
+                    if self.storeHistory:
+                        iter_dict = {
+                            "feasibility": inf_pr,
+                            "optimality": inf_du,
+                            "mu": mu,
+                            "step_primal": alpha_pr,
+                            "step_dual": alpha_du,
+                        }
+
+                        # Find pyoptsparse call counters for objective and constraints calls at current x.
+                        # IPOPT calls objective and constraints separately, so we find two call counters and append iter_dict to both counters.
+                        xuser_vec = self_cyipopt.get_current_iterate()["x"]
+                        call_counter_1 = self.hist._searchCallCounter(xuser_vec)
+                        call_counter_2 = self.hist._searchCallCounter(xuser_vec, last=call_counter_1 - 1)
+
+                        for call_counter in [call_counter_2, call_counter_1]:
+                            if call_counter is not None:
+                                self.hist.write(call_counter, iter_dict)
+
                     if self.userRequestedTermination is True:
                         return False
                     else:
@@ -254,10 +276,9 @@ class IPOPT(Optimizer):
 
             timeA = time.time()
 
-            nlp = cyipopt.Problem(
+            nlp = CyIPOPTProblem(
                 n=len(xs),
                 m=ncon,
-                problem_obj=CyIPOPTProblem(),
                 lb=blx,
                 ub=bux,
                 cl=blc,
