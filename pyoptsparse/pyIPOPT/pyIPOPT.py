@@ -276,9 +276,12 @@ class IPOPT(Optimizer):
                             elif saveVar in ["g_violation", "grad_lag_x"]:
                                 iterDict[saveVar] = self_cyipopt.get_current_violations()[saveVar]
                             else:
-                                raise ValueError(f"Received unknown IPOPT save variable {saveVar}. "
-                                                + "Please see 'Save major iteration variables' option in the pyOptSparse "
-                                                + "documentation under 'IPOPT'.")
+                                # IPOPT doesn't handle Python error well, so print an error message and send termination signal to IPOPT
+                                print(f"ERROR: Received unknown IPOPT save variable `{saveVar}`. "
+                                     + "Please see 'save_major_iteration_variables' option in the pyOptSparse "
+                                     + "documentation under 'IPOPT'.")
+                                print("Terminating IPOPT...")
+                                return False
 
                         # Find pyoptsparse call counters for objective and constraints calls at current x.
                         # IPOPT calls objective and constraints separately, so we find two call counters and append iter_dict to both counters.
