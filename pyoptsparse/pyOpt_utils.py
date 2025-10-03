@@ -578,7 +578,7 @@ def _broadcast_to_array(name: str, value: ArrayType, n_values: int, allow_none: 
 
 def import_module(
     module_name: str,
-    path: Sequence[str] = (),
+    path: Union[str, Sequence[str]] = (),
     on_error: Literal["raise", "return"] = "return",
 ) -> Union[types.ModuleType, Exception]:
     """
@@ -588,11 +588,12 @@ def import_module(
     ----------
     module_name : str
         The name of the module.
-    path : Sequence[str]
-        The search path, which will be prepended to ``sys.path``.
+    path : Union[str, Sequence[str]]
+        The search path, which will be prepended to ``sys.path``. May be a string, or a sequence of strings.
     on_error : str
-        Specify behavior on return. If "raise", any exception raised during the import will be raised. If "return", any
-        exception during the import will be returned.
+        Specify behavior when import fails. If "raise", any exception raised during the import will be raised.
+        If "return", any exception during the import will be returned.
+
     Returns
     -------
     Union[types.ModuleType, str]
@@ -600,7 +601,11 @@ def import_module(
         If not importable, the exception is returned.
     """
     if on_error.lower() not in ("raise", "return"):
-        raise ValueError("`on_error` must be 'raise' or 'return'")
+        raise ValueError("`on_error` must be 'raise' or 'return'.")
+
+    if isinstance(path, str):
+        path = [path]
+
     orig_path = sys.path
     if path:
         path = [os.path.abspath(os.path.expandvars(os.path.expanduser(p))) for p in path]

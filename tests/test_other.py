@@ -20,11 +20,11 @@ class TestImportSnoptFromPath(unittest.TestCase):
             if "snopt" in key:
                 sys.modules.pop(key)
         with self.assertRaises(ImportError):
-            module = import_module("snopt", "/a/nonexistent/path", on_error="raise")
+            module = import_module("snopt", ["/a/nonexistent/path"], on_error="raise")
 
     def test_sys_path_unchanged(self):
         path = tuple(sys.path)
-        import_module("snopt", "/some/path")
+        import_module("snopt", ["/some/path"])
         self.assertEqual(tuple(sys.path), path)
 
 
