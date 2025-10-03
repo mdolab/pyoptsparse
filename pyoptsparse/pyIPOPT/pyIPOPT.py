@@ -46,7 +46,7 @@ class IPOPT(Optimizer):
         ):
             ipopt_ver = cyipopt.IPOPT_VERSION
             if ipopt_ver[0] < 3 or ipopt_ver[1] < 14:
-                raise ValueError(
+                raise RuntimeError(
                     f"IPOPT>=3.14 is required to save `g_violation` and `grad_lag_x`, but you have IPOPT v{ipopt_ver[0]}.{ipopt_ver[1]}."
                 )
 
@@ -296,9 +296,8 @@ class IPOPT(Optimizer):
 
                         # Find pyoptsparse call counters for objective and constraints calls at current x.
                         # IPOPT calls objective and constraints separately, so we find two call counters and append iter_dict to both counters.
-                        xuser_vec = self_cyipopt.get_current_iterate()["x"]
-                        call_counter_1 = self.hist._searchCallCounter(xuser_vec)
-                        call_counter_2 = self.hist._searchCallCounter(xuser_vec, last=call_counter_1 - 1)
+                        call_counter_1 = self.hist._searchCallCounter(self.cache["x"])
+                        call_counter_2 = self.hist._searchCallCounter(self.cache["x"], last=call_counter_1 - 1)
 
                         for call_counter in [call_counter_2, call_counter_1]:
                             if call_counter is not None:
