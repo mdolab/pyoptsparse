@@ -9,6 +9,11 @@ from baseclasses.utils import readPickle, writePickle
 import numpy as np
 from parameterized import parameterized
 
+try:
+    import cyipopt
+except ImportError:
+    cyipopt = None
+
 # First party modules
 from pyoptsparse import OPT, History, Optimization
 from pyoptsparse.testing import OptTest
@@ -130,7 +135,14 @@ class TestHS15(OptTest):
     def test_ipopt(self):
         self.optName = "IPOPT"
         self.setup_optProb()
-        store_vars = ["alg_mod", "d_norm", "regularization_size", "ls_trials", "g_violation", "grad_lag_x"]
+        store_vars = ["alg_mod", "d_norm", "regularization_size", "ls_trials"]
+        # check IPOPT version and add more variables to save_major_iteration_variables if IPOPT>=3.14
+        ipopt_314 = False
+        if cyipopt is not None:
+            ipopt_ver = cyipopt.IPOPT_VERSION
+            if ipopt_ver[0] >= 3 and ipopt_ver[1] >= 14:
+                ipopt_314 = True
+                store_vars.extend(["g_violation", "grad_lag_x"])
         optOptions = {"save_major_iteration_variables": store_vars}
         sol = self.optimize(optOptions=optOptions, storeHistory=True)
         # Check Solution
@@ -152,8 +164,9 @@ class TestHS15(OptTest):
             self.assertIn(var, data.keys())
         self.assertEqual(data["feasibility"].shape, (1, 1))
         self.assertEqual(data["optimality"].shape, (1, 1))
-        self.assertEqual(data["g_violation"].shape, (1, 2))
-        self.assertEqual(data["grad_lag_x"].shape, (1, 2))
+        if ipopt_314:
+            self.assertEqual(data["g_violation"].shape, (1, 2))
+            self.assertEqual(data["grad_lag_x"].shape, (1, 2))
 
         # Make sure there is no duplication in objective history
         data = hist.getValues(names=["obj"])

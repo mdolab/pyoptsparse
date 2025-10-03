@@ -39,6 +39,17 @@ class IPOPT(Optimizer):
         if cyipopt is None and raiseError:
             raise ImportError("Could not import cyipopt")
 
+        # IPOPT>=3.14 is required to save g_violation and grad_lag_x. Check IPOPT version.
+        if "save_major_iteration_variables" in options and (
+            "g_violation" in options["save_major_iteration_variables"]
+            or "grad_lag_x" in options["save_major_iteration_variables"]
+        ):
+            ipopt_ver = cyipopt.IPOPT_VERSION
+            if ipopt_ver[0] < 3 or ipopt_ver[1] < 14:
+                raise ValueError(
+                    f"IPOPT>=3.14 is required to save `g_violation` and `grad_lag_x`, but you have IPOPT v{ipopt_ver[0]}.{ipopt_ver[1]}."
+                )
+
         super().__init__(
             name,
             category,
