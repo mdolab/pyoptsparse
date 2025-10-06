@@ -1,19 +1,19 @@
 /* -------------------------------------------------------------------------------
  *
  * NSGA-II (Non-dominated Sorting Genetic Algorithm - II)
- * 
+ *
  *  current version only works with continous design variables treated as reals
- *  no provisions for binary specification or integer/discrete variable handling 
- *		
+ *  no provisions for binary specification or integer/discrete variable handling
+ *
  *  nvar - number of variables
  *  ncon - number of constraints
  *  nobj - number of objectives
- *  f - 
- *  x - 
- *  g - 
- *  nfeval - 
- *  xl - 
- *  xu - 
+ *  f -
+ *  x -
+ *  g -
+ *  nfeval -
+ *  xl -
+ *  xu -
  *  popsize - population size (a multiple of 4)
  *  ngen	- number of generations
  *  pcross_real - probability of crossover of real variable (0.6-1.0)
@@ -26,76 +26,76 @@
  *
  *
  *  Output files
- * 
+ *
  *  - initial_pop.out: contains initial population data
  *  - final_pop.out: contains final population data
  *  - all_pop.out: containts generation population data
  *  - best_pop.out: contains best solutions
  *  - params.out: contains input parameters information
  *  -   .out: contains runtime information
- * 
- * ---------------------------------------------------------------------------- 
- *  
+ *
+ * ----------------------------------------------------------------------------
+ *
  *  References:
  *  -----------
- *  
- *  - Deb K., Agrawal S., Pratap A., and Meyarivan T., A Fast and Elitist 
- *      multi-objective Genetic Algorithm: NSGA-II, IEEE Transactions on 
+ *
+ *  - Deb K., Agrawal S., Pratap A., and Meyarivan T., A Fast and Elitist
+ *      multi-objective Genetic Algorithm: NSGA-II, IEEE Transactions on
  *      Evolutionary Computation (IEEE-TEC), 2002, Vol. 6, No. 2, pp 182-197
- *    
- * ---------------------------------------------------------------------------- 
- *  
+ *
+ * ----------------------------------------------------------------------------
+ *
  *  Usage:
  *  ------
- *  
- *  
- * ---------------------------------------------------------------------------- 
- * 
+ *
+ *
+ * ----------------------------------------------------------------------------
+ *
  *  Copyrights:
  *  -----------
- * 
+ *
  *  - Original NSGA-II implementation: (C) Dr. Kalyanmoy Deb 2005
- *  - Randon Number Generator: (C) Dr. David E. Goldberg 1986 
- *  
- * ----------------------------------------------------------------------------*/ 
+ *  - Randon Number Generator: (C) Dr. David E. Goldberg 1986
+ *
+ * ----------------------------------------------------------------------------*/
 
 
 /* -------------------------------------------------------------------------------
- * includefiles                                                        
+ * includefiles
  * ---------------------------------------------------------------------------- */
 # include "nsga2.h"
 
 
 /* -------------------------------------------------------------------------------
- * NSGA2                                                       
+ * NSGA2
  * ---------------------------------------------------------------------------- */
 int nsga2(int nvar, int ncon, int nobj, double f[], double x[], double g[],
-    int nfeval, double xl[], double xu[],	int popsize, int ngen, 
-    double pcross_real, double pmut_real, double eta_c, double eta_m, 
+    int nfeval, double xl[], double xu[],	int popsize, int ngen,
+    double pcross_real, double pmut_real, double eta_c, double eta_m,
     double pcross_bin, double pmut_bin, int printout, double seed, int xinit)
 {
 	/* declaration of local variables and structures */
     int i, j;
-    int nreal, nbin, *nbits, bitlength; 
+    int nreal, nbin, *nbits, bitlength;
     double *min_realvar, *max_realvar;
 	double *min_binvar, *max_binvar;
 	int *nbinmut, *nrealmut, *nbincross, *nrealcross;
-    
+
     Global global;
-    
+
     population *parent_pop;
     population *child_pop;
     population *mixed_pop;
-    
+
     // "random" numbers seed
-    if (seed==0) 
-    {  
+    if (seed==0)
+    {
         // use of clock to generate "random" seed
         time_t seconds;
         seconds=time(NULL);
         seed=seconds;
     }
-    
+
     // Files
 	FILE *fpt1;
 	FILE *fpt2;
@@ -124,14 +124,14 @@ int nsga2(int nvar, int ncon, int nobj, double f[], double x[], double g[],
 		fprintf(fpt5,"# This file contains information about inputs as read by the program\n");
 		fprintf(fpt6,"# This file contains runtime information\n");
 	}
-    
+
 	// Input Handling
 	nreal = nvar;	// number of real variables
 	nbin = 0;  	    // number of binary variables
-	
+
     min_realvar = (double *)malloc(nreal*sizeof(double));
     max_realvar = (double *)malloc(nreal*sizeof(double));
-    
+
     j = 0;
     for (i=0; i<nvar; i++)
     {
@@ -139,14 +139,14 @@ int nsga2(int nvar, int ncon, int nobj, double f[], double x[], double g[],
         max_realvar[j] = xu[i];
         j += 1;
 	}
-	
+
 	if (nbin != 0)
 	{
         nbits = (int *)malloc(nbin*sizeof(int));
         min_binvar = (double *)malloc(nbin*sizeof(double));
         max_binvar = (double *)malloc(nbin*sizeof(double));
     }
-    
+
     bitlength = 0;
     if (nbin!=0)
     {
@@ -155,7 +155,7 @@ int nsga2(int nvar, int ncon, int nobj, double f[], double x[], double g[],
             bitlength += nbits[i];
         }
     }
-    
+
     // Performing Initialization
     if (printout >= 1)
     {
@@ -190,7 +190,7 @@ int nsga2(int nvar, int ncon, int nobj, double f[], double x[], double g[],
 			fprintf(fpt5,"\n Probability of mutation of binary variable = %e",pmut_bin);
 		}
 		fprintf(fpt5,"\n Seed for random number generator = %e",seed);
-		
+
 		fprintf(fpt1,"# of objectives = %d, # of constraints = %d, # of real_var = %d, # of bits of bin_var = %d, constr_violation, rank, crowding_distance\n",nobj,ncon,nreal,bitlength);
 		fprintf(fpt2,"# of objectives = %d, # of constraints = %d, # of real_var = %d, # of bits of bin_var = %d, constr_violation, rank, crowding_distance\n",nobj,ncon,nreal,bitlength);
 		fprintf(fpt3,"# of objectives = %d, # of constraints = %d, # of real_var = %d, # of bits of bin_var = %d, constr_violation, rank, crowding_distance\n",nobj,ncon,nreal,bitlength);
@@ -199,8 +199,8 @@ int nsga2(int nvar, int ncon, int nobj, double f[], double x[], double g[],
 			fprintf(fpt4,"# of objectives = %d, # of constraints = %d, # of real_var = %d, # of bits of bin_var = %d, constr_violation, rank, crowding_distance\n",nobj,ncon,nreal,bitlength);
 		}
     }
-    
-    // 
+
+    //
     global.nreal = nreal;
     global.nbin = nbin;
     global.nobj = nobj;
@@ -218,8 +218,8 @@ int nsga2(int nvar, int ncon, int nobj, double f[], double x[], double g[],
     global.max_realvar = max_realvar;
     global.min_binvar = min_binvar;
     global.max_binvar = max_binvar;
-    global.bitlength = bitlength;  
-    
+    global.bitlength = bitlength;
+
     //
     nbinmut = 0;
     nrealmut = 0;
@@ -233,8 +233,8 @@ int nsga2(int nvar, int ncon, int nobj, double f[], double x[], double g[],
     allocate_memory_pop (mixed_pop, 2*popsize, global);
     randomize();
     initialize_pop (parent_pop, global);
-    
-	// 
+
+	//
     if (xinit!=0)
     {
       i=0;
@@ -243,7 +243,7 @@ int nsga2(int nvar, int ncon, int nobj, double f[], double x[], double g[],
           parent_pop->ind[i].xreal[j] = x[j];
       }
     }
-    
+
     // First Generation
     if (printout >= 1)
     {
@@ -260,9 +260,9 @@ int nsga2(int nvar, int ncon, int nobj, double f[], double x[], double g[],
 			fprintf(fpt4,"# gen = 1\n");
 			report_pop(parent_pop,fpt4, global);
 		}
-		
+
 		fprintf(fpt6,"\n gen = 1");
-		
+
 		fflush(fpt1);
 		fflush(fpt2);
 		fflush(fpt3);
@@ -274,7 +274,7 @@ int nsga2(int nvar, int ncon, int nobj, double f[], double x[], double g[],
 		fflush(fpt6);
 	}
     fflush(stdout);
-    
+
     // Iterate Generations
     for (i=2; i<=ngen; i++)
     {
@@ -284,7 +284,7 @@ int nsga2(int nvar, int ncon, int nobj, double f[], double x[], double g[],
         evaluate_pop(child_pop, global);
         merge (parent_pop, child_pop, mixed_pop, global);
         fill_nondominated_sort (mixed_pop, parent_pop, global);
-        
+
         /* Comment following three lines if information for all
         generations is not desired, it will speed up the execution */
         if (printout >= 1)
@@ -299,14 +299,14 @@ int nsga2(int nvar, int ncon, int nobj, double f[], double x[], double g[],
 			fflush(fpt6);
 		}
     }
-    
+
     // Output
 	if (printout >= 1)
 	{
 		fprintf(fpt6,"\n Generations finished");
 		report_pop(parent_pop,fpt2, global);
 		report_feasible(parent_pop,fpt3, global);
-		
+
 		if (nreal!=0)
 		{
 			fprintf(fpt5,"\n Number of crossover of real variable = %i",nrealcross);
@@ -335,10 +335,10 @@ int nsga2(int nvar, int ncon, int nobj, double f[], double x[], double g[],
 			fclose(fpt4);
 		}
 		fclose(fpt5);
-			
+
 	}
-	
-	// 
+
+	//
     for (i=0; i<popsize; i++)
     {
 		if (parent_pop->ind[i].constr_violation == 0.0 && parent_pop->ind[i].rank==1)
@@ -364,8 +364,8 @@ int nsga2(int nvar, int ncon, int nobj, double f[], double x[], double g[],
 			break;
 		}
 	}
-	
-	// 
+
+	//
     if (nreal!=0)
     {
         free (min_realvar);
@@ -383,14 +383,14 @@ int nsga2(int nvar, int ncon, int nobj, double f[], double x[], double g[],
     free (parent_pop);
     free (child_pop);
     free (mixed_pop);
-    
-	// 
+
+	//
 	if (printout >= 1)
 	{
 		fprintf(fpt6,"\n Routine successfully exited \n");
 		fflush(fpt6);
 		fclose(fpt6);
 	}
-    
+
     return (0);
 }

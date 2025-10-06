@@ -245,7 +245,7 @@ class OptTest(unittest.TestCase):
             if self.optName in DEFAULT_OPTIMIZERS:
                 raise e
             else:
-                raise unittest.SkipTest(f"Optimizer not available: {self.optName}")
+                raise unittest.SkipTest(f"Optimizer not available: {self.optName}") from e
 
         if isinstance(setDV, str):
             self.optProb.setDVsFromHistory(setDV)

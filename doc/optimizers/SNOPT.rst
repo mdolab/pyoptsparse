@@ -16,7 +16,7 @@ Installation
 
 Building from source
 ********************
-SNOPT is available for purchase `here 
+SNOPT is available for purchase `here
 <http://www.sbsi-sol-optimize.com/asp/sol_snopt.htm>`_. Upon purchase, you should receive a zip file. Within the zip file, there is a folder called ``src``. To use SNOPT with pyoptsparse, paste all files from ``src`` except snopth.f into ``pyoptsparse/pySNOPT/source``.
 
 From v2.0 onwards, only SNOPT v7.7.x is officially supported.
@@ -65,4 +65,3 @@ API
 
 .. autoclass:: SNOPT
    :members: __call__
-

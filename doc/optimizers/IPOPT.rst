@@ -34,4 +34,3 @@ API
 
 .. autoclass:: IPOPT
    :members: __call__
-

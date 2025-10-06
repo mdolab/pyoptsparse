@@ -1,8 +1,8 @@
 !    -*- f90 -*-
 ! Note: the context of this file is case sensitive.
 
-python module slsqp__user__routines 
-    interface slsqp_user_interface 
+python module slsqp__user__routines
+    interface slsqp_user_interface
         subroutine slfunc(m,meq,la,n,f,c,x)
             integer intent(in) :: m
             integer intent(in) :: meq
@@ -25,7 +25,7 @@ python module slsqp__user__routines
         end subroutine slgrad
     end interface slsqp_user_interface
 end python module slsqp__user__routines
-python module slsqp ! in 
+python module slsqp ! in
     interface  ! in :slsqp
         subroutine slsqp(m,meq,la,n,x,xl,xu,f,c,g,a,acc,iter,iprint,iout,ifile,mode,w,l_w,jw,l_jw,nfunc,ngrad,slfunc,slgrad) ! in :slsqp:source/slsqp.f
             use slsqp__user__routines
@@ -68,5 +68,5 @@ python module slsqp ! in
         subroutine closeunit(unitnum) ! in :slsqp:source/closeunit.f
             integer intent(in) :: unitnum
         end subroutine closeunit
-    end interface 
+    end interface
 end python module slsqp

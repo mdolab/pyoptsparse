@@ -210,7 +210,7 @@ Linear constraints in pyOptSparse are defined exclusively by ``jac``, ``lower``,
 For linear constraint :math:`g_L \leq Ax + b \leq g_U`, the constraint definition would look like:
 
 .. code-block:: python
-  
+
   optProb.addConGroup("con", num_cons, linear=True, wrt=["xvars"], jac={"xvars": A}, lower=gL - b, upper=gU - b)
 
 Users should not provide the linear constraint values (i.e., :math:`g = Ax + b`) in a user-defined objective/constraint function.

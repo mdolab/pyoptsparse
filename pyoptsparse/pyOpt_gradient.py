@@ -59,7 +59,7 @@ class Gradient:
             self.mydvs = list(range(ndvs))
 
     def _eval_func(self, x: ndarray) -> Tuple[ndarray, ndarray, bool]:
-        """internal method to call function and extract obj, con"""
+        """Internal method to call function and extract obj, con"""
 
         xCall = self.optProb.processXtoDict(x)
         # Call objective

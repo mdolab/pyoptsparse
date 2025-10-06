@@ -175,7 +175,7 @@ class TestHS15(OptTest):
 
     @staticmethod
     def my_snstop(iterDict):
-        """manually terminate SNOPT after 1 major iteration"""
+        """Manually terminate SNOPT after 1 major iteration"""
         if iterDict["nMajor"] == 1:
             return 1
         return 0

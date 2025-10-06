@@ -11,7 +11,7 @@ Cf2py intent(in) filestatus
 Cf2py intent(in) fileaction
       integer ierror
 Cf2py intent(out) ierror
-      
+
       open(unit=unitnum,file=filename,status=filestatus,
      >     access=fileaction,iostat=ierror)
 
@@ -20,9 +20,9 @@ Cf2py intent(out) ierror
 
 C Helper routine to flush buffers to files
       subroutine pyflush(unitnum)
-      
+
       integer unitnum
-      
+
       call flush(unitnum)
 
       return

@@ -221,7 +221,7 @@ python module snoptc__user__routines
         end subroutine sqlog
     end interface snoptc_user_interface
 end python module snoptc__user__routines
-python module snopt ! in 
+python module snopt ! in
     interface  ! in :snopt
         subroutine openunit(unitnum,filename,filestatus,fileaction,ierror) ! in :snopt:openunit.f
             integer intent(in) :: unitnum
@@ -266,7 +266,7 @@ python module snopt ! in
             integer :: negcon
             integer :: nncon
             integer :: nnjac
-            integer :: nnobj 
+            integer :: nnobj
             integer intent(out) :: mincw
             integer intent(out) :: miniw
             integer intent(out) :: minrw
@@ -328,7 +328,7 @@ python module snopt ! in
         end subroutine sngetc
         subroutine sngeti(buffer,ivalue,inform,cw,lencw,iw,leniw,rw,lenrw) ! in :snopt:sn02lib.f
             character*(*) :: buffer
-            integer intent(out) :: ivalue 
+            integer intent(out) :: ivalue
             integer :: inform
             character*8 intent(in,out), dimension(lencw) :: cw
             integer optional,check(len(cw)==lencw),depend(cw) :: lencw=len(cw)
@@ -357,7 +357,7 @@ python module snopt ! in
             integer optional,check(len(pi)>=m),depend(pi) :: m=len(pi)
             integer optional,check((len(locj)-1)>=n),depend(locj) :: n=(len(locj)-1)
             integer optional,check(len(jcol)>=ne),depend(jcol) :: ne=len(jcol)
-            integer :: nncon 
+            integer :: nncon
             integer :: nnobj
             integer :: nnjac
             integer :: iobj
@@ -374,7 +374,7 @@ python module snopt ! in
             integer intent(inout), dimension(n+m),depend(m,n) :: hs
             double precision intent(inout), dimension(n+m),depend(m,n) :: x
             double precision intent(inout), dimension(m) :: pi
-            double precision intent(inout), dimension(n+m),depend(m,n) :: rc 
+            double precision intent(inout), dimension(n+m),depend(m,n) :: rc
             integer intent(inout) :: inform
             integer intent(inout) :: mincw
             integer intent(inout) :: miniw
@@ -569,7 +569,7 @@ python module snopt ! in
             integer dimension(leniw) :: iw
             integer, optional,check(len(iw)>=leniw),depend(iw) :: leniw=len(iw)
         end subroutine sqlog
-    end interface 
+    end interface
 end python module snopt
 
 ! This file was auto-generated with f2py (version:2.37.233-1545).
