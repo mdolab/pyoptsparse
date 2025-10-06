@@ -30,8 +30,8 @@ class CONMIN(Optimizer):
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
-        if isinstance(conmin, str) and raiseError:
-            raise ImportError(conmin)
+        if isinstance(conmin, Exception) and raiseError:
+            raise conmin
 
         self.set_options = []
         super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
