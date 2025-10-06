@@ -10,6 +10,7 @@ import numpy as np
 from parameterized import parameterized
 
 try:
+    # External modules
     import cyipopt
 except ImportError:
     cyipopt = None
