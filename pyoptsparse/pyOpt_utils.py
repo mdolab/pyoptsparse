@@ -8,8 +8,8 @@ We use a very simple dictionary format to represent the three most common forms 
     mat = {"csr": [rowp, colind, data], "shape": [nrow, ncols]}  # A csr matrix
     mat = {"csc": [colp, rowind, data], "shape": [nrow, ncols]}  # A csc matrix
 """
-
 # Standard Python modules
+import contextlib
 import importlib
 import os
 import sys
@@ -576,6 +576,20 @@ def _broadcast_to_array(name: str, value: ArrayType, n_values: int, allow_none: 
     return value
 
 
+@contextlib.contextmanager
+def _prepend_path(path: Union[str, Sequence[str]]):
+    """Context manager which temporarily prepends to `sys.path`."""
+    if isinstance(path, str):
+        path = [path]
+    orig_path = sys.path
+    if path:
+        path = [os.path.abspath(os.path.expandvars(os.path.expanduser(p))) for p in path]
+        sys.path = path + sys.path
+    yield
+    sys.path = orig_path
+    return
+
+
 def import_module(
     module_name: str,
     path: Union[str, Sequence[str]] = (),
@@ -603,20 +617,12 @@ def import_module(
     if on_error.lower() not in ("raise", "return"):
         raise ValueError("`on_error` must be 'raise' or 'return'.")
 
-    if isinstance(path, str):
-        path = [path]
-
-    orig_path = sys.path
-    if path:
-        path = [os.path.abspath(os.path.expandvars(os.path.expanduser(p))) for p in path]
-        sys.path = path + sys.path
-    try:
-        module = importlib.import_module(module_name)
-    except ImportError as e:
-        if on_error.lower() == "raise":
-            raise e
-        else:
-            module = e
-    finally:
-        sys.path = orig_path
+    with _prepend_path(path):
+        try:
+            module = importlib.import_module(module_name)
+        except ImportError as e:
+            if on_error.lower() == "raise":
+                raise e
+            else:
+                module = e
     return module
