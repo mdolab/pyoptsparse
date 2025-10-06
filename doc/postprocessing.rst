@@ -26,7 +26,7 @@ Requirements
       \-axisartist (OptView)
     numpy (OptView)
 
-For installation instructions, see :ref:`install_optview`.  
+For installation instructions, see :ref:`install_optview`.
 Although not necessary for most usage, the ``dill`` package is needed if you wish to save an editable version of the graph produced in ``OptView``.
 ``dill`` can be installed via ``pip`` in a terminal using
 

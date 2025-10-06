@@ -542,7 +542,7 @@ class History:
         --------
         First we can request DV history over all major iterations:
 
-        >>> hist.getValues(names='xvars', major=True)
+        >>> hist.getValues(names="xvars", major=True)
         {'xvars': array([[-2.00000000e+00,  1.00000000e+00],
             [-1.00000000e+00,  9.00000000e-01],
             [-5.00305827e-17,  4.21052632e-01],
@@ -554,7 +554,7 @@ class History:
 
         Next we can look at DV and optimality for the first and last iteration only:
 
-        >>> hist.getValues(names=['xvars','optimality'],callCounters=[0,'last'])
+        >>> hist.getValues(names=["xvars", "optimality"], callCounters=[0, "last"])
         {'optimality': array([1.27895528, 0. ]),
         'xvars': array([[-2. , 1. ],
                         [ 0.5, 2. ]])}

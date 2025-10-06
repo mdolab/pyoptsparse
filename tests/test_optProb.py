@@ -203,7 +203,7 @@ class TestOptProb(unittest.TestCase):
         }
 
         def processValue(key, val, output):
-            """helper function since some functions have optional arguments that are needed"""
+            """Helper function since some functions have optional arguments that are needed"""
             if key == "Con":
                 return process_funcs[key][output](val, scaled=False, natural=True)
             elif key == "Obj":
