@@ -5,6 +5,7 @@ try:
     # External modules
     from paropt.paropt_pyoptsparse import ParOptSparse as ParOpt
 except ImportError as e:
+
     def make_cls(e):
         class ParOpt(Optimizer):
             def __init__(self, raiseError=True, options={}):
@@ -21,5 +22,7 @@ except ImportError as e:
                 )
                 if raiseError:
                     raise e
+
         return ParOpt
+
     ParOpt = make_cls(e)
