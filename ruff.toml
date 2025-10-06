@@ -1,0 +1,8 @@
+extend = "~/.config/ruff/ruff.toml"
+extend-exclude =[
+    # OptView and related files need to be fixed eventually
+    "pyoptsparse/postprocessing/OptView.py",
+    "pyoptsparse/postprocessing/OptView_baseclass.py",
+    "pyoptsparse/postprocessing/OptView_dash.py",
+    "pyoptsparse/postprocessing/view_saved_figure.py",
+]

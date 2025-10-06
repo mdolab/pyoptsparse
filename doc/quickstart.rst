@@ -27,15 +27,15 @@ For the TP37, the objective function is a simple analytic function:
 
 Notes:
 
-*   The ``xdict`` variable is a dictionary whose keys are the names from each 
-    :meth:`~pyoptsparse.pyOpt_optimization.Optimization.addVar` and 
+*   The ``xdict`` variable is a dictionary whose keys are the names from each
+    :meth:`~pyoptsparse.pyOpt_optimization.Optimization.addVar` and
     :meth:`~pyoptsparse.pyOpt_optimization.Optimization.addVarGroup` call. The line
 
     .. code-block:: python
 
         x = xdict["xvars"]
 
-    retrieves an array of length 3 which are all the variables for this optimization. 
+    retrieves an array of length 3 which are all the variables for this optimization.
 
 *   The line
 
@@ -62,7 +62,7 @@ Now the optimization problem can be initialized:
     :end-before: # rst begin addVar
 
 This creates an instance of the optimization class with a name and a reference to the objective function.
-To complete the setup of the optimization problem, the design variables and constraints need to be defined. 
+To complete the setup of the optimization problem, the design variables and constraints need to be defined.
 
 Design variables and constraints can be added either one-by-one or as a group.
 Adding variables by group is generally recommended for related variables:
@@ -84,7 +84,7 @@ It is recommended that related constraints are added by group where possible:
     :end-before: # rst begin addObj
 
 This call adds two variables with name ``con``.
-There is no lower bound for the variables and the upper bound is 0.0. 
+There is no lower bound for the variables and the upper bound is 0.0.
 
 We must also assign the the key value for the objective using the
 :meth:`~pyoptsparse.pyOpt_optimization.Optimization.addObj` call:
@@ -112,9 +112,9 @@ which produces the following table::
 
       Variables (c - continuous, i - integer, d - discrete)
          Index  Name      Type      Lower Bound            Value      Upper Bound     Status
-            0  xvars_0      c     0.000000E+00     1.000000E+01     4.200000E+01           
-            1  xvars_1      c     0.000000E+00     1.000000E+01     4.200000E+01           
-            2  xvars_2      c     0.000000E+00     1.000000E+01     4.200000E+01           
+            0  xvars_0      c     0.000000E+00     1.000000E+01     4.200000E+01
+            1  xvars_1      c     0.000000E+00     1.000000E+01     4.200000E+01
+            2  xvars_2      c     0.000000E+00     1.000000E+01     4.200000E+01
 
       Constraints (i - inequality, e - equality)
          Index  Name Type          Lower           Value           Upper    Status  Lagrange Multiplier (N/A)
@@ -152,7 +152,7 @@ which produces the following output::
    ================================================================================
       Objective Function: objfunc
 
-      Solution: 
+      Solution:
    --------------------------------------------------------------------------------
       Total Time:                    0.0062
          User Objective Time :       0.0001
@@ -169,9 +169,9 @@ which produces the following output::
 
       Variables (c - continuous, i - integer, d - discrete)
          Index  Name      Type      Lower Bound            Value      Upper Bound     Status
-            0  xvars_0      c     0.000000E+00     2.399997E+01     4.200000E+01           
-            1  xvars_1      c     0.000000E+00     1.200001E+01     4.200000E+01           
-            2  xvars_2      c     0.000000E+00     1.200000E+01     4.200000E+01           
+            0  xvars_0      c     0.000000E+00     2.399997E+01     4.200000E+01
+            1  xvars_1      c     0.000000E+00     1.200001E+01     4.200000E+01
+            2  xvars_2      c     0.000000E+00     1.200000E+01     4.200000E+01
 
       Constraints (i - inequality, e - equality)
          Index  Name Type          Lower           Value           Upper    Status  Lagrange Multiplier (N/A)

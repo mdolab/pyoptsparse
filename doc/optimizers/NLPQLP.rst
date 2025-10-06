@@ -32,4 +32,3 @@ API
 
 .. autoclass:: NLPQLP
    :members: __call__
-
