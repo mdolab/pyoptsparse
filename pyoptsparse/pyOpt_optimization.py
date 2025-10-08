@@ -2,8 +2,8 @@
 from collections import OrderedDict
 import copy
 import os
-import warnings
 from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
+import warnings
 
 # External modules
 import numpy as np
