@@ -8,6 +8,7 @@ We use a very simple dictionary format to represent the three most common forms 
     mat = {"csr": [rowp, colind, data], "shape": [nrow, ncols]}  # A csr matrix
     mat = {"csc": [colp, rowind, data], "shape": [nrow, ncols]}  # A csc matrix
 """
+
 # Standard Python modules
 import contextlib
 import importlib
