@@ -79,4 +79,3 @@ install_subdir('pyoptsparse',
 
 # install non-python sources
 subdir('pyoptsparse')
-
