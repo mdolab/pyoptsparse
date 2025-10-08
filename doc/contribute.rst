@@ -10,29 +10,24 @@ If you are comfortable fixing the issue, please do so and submit a pull request.
 
 Coding style
 ------------
-We use `black <https://github.com/psf/black>`_ for formatting.
-Please install it following its documentation, and run it with the command line argument ``-l 120``, for example at the project root directory:
+We use `ruff <https://github.com/astral-sh/ruff>`_ and `pre-commit <https://github.com/pre-commit/pre-commit/>`_ for linting and formatting.
+Please find the instructions in `this page <https://mdolab-mach-aero.readthedocs-hosted.com/en/latest/machFramework/contribute.html#coding-style>`_.
+
+Additionally, we use `isort <https://github.com/PyCQA/isort>`_ for import sorting.
+Please install it by
 
 .. prompt:: bash
 
-    black . -l 120
+    pip install isort
 
-This will automatically format all Python files.
-
-We use `flake8 <https://flake8.pycqa.org/en/latest/>`_ for linting.
-Please install it following its instructions, and run it at the project root with:
+and fix the sorting of all files by running:
 
 .. prompt:: bash
 
-    flake8 .
-
-The configuration file we use for flake8 is a combination of `this file <https://github.com/mdolab/.github/blob/master/.flake8>`__ and the one at the root of this repository.
-If there are any PEP-8 violations, ``flake8`` will print out the nature of the violation.
-We run continuous integration with these tools on all pull requests submitted.
-For an easier workflow, we recommend integrating these tools with your code editor.
+    isort .
 
 .. warning::
-    For a PR to be accepted, it must pass all GitHub checks, which include both formatting checks with ``black`` and syntax checks with ``flake8``.
+    For a PR to be accepted, it must pass all GitHub checks, which include formatting and syntax checks with ``ruff`` and ``pre-commit`` and import sorting checks with ``isort``.
 
 Documentation
 -------------
