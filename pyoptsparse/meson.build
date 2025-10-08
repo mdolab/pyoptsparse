@@ -58,4 +58,3 @@ subdir('pyCONMIN')
 subdir('pyNLPQLP')
 subdir('pyNSGA2')
 subdir('pyPSQP')
-
