@@ -13,11 +13,11 @@ import numpy as np
 
 # Local modules
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_utils import try_import_compiled_module_from_path
+from ..pyOpt_utils import import_module
 
 # import the compiled module
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-nsga2 = try_import_compiled_module_from_path("nsga2", THIS_DIR, raise_warning=True)
+nsga2 = import_module("nsga2", [THIS_DIR])
 
 
 class NSGA2(Optimizer):
@@ -32,8 +32,8 @@ class NSGA2(Optimizer):
         informs = self._getInforms()
         super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
 
-        if isinstance(nsga2, str) and raiseError:
-            raise ImportError(nsga2)
+        if isinstance(nsga2, Exception) and raiseError:
+            raise nsga2
 
         if self.getOption("PopSize") % 4 != 0:
             raise ValueError("Option 'PopSize' must be a multiple of 4")

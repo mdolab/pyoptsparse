@@ -13,11 +13,11 @@ import numpy as np
 
 # Local modules
 from ..pyOpt_optimizer import Optimizer
-from ..pyOpt_utils import try_import_compiled_module_from_path
+from ..pyOpt_utils import import_module
 
 # import the compiled module
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-conmin = try_import_compiled_module_from_path("conmin", THIS_DIR, raise_warning=True)
+conmin = import_module("conmin", [THIS_DIR])
 
 
 class CONMIN(Optimizer):
@@ -30,8 +30,8 @@ class CONMIN(Optimizer):
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
-        if isinstance(conmin, str) and raiseError:
-            raise ImportError(conmin)
+        if isinstance(conmin, Exception) and raiseError:
+            raise conmin
 
         self.set_options = []
         super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)

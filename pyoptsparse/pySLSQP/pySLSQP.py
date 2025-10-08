@@ -15,11 +15,11 @@ import numpy as np
 from ..pyOpt_error import pyOptSparseWarning
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_solution import SolutionInform
-from ..pyOpt_utils import try_import_compiled_module_from_path
+from ..pyOpt_utils import import_module
 
 # import the compiled module
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-slsqp = try_import_compiled_module_from_path("slsqp", THIS_DIR, raise_warning=True)
+slsqp = import_module("slsqp", [THIS_DIR])
 
 
 class SLSQP(Optimizer):
@@ -32,8 +32,8 @@ class SLSQP(Optimizer):
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
-        if isinstance(slsqp, str) and raiseError:
-            raise ImportError(slsqp)
+        if isinstance(slsqp, Exception) and raiseError:
+            raise slsqp
 
         self.set_options = []
         super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)

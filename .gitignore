@@ -28,3 +28,5 @@ pyoptsparse/pyNLPQLP/source
 *.pdb
 
 *.pyd
+
+.DS_Store
