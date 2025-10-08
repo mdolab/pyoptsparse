@@ -407,9 +407,9 @@ class Optimization:
                 jac = {"dvName" : A, ...}, lower = gL - b, upper = gU - b
 
         wrt : iterable (list, set, OrderedDict, array etc), optional
-            'wrt' stand for stands for 'With Respect To'. This specifies which dvs this constrain is assumed to depend
-            on, and therefore which blocks of the Jacobian will have non-zero values. The order is not important. By
-            default the constraint is assumed to depend on all design variables.
+            'wrt' stands for 'With Respect To'. This specifies which dvs this constrain is assumed to depend on, and
+            therefore which blocks of the Jacobian will have non-zero values. The order is not important. By default the
+            constraint is assumed to depend on all design variables.
 
         jac : dictionary, optional
             For linear and sparse non-linear constraints, the constraint
