@@ -14,11 +14,11 @@ import numpy as np
 # Local modules
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_solution import SolutionInform
-from ..pyOpt_utils import try_import_compiled_module_from_path
+from ..pyOpt_utils import import_module
 
 # import the compiled module
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-nlpqlp = try_import_compiled_module_from_path("nlpqlp", THIS_DIR)
+nlpqlp = import_module("nlpqlp", [THIS_DIR])
 
 
 class NLPQLP(Optimizer):
@@ -31,8 +31,8 @@ class NLPQLP(Optimizer):
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
-        if isinstance(nlpqlp, str) and raiseError:
-            raise ImportError(nlpqlp)
+        if isinstance(nlpqlp, Exception) and raiseError:
+            raise nlpqlp
 
         super().__init__(name, category, defaultOptions=defOpts, informs=informs, options=options)
         # NLPQLP needs Jacobians in dense format

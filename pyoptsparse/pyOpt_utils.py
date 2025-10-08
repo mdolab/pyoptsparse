@@ -10,11 +10,12 @@ We use a very simple dictionary format to represent the three most common forms 
 """
 
 # Standard Python modules
+import contextlib
 import importlib
 import os
 import sys
 import types
-from typing import Optional, Tuple, Union
+from typing import Literal, Sequence, Tuple, Union
 import warnings
 
 # External modules
@@ -361,9 +362,9 @@ def convertToCSC(mat: Union[dict, spmatrix, ndarray]) -> dict:
 
 def convertToDense(mat: Union[dict, spmatrix, ndarray]) -> ndarray:
     """
-    Take a pyopsparse sparse matrix definition and convert back to a dense
+    Take a pyoptsparse sparse matrix definition and convert back to a dense
     format. This is typically the final step for optimizers with dense constraint
-    jacibians.
+    jacobians.
 
     Parameters
     ----------
@@ -576,40 +577,53 @@ def _broadcast_to_array(name: str, value: ArrayType, n_values: int, allow_none: 
     return value
 
 
-def try_import_compiled_module_from_path(
-    module_name: str, path: Optional[str] = None, raise_warning: bool = False
-) -> Union[types.ModuleType, str]:
+@contextlib.contextmanager
+def _prepend_path(path: Union[str, Sequence[str]]):
+    """Context manager which temporarily prepends to `sys.path`."""
+    if isinstance(path, str):
+        path = [path]
+    orig_path = sys.path
+    if path:
+        path = [os.path.abspath(os.path.expandvars(os.path.expanduser(p))) for p in path]
+        sys.path = path + sys.path
+    yield
+    sys.path = orig_path
+    return
+
+
+def import_module(
+    module_name: str,
+    path: Union[str, Sequence[str]] = (),
+    on_error: Literal["raise", "return"] = "return",
+) -> Union[types.ModuleType, Exception]:
     """
     Attempt to import a module from a given path.
 
     Parameters
     ----------
     module_name : str
-        The name of the module
-    path : Optional[str]
-        The path to import from. If None, the default ``sys.path`` is used.
-    raise_warning : bool
-        If true, raise an import warning. By default false.
+        The name of the module.
+    path : Union[str, Sequence[str]]
+        The search path, which will be prepended to ``sys.path``. May be a string, or a sequence of strings.
+    on_error : str
+        Specify behavior when import fails. If "raise", any exception raised during the import will be raised.
+        If "return", any exception during the import will be returned.
 
     Returns
     -------
     Union[types.ModuleType, str]
         If importable, the imported module is returned.
-        If not importable, the error message is instead returned.
+        If not importable, the exception is returned.
     """
-    orig_path = sys.path
-    if path is not None:
-        path = os.path.abspath(os.path.expandvars(os.path.expanduser(path)))
-        sys.path = [path]
-    try:
-        module = importlib.import_module(module_name)
-    except ImportError as e:
-        if raise_warning:
-            warnings.warn(
-                f"{module_name} module could not be imported from {path}.",
-                stacklevel=2,
-            )
-        module = str(e)
-    finally:
-        sys.path = orig_path
+    if on_error.lower() not in ("raise", "return"):
+        raise ValueError("`on_error` must be 'raise' or 'return'.")
+
+    with _prepend_path(path):
+        try:
+            module = importlib.import_module(module_name)
+        except ImportError as e:
+            if on_error.lower() == "raise":
+                raise e
+            else:
+                module = e
     return module
