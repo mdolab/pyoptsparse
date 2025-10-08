@@ -2,6 +2,7 @@
 from collections import OrderedDict
 import copy
 import os
+import warnings
 from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 # External modules
@@ -368,8 +369,10 @@ class Optimization:
         wrt: Optional[Union[str, Iterable[str]]] = None,
         jac=None,
     ):
-        r"""Add a group of variables into a variable set. This is the main
-        function used for adding variables to pyOptSparse.
+        r"""Add a group of constraints into the constraint set. This is the main function used for adding constraints to
+        pyOptSparse.
+
+        To define equality constraints, set both the lower and upper bounds to the same value.
 
         Parameters
         ----------
@@ -379,27 +382,20 @@ class Optimization:
         nCon : int
             The number of constraints in this group
 
-        lower : scalar or array
-            The lower bound(s) for the constraint. If it is a scalar,
-            it is applied to all nCon constraints. If it is an array,
-            the array must be the same length as nCon.
+        lower : scalar or array, optional
+            The lower bound(s) for the constraint. If it is a scalar, it is applied to all nCon constraints. If it is an
+            array, the array must be of length nCon. By default no lower bound is applied.
 
-        upper : scalar or array
-            The upper bound(s) for the constraint. If it is a scalar,
-            it is applied to all nCon constraints. If it is an array,
-            the array must be the same length as nCon.
+        upper : scalar or array, optional
+            Identical to ``lower``, but for the upper bound(s).
 
-        scale : scalar or array
+        scale : scalar or array, optional
+            A scaling factor for the constraint. It is generally advisable to have most optimization constraint around
+            the same order of magnitude. By default 1.0.
 
-            A scaling factor for the constraint. It is generally
-            advisable to have most optimization constraint around the
-            same order of magnitude.
-
-        linear : bool
-            Flag to specify if this constraint is linear. If the
-            constraint is linear, both the ``wrt`` and ``jac`` keyword
-            arguments must be given to specify the constant portion of
-            the constraint Jacobian.
+        linear : bool, optional
+            Flag to specify if this constraint is linear. If the constraint is linear, both the ``wrt`` and ``jac``
+            keyword arguments must be given to specify the constant portion of the constraint Jacobian. By default False.
 
             The intercept term of linear constraints must be supplied as
             part of the bound information. The linear constraint :math:`g_L \leq Ax + b \leq g_U`
@@ -410,12 +406,12 @@ class Optimization:
 
                 jac = {"dvName" : A, ...}, lower = gL - b, upper = gU - b
 
-        wrt : iterable (list, set, OrderedDict, array etc)
-            'wrt' stand for stands for 'With Respect To'. This
-            specifies for what dvs have non-zero Jacobian values
-            for this set of constraints. The order is not important.
+        wrt : iterable (list, set, OrderedDict, array etc), optional
+            'wrt' stand for stands for 'With Respect To'. This specifies which dvs this constrain is assumed to depend
+            on, and therefore which blocks of the Jacobian will have non-zero values. The order is not important. By
+            default the constraint is assumed to depend on all design variables.
 
-        jac : dictionary
+        jac : dictionary, optional
             For linear and sparse non-linear constraints, the constraint
             Jacobian must be passed in. The structure of jac dictionary
             is as follows:
@@ -456,6 +452,11 @@ class Optimization:
             the Jacobian change throughout the optimization. This
             stipulation is automatically checked internally.
         """
+        if lower is None and upper is None:
+            warnings.warn(
+                f"No upper or lower bounds were given for constraint '{name}'. This constraint will have no effect.",
+                stacklevel=2,
+            )
         self.finalized = False
         if name in self.constraints:
             raise KeyError(f"The supplied name '{name}' for a constraint group has already been used.")
