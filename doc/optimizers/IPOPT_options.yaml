@@ -10,3 +10,22 @@ linear_solver:
   desc: The linear solver used.
 sb:
   desc: This is an undocumented option which suppresses the IPOPT header from being printed to screen every time.
+save_major_iteration_variables:
+  desc: |
+    This option is unique to the Python wrapper, and takes a list of values which can be saved at each major iteration to the History file.
+    The possible values are
+
+    - ``alg_mod``: algorithm mode (0 for regular, 1 for restoration)
+    - ``d_norm``: infinity norm of the primal step
+    - ``regularization_size``: regularization term for the Hessian of the Lagrangian
+    - ``ls_trials``: number of backtracking line search iterations
+    - ``g_violation``: vector of constraint violations
+    - ``grad_lag_x``: gradient of Lagrangian
+
+    In addition, a set of default parameters are saved to the history file and cannot be changed. These are
+
+    - ``feasibility``: primal infeasibility (called ``inf_pr`` in IPOPT)
+    - ``optimality``: dual infeasibility (called ``inf_du`` in IPOPT) which is an optimality measure
+    - ``mu``: barrier parameter
+    - ``step_primal``: step size for primal variables (called ``alpha_pr`` in IPOPT)
+    - ``step_dual``: step size for dual variables (called ``alpha_du`` in IPOPT)
