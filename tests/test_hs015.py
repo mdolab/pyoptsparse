@@ -160,11 +160,11 @@ class TestHS15(OptTest):
 
         # Check entries in iteration data
         data = hist.getValues(callCounters=["last"])
-        default_store_vars = ["feasibility", "optimality", "mu", "step_primal", "step_dual"]
+        default_store_vars = ["inf_pr", "inf_du", "mu", "alpha_pr", "alpha_du"]
         for var in default_store_vars + store_vars:
             self.assertIn(var, data.keys())
-        self.assertEqual(data["feasibility"].shape, (1, 1))
-        self.assertEqual(data["optimality"].shape, (1, 1))
+        self.assertEqual(data["inf_pr"].shape, (1, 1))
+        self.assertEqual(data["inf_du"].shape, (1, 1))
         if ipopt_314:
             self.assertEqual(data["g_violation"].shape, (1, 2))
             self.assertEqual(data["grad_lag_x"].shape, (1, 2))
