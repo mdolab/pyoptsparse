@@ -268,11 +268,11 @@ class IPOPT(Optimizer):
                     if self.storeHistory:
                         iterDict = {
                             "isMajor": True,
-                            "feasibility": inf_pr,
-                            "optimality": inf_du,
+                            "inf_pr": inf_pr,
+                            "inf_du": inf_du,
                             "mu": mu,
-                            "step_primal": alpha_pr,
-                            "step_dual": alpha_du,
+                            "alpha_pr": alpha_pr,
+                            "alpha_du": alpha_du,
                         }
                         # optional parameters
                         for saveVar in self.getOption("save_major_iteration_variables"):

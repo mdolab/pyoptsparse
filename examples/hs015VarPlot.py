@@ -81,11 +81,18 @@ if len(list_opt_with_optimality) > 0:
     fig, axs = plt.subplots(2, 1)
 
     for opt in list_opt_with_optimality:
-        # get iteration count, optimality, and feasibility
-        hist = db[opt].getValues(names=["iter", "optimality", "feasibility"])
+        # get iteration count, optimality, and feasibility.
+        # SNOPT and IPOPT uses different parameter names for optimality and feasibility.
+        if opt == "ipopt":
+            optimality = "inf_du"
+            feasibility = "inf_pr"
+        elif opt == "snopt":
+            optimality = "optimality"
+            feasibility = "feasibility"
 
-        axs[0].plot(hist["iter"], hist["optimality"], "o-", label=opt)
-        axs[1].plot(hist["iter"], hist["feasibility"], "o-", label=opt)
+        hist = db[opt].getValues(names=["iter", optimality, feasibility])
+        axs[0].plot(hist["iter"], hist[optimality], "o-", label=opt)
+        axs[1].plot(hist["iter"], hist[feasibility], "o-", label=opt)
 
     axs[0].set_yscale("log")
     axs[1].set_yscale("log")
