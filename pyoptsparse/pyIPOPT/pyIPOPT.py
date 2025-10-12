@@ -10,16 +10,12 @@ import time
 # External modules
 import numpy as np
 
-try:
-    # External modules
-    import cyipopt
-except ImportError:
-    cyipopt = None
-
 # Local modules
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_solution import SolutionInform
-from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, scaleRows
+from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, import_module, scaleRows
+
+cyipopt = import_module("cyipopt")
 
 
 class IPOPT(Optimizer):
@@ -36,8 +32,8 @@ class IPOPT(Optimizer):
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
-        if cyipopt is None and raiseError:
-            raise ImportError("Could not import cyipopt")
+        if isinstance(cyipopt, Exception) and raiseError:
+            raise cyipopt
 
         # IPOPT>=3.14 is required to save g_violation and grad_lag_x. Check IPOPT version.
         if "save_major_iteration_variables" in options and (
