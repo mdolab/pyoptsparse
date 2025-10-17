@@ -8,13 +8,24 @@ from baseclasses.testing.assertions import assert_dict_allclose, assert_dict_not
 import numpy as np
 from numpy.testing import assert_allclose
 
+try:
+    import mpi4py  # noqa:F401
+
+    comm = mpi4py.MPI.COMM_WORLD
+except ImportError:
+    comm = None
+
 # First party modules
 from pyoptsparse import OPT, Optimization
 from pyoptsparse.testing.pyOpt_testing import assert_optProb_size
 
 
 class TestOptProb(unittest.TestCase):
+    N_PROCS = 2
     tol = 1e-12
+
+    def setUp(self):
+        self.rng = np.random.default_rng(12345)
 
     def objfunc(self, xdict):
         """
@@ -58,9 +69,9 @@ class TestOptProb(unittest.TestCase):
         # Design Variables
         for iDV in range(len(nDV)):
             n = nDV[iDV]
-            lower = np.random.uniform(-5, 2, n)
-            upper = np.random.uniform(5, 20, n)
-            x0 = np.random.uniform(lower, upper)
+            lower = self.rng.uniform(-5, 2, n)
+            upper = self.rng.uniform(5, 20, n)
+            x0 = self.rng.uniform(lower, upper)
             dvName = f"x{iDV}"
             self.x0[dvName] = x0
             self.optProb.addVarGroup(
@@ -76,8 +87,8 @@ class TestOptProb(unittest.TestCase):
         # Constraints
         for iCon in range(len(nCon)):
             nc = nCon[iCon]
-            lower = np.random.uniform(-5, 2, nc)
-            upper = np.random.uniform(5, 6, nc)
+            lower = self.rng.uniform(-5, 2, nc)
+            upper = self.rng.uniform(5, 6, nc)
             self.optProb.addConGroup(
                 f"con_{iCon}",
                 nc,
@@ -155,10 +166,10 @@ class TestOptProb(unittest.TestCase):
             nObj=1,
             nDV=nDV,
             nCon=nCon,
-            xScale=[np.random.rand(i) for i in nDV],
+            xScale=[self.rng.random(i) for i in nDV],
             objScale=[0.3],
-            conScale=[np.random.rand(i) for i in nCon],
-            offset=[np.random.rand(i) * np.arange(i) for i in nDV],
+            conScale=[self.rng.random(i) for i in nCon],
+            offset=[self.rng.random(i) * np.arange(i) for i in nDV],
         )
 
         # first test X
@@ -255,6 +266,32 @@ class TestOptProb(unittest.TestCase):
         assert_optProb_size(self.optProb, 2, 13, 5)
         self.optProb.addCon("CON2")
         assert_optProb_size(self.optProb, 2, 13, 6)
+
+    def test_parallel_add(self):
+        """Check that when different procs add different variables/constraints/objectives, they are all collected
+        properly when finalized.
+        """
+        if comm is None:
+            raise unittest.SkipTest("mpi4py not available, skipping test.")
+        if comm.size != self.N_PROCS:
+            raise unittest.SkipTest("Not running with %d MPI procs, skipping test." % self.N_PROCS)
+        objNames = [f"parallel-obj{i}" for i in range(comm.size)]
+        dvNames = [f"parallel-x{i}" for i in range(comm.size)]
+        conNames = [f"parallel-con{i}" for i in range(comm.size)]
+
+        self.setup_optProb(nObj=1, nDV=[4, 8], nCon=[2, 3], xScale=[1.0, 1.0], conScale=[1.0, 1.0], offset=[0, 0])
+        self.optProb.addObj(objNames[comm.rank])
+        self.optProb.addVar(dvNames[comm.rank])
+        self.optProb.addCon(conNames[comm.rank])
+        self.optProb.finalize()
+
+        # Get variables/constraints/objectives from each proc and check they are all the same
+        allObjNames = comm.allgather(list(self.optProb.objectives.keys()))
+        self.assertEqual(allObjNames[0], allObjNames[1])
+        allDVNames = comm.allgather(list(self.optProb.variables.keys()))
+        self.assertEqual(allDVNames[0], allDVNames[1])
+        allConNames = comm.allgather(list(self.optProb.constraints.keys()))
+        self.assertEqual(allConNames[0], allConNames[1])
 
 
 if __name__ == "__main__":
