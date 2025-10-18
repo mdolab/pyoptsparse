@@ -9,6 +9,7 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 try:
+    # External modules
     import mpi4py  # noqa:F401
 
     comm = mpi4py.MPI.COMM_WORLD
