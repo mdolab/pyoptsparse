@@ -84,15 +84,15 @@ if len(list_opt_with_optimality) > 0:
         # get iteration count, optimality, and feasibility.
         # SNOPT and IPOPT uses different parameter names for optimality and feasibility.
         if opt == "ipopt":
-            optimality = "inf_du"
-            feasibility = "inf_pr"
+            optimality_name = "inf_du"
+            feasibility_name = "inf_pr"
         elif opt == "snopt":
-            optimality = "optimality"
-            feasibility = "feasibility"
+            optimality_name = "optimality"
+            feasibility_name = "feasibility"
 
-        hist = db[opt].getValues(names=["iter", optimality, feasibility])
-        axs[0].plot(hist["iter"], hist[optimality], "o-", label=opt)
-        axs[1].plot(hist["iter"], hist[feasibility], "o-", label=opt)
+        hist = db[opt].getValues(names=["iter", optimality_name, feasibility_name])
+        axs[0].plot(hist["iter"], hist[optimality_name], "o-", label=opt)
+        axs[1].plot(hist["iter"], hist[feasibility_name], "o-", label=opt)
 
     axs[0].set_yscale("log")
     axs[1].set_yscale("log")
