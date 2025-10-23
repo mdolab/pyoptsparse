@@ -756,9 +756,24 @@ class Optimization:
         This is a helper function which will only finalize the optProb if it's not already finalized.
         """
         if not self.finalized:
+            self._finalizeObjectives()
             self._finalizeDesignVariables()
             self._finalizeConstraints()
             self.finalized = True
+
+    def _finalizeObjectives(self):
+        """
+        Communicate objectives potentially from different
+        processors.
+
+        Warnings
+        --------
+        This should not be called directly. Instead, call self.finalize()
+        to ensure that both design variables and constraints are properly finalized.
+        """
+
+        # Determine the consistent set of objectives from all processors.
+        self.objectives = self._reduceDict(self.objectives)
 
     def _finalizeDesignVariables(self):
         """
