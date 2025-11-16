@@ -1,7 +1,7 @@
 # Standard Python modules
 from collections import OrderedDict
 import copy
-from typing import Iterable, Optional, Union
+from typing import Iterable
 
 # External modules
 import numpy as np
@@ -18,7 +18,7 @@ class Constraint:
         name: str,
         nCon: int,
         linear: bool,
-        wrt: Union[None, str, Iterable[str]],
+        wrt: str | Iterable[str] | None,
         jac: Dict1DType,
         lower,
         upper,
@@ -36,10 +36,10 @@ class Constraint:
         self.linear = linear
         self.wrt = wrt
         self.jac = jac
-        self.partialReturnOk: Optional[bool] = None
+        self.partialReturnOk: bool | None = None
         self.scale = scale
-        self.rs: Optional[int] = None
-        self.re: Optional[int] = None
+        self.rs: int | None = None
+        self.re: int | None = None
         # Before we can do the processing below we need to have lower
         # and upper arguments expanded:
 

@@ -9,7 +9,7 @@ import os
 import re
 import sys
 import time
-from typing import Any, Optional
+from typing import Any
 
 # External modules
 from baseclasses.utils import CaseInsensitiveSet, writePickle
@@ -99,7 +99,7 @@ class SNOPT(Optimizer):
         self.jacType = "csc"
 
         # SNOPT specific Jacobian map
-        self._snopt_jac_map_csr_to_csc: Optional[tuple[ndarray, ndarray, ndarray]] = None
+        self._snopt_jac_map_csr_to_csc: tuple[ndarray, ndarray, ndarray] | None = None
 
     @staticmethod
     def _getDefaultOptions() -> dict[str, Any]:

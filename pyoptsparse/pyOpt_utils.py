@@ -15,7 +15,7 @@ import importlib
 import os
 import sys
 import types
-from typing import Literal, Sequence, Union
+from typing import Literal, Sequence
 import warnings
 
 # External modules
@@ -196,7 +196,7 @@ def mapToCSC(mat: dict) -> tuple[ndarray, ndarray, ndarray]:
     return row_idx, col_p, idx_data
 
 
-def convertToCOO(mat: Union[dict, spmatrix, ndarray]):
+def convertToCOO(mat: dict | spmatrix | ndarray):
     """
     Take a pyoptsparse sparse matrix definition of a COO, CSR or
     CSC matrix or numpy array or scipy sparse matrix and return
@@ -250,7 +250,7 @@ def convertToCOO(mat: Union[dict, spmatrix, ndarray]):
             ) from e
 
 
-def convertToCSR(mat: Union[dict, spmatrix, ndarray]) -> dict:
+def convertToCSR(mat: dict | spmatrix | ndarray) -> dict:
     """
     Take a pyoptsparse sparse matrix definition of a COO, CSR or
     CSC matrix or numpy array and return the same matrix in CSR format
@@ -303,7 +303,7 @@ def convertToCSR(mat: Union[dict, spmatrix, ndarray]) -> dict:
     return {"csr": [rowp, ncols, ndata], "shape": [n, m]}
 
 
-def convertToCSC(mat: Union[dict, spmatrix, ndarray]) -> dict:
+def convertToCSC(mat: dict | spmatrix | ndarray) -> dict:
     """
     Take a pyoptsparse sparse matrix definition of a COO, CSR or
     CSC matrix or numpy array and return the same matrix in CSR format
@@ -360,7 +360,7 @@ def convertToCSC(mat: Union[dict, spmatrix, ndarray]) -> dict:
     return {"csc": [colp, rows, csc_data], "shape": [n, m]}
 
 
-def convertToDense(mat: Union[dict, spmatrix, ndarray]) -> ndarray:
+def convertToDense(mat: dict | spmatrix | ndarray) -> ndarray:
     """
     Take a pyoptsparse sparse matrix definition and convert back to a dense
     format. This is typically the final step for optimizers with dense constraint
@@ -578,7 +578,7 @@ def _broadcast_to_array(name: str, value: ArrayType, n_values: int, allow_none: 
 
 
 @contextlib.contextmanager
-def _prepend_path(path: Union[str, Sequence[str]]):
+def _prepend_path(path: str | Sequence[str]):
     """Context manager which temporarily prepends to `sys.path`."""
     if isinstance(path, str):
         path = [path]
@@ -593,9 +593,9 @@ def _prepend_path(path: Union[str, Sequence[str]]):
 
 def import_module(
     module_name: str,
-    path: Union[str, Sequence[str]] = (),
+    path: str | Sequence[str] = (),
     on_error: Literal["raise", "return"] = "return",
-) -> Union[types.ModuleType, Exception]:
+) -> types.ModuleType | Exception:
     """
     Attempt to import a module from a given path.
 
@@ -603,7 +603,7 @@ def import_module(
     ----------
     module_name : str
         The name of the module.
-    path : Union[str, Sequence[str]]
+    path : str | Sequence[str]
         The search path, which will be prepended to ``sys.path``. May be a string, or a sequence of strings.
     on_error : str
         Specify behavior when import fails. If "raise", any exception raised during the import will be raised.
@@ -611,7 +611,7 @@ def import_module(
 
     Returns
     -------
-    Union[types.ModuleType, str]
+    types.ModuleType | str
         If importable, the imported module is returned.
         If not importable, the exception is returned.
     """
