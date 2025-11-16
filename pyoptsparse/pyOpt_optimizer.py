@@ -7,13 +7,13 @@ import os
 import shutil
 import tempfile
 import time
-import numpy.typing as npt
 from typing import Any, Callable
 
 # External modules
 from baseclasses import BaseSolver
 import numpy as np
 from numpy import ndarray
+import numpy.typing as npt
 
 # Local modules
 from .pyOpt_MPI import MPI
