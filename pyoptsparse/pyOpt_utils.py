@@ -15,8 +15,8 @@ import importlib
 import os
 import sys
 import types
-import warnings
 from typing import Literal, Sequence, Union
+import warnings
 
 # External modules
 import numpy as np
