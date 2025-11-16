@@ -1,5 +1,5 @@
 # Standard Python modules
-from typing import Union, Sequence
+from typing import Sequence, Union
 
 # External modules
 import numpy as np
