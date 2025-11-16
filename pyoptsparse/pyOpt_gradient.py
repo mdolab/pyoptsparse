@@ -1,6 +1,3 @@
-# Standard Python modules
-from typing import Union
-
 # External modules
 import numpy as np
 from numpy import ndarray
@@ -37,7 +34,7 @@ class Gradient:
         """
         self.optProb = optProb
         self.sensType = sensType
-        self.sensStep: Union[float, complex]
+        self.sensStep: float | complex
         if sensStep is None:
             if self.sensType in ["fd", "fdr"]:
                 self.sensStep = 1e-6
