@@ -7,6 +7,7 @@ import os
 import shutil
 import tempfile
 import time
+import numpy.typing as npt
 from typing import Any, Callable
 
 # External modules
@@ -94,7 +95,7 @@ class Optimizer(BaseSolver):
         self.metadata: dict[str, Any] = {}
         self.startTime = None
 
-    def _clearTimings(self):
+    def _clearTimings(self) -> None:
         """Clear timings and call counters"""
         self.userObjTime = 0.0
         self.userSensTime = 0.0
@@ -102,7 +103,7 @@ class Optimizer(BaseSolver):
         self.userObjCalls = 0
         self.userSensCalls = 0
 
-    def _setSens(self, sens: str | Callable | None, sensStep: float, sensMode: str):
+    def _setSens(self, sens: str | Callable | None, sensStep: float, sensMode: str) -> None:
         """
         Common function to setup sens function
         """
@@ -142,7 +143,7 @@ class Optimizer(BaseSolver):
                 "Unknown value given for sens. Must be one of [None,'FD','FDR','CD','CDR','CS'] or a python function handle"
             )
 
-    def _setHistory(self, storeHistory: str, hotStart: str):
+    def _setHistory(self, storeHistory: str, hotStart: str) -> None:
         """
         Generic routine for setting up the hot start information
 
@@ -636,7 +637,7 @@ class Optimizer(BaseSolver):
 
         return returns
 
-    def _internalEval(self, x):
+    def _internalEval(self, x) -> None:
         """
         Special internal evaluation for optimizers that have a
         separate callback for each constraint
@@ -650,7 +651,7 @@ class Optimizer(BaseSolver):
         self.storedData["gobj"] = gobj.copy()
         self.storedData["gcon"] = gcon.copy()
 
-    def _checkEval(self, x):
+    def _checkEval(self, x) -> bool:
         """Special check to be used with _internalEval()"""
         if self.storedData["x"] is None:
             return True
@@ -693,7 +694,7 @@ class Optimizer(BaseSolver):
             gcon = gcon_csr_in["csr"][IDATA]
         return gcon
 
-    def _waitLoop(self):
+    def _waitLoop(self) -> None:
         """Non-root processors go into this waiting loop while the
         root proc does all the work in the optimization algorithm
         """
@@ -716,7 +717,7 @@ class Optimizer(BaseSolver):
             # about return values on these procs
             self._masterFunc2(*info)
 
-    def _setInitialCacheValues(self):
+    def _setInitialCacheValues(self) -> None:
         """
         Once we know that the optProb has been set, we populate the
         cache with a magic number. If the starting points for your
@@ -724,7 +725,7 @@ class Optimizer(BaseSolver):
         """
         self.cache["x"] = -999999999 * np.ones(self.optProb.ndvs)
 
-    def _assembleContinuousVariables(self):
+    def _assembleContinuousVariables(self) -> tuple[npt.NDArray, npt.NDArray, npt.NDArray]:
         """
         Utility function for assembling the design variables. Most
         optimizers here use continuous variables so this chunk of code
@@ -845,7 +846,7 @@ class Optimizer(BaseSolver):
 
         return commSol
 
-    def _setMetadata(self):
+    def _setMetadata(self) -> None:
         """
         This function is used to set the self.metadata object.
         Importantly, this sets the startTime, so should be called just before the start
@@ -871,13 +872,13 @@ class Optimizer(BaseSolver):
             "startTime": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
 
-    def _on_setOption(self, name, value):
+    def _on_setOption(self, name, value) -> None:
         """
         Set Optimizer Option Value (Optimizer Specific Routine)
         """
         pass
 
-    def _checkLinearConstraints(self, funcs):
+    def _checkLinearConstraints(self, funcs) -> None:
         """
         Makes sure that the user-defined obj/con function does not compute the linear constraint values
         because the linear constraints are exclusively defined by jac and bounds in addConGroup.
@@ -889,7 +890,7 @@ class Optimizer(BaseSolver):
                     + "are evaluated internally and should not be returned from the user's function."
                 )
 
-    def setOption(self, name, value=None):
+    def setOption(self, name, value=None) -> None:
         """
         Generic routine for all option setting. The routine does
         error checking on the type of the value.
@@ -906,7 +907,7 @@ class Optimizer(BaseSolver):
         # Now call the optimizer specific routine
         self._on_setOption(name, value)
 
-    def _on_getOption(self, name):
+    def _on_getOption(self, name) -> None:
         """
         Routine to be implemented by optimizer
         """

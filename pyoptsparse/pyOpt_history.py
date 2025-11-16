@@ -57,7 +57,7 @@ class History:
         self.temp = temp
         self.fileName = fileName
 
-    def close(self):
+    def close(self) -> None:
         """
         Close the underlying database.
         This should only be used in write mode. In read mode, we close the db
@@ -68,7 +68,7 @@ class History:
             if self.temp:
                 os.remove(self.fileName)
 
-    def write(self, callCounter, data):
+    def write(self, callCounter, data) -> None:
         """
         This is the main to write data. Basically, we just pass in
         the callCounter, the integer forming the key, and a dictionary
@@ -95,7 +95,7 @@ class History:
         self.db.sync()
         self.keys = list(self.db.keys())
 
-    def writeData(self, key, data):
+    def writeData(self, key, data) -> None:
         """
         Write arbitrary `key:data` value to db.
 
@@ -111,7 +111,7 @@ class History:
         self.db.commit()
         self.keys = list(self.db.keys())
 
-    def pointExists(self, callCounter):
+    def pointExists(self, callCounter) -> bool:
         """
         Determine if callCounter is in the database
 
@@ -152,7 +152,7 @@ class History:
         except KeyError:
             return None
 
-    def _searchCallCounter(self, x):
+    def _searchCallCounter(self, x) -> int | None:
         """
         Searches through existing callCounters, and finds the one corresponding
         to an evaluation at the design vector `x`.
@@ -183,7 +183,7 @@ class History:
                 break
         return callCounter
 
-    def _processDB(self):
+    def _processDB(self) -> None:
         """
         Pre-processes the DB file and store various values into class attributes.
         These will be used later when calling self.getXX functions.
@@ -732,7 +732,7 @@ class History:
             # end if - ("funcs" in val.keys()
         # end if - pointExists
 
-    def __del__(self):
+    def __del__(self) -> None:
         try:
             self.db.close()
             if self.temp:
