@@ -2,7 +2,7 @@
 from collections import OrderedDict
 import copy
 import os
-from typing import Callable, Iterable, Optional, Union
+from typing import Callable, Iterable
 import warnings
 
 # External modules
@@ -32,7 +32,7 @@ from .pyOpt_variable import Variable
 
 
 class Optimization:
-    def __init__(self, name: str, objFun: Callable, comm=None, sens: Optional[Union[str, Callable]] = None):
+    def __init__(self, name: str, objFun: Callable, comm=None, sens: str | Callable | None = None):
         """
         The main purpose of this class is to describe the structure and
         potentially, sparsity pattern of an optimization problem.
@@ -366,7 +366,7 @@ class Optimization:
         upper=None,
         scale=1.0,
         linear: bool = False,
-        wrt: Optional[Union[str, Iterable[str]]] = None,
+        wrt: str | Iterable[str] | None = None,
         jac=None,
     ):
         r"""Add a group of constraints into the constraint set. This is the main function used for adding constraints to

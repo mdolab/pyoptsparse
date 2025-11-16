@@ -7,7 +7,7 @@ import tempfile
 import time
 from collections import OrderedDict
 from enum import Enum
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable
 
 import numpy as np
 
@@ -38,7 +38,7 @@ class Optimizer(BaseSolver):
         options: dict[str, Any] | None = None,
         checkDefaultOptions: bool = True,
         caseSensitiveOptions: bool = True,
-        version: Optional[str] = None,
+        version: str | None = None,
     ):
         """
         This is the base optimizer class that all optimizers inherit from.
@@ -73,9 +73,9 @@ class Optimizer(BaseSolver):
         # callCounter will be incremented after the function calls, iterCounters will be incremented before the calls.
         self.callCounter = 0  # counts all function calls (fobj, fcon, gobj, gcon)
         self.iterCounter = -1  # counts iteration(new x point)
-        self.sens: Union[None, Callable, Gradient] = None
+        self.sens: Callable | Gradient | None = None
         self.optProb: Optimization
-        self.version: Optional[str] = version
+        self.version: str | None = version
 
         # Default options:
         self.appendLinearConstraints: bool = False
@@ -110,7 +110,7 @@ class Optimizer(BaseSolver):
         self.userObjCalls = 0
         self.userSensCalls = 0
 
-    def _setSens(self, sens: Union[None, str, Callable], sensStep: float, sensMode: str):
+    def _setSens(self, sens: str | Callable | None, sensStep: float, sensMode: str):
         """
         Common function to setup sens function
         """
@@ -840,7 +840,7 @@ class Optimizer(BaseSolver):
 
         return sol
 
-    def _communicateSolution(self, sol: Optional[Solution]) -> Solution:
+    def _communicateSolution(self, sol: Solution | None) -> Solution:
         """
         Broadcast the solution from the root proc back to everyone. We
         have to be a little careful since we can't in general
