@@ -1,9 +1,9 @@
 # Standard Python modules
+from collections import OrderedDict
 import copy
 import os
-import warnings
-from collections import OrderedDict
 from typing import Callable, Iterable, Optional, Union
+import warnings
 
 # External modules
 import numpy as np
@@ -11,10 +11,9 @@ from numpy import ndarray
 from scipy.sparse import coo_matrix
 from sqlitedict import SqliteDict
 
-from .pyOpt_constraint import Constraint
-
 # Local modules
 from .pyOpt_MPI import MPI
+from .pyOpt_constraint import Constraint
 from .pyOpt_objective import Objective
 from .pyOpt_types import Dict1DType, Dict2DType, NumpyType
 from .pyOpt_utils import (
