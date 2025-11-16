@@ -25,7 +25,7 @@ class Objective:
         self.value = 0.0
         self.scale = scale
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Structured Print of Objective
         """
