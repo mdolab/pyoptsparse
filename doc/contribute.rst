@@ -13,7 +13,9 @@ Editable Installs
 Due to the use of ``meson-python`` as the backend, the typical process of using ``pip install -e .`` to generate an editable install cannot be used.
 Instead, based on the instructions `here <https://mesonbuild.com/meson-python/how-to-guides/editable-installs.html#editable-installs>`__,
 you must first install the `build dependencies` yourself.
-This can be done by looking at the ``requires`` field of the ``[build-system]`` section of the ``pyproject.toml`` file.
+This can be done by looking at the ``requires`` field of the ``[build-system]`` section of the ``pyproject.toml`` file, or via
+``pip install .[dev]``
+
 Then, do the following:
 
 .. prompt:: bash
@@ -62,6 +64,9 @@ Testing
 When you add code or functionality, add tests that cover the new or modified code.
 These may be units tests for individual components or regression tests for entire models that use the new functionality.
 All the existing tests can be found under the ``test`` folder.
+
+To run tests, ensure that the testing dependencies have been installed (see `pyproject.toml`).
+
 
 Pull requests
 -------------

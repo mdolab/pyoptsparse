@@ -98,11 +98,7 @@ If you encounter a ``no module named tkinter`` error when trying to run optview,
 Testing
 -------
 pyOptSparse provides a set of unit and regression tests to verify the installation.
-To run these tests, first install ``testflo`` which is a testing framework developed by the OpenMDAO team:
-
-.. prompt:: bash
-
-  pip install testflo
+To run these tests, first install testing dependencies via ``pip install .[testing]``.
 
 Then, in the project root directory, type:
 

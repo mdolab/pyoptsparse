@@ -31,6 +31,14 @@ testing = [
     "testflo>=1.4.5",
     "parameterized",
 ]
+dev = [
+    "meson-python",
+    "ninja",
+    "numpy",
+    "swig",
+    "testflo>=1.4.5",
+    "parameterized",
+]
 
 [project.urls]
 Homepage = "https://github.com/mdolab/pyoptsparse"
