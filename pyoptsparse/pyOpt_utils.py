@@ -621,13 +621,13 @@ def import_module(
     with _prepend_path(path):
         try:
             module = importlib.import_module(module_name)
-        except ImportError:
+        except ImportError as e1:
             try:
                 full_module_name = f"pyoptsparse.{path[0].split('/')[-1]}.{module_name}"
                 module = importlib.import_module(full_module_name)
-            except ImportError as e:
+            except (ImportError, IndexError):
                 if on_error.lower() == "raise":
-                    raise e
+                    raise e1 from e1
                 else:
-                    module = e
+                    module = e1
     return module
