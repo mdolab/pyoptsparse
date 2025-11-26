@@ -49,7 +49,7 @@ At time of writing, the latest released version of pyOptSparse is v2.2.0.
 pyOptSparse provides built-in support for several popular proprietary and open-source optimizers.
 Each optimizer usually has its own way to specify the problem:
 It might require different constraint ordering, have different ways of specifying equality constraints, or use a sparse matrix format to represent the constraint Jacobian.
-pyOptSparse provides a common Python interface for the various optimizers that hides these differences from the user. 
+pyOptSparse provides a common Python interface for the various optimizers that hides these differences from the user.
 By isolating the optimization problem definition from the optimizer, the user can easily switch between different optimizers applied to the same optimization problem.
 The optimizer can be switched by editing a single line of code.
 

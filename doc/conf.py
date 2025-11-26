@@ -35,3 +35,9 @@ html_theme_options["logo_only"] = True
 
 # bibtex
 bibtex_bibfiles = ["pyoptsparse.bib"]
+
+# autolink
+extensions.extend(["sphinx_codeautolink"])
+codeautolink_concat_default = True
+codeautolink_warn_on_missing_inventory = True
+codeautolink_warn_on_failed_resolve = True

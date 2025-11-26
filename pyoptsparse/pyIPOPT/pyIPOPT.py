@@ -10,16 +10,12 @@ import time
 # External modules
 import numpy as np
 
-try:
-    # External modules
-    import cyipopt
-except ImportError:
-    cyipopt = None
-
 # Local modules
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_solution import SolutionInform
-from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, scaleRows
+from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, import_module, scaleRows
+
+cyipopt = import_module("cyipopt")
 
 
 class IPOPT(Optimizer):
@@ -36,8 +32,8 @@ class IPOPT(Optimizer):
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
-        if cyipopt is None and raiseError:
-            raise ImportError("Could not import cyipopt")
+        if isinstance(cyipopt, Exception) and raiseError:
+            raise cyipopt
 
         super().__init__(
             name,
@@ -294,7 +290,7 @@ class IPOPT(Optimizer):
 
     def _set_ipopt_options(self, nlp):
         """
-        set all of the the options in self.options in the ipopt instance nlp
+        Set all of the the options in self.options in the ipopt instance nlp
         """
         # Set Options from the local options dictionary
         # ---------------------------------------------

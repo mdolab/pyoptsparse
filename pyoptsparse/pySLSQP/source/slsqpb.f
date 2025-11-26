@@ -1,7 +1,7 @@
       SUBROUTINE SLSQPB (M, MEQ, LA, N, X, XL, XU, F, C, G, A, ACC,
      *                   ITER, MODE, R, L, X0, MU, S, U, V, W, IW,
      *                   ALPHA, F0, GS, H1, H2, H3, H4, T, T0, TOL,
-     *                   IEXACT, INCONS, IRESET, ITERMX, LINE, N1, 
+     *                   IEXACT, INCONS, IRESET, ITERMX, LINE, N1,
      *                   N2, N3)
 
 C   NONLINEAR PROGRAMMING BY SOLVING SEQUENTIALLY QUADRATIC PROGRAMS
@@ -289,4 +289,3 @@ C   END OF MAIN ITERATION
 C   END OF SLSQPB
 
   330 END
-      

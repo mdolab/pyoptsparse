@@ -20,9 +20,9 @@ Cf2py intent(out) ierror
 
 C Helper routine to flush buffers to files
       subroutine pyflush(unitnum)
-      
+
       integer unitnum
-      
+
       call flush(unitnum)
 
       return
