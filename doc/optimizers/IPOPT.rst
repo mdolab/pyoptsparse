@@ -8,9 +8,12 @@ The source code can be found `here <https://github.com/coin-or/Ipopt>`_.
 Installation
 ------------
 IPOPT and its Python interface `cyipopt <https://github.com/mechmotum/cyipopt>` must be installed separately.
-Follow the instructions `here <https://cyipopt.readthedocs.io/en/stable/install.html>`_.
-OpenMDAO also has a very helpful `script <https://github.com/OpenMDAO/build_pyoptsparse/>`_ which can be used to install IPOPT with other linear solvers,
-but it does not install ``cyipopt`` for you.
+There are several ways to install IPOPT and its Python bindings:
+#.  The simplest option is to use conda-forge to install ``cyipopt``. This is recommended for most people.
+#.  Either compile IPOPT yourself or use a pre-built binary, then install ``cyipopt`` from source.
+    Follow the instructions `here <https://cyipopt.readthedocs.io/en/stable/install.html>`_.
+#.  Use the helper script `build_pyoptsparse <https://github.com/OpenMDAO/build_pyoptsparse/>` by the team at OpenMDAO.
+    This will install IPOPT and ``cyipopt`` for you.
 
 Options
 -------

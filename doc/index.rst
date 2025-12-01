@@ -10,6 +10,12 @@ Some key features of pyOptSparse include:
 - The optimization histories can be stored during the optimization process, and a partial history can also be used to hot-restart the optimization
 - A post-processing GUI utility called OptView to analyze optimization results
 
+The list of supported optimizers is shown on the sidebar to the left.
+Of those, the following are not installed by default:
+
+- SNOPT and NLPQLP are proprietary and must be obtained from their respective authors
+- IPOPT and ParOpt must be installed separately
+
 
 pyOptSparse is a fork of `pyOpt <http://www.pyopt.org/>`_.
 However, it is not backwards compatible with pyOpt and thus optimization scripts will need to be modified to use pyOptSparse.
