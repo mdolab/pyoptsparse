@@ -706,15 +706,19 @@ class Optimizer(BaseSolver):
 
             # Receive mode and quit if mode is -1:
             mode = self.optProb.comm.bcast(mode, root=0)
-            if mode == -1:
+            # mode = 0 call masterfunc2 as broadcast by root in masterfunc
+            if mode == 0:
+                # Receive info from shell function
+                info = self.optProb.comm.bcast(info, root=0)
+
+                # Call the generic internal function. We don't care
+                # about return values on these procs
+                self._masterFunc2(*info)
+            # mode = -1 exit wait loop
+            elif mode == -1:
                 break
-
-            # Otherwise receive info from shell function
-            info = self.optProb.comm.bcast(info, root=0)
-
-            # Call the generic internal function. We don't care
-            # about return values on these procs
-            self._masterFunc2(*info)
+            else:
+                raise ValueError("Wait loop recieved code %d must be -1 or 0" % mode)
 
     def _setInitialCacheValues(self):
         """
