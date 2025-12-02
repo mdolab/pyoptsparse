@@ -74,4 +74,32 @@ plt.legend(loc=3)
 plt.xlabel("x1")
 plt.ylabel("x2")
 plt.title("Simple optimizer comparison")
+
+# Plot optimality and feasibility history for SNOPT and IPOPT
+list_opt_with_optimality = [opt for opt in db.keys() if opt in ["ipopt", "snopt"]]
+if len(list_opt_with_optimality) > 0:
+    fig, axs = plt.subplots(2, 1)
+
+    for opt in list_opt_with_optimality:
+        # get iteration count, optimality, and feasibility.
+        # SNOPT and IPOPT uses different parameter names for optimality and feasibility.
+        if opt == "ipopt":
+            optimality_name = "inf_du"
+            feasibility_name = "inf_pr"
+        elif opt == "snopt":
+            optimality_name = "optimality"
+            feasibility_name = "feasibility"
+
+        hist = db[opt].getValues(names=["iter", optimality_name, feasibility_name])
+        axs[0].plot(hist["iter"], hist[optimality_name], "o-", label=opt)
+        axs[1].plot(hist["iter"], hist[feasibility_name], "o-", label=opt)
+
+    axs[0].set_yscale("log")
+    axs[1].set_yscale("log")
+    axs[0].legend()
+    axs[0].set_ylabel("Optimality")
+    axs[0].set_xticklabels([])
+    axs[1].set_ylabel("Feasibility")
+    axs[1].set_xlabel("Iteration")
+
 plt.show()
