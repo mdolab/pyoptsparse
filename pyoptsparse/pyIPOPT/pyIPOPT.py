@@ -281,8 +281,8 @@ class IPOPT(Optimizer):
 
                         # Find pyoptsparse call counters for objective and constraints calls at current x.
                         # IPOPT calls objective and constraints separately, so we find two call counters and append iter_dict to both counters.
-                        call_counter_1 = self.hist._searchCallCounter(self.cache["x"])
-                        call_counter_2 = self.hist._searchCallCounter(self.cache["x"], last=call_counter_1 - 1)
+                        call_counter_1 = self.hist._searchCallCounter(self.optProb._mapXtoUser(self.cache["x"]))
+                        call_counter_2 = self.hist._searchCallCounter(self.optProb._mapXtoUser(self.cache["x"]), last=call_counter_1 - 1)
 
                         for call_counter in [call_counter_2, call_counter_1]:
                             if call_counter is not None:
