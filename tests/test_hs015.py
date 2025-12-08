@@ -130,7 +130,8 @@ class TestHS15(OptTest):
     def test_ipopt(self):
         self.optName = "IPOPT"
         self.setup_optProb()
-        optOptions = self.optOptions.pop(self.optName, None)
+        store_vars = ["alg_mod", "d_norm", "regularization_size", "ls_trials", "g_violation", "grad_lag_x"]
+        optOptions = {"save_major_iteration_variables": store_vars}
         sol = self.optimize(optOptions=optOptions, storeHistory=True)
         # Check Solution
         self.assert_solution_allclose(sol, self.tol[self.optName])
@@ -143,6 +144,16 @@ class TestHS15(OptTest):
         self.assertEqual(0, data_init["iter"])
         data_last = hist.read(hist.read("last"))
         self.assertGreater(data_last["iter"], 0)
+
+        # Check entries in iteration data
+        data = hist.getValues(callCounters=["last"])
+        default_store_vars = ["inf_pr", "inf_du", "mu", "alpha_pr", "alpha_du"]
+        for var in default_store_vars + store_vars:
+            self.assertIn(var, data.keys())
+        self.assertEqual(data["inf_pr"].shape, (1, 1))
+        self.assertEqual(data["inf_du"].shape, (1, 1))
+        self.assertEqual(data["g_violation"].shape, (1, 2))
+        self.assertEqual(data["grad_lag_x"].shape, (1, 2))
 
         # Make sure there is no duplication in objective history
         data = hist.getValues(names=["obj"])

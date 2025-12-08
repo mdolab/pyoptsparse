@@ -58,7 +58,8 @@ In this case, the history file would have the following layout::
 The main optimization history is indexed via call counters, in this example ``0`` and ``1``.
 Note that they do not match the major/minor iterations of a given optimizer, since gradient evaluations are stored separate from the function evaluation.
 
-For SNOPT, a number of other values can be requested and stored in each major iteration, such as the feasibility and optimality from the SNOPT print out file.
+For SNOPT and IPOPT, a number of other values can be requested and stored in each major iteration, such as the feasibility and optimality.
+See SNOPT and IPOPT documentation pages for more details.
 
 
 API
