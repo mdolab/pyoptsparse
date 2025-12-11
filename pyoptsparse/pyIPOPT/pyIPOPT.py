@@ -284,7 +284,6 @@ class IPOPT(Optimizer):
                         # IPOPT calls objective and constraints separately, so we find two call counters and append iter_dict to both counters.
                         call_counter_1 = self.hist._searchCallCounter(self.optProb._mapXtoUser(self.cache["x"]))
                         if call_counter_1 is None:
-                            pyOptSparseWarning("Failed to find a corresponding call counter at current x. Skipping writing to history file.")
                             call_counter_2 = None
                         else:
                             call_counter_2 = self.hist._searchCallCounter(self.optProb._mapXtoUser(self.cache["x"]), last=call_counter_1 - 1)
@@ -292,6 +291,8 @@ class IPOPT(Optimizer):
                         for call_counter in [call_counter_2, call_counter_1]:
                             if call_counter is not None:
                                 self.hist.write(call_counter, iterDict)
+                            else:
+                                pyOptSparseWarning("Failed to find a corresponding call counter at current x. Skipping writing to history file.")
 
                     if self.userRequestedTermination is True:
                         return False
