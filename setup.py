@@ -125,7 +125,7 @@ if __name__ == "__main__":
         package_data={
             "": ["*.so", "*.lib", "*.pyd", "*.pdb", "*.dylib", "assets/*", "LICENSE"],
         },
-        python_requires=">=3.10",
+        python_requires=">=3.9",
         entry_points={
             "gui_scripts": [
                 "optview = pyoptsparse.postprocessing.OptView:main",
