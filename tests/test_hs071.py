@@ -117,24 +117,28 @@ class TestHS71(OptTest):
         # since we restarted from the optimum
         self.assertEqual(second["xvars"].shape, (1, 4))
 
-    def test_slsqp_scaling_offset_optProb(self):
+    @parameterized.expand(["SLSQP", "IPOPT"])
+    def test_scaling_offset_optProb(self, optName):
         """
         Test that scaling and offset works as expected
         Also test optProb stored in the history file is correct
         """
-        self.optName = "SLSQP"
-        histFileName = "hs071_SLSQP_scaling_offset.hst"
+        self.optName = optName
+        histFileName = f"hs071_{optName}_scaling_offset.hst"
         objScale = 4.2
         xScale = [2, 3, 4, 5]
         conScale = [0.6, 1.7]
         offset = [1, -2, 40, 2.5]
         self.setup_optProb(objScale=objScale, xScale=xScale, conScale=conScale, offset=offset)
         sol = self.optimize(storeHistory=histFileName)
-        self.assert_solution_allclose(sol, self.tol["SLSQP"])
+        lambda_sign = -1.0 if optName == "IPOPT" else 1.0
+        self.assert_solution_allclose(sol, self.tol[optName], lambda_sign=lambda_sign)
         # now we retrieve the history file, and check the scale=True option is indeed
         # scaling things correctly
+        # IPOPT calls gradient and jacobian at first, so set callCounter = 2 for the first non-derivative call
+        callCounter = "2" if optName == "IPOPT" else "0"
         hist = History(histFileName, flag="r")
-        orig_values = hist.getValues(callCounters="0", scale=False)
+        orig_values = hist.getValues(callCounters=callCounter, scale=False)
         optProb = hist.getOptProb()
 
         # check that the scales are stored properly
@@ -147,13 +151,13 @@ class TestHS71(OptTest):
             assert_allclose(objScale, optProb.objectives[obj].scale, atol=1e-12, rtol=1e-12)
 
         # verify the scale option in getValues
-        scaled_values = hist.getValues(callCounters="0", scale=True, stack=False)
+        scaled_values = hist.getValues(callCounters=callCounter, scale=True, stack=False)
         x = orig_values["xvars"][0]
         x_scaled = scaled_values["xvars"][0]
         assert_allclose(x_scaled, (x - offset) * xScale, atol=1e-12, rtol=1e-12)
 
         # now do the same but with stack=True
-        stacked_values = hist.getValues(callCounters="0", scale=True, stack=True)
+        stacked_values = hist.getValues(callCounters=callCounter, scale=True, stack=True)
         x_scaled = stacked_values["xuser"][0]
         assert_allclose(x_scaled, (x - offset) * xScale, atol=1e-12, rtol=1e-12)
 
