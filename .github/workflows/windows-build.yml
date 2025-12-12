@@ -36,9 +36,6 @@ jobs:
           :: debug - list environment vars
           set
 
-          :: set fortran compiler, flang 5 activation doesn't seem to do it
-          set FC=flang.exe
-
           python -m build -n -x .
 
           pip install --no-deps --no-index --find-links dist pyoptsparse

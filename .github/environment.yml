@@ -10,7 +10,7 @@ dependencies:
   - pip
   - setuptools
   - build
-  - flang 5*
+  - flang>=18
   - libpgmath
 # runtime
   - packaging

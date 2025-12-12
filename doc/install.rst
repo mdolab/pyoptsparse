@@ -5,7 +5,7 @@ Installation Instructions
 
 Conda
 -----
-Conda packages are available on ``conda-forge`` and can be installed via
+Conda packages are available on conda-forge and can be installed via
 
 .. prompt:: bash
 
@@ -161,7 +161,7 @@ This has the advantage that ``conda`` can be used to install all the necessary d
 Considering how finicky Windows can be with ABI compatibility among various compilers, this is the recommended approach.
 The guide will work on any platform, however.
 
-The only build requirement for the build is a working ``conda`` installation as all compilers and dependencies are pulled from the ``conda-forge`` repos, with the exception of a Windows build, which requires Visual Studio 2017 C++ Build Tools.
+The only build requirement for the build is a working ``conda`` installation as all compilers and dependencies are pulled from conda-forge.
 
 First, we need to create the ``conda`` environment.
 An ``environment.yml`` file is provided in the ``pyoptsparse`` repo:
@@ -199,11 +199,6 @@ Finally, build the wheel and install it using pip:
     pip install --no-deps --no-index --find-links dist pyoptsparse
 
   .. code-tab:: powershell Windows
-
-    # set specific compiler flags
-    set CC=cl
-    set FC=flang
-    set CC_LD=link
 
     # build wheel
     python -m build -n -x .
