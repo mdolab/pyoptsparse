@@ -152,7 +152,7 @@ class History:
         except KeyError:
             return None
 
-    def _searchCallCounter(self, x) -> int | None:
+    def _searchCallCounter(self, x, last=None) -> int | None:
         """
         Searches through existing callCounters, and finds the one corresponding
         to an evaluation at the design vector `x`.
@@ -162,6 +162,8 @@ class History:
         ----------
         x : ndarray
             The unscaled DV as a single array.
+        last : int, optional
+            The last callCounter to search from. If not provided, use the last callCounter in db.
 
         Returns
         -------
@@ -173,7 +175,8 @@ class History:
         -----
         The tolerance used for this is the value `numpy.finfo(numpy.float64).eps`.
         """
-        last = int(self.db["last"])
+        if last is None:
+            last = int(self.db["last"])
         callCounter = None
         for i in range(last, 0, -1):
             key = str(i)

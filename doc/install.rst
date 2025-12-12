@@ -5,13 +5,13 @@ Installation Instructions
 
 Conda
 -----
-Conda packages are available on ``conda-forge`` and can be installed via
+Conda packages are available on conda-forge and can be installed via
 
 .. prompt:: bash
 
   conda install -c conda-forge pyoptsparse
 
-This would install pyOptSparse with the built-in optimizers, as well as IPOPT.
+This would install pyOptSparse with the built-in optimizers.
 If you wish to use optimizers not packaged by ``conda``, e.g. SNOPT, then you must either build the package from source or use the installation script below.
 If you have the SNOPT precompiled library available, it is possible to dynamically link it to pyOptSparse following the instructions on the :ref:`SNOPT installation page<snopt_by_conda>`.
 
@@ -142,7 +142,6 @@ This can be verified by manually importing the compiled library that's causing t
 
 If this throws a ``missing symbol`` error, then there is likely a linking issue at compile time.
 If, on the other hand, this throws a ``error while loading shared libraries``, then it's probably a runtime issue with a shared library.
-Check to make sure that the ``$LD_LIBRARY_PATH`` is set correctly, for example when running IPOPT.
 
 
 Update or Uninstall
@@ -166,7 +165,7 @@ This has the advantage that ``conda`` can be used to install all the necessary d
 Considering how finicky Windows can be with ABI compatibility among various compilers, this is the recommended approach.
 The guide will work on any platform, however.
 
-The only build requirement for the build is a working ``conda`` installation as all compilers and dependencies are pulled from the ``conda-forge`` repos, with the exception of a Windows build, which requires Visual Studio 2017 C++ Build Tools.
+The only build requirement for the build is a working ``conda`` installation as all compilers and dependencies are pulled from conda-forge.
 
 First, we need to create the ``conda`` environment.
 An ``environment.yml`` file is provided in the ``pyoptsparse`` repo:
@@ -204,11 +203,6 @@ Finally, build the wheel and install it using pip:
     pip install --no-deps --no-index --find-links dist pyoptsparse
 
   .. code-tab:: powershell Windows
-
-    # set specific compiler flags
-    set CC=cl
-    set FC=flang
-    set CC_LD=link
 
     # build wheel
     python -m build -n -x .
