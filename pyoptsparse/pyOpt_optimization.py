@@ -2,7 +2,7 @@
 from collections import OrderedDict
 import copy
 import os
-from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Callable, Iterable
 import warnings
 
 # External modules
@@ -32,7 +32,7 @@ from .pyOpt_variable import Variable
 
 
 class Optimization:
-    def __init__(self, name: str, objFun: Callable, comm=None, sens: Optional[Union[str, Callable]] = None):
+    def __init__(self, name: str, objFun: Callable, comm=None, sens: str | Callable | None = None):
         """
         The main purpose of this class is to describe the structure and
         potentially, sparsity pattern of an optimization problem.
@@ -78,7 +78,7 @@ class Optimization:
         self.invXScale: ndarray = None
         self.xOffset: ndarray = None
         self.dummyConstraint = False
-        self.objectiveIdx: Dict[str, int] = {}
+        self.objectiveIdx: dict[str, int] = {}
         self.finalized: bool = False
         self.jacIndices: ndarray = None
         self.fact: ndarray = None
@@ -87,7 +87,7 @@ class Optimization:
         # Store the Jacobian conversion maps
         self._jac_map_coo_to_csr = None
 
-    def addVar(self, name: str, *args, **kwargs):
+    def addVar(self, name: str, *args, **kwargs) -> None:
         """
         This is a convenience function. It simply calls addVarGroup()
         with nVars=1. Variables added with addVar() are returned as
@@ -161,7 +161,7 @@ class Optimization:
         upper=None,
         scale=1.0,
         offset=0.0,
-        choices: List[str] = [],
+        choices: list[str] = [],
         **kwargs,
     ):
         """
@@ -281,7 +281,7 @@ class Optimization:
             # Finally we set the variable list
             self.variables[name] = varList
 
-    def delVar(self, name: str):
+    def delVar(self, name: str) -> None:
         """
         Delete a variable or variable group
 
@@ -345,14 +345,14 @@ class Optimization:
 
         return variables
 
-    def addObj(self, name: str, *args, **kwargs):
+    def addObj(self, name: str, *args, **kwargs) -> None:
         """
         Add Objective into Objectives Set
         """
         self.finalized = False
         self.objectives[name] = Objective(name, *args, **kwargs)
 
-    def addCon(self, name: str, *args, **kwargs):
+    def addCon(self, name: str, *args, **kwargs) -> None:
         """
         Convenience function. See addConGroup() for more information
         """
@@ -366,7 +366,7 @@ class Optimization:
         upper=None,
         scale=1.0,
         linear: bool = False,
-        wrt: Optional[Union[str, Iterable[str]]] = None,
+        wrt: str | Iterable[str] | None = None,
         jac=None,
     ):
         r"""Add a group of constraints into the constraint set. This is the main function used for adding constraints to
@@ -464,7 +464,7 @@ class Optimization:
         # Simply add constraint object
         self.constraints[name] = Constraint(name, nCon, linear, wrt, jac, lower, upper, scale)
 
-    def getDVs(self):
+    def getDVs(self) -> Dict1DType:
         """
         Return a dictionary of the design variables. In most common
         usage, this function is not required.
@@ -493,7 +493,7 @@ class Optimization:
         scaled_DV = self._mapXtoUser_Dict(outDVs)
         return scaled_DV
 
-    def setDVs(self, inDVs):
+    def setDVs(self, inDVs) -> None:
         """
         Set one or more groups of design variables from a dictionary.
         In most common usage, this function is not required.
@@ -525,7 +525,7 @@ class Optimization:
                         # Must be an array
                         var.value = scaled_DV[dvGroup][i]
 
-    def setDVsFromHistory(self, histFile, key=None):
+    def setDVsFromHistory(self, histFile, key=None) -> None:
         """
         Set optimization variables from a previous optimization. This
         is like a cold start, but some variables may have been added
@@ -552,7 +552,7 @@ class Optimization:
         else:
             raise FileNotFoundError(f"History file '{histFile}' not found!.")
 
-    def printSparsity(self, verticalPrint=False):
+    def printSparsity(self, verticalPrint=False) -> None:
         """
         This function prints an (ASCII) visualization of the Jacobian
         sparsity structure. This helps the user visualize what
@@ -702,7 +702,7 @@ class Optimization:
         for i in range(len(txt)):
             print("".join(txt[i]))
 
-    def getDVConIndex(self, startIndex: int = 1, printIndex: bool = True) -> Tuple[OrderedDict, OrderedDict]:
+    def getDVConIndex(self, startIndex: int = 1, printIndex: bool = True) -> tuple[OrderedDict, OrderedDict]:
         """
         Return the index of a scalar DV/constraint, or the beginning
         and end index (inclusive) of a DV/constraint array.
@@ -751,7 +751,7 @@ class Optimization:
     #       optimizers need to be able to call them
     # =======================================================================
 
-    def finalize(self):
+    def finalize(self) -> None:
         """
         This is a helper function which will only finalize the optProb if it's not already finalized.
         """
@@ -761,7 +761,7 @@ class Optimization:
             self._finalizeConstraints()
             self.finalized = True
 
-    def _finalizeObjectives(self):
+    def _finalizeObjectives(self) -> None:
         """
         Communicate objectives potentially from different
         processors.
@@ -775,7 +775,7 @@ class Optimization:
         # Determine the consistent set of objectives from all processors.
         self.objectives = self._reduceDict(self.objectives)
 
-    def _finalizeDesignVariables(self):
+    def _finalizeDesignVariables(self) -> None:
         """
         Communicate design variables potentially from different
         processors and form the DVOffset dict.
@@ -799,7 +799,7 @@ class Optimization:
             dvCounter += n
         self.ndvs = dvCounter
 
-    def _finalizeConstraints(self):
+    def _finalizeConstraints(self) -> None:
         """
         There are several functions for this routine:
 
@@ -892,8 +892,8 @@ class Optimization:
                 con.linearJacobian = coo_matrix((data, (row, col)), shape=[con.ncon, self.ndvs]).tocsr()
 
     def getOrdering(
-        self, conOrder: List[str], oneSided: bool, noEquality: bool = False
-    ) -> Tuple[ndarray, ndarray, ndarray, ndarray]:
+        self, conOrder: list[str], oneSided: bool, noEquality: bool = False
+    ) -> tuple[ndarray, ndarray, ndarray, ndarray]:
         """
         Internal function that is used to produce a index list that
         reorders the constraints the way a particular optimizer needs.
@@ -1290,7 +1290,7 @@ class Optimization:
 
         return fcon
 
-    def evaluateLinearConstraints(self, x: ndarray, fcon: Dict1DType):
+    def evaluateLinearConstraints(self, x: ndarray, fcon: Dict1DType) -> None:
         """
         This function is required for optimizers that do not explicitly
         treat the linear constraints. For those optimizers, we will
@@ -1368,7 +1368,7 @@ class Optimization:
         # Finally squeeze back out so we get a 1D vector for a single objective
         return np.squeeze(gobj)
 
-    def processConstraintJacobian(self, gcon):
+    def processConstraintJacobian(self, gcon) -> dict:
         """
         This generic function is used to assemble the entire
         constraint Jacobian. The order of the constraint Jacobian is
@@ -1591,7 +1591,7 @@ class Optimization:
         con_opt = self._mapContoOpt(con)
         return self.processContoDict(con_opt, scaled=False, natural=True)
 
-    def summary_str(self, minimal_print=False, print_multipliers=False):
+    def summary_str(self, minimal_print=False, print_multipliers=False) -> str:
         """
         Print Structured Optimization Problem
 
@@ -1731,7 +1731,7 @@ class Optimization:
 
         return text
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.summary_str(minimal_print=False, print_multipliers=False)
 
     def __getstate__(self) -> dict:

@@ -1,7 +1,7 @@
 # Standard Python modules
 from collections import OrderedDict
 import copy
-from typing import Dict, Iterable, List, Optional, Union
+from typing import Iterable
 
 # External modules
 import numpy as np
@@ -18,7 +18,7 @@ class Constraint:
         name: str,
         nCon: int,
         linear: bool,
-        wrt: Union[None, str, Iterable[str]],
+        wrt: str | Iterable[str] | None,
         jac: Dict1DType,
         lower,
         upper,
@@ -36,10 +36,10 @@ class Constraint:
         self.linear = linear
         self.wrt = wrt
         self.jac = jac
-        self.partialReturnOk: Optional[bool] = None
+        self.partialReturnOk: bool | None = None
         self.scale = scale
-        self.rs: Optional[int] = None
-        self.re: Optional[int] = None
+        self.rs: int | None = None
+        self.re: int | None = None
         # Before we can do the processing below we need to have lower
         # and upper arguments expanded:
 
@@ -67,12 +67,12 @@ class Constraint:
         # automatically.
 
         # This keeps track of the equality constraints:
-        equalityConstraints: Dict[str, List] = {"value": [], "ind": [], "fact": []}
+        equalityConstraints: dict[str, list] = {"value": [], "ind": [], "fact": []}
 
         # All (inequality) constraints get added to
         # "twoSidedConstraints". This will be used in optimizers that
         # can do two-sided constraints properly
-        twoSidedConstraints: Dict[str, List] = {"lower": [], "upper": [], "ind": [], "fact": []}
+        twoSidedConstraints: dict[str, list] = {"lower": [], "upper": [], "ind": [], "fact": []}
 
         # All (inequality) constraints are also added to
         # "oneSidedConstraints". These are processed such that the
@@ -82,7 +82,7 @@ class Constraint:
         # defined which is precisely 1.0 or -1.0. The -1.0 appears
         # when a greater-than-constraint is turned into a
         # less-than-constraint.
-        oneSidedConstraints: Dict[str, List] = {"lower": [], "upper": [], "ind": [], "fact": []}
+        oneSidedConstraints: dict[str, list] = {"lower": [], "upper": [], "ind": [], "fact": []}
 
         for icon in range(self.ncon):
             # Check for equality constraint:
@@ -167,7 +167,7 @@ class Constraint:
         self.oneSidedConstraints = oneSidedConstraints
         self.twoSidedConstraints = twoSidedConstraints
 
-    def finalize(self, variables: OrderedDict, dvOffset, index: int):
+    def finalize(self, variables: OrderedDict, dvOffset, index: int) -> None:
         """
         After the design variables have been finalized and the order
         is known we can check the constraint for consistency.

@@ -29,9 +29,9 @@ Requirements
 ~~~~~~~~~~~~
 pyOptSparse has the following dependencies:
 
-* Python 3.7 or 3.8, though other Python 3 versions will likely work
-* C and Fortran compilers.
-  We recommend ``gcc`` and ``gfortran`` which can be installed via the package manager for your operating system.
+* Python 3.10+
+* Fortran compilers
+  We recommend ``gfortran`` which can be installed via the package manager for your operating system.
 
 Please make sure these are installed and available for use.
 Python dependencies are automatically handled by ``pip``, so they do not need to be installed separately.
