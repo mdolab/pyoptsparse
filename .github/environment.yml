@@ -5,11 +5,12 @@ dependencies:
   - swig
   - meson >=1.3.2
   - meson-python
-  - compilers
+  - c-compiler
+  - cxx-compiler
   - pip
   - setuptools
   - build
-  - flang=5
+  - flang=20
   - libpgmath
 # runtime
   - packaging
