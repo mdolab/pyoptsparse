@@ -1,7 +1,8 @@
 project(
-  'snopt-module',
+  'snopt',
   'c',
-  meson_version: '>= 1.1',
+  version: '0.0.0',
+  meson_version: '>= 1.2',
   default_options: [
     'buildtype=debugoptimized',
     'c_std=c99',
