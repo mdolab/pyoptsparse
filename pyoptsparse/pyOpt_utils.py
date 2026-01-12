@@ -620,9 +620,12 @@ def import_module(
 
     with _prepend_path(path):
         try:
+            # first try e.g. "import snopt"
             module = importlib.import_module(module_name)
         except ImportError as e:
             try:
+                # next try e.g. "import pyoptsparse.pySNOPT.snopt"
+                # this is what meson-python's import hook needs when running in editable mode
                 full_module_name = f"pyoptsparse.{path[0].split('/')[-1]}.{module_name}"
                 module = importlib.import_module(full_module_name)
             except (ImportError, IndexError):
