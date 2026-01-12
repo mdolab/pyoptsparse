@@ -1,6 +1,6 @@
 project(
   'snopt-module',
-  'c', 'fortran',
+  'c',
   meson_version: '>= 1.1',
   default_options: [
     'buildtype=debugoptimized',
@@ -15,10 +15,14 @@ fs = import('fs')
 if sourcedir == ''
   assert(false, 'sourcedir must be specified')
 elif fs.is_file(sourcedir)
-  # not implemented
   is_dyn_lib=true
-  assert(false, 'dynamic library is not implemented')
+  lib_name=fs.name(sourcedir)
+  if lib_name.startswith('lib')
+    lib_name = lib_name.substring(3)
+  endif
+  lib_dir=fs.parent(sourcedir)
 elif fs.is_dir(sourcedir)
+  add_languages('fortran')
   is_dyn_lib=false
 else
   assert(false, 'sourcedir must be either a path to a file or directory')
@@ -49,10 +53,16 @@ run_command(py3,
 )
 fortranobject_c = 'fortranobject.c'
 
-# Get list of all Fortran files
-result = run_command(pyos_sourcedir / 'grab-all-fortran-files.py', sourcedir, check: true)
-snopt_source_files = result.stdout().strip().splitlines()
-snopt_source_files += [pyos_sourcedir / 'closeunit.f', pyos_sourcedir / 'openunit.f']
+if is_dyn_lib
+  # Find precompiled SNOPT library
+  cc = meson.get_compiler('c')
+  snopt_lib = cc.find_library(lib_name, dirs: ['{lib_dir}'], required: true)
+else
+  # Get list of all Fortran files
+  result = run_command(pyos_sourcedir / 'grab-all-fortran-files.py', sourcedir, check: true)
+  snopt_source_files = result.stdout().strip().splitlines()
+  snopt_source_files += [pyos_sourcedir / 'closeunit.f', pyos_sourcedir / 'openunit.f']
+endif
 
 # Generate C wrapper from f2py interface
 snopt_source = custom_target('snoptmodule.c',
@@ -62,11 +72,17 @@ snopt_source = custom_target('snoptmodule.c',
 )
 
 # Build extension module
+deps = [py3_dep]
+sources = [snopt_source, fortranobject_c]
+if is_dyn_lib
+  deps += [snopt_lib]
+else
+  sources += [snopt_source_files]
+endif
+
 py3.extension_module('snopt',
-  snopt_source,
-  fortranobject_c,
-  snopt_source_files,
+  sources,
   include_directories: [inc_np, inc_f2py],
-  dependencies: py3_dep,
+  dependencies: deps,
   install: true,
 )
