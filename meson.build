@@ -57,8 +57,6 @@ if host_machine.system() == 'darwin'
   endif
 endif
 
-# --!>
-
 # install python sources
 install_subdir('pyoptsparse',
   exclude_directories: [

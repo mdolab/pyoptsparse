@@ -50,8 +50,6 @@ fortranobject_dep = declare_dependency(
   include_directories: [inc_np, inc_f2py],
 )
 
-# --!>
-
 subdir('pySNOPT')
 subdir('pySLSQP')
 subdir('pyCONMIN')
