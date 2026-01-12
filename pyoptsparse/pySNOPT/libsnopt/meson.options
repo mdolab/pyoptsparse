@@ -1,0 +1,5 @@
+option(
+  'sourcedir',
+  type: 'string',
+  description: 'location of source'
+)
