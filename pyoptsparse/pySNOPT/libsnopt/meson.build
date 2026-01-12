@@ -6,7 +6,6 @@ project(
   default_options: [
     'buildtype=debugoptimized',
     'c_std=c99',
-    'fortran_std=f2008',
   ],
 )
 sourcedir = get_option('sourcedir')
