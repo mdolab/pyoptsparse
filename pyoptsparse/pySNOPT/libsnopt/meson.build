@@ -5,6 +5,7 @@ project(
   default_options: [
     'buildtype=debugoptimized',
     'c_std=c99',
+    'fortran_std=f2008',
   ],
 )
 sourcedir = get_option('sourcedir')
@@ -48,13 +49,13 @@ fortranobject_c = 'fortranobject.c'
 
 # Get list of all Fortran files
 result = run_command(pyos_sourcedir / 'grab-all-fortran-files.py', sourcedir, check: true)
-snopt_source_files = result.stdout().strip().split('\n')
+snopt_source_files = result.stdout().strip().splitlines()
 snopt_source_files += [pyos_sourcedir / 'closeunit.f', pyos_sourcedir / 'openunit.f']
 
 # Generate C wrapper from f2py interface
 snopt_source = custom_target('snoptmodule.c',
   input: [pyos_sourcedir /'f2py' / 'snopt.pyf'],
-  output: ['snoptmodule.c'],
+  output: 'snoptmodule.c',
   command: [py3, '-m', 'numpy.f2py', '@INPUT@', '--lower', '--build-dir', '.']
 )
 
@@ -67,4 +68,3 @@ py3.extension_module('snopt',
   dependencies: py3_dep,
   install: true,
 )
-message('SNOPT module has been built')
