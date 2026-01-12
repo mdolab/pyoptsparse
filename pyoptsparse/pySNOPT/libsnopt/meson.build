@@ -15,7 +15,9 @@ fs = import('fs')
 if sourcedir == ''
   assert(false, 'sourcedir must be specified')
 elif fs.is_file(sourcedir)
+  # not implemented
   is_dyn_lib=true
+  assert(false, 'dynamic library is not implemented')
 elif fs.is_dir(sourcedir)
   is_dyn_lib=false
 else
