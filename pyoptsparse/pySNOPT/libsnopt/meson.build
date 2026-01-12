@@ -1,7 +1,7 @@
 project(
   'snopt-module',
   'c', 'fortran',
-  meson_version: '>= 0.60',
+  meson_version: '>= 1.1',
   default_options: [
     'buildtype=debugoptimized',
     'c_std=c99',
