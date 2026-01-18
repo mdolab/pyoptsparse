@@ -56,7 +56,7 @@ fortranobject_c = 'fortranobject.c'
 if is_dyn_lib
   # Find precompiled SNOPT library
   cc = meson.get_compiler('c')
-  snopt_lib = cc.find_library(lib_name, dirs: ['{lib_dir}'], required: true)
+  snopt_lib = cc.find_library(lib_name, dirs: [lib_dir], required: true)
 else
   # Get list of all Fortran files
   result = run_command(pyos_sourcedir / 'grab-all-fortran-files.py', sourcedir, check: true)
