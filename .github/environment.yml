@@ -4,12 +4,13 @@ dependencies:
   - numpy >=2.0
   - swig
   - meson >=1.3.2
-  - compilers
-  - pkg-config
+  - meson-python
+  - c-compiler
+  - cxx-compiler
   - pip
   - setuptools
   - build
-  - flang>=18
+  - flang=20
   - libpgmath
 # runtime
   - packaging

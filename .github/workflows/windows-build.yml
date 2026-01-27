@@ -36,6 +36,8 @@ jobs:
           :: debug - list environment vars
           set
 
+          set FC=flang.exe
+
           python -m build -n -x .
 
           pip install --no-deps --no-index --find-links dist pyoptsparse

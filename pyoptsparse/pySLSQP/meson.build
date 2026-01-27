@@ -1,11 +1,11 @@
 slsqp_source = custom_target('slsqpmodule.c',
                             input : ['source/f2py/slsqp.pyf'],
                             output : ['slsqpmodule.c'],
-                            command: [py3_command, '-m', 'numpy.f2py', '@INPUT@',
+                            command: [py3, '-m', 'numpy.f2py', '@INPUT@',
                             '--lower', '--build-dir', 'pyoptsparse/pySLSQP']
                             )
 
-py3_target.extension_module('slsqp',
+py3.extension_module('slsqp',
                 'source/closeunit.f',
                 'source/daxpy.f',
                 'source/dcopy.f',
@@ -24,20 +24,6 @@ py3_target.extension_module('slsqp',
                 'source/slsqp.f',
                 'source/slsqpb.f',
                 slsqp_source,
-                fortranobject_c,
-                include_directories: [inc_np, inc_f2py],
-                dependencies : py3_dep,
+                dependencies: [fortranobject_dep],
                 subdir: 'pyoptsparse/pySLSQP',
-                install : false)
-
-#python_sources = [
-#    '__init__.py',
-#    'pySLSQP.py',
-#    'LICENSE'
-#]
-
-#py3_target.install_sources(
-#  python_sources,
-#  pure: false,
-#  subdir: 'pyoptsparse/pySLSQP'
-#)
+                install: true)
