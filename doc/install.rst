@@ -116,11 +116,7 @@ The first thing to do is to do a clean install.
 This involves the following steps:
 
 #. Uninstall the package via ``pip``
-#. If you did a developer install (with ``-e``), check if there are ``.so`` files in the subdirectories, e.g. ``pyoptsparse/pySLSQP``.
-   If so, manually delete all ``.so`` files.
-#. Remove the ``meson_build`` directory if present.
-#. Run ``pip install`` again and test the installation.
-
+#. Run ``pip install .`` again and test the installation.
 
 If the issue persists, there is probably a linking or runtime issue.
 This can be verified by manually importing the compiled library that's causing the issue, for example with:
@@ -136,7 +132,7 @@ If, on the other hand, this throws a ``error while loading shared libraries``, t
 
 Update or Uninstall
 -------------------
-To update pyOptSparse, first delete the ``meson_build`` directory, then update the package using ``git``.
+To update pyOptSparse, first update the package using ``git``.
 For stability, users are encouraged to stick to tagged releases.
 Install the package normally via ``pip``.
 
