@@ -24,6 +24,5 @@ if HAS_SNOPT
     dependencies : [fortranobject_dep],
     subdir: 'pyoptsparse/pySNOPT',
     install: true,
-    fortran_args: '-ffixed-line-length-80'
   )
 endif
