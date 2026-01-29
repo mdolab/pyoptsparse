@@ -1,2 +1,4 @@
 sphinx_mdolab_theme>=1.2
 sphinx-codeautolink
+# temporary pin from https://github.com/executablebooks/sphinx-tabs/issues/212
+docutils==0.21.2
