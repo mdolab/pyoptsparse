@@ -11,7 +11,7 @@ Conda packages are available on conda-forge and can be installed via
 
   conda install -c conda-forge pyoptsparse
 
-This would install pyOptSparse with the built-in optimizers.
+This would install pyOptSparse with the built-in optimizers, plus IPOPT.
 If you wish to use optimizers not packaged by ``conda``, e.g. SNOPT, then you must either build the package from source or use the installation script below.
 If you have the SNOPT precompiled library available, it is possible to dynamically link it to pyOptSparse following the instructions on the :ref:`SNOPT installation page<snopt_by_conda>`.
 
@@ -29,7 +29,7 @@ Requirements
 ~~~~~~~~~~~~
 pyOptSparse has the following dependencies:
 
-* Python 3.7 or 3.8, though other Python 3 versions will likely work
+* Python 3
 * C and Fortran compilers.
   We recommend ``gcc`` and ``gfortran`` which can be installed via the package manager for your operating system.
 
@@ -38,12 +38,8 @@ Python dependencies are automatically handled by ``pip``, so they do not need to
 
 .. note::
   * In Linux, the python header files (``python-dev``) are also required.
-  * **We do not support operating systems other than Linux.**
-    For macOS users, the conda package may work out of the box if you do not need any non-default optimizers.
-    Also, the installation script by OpenMDAO likely works on macOS.
-    For Windows users, a conda package is on the way, if it's not already in the repos.
-    This comes with the same disclaimer as the macOS conda package.
-    Alternatively, follow the :ref:`conda build instructions<conda build instruction>` below as this will work on any platform.
+  * **We do not support operating systems other than Linux** for building from source.
+    For those on other operating systems, you can try the :ref:`conda build instructions<conda build instruction>` instead.
 
 Installation
 ~~~~~~~~~~~~
