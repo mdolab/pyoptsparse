@@ -57,8 +57,6 @@ For those not using virtual environments, a user install may be needed
 
   pip install . --user
 
-If you plan to modify pyOptSparse, installing with the developer option, i.e. with ``-e``, will save you from re-installing each time you modify the Python code.
-
 .. note::
   Some optimizers are proprietary, and their sources are not distributed with pyOptSparse.
   To use them, please follow the instructions on specific optimizer pages.
