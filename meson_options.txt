@@ -1,9 +1,0 @@
-option('incdir_numpy', type: 'string', value: '',
-    description: 'Include directory for numpy. If left empty Meson will try to find it on its own.')
-
-option('python_target', type: 'string', value: '',
-    description: '''Target python path. This is used in the case that the Python installation that PyOptSparse is intended
-    to be built for is different than the Python installation that is used to run Meson. For example, Meson may be installed
-    on the user's system which is run using the system Python installation, but the user may want build PyOptSparse for
-    a Python installation in a virtual environment. Leave as an empty string to build for Python installation running
-    Meson.''')
