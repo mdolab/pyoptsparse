@@ -1,4 +1,4 @@
-__version__ = "2.14.5"
+__version__ = "2.15.0"
 
 from .pyOpt_history import History
 from .pyOpt_variable import Variable
@@ -41,4 +41,6 @@ __all__ = [
     "NSGA2",
     "ALPSO",
     "ParOpt",
+    "testing",
+    "list_optimizers",
 ]

@@ -22,6 +22,13 @@ Then, do the following:
 
     pip install --no-build-isolation --editable .
 
+Unlike typical installs, this will leave the build directory in place, so in subsequent builds it is best to clean the build directory first via
+
+.. prompt:: bash
+
+    rm -rf build
+
+
 To run tests, ensure that the testing dependencies specified in the ``pyproject.toml`` file are also installed.
 
 Coding style
