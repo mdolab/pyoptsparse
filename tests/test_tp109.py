@@ -29,8 +29,8 @@ Test uses Schittkowski's TP109 constraint problem.
 """
 
 # Standard Python modules
-import unittest
 import time
+import unittest
 
 # External modules
 import numpy as np
