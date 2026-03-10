@@ -30,6 +30,7 @@ Test uses Schittkowski's TP109 constraint problem.
 
 # Standard Python modules
 import unittest
+import time
 
 # External modules
 import numpy as np
@@ -124,6 +125,11 @@ class TestTP109(OptTest):
         else:
             funcs["con"] = fcon[0:10]
         fail = False
+
+        # Depending on your compiler/CPU, SNOPT may only be measuring CPU time to the nearest millisecond, in these
+        # cases, SNOPT can sometimes solve the problem before it registers that any time has elapsed, which causes
+        # `test_snopt_informs` to fail. To fix this we simply slow down the function evaluation very slightly.
+        time.sleep(1e-3)
 
         return funcs, fail
 
