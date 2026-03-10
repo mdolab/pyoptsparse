@@ -62,6 +62,7 @@ class TestTP109(OptTest):
             368.4881990875219,
         )
     }
+    slowDownFunc = False
 
     def objfunc(self, xdict):
         x = xdict["xvars"]
@@ -129,7 +130,8 @@ class TestTP109(OptTest):
         # Depending on your compiler/CPU, SNOPT may only be measuring CPU time to the nearest millisecond, in these
         # cases, SNOPT can sometimes solve the problem before it registers that any time has elapsed, which causes
         # `test_snopt_informs` to fail. To fix this we simply slow down the function evaluation very slightly.
-        time.sleep(1e-3)
+        if self.slowDownFunc:
+            time.sleep(1e-3)
 
         return funcs, fail
 
@@ -181,6 +183,7 @@ class TestTP109(OptTest):
 
     def test_snopt_informs(self):
         self.optName = "SNOPT"
+        self.slowDownFunc = True
         self.setup_optProb()
         sol = self.optimize(optOptions={"Time Limit": 1e-15})
         self.assert_inform_equal(sol, 34)
