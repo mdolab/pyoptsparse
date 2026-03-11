@@ -7,17 +7,17 @@ The source code can be found `here <https://github.com/coin-or/Ipopt>`_.
 
 Installation
 ------------
-IPOPT and its Python interface `cyipopt <https://github.com/mechmotum/cyipopt>` must be installed separately.
+IPOPT and its Python interface `cyipopt <https://github.com/mechmotum/cyipopt>`_ must be installed separately.
 There are several ways to install IPOPT and its Python bindings:
 
 #.  The simplest option is to use conda-forge to install ``cyipopt``. This is recommended for most people.
 #.  Either compile IPOPT yourself or use a pre-built binary, then install ``cyipopt`` from source following the instructions `here <https://cyipopt.readthedocs.io/en/stable/install.html>`_.
-#.  Use the helper script `build_pyoptsparse <https://github.com/OpenMDAO/build_pyoptsparse/>` by the team at OpenMDAO.
+#.  Use the helper script `build_pyoptsparse <https://github.com/OpenMDAO/build_pyoptsparse/>`_ by the team at OpenMDAO.
     This will install IPOPT and ``cyipopt`` for you.
 
 Options
 -------
-Please refer to the `IPOPT website <https://coin-or.github.io/Ipopt/OPTIONS.html>`__ for complete listing of options.
+Please refer to the `IPOPT website <https://coin-or.github.io/Ipopt/OPTIONS.html>`_ for complete listing of options.
 The following are the options which are set by default within pyOptSparse.
 All other options take the default value with IPOPT and cyipopt unless specified by the user.
 
