@@ -9,9 +9,9 @@ Installation
 ------------
 IPOPT and its Python interface `cyipopt <https://github.com/mechmotum/cyipopt>` must be installed separately.
 There are several ways to install IPOPT and its Python bindings:
+
 #.  The simplest option is to use conda-forge to install ``cyipopt``. This is recommended for most people.
-#.  Either compile IPOPT yourself or use a pre-built binary, then install ``cyipopt`` from source.
-    Follow the instructions `here <https://cyipopt.readthedocs.io/en/stable/install.html>`_.
+#.  Either compile IPOPT yourself or use a pre-built binary, then install ``cyipopt`` from source following the instructions `here <https://cyipopt.readthedocs.io/en/stable/install.html>`_.
 #.  Use the helper script `build_pyoptsparse <https://github.com/OpenMDAO/build_pyoptsparse/>` by the team at OpenMDAO.
     This will install IPOPT and ``cyipopt`` for you.
 
