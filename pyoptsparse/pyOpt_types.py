@@ -1,5 +1,5 @@
 # Standard Python modules
-from typing import Sequence
+from collections.abc import Sequence
 
 # External modules
 import numpy as np

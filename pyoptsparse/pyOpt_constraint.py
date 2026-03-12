@@ -1,7 +1,7 @@
 # Standard Python modules
 from collections import OrderedDict
 import copy
-from typing import Iterable
+from collections.abc import Iterable
 
 # External modules
 import numpy as np

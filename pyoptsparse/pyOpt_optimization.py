@@ -2,7 +2,7 @@
 from collections import OrderedDict
 import copy
 import os
-from typing import Callable, Iterable
+from collections.abc import Callable, Iterable
 import warnings
 
 # External modules
