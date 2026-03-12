@@ -7,7 +7,8 @@ import os
 import shutil
 import tempfile
 import time
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 # External modules
 from baseclasses import BaseSolver
