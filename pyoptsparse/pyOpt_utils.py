@@ -15,7 +15,8 @@ import importlib
 import os
 import sys
 import types
-from typing import Literal, Sequence
+from typing import Literal
+from collections.abc import Sequence
 import warnings
 
 # External modules

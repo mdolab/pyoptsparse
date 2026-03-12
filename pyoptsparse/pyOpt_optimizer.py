@@ -6,8 +6,9 @@ import shutil
 import tempfile
 import time
 from collections import OrderedDict
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
