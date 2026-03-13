@@ -21,7 +21,7 @@ import warnings
 
 # External modules
 import numpy as np
-from numpy import ndarray
+import numpy.typing as npt
 from scipy import sparse
 from scipy.sparse import spmatrix
 
@@ -45,7 +45,7 @@ INFINITY = 1e20
 EPS = np.finfo(np.float64).eps
 
 
-def mapToCSR(mat: dict) -> tuple[ndarray, ndarray, ndarray]:
+def mapToCSR(mat: dict) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating]]:
     """
     Given a pyoptsparse matrix definition, return a tuple containing a
     map of the matrix to the CSR format.
@@ -118,7 +118,7 @@ def mapToCSR(mat: dict) -> tuple[ndarray, ndarray, ndarray]:
     return row_p, col_idx, idx_data
 
 
-def mapToCSC(mat: dict) -> tuple[ndarray, ndarray, ndarray]:
+def mapToCSC(mat: dict) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating]]:
     """
     Given a pyoptsparse matrix definition, return a tuple containing a
     map of the matrix to the CSC format.
@@ -197,7 +197,7 @@ def mapToCSC(mat: dict) -> tuple[ndarray, ndarray, ndarray]:
     return row_idx, col_p, idx_data
 
 
-def convertToCOO(mat: dict | spmatrix | ndarray):
+def convertToCOO(mat: dict | spmatrix | npt.NDArray[np.floating]):
     """
     Take a pyoptsparse sparse matrix definition of a COO, CSR or
     CSC matrix or numpy array or scipy sparse matrix and return
@@ -251,7 +251,7 @@ def convertToCOO(mat: dict | spmatrix | ndarray):
             ) from e
 
 
-def convertToCSR(mat: dict | spmatrix | ndarray) -> dict:
+def convertToCSR(mat: dict | spmatrix | npt.NDArray[np.floating]) -> dict:
     """
     Take a pyoptsparse sparse matrix definition of a COO, CSR or
     CSC matrix or numpy array and return the same matrix in CSR format
@@ -304,7 +304,7 @@ def convertToCSR(mat: dict | spmatrix | ndarray) -> dict:
     return {"csr": [rowp, ncols, ndata], "shape": [n, m]}
 
 
-def convertToCSC(mat: dict | spmatrix | ndarray) -> dict:
+def convertToCSC(mat: dict | spmatrix | npt.NDArray[np.floating]) -> dict:
     """
     Take a pyoptsparse sparse matrix definition of a COO, CSR or
     CSC matrix or numpy array and return the same matrix in CSR format
@@ -361,7 +361,7 @@ def convertToCSC(mat: dict | spmatrix | ndarray) -> dict:
     return {"csc": [colp, rows, csc_data], "shape": [n, m]}
 
 
-def convertToDense(mat: dict | spmatrix | ndarray) -> ndarray:
+def convertToDense(mat: dict | spmatrix | npt.NDArray[np.floating]) -> npt.NDArray[np.floating]:
     """
     Take a pyoptsparse sparse matrix definition and convert back to a dense
     format. This is typically the final step for optimizers with dense constraint
@@ -464,7 +464,7 @@ def extractRows(mat: dict, indices):
     return {"csr": [nrowp, ncols, ndata], "shape": [nn, m]}
 
 
-def _denseToCOO(arr: ndarray) -> dict:
+def _denseToCOO(arr: npt.NDArray[np.floating]) -> dict:
     """
     Return a COO array that is a COO representation of the dense numpy
     array, arr
