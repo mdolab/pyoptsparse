@@ -1,5 +1,6 @@
 # Standard Python modules
 from collections import OrderedDict
+from collections.abc import Callable
 import copy
 import datetime
 from enum import Enum
@@ -8,7 +9,6 @@ import shutil
 import tempfile
 import time
 from typing import Any
-from collections.abc import Callable
 
 # External modules
 from baseclasses import BaseSolver
