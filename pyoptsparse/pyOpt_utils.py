@@ -10,13 +10,13 @@ We use a very simple dictionary format to represent the three most common forms 
 """
 
 # Standard Python modules
+from collections.abc import Sequence
 import contextlib
 import importlib
 import os
 import sys
 import types
 from typing import Literal
-from collections.abc import Sequence
 import warnings
 
 # External modules

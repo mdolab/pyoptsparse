@@ -1,8 +1,8 @@
 # Standard Python modules
 from collections import OrderedDict
+from collections.abc import Callable, Iterable
 import copy
 import os
-from collections.abc import Callable, Iterable
 import warnings
 
 # External modules
