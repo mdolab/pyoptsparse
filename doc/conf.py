@@ -27,7 +27,7 @@ version = re.findall(
 # -- General configuration ---------------------------------------------------
 
 # mock import for autodoc
-autodoc_mock_imports = ["baseclasses", "scipy", "numpy", "sqlitedict"]
+autodoc_mock_imports = ["baseclasses", "scipy", "sqlitedict"]
 
 # logo
 html_logo = "_static/pyOptSparse_logo.svg"
