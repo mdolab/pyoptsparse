@@ -962,7 +962,7 @@ class Optimizer(BaseSolver):
 # =============================================================================
 
 # List of optimizers as an enum
-Optimizers = Enum("Optimizers", "SNOPT IPOPT SLSQP NLPQLP CONMIN NSGA2 PSQP ALPSO ParOpt")
+Optimizers = Enum("Optimizers", "SNOPT IPOPT UNO SLSQP NLPQLP CONMIN NSGA2 PSQP ALPSO ParOpt")
 """Special enum containing all possible optimizers"""
 
 
@@ -993,6 +993,8 @@ def OPT(optName, *args, **kwargs) -> Optimizer:
         from .pySNOPT.pySNOPT import SNOPT as opt
     elif optName == "ipopt" or optName == Optimizers.IPOPT:
         from .pyIPOPT.pyIPOPT import IPOPT as opt
+    elif optName == "uno" or optName == Optimizers.UNO:
+        from .pyUNO.pyUNO import UNO as opt
     elif optName == "slsqp" or optName == Optimizers.SLSQP:
         from .pySLSQP.pySLSQP import SLSQP as opt
     elif optName == "nlpqlp" or optName == Optimizers.NLPQLP:
