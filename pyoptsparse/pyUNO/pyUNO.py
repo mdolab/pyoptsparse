@@ -3,9 +3,10 @@ pyUNO - A Python wrapper to the UNO optimizer via unopy.
 """
 
 # Standard Python modules
-import ctypes
 import datetime
+import importlib.metadata as ilmd
 import time
+from packaging.version import Version
 
 # External modules
 import numpy as np
@@ -29,51 +30,13 @@ _UNO_STATUS_TO_INFORM = {
     6: -5,   # UNBOUNDED
 }
 
-# Size of PyObject_HEAD in CPython on 64-bit platforms (ob_refcnt + ob_type = 16 bytes).
-_PYOBJ_HEAD_SIZE = 16
-
-
-def _ptr_to_numpy(ptr_obj, n):
-    """
-    Create a writable numpy array mapped to the memory of a unopy.PointerToDouble.
-
-    unopy's PointerToDouble is a pybind11-bound wrapper around ``double* const``
-    (the ``PointerWrapper<double>`` C++ class).  Because pybind11 does not expose
-    the buffer protocol for this type we navigate its internal memory layout:
-
-    1. ``id(ptr_obj) + _PYOBJ_HEAD_SIZE`` — pybind11 stores the ``unique_ptr``
-       to the C++ object immediately after ``PyObject_HEAD``.  Reading a
-       ``size_t`` here gives the address of the heap-allocated
-       ``PointerWrapper<double>`` instance.
-    2. Dereferencing that address yields the ``double*`` stored as the first
-       (and only) field of ``PointerWrapper<double>``.
-    3. A ctypes array is constructed from that address and wrapped with
-       ``np.ctypeslib.as_array`` to give a zero-copy writable numpy array.
-
-    Parameters
-    ----------
-    ptr_obj : unopy.PointerToDouble
-        The pointer wrapper object passed by unopy to a callback.
-    n : int
-        Number of elements the pointer refers to.
-
-    Returns
-    -------
-    numpy.ndarray
-        Shape ``(n,)``, dtype ``float64``, pointing directly into unopy memory.
-    """
-    holder_ptr = ctypes.c_size_t.from_address(id(ptr_obj) + _PYOBJ_HEAD_SIZE).value
-    raw_ptr = ctypes.c_size_t.from_address(holder_ptr).value
-    return np.ctypeslib.as_array((ctypes.c_double * n).from_address(raw_ptr))
-
 
 class UNO(Optimizer):
     """
     UNO Optimizer Class - Inherited from Optimizer Abstract Class.
 
     Uses the ``unopy`` Python bindings to the UNO unified nonlinear optimizer.
-    UNO supports multiple presets including ``filtersqp``, ``ipopt``, and
-    ``filterslp``.
+    UNO supports presets ``ipopt``, and ``filterslp``.
     """
 
     def __init__(self, raiseError=True, options={}):
@@ -93,6 +56,9 @@ class UNO(Optimizer):
         informs = self._getInforms()
         if isinstance(unopy, Exception) and raiseError:
             raise unopy
+        
+        if Version(ilmd.version('unopy')) < Version('0.3.0'):
+            raise RuntimeError('The pyoptsparse UNO interface requires version 0.3.0 or later.')
 
         super().__init__(
             name,
@@ -256,31 +222,30 @@ class UNO(Optimizer):
             nnz = len(row_indices)
 
             # Define the four callback functions that UNO needs.
-            # x is a unopy.Vector (supports __iter__ but not len()).
-            # Output arrays are unopy.PointerToDouble; we map them to numpy
-            # arrays via _ptr_to_numpy() for efficient bulk assignment.
-            def _objective(nv, x, obj_val, ud):
-                fobj, fail = self._masterFunc(np.fromiter(x, dtype=float, count=nv), ['fobj'])
-                _ptr_to_numpy(obj_val, 1)[0] = np.nan if fail else fobj
-                return 0
+            # unopy now provides x and output arrays as numpy arrays directly.
+            def _objective(x):
+                fobj, fail = self._masterFunc(x, ['fobj'])
+                if fail:
+                    raise ValueError('Objective evaluation failed.')
+                return fobj
 
-            def _constraints(nv, nc, x, con_val, ud):
-                fcon, fail = self._masterFunc(np.fromiter(x, dtype=float, count=nv), ['fcon'])
-                arr = _ptr_to_numpy(con_val, ncon)
-                arr[:] = np.nan if fail else fcon
-                return 0
+            def _constraints(x, con_val):
+                fcon, fail = self._masterFunc(x, ['fcon'])
+                if fail:
+                    raise ValueError('Constraint evaluation failed.')
+                con_val[:] = fcon
 
-            def _objective_gradient(nv, x, grad, ud):
-                gobj, fail = self._masterFunc(np.fromiter(x, dtype=float, count=nv), ['gobj'])
-                arr = _ptr_to_numpy(grad, nv)
-                arr[:] = np.nan if fail else gobj
-                return 0
+            def _objective_gradient(x, grad):
+                gobj, fail = self._masterFunc(x, ['gobj'])
+                if fail:
+                    raise ValueError('Objective gradient evaluation failed.')
+                grad[:] = gobj
 
-            def _jacobian(nv, nnz_jac, x, jac_val, ud):
-                gcon_vals, fail = self._masterFunc(np.fromiter(x, dtype=float, count=nv), ['gcon'])
-                arr = _ptr_to_numpy(jac_val, nnz)
-                arr[:] = np.nan if fail else gcon_vals
-                return 0
+            def _jacobian(x, jac_val):
+                gcon_vals, fail = self._masterFunc(x, ['gcon'])
+                if fail:
+                    raise ValueError('Constraint gradient evaluation failed.')
+                jac_val[:] = gcon_vals
 
             timeA = time.time()
 
