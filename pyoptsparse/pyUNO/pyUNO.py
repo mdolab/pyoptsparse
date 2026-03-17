@@ -18,25 +18,23 @@ from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, impor
 
 unopy = import_module('unopy')
 
-# Mapping from unopy OptimizationStatus integer value to pyoptsparse inform codes.
-# These values correspond to: SUCCESS=0, ITERATION_LIMIT=1, TIME_LIMIT=2,
-# EVALUATION_ERROR=3, ALGORITHMIC_ERROR=4, UNBOUNDED=6.
-_UNO_STATUS_TO_INFORM = {
-    0: 0,    # SUCCESS
-    1: -1,   # ITERATION_LIMIT
-    2: -2,   # TIME_LIMIT
-    3: -3,   # EVALUATION_ERROR
-    4: -4,   # ALGORITHMIC_ERROR
-    6: -5,   # UNBOUNDED
-}
-
 
 class UNO(Optimizer):
     """
     UNO Optimizer Class - Inherited from Optimizer Abstract Class.
 
     Uses the ``unopy`` Python bindings to the UNO unified nonlinear optimizer.
-    UNO supports presets ``ipopt``, and ``filterslp``.
+    UNO supports multiple presets including ``filtersqp`` (default, recommended), ``filterslp``, ``funnelsqp``, and ``ipopt`` (not recommended).
+
+    Notes:
+    ------
+    The ``ipopt`` preset is not recommended with pyoptsparse. Although it can be configured to
+    use L-BFGS Hessian approximation, UNO's interior-point method reformulates the problem and
+    its QP subproblems still require explicit Hessian information, which pyoptsparse does not
+    provide. This results in solver failures.
+
+    Use the default ``filtersqp``, ``filterslp``, or ``funnelsqp`` preset instead, which are specifically
+    designed to work efficiently with first-order derivative information only.
     """
 
     def __init__(self, raiseError=True, options={}):
@@ -87,13 +85,12 @@ class UNO(Optimizer):
             Mapping from integer inform code to description string.
         """
         informs = {
-            0: 'Optimal',
-            -1: 'Iteration Limit Exceeded',
-            -2: 'Time Limit Exceeded',
-            -3: 'Evaluation Error',
-            -4: 'Algorithmic Error',
-            -5: 'Unbounded',
-            -99: 'Unknown Status',
+            0: 'Success',
+            1: 'Iteration Limit Exceeded',
+            2: 'Time Limit Exceeded',
+            3: 'Evaluation Error',
+            4: 'Algorithmic Error',
+            5: 'User Termination'
         }
         return informs
 
@@ -282,11 +279,11 @@ class UNO(Optimizer):
                 self.hist.close()
 
             # Map UNO optimization status to pyoptsparse inform code
-            status_val = result.optimization_status.value
-            inform_code = _UNO_STATUS_TO_INFORM.get(status_val, -99)
+            inform_code = result.optimization_status.value
             sol_inform = SolutionInform.from_informs(self.informs, inform_code)
 
-            x_sol = np.array(list(result.primal_solution))
+            # Extract only the original variables (some presets may add additional variables)
+            x_sol = np.array(list(result.primal_solution[: len(xs)]))
             multipliers = np.array(list(result.constraint_dual_solution))
 
             # Create the optimization solution
@@ -314,7 +311,9 @@ class UNO(Optimizer):
         solver : unopy.UnoSolver
             The UNO solver instance to configure.
         """
-        solver.set_preset(self.getOption('preset'))
+        preset = self.getOption('preset')
+        solver.set_preset(preset)
+
         for name, value in self.options.items():
             # skip pyUNO-specific options
             if name in self.pythonOptions:

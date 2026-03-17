@@ -1,0 +1,19 @@
+preset:
+  desc: |
+    Specifies the preset option in UNO (str).
+
+    - ``filtersqp``: Trust region restoration filter SQP solver.
+    - ``filterslp``: infinity norm of the primal step
+    - ``funnelsqp``: regularization term for the Hessian of the Lagrangian
+    - ``ipopt``: line-search filter restoration infeasible interior-point solver
+
+    IPOPT requires a direct linear solver and is not currently functional with pyOptSParse.
+
+    The default value is ``filtersqp``.
+logger:
+  desc: | 
+    The verbosity level of the output (str).
+    Increasing levels out output are provided in the sequence:
+    - ``SILENT``, ``DISCRETE``, ``WARNING``, ``INFO``, ``DEBUG``, ``DEBUG2``, ``DEBUG3``
+    
+    The default value is ``INFO``
