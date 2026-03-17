@@ -253,8 +253,8 @@ class UNO(Optimizer):
             model = unopy.Model(
                 unopy.PROBLEM_NONLINEAR,
                 len(xs),
-                blx.tolist(),
-                bux.tolist(),
+                blx,
+                bux,
                 unopy.ZERO_BASED_INDEXING,
             )
 
@@ -263,15 +263,15 @@ class UNO(Optimizer):
             model.set_constraints(
                 ncon,
                 _constraints,
-                blc.tolist(),
-                buc.tolist(),
+                blc,
+                buc,
                 nnz,
-                row_indices.tolist(),
-                col_indices.tolist(),
+                row_indices,
+                col_indices,
                 _jacobian,
             )
 
-            model.set_initial_primal_iterate(xs.tolist())
+            model.set_initial_primal_iterate(xs)
 
             solver = unopy.UnoSolver()
             self._set_uno_options(solver)
@@ -290,8 +290,8 @@ class UNO(Optimizer):
             sol_inform = SolutionInform.from_informs(self.informs, inform_code)
 
             # Extract only the original variables (some presets may add additional variables)
-            x_sol = np.array(list(self.result.primal_solution[: len(xs)]))
-            multipliers = np.array(list(self.result.constraint_dual_solution))
+            x_sol = self.result.primal_solution[:len(xs)]
+            multipliers = self.result.constraint_dual_solution
 
             # Create the optimization solution
             sol = self._createSolution(
@@ -322,7 +322,7 @@ class UNO(Optimizer):
         solver.set_preset(preset)
 
         for name, value in self.options.items():
-            # skip pyUNO-specific options
+            # skip pyUNO-specific options (preset)
             if name in self.pythonOptions:
                 continue
             solver.set_option(name, str(value))
