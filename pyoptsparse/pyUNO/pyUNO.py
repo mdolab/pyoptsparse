@@ -74,6 +74,10 @@ class UNO(Optimizer):
         # 'preset' is applied via solver.set_preset() rather than set_option().
         self.pythonOptions = {'preset'}
 
+        # Save the result object from the optimize call separately from the 
+        # pyoptsparse Solution object, in case the user wants more detail.
+        self.result = None
+
     @staticmethod
     def _getInforms():
         """
@@ -253,7 +257,9 @@ class UNO(Optimizer):
                 bux.tolist(),
                 unopy.ZERO_BASED_INDEXING,
             )
+
             model.set_objective(unopy.MINIMIZE, _objective, _objective_gradient)
+
             model.set_constraints(
                 ncon,
                 _constraints,
@@ -264,11 +270,12 @@ class UNO(Optimizer):
                 col_indices.tolist(),
                 _jacobian,
             )
+
             model.set_initial_primal_iterate(xs.tolist())
 
             solver = unopy.UnoSolver()
             self._set_uno_options(solver)
-            result = solver.optimize(model)
+            self.result = solver.optimize(model)
 
             optTime = time.time() - timeA
 
@@ -279,16 +286,16 @@ class UNO(Optimizer):
                 self.hist.close()
 
             # Map UNO optimization status to pyoptsparse inform code
-            inform_code = result.optimization_status.value
+            inform_code = self.result.optimization_status.value
             sol_inform = SolutionInform.from_informs(self.informs, inform_code)
 
             # Extract only the original variables (some presets may add additional variables)
-            x_sol = np.array(list(result.primal_solution[: len(xs)]))
-            multipliers = np.array(list(result.constraint_dual_solution))
+            x_sol = np.array(list(self.result.primal_solution[: len(xs)]))
+            multipliers = np.array(list(self.result.constraint_dual_solution))
 
             # Create the optimization solution
             sol = self._createSolution(
-                optTime, sol_inform, result.solution_objective, x_sol, multipliers=multipliers
+                optTime, sol_inform, self.result.solution_objective, x_sol, multipliers=multipliers
             )
 
             # Indicate solution finished

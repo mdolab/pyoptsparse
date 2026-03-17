@@ -3,8 +3,8 @@ preset:
     Specifies the preset option in UNO (str).
 
     - ``filtersqp``: Trust region restoration filter SQP solver.
-    - ``filterslp``: infinity norm of the primal step
-    - ``funnelsqp``: regularization term for the Hessian of the Lagrangian
+    - ``filterslp``: Trust region restoration filter SLP solver.
+    - ``funnelsqp``: Funnel-method SQP solver.
     - ``ipopt``: line-search filter restoration infeasible interior-point solver
 
     IPOPT requires a direct linear solver and is not currently functional with pyOptSParse.
