@@ -19,6 +19,9 @@ from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, impor
 unopy = import_module('unopy')
 
 
+_UNOPY_MIN_VERSION = '0.4.0'
+
+
 class UNO(Optimizer):
     """
     UNO Optimizer Class - Inherited from Optimizer Abstract Class.
@@ -55,8 +58,11 @@ class UNO(Optimizer):
         if isinstance(unopy, Exception) and raiseError:
             raise unopy
         
-        if Version(ilmd.version('unopy')) < Version('0.3.0'):
-            raise RuntimeError('The pyoptsparse UNO interface requires version 0.3.0 or later.')
+        unopy_version = ilmd.version('unopy')
+        
+        if Version(unopy_version) < Version(_UNOPY_MIN_VERSION):
+            raise RuntimeError('The pyoptsparse UNO interface requires unopy '
+                               f'{_UNOPY_MIN_VERSION} or later, but {unopy_version} is installed')
 
         super().__init__(
             name,
@@ -74,9 +80,12 @@ class UNO(Optimizer):
         # 'preset' is applied via solver.set_preset() rather than set_option().
         self.pythonOptions = {'preset'}
 
-        # Save the result object from the optimize call separately from the 
+        # Save the result object from the optimize call separately from the
         # pyoptsparse Solution object, in case the user wants more detail.
         self.result = None
+
+        # Flag to track user-requested termination
+        self._userRequestedTermination = False
 
     @staticmethod
     def _getInforms():
@@ -226,26 +235,38 @@ class UNO(Optimizer):
             # unopy now provides x and output arrays as numpy arrays directly.
             def _objective(x):
                 fobj, fail = self._masterFunc(x, ['fobj'])
-                if fail:
+                if fail == 1:
                     raise ValueError('Objective evaluation failed.')
+                elif fail == 2:
+                    self._userRequestedTermination = True
+                    raise KeyboardInterrupt('User requested termination.')
                 return fobj
 
             def _constraints(x, con_val):
                 fcon, fail = self._masterFunc(x, ['fcon'])
-                if fail:
+                if fail == 1:
                     raise ValueError('Constraint evaluation failed.')
+                elif fail == 2:
+                    self._userRequestedTermination = True
+                    raise KeyboardInterrupt('User requested termination.')
                 con_val[:] = fcon
 
             def _objective_gradient(x, grad):
                 gobj, fail = self._masterFunc(x, ['gobj'])
-                if fail:
+                if fail == 1:
                     raise ValueError('Objective gradient evaluation failed.')
+                elif fail == 2:
+                    self._userRequestedTermination = True
+                    raise KeyboardInterrupt('User requested termination.')
                 grad[:] = gobj
 
             def _jacobian(x, jac_val):
                 gcon_vals, fail = self._masterFunc(x, ['gcon'])
-                if fail:
+                if fail == 1:
                     raise ValueError('Constraint gradient evaluation failed.')
+                elif fail == 2:
+                    self._userRequestedTermination = True
+                    raise KeyboardInterrupt('User requested termination.')
                 jac_val[:] = gcon_vals
 
             timeA = time.time()
@@ -275,7 +296,13 @@ class UNO(Optimizer):
 
             solver = unopy.UnoSolver()
             self._set_uno_options(solver)
-            self.result = solver.optimize(model)
+
+            try:
+                self.result = solver.optimize(model)
+            except KeyboardInterrupt:
+                # User requested termination during optimization
+                # Create a result object indicating user termination
+                pass
 
             optTime = time.time() - timeA
 
@@ -286,16 +313,27 @@ class UNO(Optimizer):
                 self.hist.close()
 
             # Map UNO optimization status to pyoptsparse inform code
-            inform_code = self.result.optimization_status.value
+            if self._userRequestedTermination:
+                # User requested termination
+                inform_code = 5
+            else:
+                inform_code = self.result.optimization_status.value
             sol_inform = SolutionInform.from_informs(self.informs, inform_code)
 
             # Extract only the original variables (some presets may add additional variables)
-            x_sol = self.result.primal_solution[:len(xs)]
-            multipliers = self.result.constraint_dual_solution
+            if self.result is not None:
+                x_sol = self.result.primal_solution[:len(xs)]
+                multipliers = self.result.constraint_dual_solution
+                obj_val = self.result.solution_objective
+            else:
+                # No result available due to user termination
+                x_sol = xs.copy()
+                multipliers = None
+                obj_val = np.nan
 
             # Create the optimization solution
             sol = self._createSolution(
-                optTime, sol_inform, self.result.solution_objective, x_sol, multipliers=multipliers
+                optTime, sol_inform, obj_val, x_sol, multipliers=multipliers
             )
 
             # Indicate solution finished
@@ -325,4 +363,4 @@ class UNO(Optimizer):
             # skip pyUNO-specific options (preset)
             if name in self.pythonOptions:
                 continue
-            solver.set_option(name, str(value))
+            solver.set_option(name, value)

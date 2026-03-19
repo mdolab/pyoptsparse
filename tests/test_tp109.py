@@ -188,6 +188,23 @@ class TestTP109(OptTest):
         sol = self.optimize(optOptions={"Time Limit": 1e-15})
         self.assert_inform_equal(sol, 34)
 
+    def test_uno(self):
+        self.optName = "UNO"
+        self.setup_optProb()
+        optOptions = {"preset": "ipopt", 
+                      "logger": "INFO",
+                      "max_iterations": 300}
+        sol = self.optimize(storeHistory=True, sens="CS", optOptions=optOptions)
+        self.assert_solution_allclose(sol, 1e-6)
+
+    def test_uno_informs(self):
+        self.optName = "UNO"
+        self.slowDownFunc = True
+        self.setup_optProb()
+        sol = self.optimize(sens="CS",
+                            optOptions={"time_limit": 1e-15, "logger": "INFO"})
+        self.assert_inform_equal(sol, 2)
+
     @parameterized.expand(["SLSQP", "PSQP", "NLPQLP"])
     def test_optimization(self, optName):
         self.optName = optName
