@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        versions: [{python: "3.10", numpy: "1.22"}, {python: "3.11", numpy: "1.25"}, {python: "3.12", numpy: "2.1"}]
+        versions: [{python: "3.11", numpy: "1.25"}, {python: "3.12", numpy: "2.3"}]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
