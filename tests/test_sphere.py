@@ -60,11 +60,7 @@ class TestSphere(OptTest):
         "SNOPT": {
             "Major iterations limit": 10,
         },
-        "UNO": {
-            "max_iterations": 100,
-            "preset": "filtersqp",
-            "logger": "SILENT"
-        },
+        "UNO": {"max_iterations": 100, "preset": "filtersqp", "logger": "SILENT"},
     }
 
     def objfunc(self, xdict):

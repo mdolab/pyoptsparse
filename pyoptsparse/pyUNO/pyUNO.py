@@ -16,10 +16,10 @@ from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_solution import SolutionInform
 from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, import_module, scaleRows
 
-unopy = import_module('unopy')
+unopy = import_module("unopy")
 
 
-_UNOPY_MIN_VERSION = '0.4.0'
+_UNOPY_MIN_VERSION = "0.4.0"
 
 
 class UNO(Optimizer):
@@ -27,17 +27,6 @@ class UNO(Optimizer):
     UNO Optimizer Class - Inherited from Optimizer Abstract Class.
 
     Uses the ``unopy`` Python bindings to the UNO unified nonlinear optimizer.
-    UNO supports multiple presets including ``filtersqp`` (default, recommended), ``filterslp``, ``funnelsqp``, and ``ipopt`` (not recommended).
-
-    Notes:
-    ------
-    The ``ipopt`` preset is not recommended with pyoptsparse. Although it can be configured to
-    use L-BFGS Hessian approximation, UNO's interior-point method reformulates the problem and
-    its QP subproblems still require explicit Hessian information, which pyoptsparse does not
-    provide. This results in solver failures.
-
-    Use the default ``filtersqp``, ``filterslp``, or ``funnelsqp`` preset instead, which are specifically
-    designed to work efficiently with first-order derivative information only.
     """
 
     def __init__(self, raiseError=True, options={}):
@@ -51,18 +40,20 @@ class UNO(Optimizer):
         options : dict
             Dictionary of options to pass to the optimizer.
         """
-        name = 'UNO'
-        category = 'Local Optimizer'
+        name = "UNO"
+        category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
         if isinstance(unopy, Exception) and raiseError:
             raise unopy
-        
-        unopy_version = ilmd.version('unopy')
-        
+
+        unopy_version = ilmd.version("unopy")
+
         if Version(unopy_version) < Version(_UNOPY_MIN_VERSION):
-            raise RuntimeError('The pyoptsparse UNO interface requires unopy '
-                               f'{_UNOPY_MIN_VERSION} or later, but {unopy_version} is installed')
+            raise RuntimeError(
+                "The pyoptsparse UNO interface requires unopy "
+                f"{_UNOPY_MIN_VERSION} or later, but {unopy_version} is installed"
+            )
 
         super().__init__(
             name,
@@ -74,11 +65,11 @@ class UNO(Optimizer):
         )
 
         # UNO needs Jacobians in COO format
-        self.jacType = 'coo'
+        self.jacType = "coo"
 
         # Options handled outside of unopy's set_option interface.
         # 'preset' is applied via solver.set_preset() rather than set_option().
-        self.pythonOptions = {'preset'}
+        self.pythonOptions = {"preset"}
 
         # Save the result object from the optimize call separately from the
         # pyoptsparse Solution object, in case the user wants more detail.
@@ -98,12 +89,12 @@ class UNO(Optimizer):
             Mapping from integer inform code to description string.
         """
         informs = {
-            0: 'Success',
-            1: 'Iteration Limit Exceeded',
-            2: 'Time Limit Exceeded',
-            3: 'Evaluation Error',
-            4: 'Algorithmic Error',
-            5: 'User Termination'
+            0: "Success",
+            1: "Iteration Limit Exceeded",
+            2: "Time Limit Exceeded",
+            3: "Evaluation Error",
+            4: "Algorithmic Error",
+            5: "User Termination",
         }
         return informs
 
@@ -118,7 +109,7 @@ class UNO(Optimizer):
             Default options with type and default value pairs.
         """
         defOpts = {
-            'preset': [str, 'filtersqp'],
+            "preset": [str, "filtersqp"],
         }
         return defOpts
 
@@ -208,9 +199,7 @@ class UNO(Optimizer):
 
         if self.optProb.nCon > 0:
             # We need to reorder this full Jacobian...so get ordering:
-            indices, blc, buc, fact = self.optProb.getOrdering(
-                ['ne', 'ni', 'le', 'li'], oneSided=False
-            )
+            indices, blc, buc, fact = self.optProb.getOrdering(["ne", "ni", "le", "li"], oneSided=False)
             self.optProb.jacIndices = indices
             self.optProb.fact = fact
             self.optProb.offset = np.zeros(len(indices))
@@ -227,46 +216,46 @@ class UNO(Optimizer):
         # We make a split here: If the rank is zero we setup the
         # problem and run UNO, otherwise we go to the waiting loop:
         if self.optProb.comm.rank == 0:
-            row_indices = jac['coo'][IROW].copy().astype('int_')
-            col_indices = jac['coo'][ICOL].copy().astype('int_')
+            row_indices = jac["coo"][IROW].copy().astype("int_")
+            col_indices = jac["coo"][ICOL].copy().astype("int_")
             nnz = len(row_indices)
 
             # Define the four callback functions that UNO needs.
             # unopy now provides x and output arrays as numpy arrays directly.
             def _objective(x):
-                fobj, fail = self._masterFunc(x, ['fobj'])
+                fobj, fail = self._masterFunc(x, ["fobj"])
                 if fail == 1:
-                    raise ValueError('Objective evaluation failed.')
+                    raise ValueError("Objective evaluation failed.")
                 elif fail == 2:
                     self._userRequestedTermination = True
-                    raise KeyboardInterrupt('User requested termination.')
+                    raise KeyboardInterrupt("User requested termination.")
                 return fobj
 
             def _constraints(x, con_val):
-                fcon, fail = self._masterFunc(x, ['fcon'])
+                fcon, fail = self._masterFunc(x, ["fcon"])
                 if fail == 1:
-                    raise ValueError('Constraint evaluation failed.')
+                    raise ValueError("Constraint evaluation failed.")
                 elif fail == 2:
                     self._userRequestedTermination = True
-                    raise KeyboardInterrupt('User requested termination.')
+                    raise KeyboardInterrupt("User requested termination.")
                 con_val[:] = fcon
 
             def _objective_gradient(x, grad):
-                gobj, fail = self._masterFunc(x, ['gobj'])
+                gobj, fail = self._masterFunc(x, ["gobj"])
                 if fail == 1:
-                    raise ValueError('Objective gradient evaluation failed.')
+                    raise ValueError("Objective gradient evaluation failed.")
                 elif fail == 2:
                     self._userRequestedTermination = True
-                    raise KeyboardInterrupt('User requested termination.')
+                    raise KeyboardInterrupt("User requested termination.")
                 grad[:] = gobj
 
             def _jacobian(x, jac_val):
-                gcon_vals, fail = self._masterFunc(x, ['gcon'])
+                gcon_vals, fail = self._masterFunc(x, ["gcon"])
                 if fail == 1:
-                    raise ValueError('Constraint gradient evaluation failed.')
+                    raise ValueError("Constraint gradient evaluation failed.")
                 elif fail == 2:
                     self._userRequestedTermination = True
-                    raise KeyboardInterrupt('User requested termination.')
+                    raise KeyboardInterrupt("User requested termination.")
                 jac_val[:] = gcon_vals
 
             timeA = time.time()
@@ -307,9 +296,9 @@ class UNO(Optimizer):
             optTime = time.time() - timeA
 
             if self.storeHistory:
-                self.metadata['endTime'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                self.metadata['optTime'] = optTime
-                self.hist.writeData('metadata', self.metadata)
+                self.metadata["endTime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.metadata["optTime"] = optTime
+                self.hist.writeData("metadata", self.metadata)
                 self.hist.close()
 
             # Map UNO optimization status to pyoptsparse inform code
@@ -322,7 +311,7 @@ class UNO(Optimizer):
 
             # Extract only the original variables (some presets may add additional variables)
             if self.result is not None:
-                x_sol = self.result.primal_solution[:len(xs)]
+                x_sol = self.result.primal_solution[: len(xs)]
                 multipliers = self.result.constraint_dual_solution
                 obj_val = self.result.solution_objective
             else:
@@ -332,9 +321,7 @@ class UNO(Optimizer):
                 obj_val = np.nan
 
             # Create the optimization solution
-            sol = self._createSolution(
-                optTime, sol_inform, obj_val, x_sol, multipliers=multipliers
-            )
+            sol = self._createSolution(optTime, sol_inform, obj_val, x_sol, multipliers=multipliers)
 
             # Indicate solution finished
             self.optProb.comm.bcast(-1, root=0)
@@ -356,7 +343,7 @@ class UNO(Optimizer):
         solver : unopy.UnoSolver
             The UNO solver instance to configure.
         """
-        preset = self.getOption('preset')
+        preset = self.getOption("preset")
         solver.set_preset(preset)
 
         for name, value in self.options.items():

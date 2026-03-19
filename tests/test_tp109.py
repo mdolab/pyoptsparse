@@ -192,8 +192,7 @@ class TestTP109(OptTest):
         self.optName = "UNO"
         self.slowDownFunc = True
         self.setup_optProb()
-        sol = self.optimize(sens="CS",
-                            optOptions={"time_limit": 1e-15, "logger": "INFO"})
+        sol = self.optimize(sens="CS", optOptions={"time_limit": 1e-15, "logger": "INFO"})
         self.assert_inform_equal(sol, 2)
 
     @parameterized.expand(["SLSQP", "PSQP", "NLPQLP", "UNO"])
