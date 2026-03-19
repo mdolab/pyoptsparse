@@ -86,7 +86,7 @@ class TestUserTerminationStatus(unittest.TestCase):
             "Summary file": "{}_summary.out",
         },
         "UNO": {
-            "logger": "INFO",
+            "logger": "SILENT",
         },
     }
 

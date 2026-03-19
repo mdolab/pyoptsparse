@@ -62,8 +62,8 @@ class TestSphere(OptTest):
         },
         "UNO": {
             "max_iterations": 100,
-            "preset": "filterslp",
-            "logger": "INFO"
+            "preset": "filtersqp",
+            "logger": "SILENT"
         },
     }
 
@@ -111,7 +111,7 @@ class TestSphere(OptTest):
         self.setup_optProb()
         optOptions = self.optOptions.get(self.optName, {})
         optOptions["preset"] = preset
-        self.optimize_with_hotstart(self.tol["UNO"], optOptions=optOptions)
+        self.optimize_with_hotstart(self.tol[self.optName], optOptions=optOptions)
 
 
 if __name__ == "__main__":

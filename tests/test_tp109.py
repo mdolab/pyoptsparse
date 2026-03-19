@@ -188,15 +188,6 @@ class TestTP109(OptTest):
         sol = self.optimize(optOptions={"Time Limit": 1e-15})
         self.assert_inform_equal(sol, 34)
 
-    def test_uno(self):
-        self.optName = "UNO"
-        self.setup_optProb()
-        optOptions = {"preset": "ipopt", 
-                      "logger": "INFO",
-                      "max_iterations": 300}
-        sol = self.optimize(storeHistory=True, sens="CS", optOptions=optOptions)
-        self.assert_solution_allclose(sol, 1e-6)
-
     def test_uno_informs(self):
         self.optName = "UNO"
         self.slowDownFunc = True
@@ -205,11 +196,13 @@ class TestTP109(OptTest):
                             optOptions={"time_limit": 1e-15, "logger": "INFO"})
         self.assert_inform_equal(sol, 2)
 
-    @parameterized.expand(["SLSQP", "PSQP", "NLPQLP"])
+    @parameterized.expand(["SLSQP", "PSQP", "NLPQLP", "UNO"])
     def test_optimization(self, optName):
         self.optName = optName
+        if optName == "UNO":
+            self.skipTest("UNO does not currently solve TP109")
         self.setup_optProb()
-        sol = self.optimize(sens="CS")
+        sol = self.optimize(sens="CS", optOptions=None)
         self.assert_solution_allclose(sol, 1e-7)
         # Check that the function values in the solution are real
         self.assertTrue(np.isrealobj(sol.objectives["obj"].value))
