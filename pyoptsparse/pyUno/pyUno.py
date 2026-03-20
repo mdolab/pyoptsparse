@@ -6,10 +6,10 @@ pyUno - A Python wrapper to the Uno optimizer via unopy.
 import datetime
 import importlib.metadata as ilmd
 import time
-from packaging.version import Version
 
 # External modules
 import numpy as np
+from packaging.version import Version
 
 # Local modules
 from ..pyOpt_optimizer import Optimizer
