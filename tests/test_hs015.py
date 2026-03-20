@@ -127,6 +127,41 @@ class TestHS15(OptTest):
         # Check informs
         self.assert_inform_equal(sol)
 
+    def test_uno(self):
+        self.optName = "Uno"
+        self.setup_optProb()
+        optOptions = {"logger": "SILENT"}
+        sol = self.optimize(optOptions=optOptions)
+        # Check Solution
+        self.assert_solution_allclose(sol, 1e-4)
+        # Check informs
+        self.assert_inform_equal(sol)
+
+    @parameterized.expand(["filtersqp", "filterslp", "funnelsqp"])
+    def test_uno_presets(self, preset):
+        self.optName = "Uno"
+        self.setup_optProb()
+        optOptions = {"preset": preset, "logger": "SILENT"}
+        sol = self.optimize(optOptions=optOptions)
+        # Check Solution
+        self.assert_solution_allclose(sol, 1e-4)
+        # Check informs
+        self.assert_inform_equal(sol)
+
+    def test_uno_convergence_options(self):
+        """Test Uno convergence criteria options"""
+        self.optName = "Uno"
+        self.setup_optProb()
+        # Set loose convergence criteria
+        optOptions = {
+            "primal_tolerance": 1e-3,
+            "dual_tolerance": 1e-3,
+            "logger": "SILENT",
+        }
+        sol = self.optimize(optOptions=optOptions)
+        # Check that solution is found (though not as tight as default)
+        self.assert_inform_equal(sol)
+
     def test_ipopt(self):
         self.optName = "IPOPT"
         self.setup_optProb()

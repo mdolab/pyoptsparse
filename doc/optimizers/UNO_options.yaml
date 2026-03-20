@@ -1,0 +1,477 @@
+preset:
+  desc: |
+    Specifies the preset option in Uno (str).
+
+    - ``filtersqp``: Trust region restoration filter SQP solver.
+    - ``filterslp``: Trust region restoration filter SLP solver.
+    - ``funnelsqp``: Funnel-method SQP solver.
+    - ``ipopt``: line-search filter restoration infeasible interior-point solver
+
+    IPOPT requires a direct linear solver and is not currently functional with pyOptSParse.
+
+    The default value is ``filtersqp``.
+
+# Termination Options
+primal_tolerance:
+  desc: |
+    Tolerance on constraint violation (double).
+
+    The default value is ``1e-8``.
+
+dual_tolerance:
+  desc: |
+    Tolerance on stationarity and complementarity (double).
+
+    The default value is ``1e-8``.
+
+loose_primal_tolerance:
+  desc: |
+    Loose tolerance on constraint violation (double).
+
+    The default value is ``1e-6``.
+
+loose_dual_tolerance:
+  desc: |
+    Loose tolerance on stationarity and complementarity (double).
+
+    The default value is ``1e-6``.
+
+loose_tolerance_iteration_threshold:
+  desc: |
+    Number of iterations before loose tolerance applies (int).
+
+    The default value is ``15``.
+
+max_iterations:
+  desc: |
+    Maximum number of outer iterations (int).
+
+    The default value is ``2000``.
+
+time_limit:
+  desc: |
+    Time limit in seconds (double).
+
+    The default value is ``infinity``.
+
+unbounded_objective_threshold:
+  desc: |
+    Objective threshold for unboundedness detection (double).
+
+    The default value is ``-1e20``.
+
+# Logging and Output Options
+logger:
+  desc: |
+    The verbosity level of the output (str).
+    Increasing levels out output are provided in the sequence:
+    - ``SILENT``, ``DISCRETE``, ``WARNING``, ``INFO``, ``DEBUG``, ``DEBUG2``, ``DEBUG3``
+
+    The default value is ``INFO``.
+
+print_solution:
+  desc: |
+    Output primal-dual solution (bool).
+
+    The default value is ``false``.
+
+print_subproblem:
+  desc: |
+    Output subproblem in DEBUG mode only (bool).
+
+    The default value is ``false``.
+
+progress_norm:
+  desc: |
+    Norm for progress measures (str). Options: L1, L2, INF.
+
+    The default value is ``L1``.
+
+residual_norm:
+  desc: |
+    Norm for residuals (str). Options: L1, L2, INF.
+
+    The default value is ``INF``.
+
+# Numerical Options
+residual_scaling_threshold:
+  desc: |
+    Scaling factor for residuals (double).
+
+    The default value is ``100.0``.
+
+protect_actual_reduction_against_roundoff:
+  desc: |
+    Protection against roundoff errors (bool).
+
+    The default value is ``false``.
+
+protected_actual_reduction_macheps_coefficient:
+  desc: |
+    Machine epsilon coefficient (double).
+
+    The default value is ``10``.
+
+# Globalization Strategy Options
+armijo_decrease_fraction:
+  desc: |
+    Fraction of predicted reduction for Armijo condition (double).
+
+    The default value is ``1e-4``.
+
+armijo_tolerance:
+  desc: |
+    Minimum predicted reduction threshold (double).
+
+    The default value is ``1e-9``.
+
+switching_delta:
+  desc: |
+    Constraint violation fraction in switching condition (double).
+
+    The default value is ``0.999``.
+
+switching_infeasibility_exponent:
+  desc: |
+    Exponent of constraint violation (double).
+
+    The default value is ``2``.
+
+sufficient_infeasibility_decrease_ratio:
+  desc: |
+    Sufficient infeasibility decrease ratio (double).
+
+    The default value is ``0.9``.
+
+# Filter Method Options
+filter_type:
+  desc: |
+    Type of filter data structure (str).
+
+    The default value is ``standard``.
+
+filter_beta:
+  desc: |
+    Infeasibility reduction fraction (double).
+
+    The default value is ``0.999``.
+
+filter_gamma:
+  desc: |
+    Slope in objective sufficient reduction condition (double).
+
+    The default value is ``0.001``.
+
+filter_ubd:
+  desc: |
+    Initial infeasibility upper bound minimum (double).
+
+    The default value is ``1e2``.
+
+filter_fact:
+  desc: |
+    Initial infeasibility multiplier (double).
+
+    The default value is ``1.25``.
+
+filter_capacity:
+  desc: |
+    Maximum number of filter entries (int).
+
+    The default value is ``50``.
+
+filter_sufficient_infeasibility_decrease_factor:
+  desc: |
+    Infeasibility decrease factor (double).
+
+    The default value is ``0.9``.
+
+nonmonotone_filter_number_dominated_entries:
+  desc: |
+    Number of dominated entries for nonmonotone filter (int).
+
+    The default value is ``3``.
+
+# Funnel Method Options
+funnel_kappa:
+  desc: |
+    Convex combination coefficient in funnel update rule (double).
+
+    The default value is ``0.5``.
+
+funnel_beta:
+  desc: |
+    Infeasibility reduction fraction (double).
+
+    The default value is ``0.9999``.
+
+funnel_gamma:
+  desc: |
+    Objective reduction slope (double).
+
+    The default value is ``0.001``.
+
+funnel_ubd:
+  desc: |
+    Initial infeasibility upper bound minimum (double).
+
+    The default value is ``1.0``.
+
+funnel_fact:
+  desc: |
+    Initial infeasibility multiplier (double).
+
+    The default value is ``1.5``.
+
+funnel_update_strategy:
+  desc: |
+    Rule for funnel update (int). Options: 1, 2, or 3.
+
+    The default value is ``1``.
+
+funnel_require_acceptance_wrt_current_iterate:
+  desc: |
+    Require trial iterate improvement (bool).
+
+    The default value is ``false``.
+
+# Line Search Options
+LS_backtracking_ratio:
+  desc: |
+    Decrease ratio of step length during backtracking (double).
+
+    The default value is ``0.5``.
+
+LS_min_step_length:
+  desc: |
+    Minimum acceptable step length (double).
+
+    The default value is ``1e-12``.
+
+LS_scale_duals_with_step_length:
+  desc: |
+    Scale Lagrange multipliers with step length (bool).
+
+    The default value is ``true``.
+
+# Inertia Correction Options
+regularization_failure_threshold:
+  desc: |
+    Failure reporting threshold (double).
+
+    The default value is ``1e40``.
+
+primal_regularization_initial_factor:
+  desc: |
+    Initial inertia correction coefficient (double).
+
+    The default value is ``1e-4``.
+
+regularization_increase_factor:
+  desc: |
+    Increase factor for primal inertia (double).
+
+    The default value is ``2``.
+
+dual_regularization_fraction:
+  desc: |
+    Fraction of dual inertia (double).
+
+    The default value is ``1e-8``.
+
+primal_regularization_lb:
+  desc: |
+    Minimum coefficient on decrease (double).
+
+    The default value is ``1e-20``.
+
+primal_regularization_decrease_factor:
+  desc: |
+    Decrease factor for primal regularization (double).
+
+    The default value is ``3.0``.
+
+primal_regularization_fast_increase_factor:
+  desc: |
+    Fast increase multiplier (double).
+
+    The default value is ``100.0``.
+
+primal_regularization_slow_increase_factor:
+  desc: |
+    Slow increase multiplier (double).
+
+    The default value is ``8.0``.
+
+threshold_unsuccessful_attempts:
+  desc: |
+    Attempts before aggressive correction (int).
+
+    The default value is ``8``.
+
+# Quasi-Newton Options
+quasi_newton_memory_size:
+  desc: |
+    Size of quasi-Newton limited memory (int).
+
+    The default value is ``6``.
+
+# Trust Region Options
+TR_radius:
+  desc: |
+    Initial trust region radius (double).
+
+    The default value is ``10.0``.
+
+TR_increase_factor:
+  desc: |
+    Radius increase for successful iterations (double).
+
+    The default value is ``2``.
+
+TR_decrease_factor:
+  desc: |
+    Radius decrease for unsuccessful iterations (double).
+
+    The default value is ``2``.
+
+TR_aggressive_decrease_factor:
+  desc: |
+    Radius decrease when errors occur (double).
+
+    The default value is ``4``.
+
+TR_activity_tolerance:
+  desc: |
+    Constraint activity tolerance (double).
+
+    The default value is ``1e-6``.
+
+TR_min_radius:
+  desc: |
+    Minimum acceptable trust region radius (double).
+
+    The default value is ``1e-12``.
+
+TR_radius_reset_threshold:
+  desc: |
+    Reset value at iteration start (double).
+
+    The default value is ``1e-4``.
+
+# Feasibility Restoration Options
+switch_to_optimality_requires_linearized_feasibility:
+  desc: |
+    Require linearized constraint consistency (bool).
+
+    The default value is ``true``.
+
+l1_constraint_violation_coefficient:
+  desc: |
+    Violation coefficient in l1 problem (double).
+
+    The default value is ``1``.
+
+# Barrier Subproblem Options
+barrier_function:
+  desc: |
+    Type of barrier function (str).
+
+    The default value is ``log``.
+
+barrier_initial_parameter:
+  desc: |
+    Initial value of barrier parameter (double).
+
+    The default value is ``0.1``.
+
+barrier_default_multiplier:
+  desc: |
+    Initial bound multiplier value (double).
+
+    The default value is ``1``.
+
+barrier_tau_min:
+  desc: |
+    Coefficient of fraction-to-boundary rule (double).
+
+    The default value is ``0.99``.
+
+barrier_k_sigma:
+  desc: |
+    Multiplier rescaling safeguard (double).
+
+    The default value is ``1e10``.
+
+barrier_k_mu:
+  desc: |
+    Barrier parameter multiplicative update (double).
+
+    The default value is ``0.2``.
+
+barrier_theta_mu:
+  desc: |
+    Barrier parameter geometric update (double).
+
+    The default value is ``1.5``.
+
+barrier_k_epsilon:
+  desc: |
+    Scaling factor of barrier parameter (double).
+
+    The default value is ``10``.
+
+barrier_update_fraction:
+  desc: |
+    Fraction in barrier update rule (double).
+
+    The default value is ``10``.
+
+barrier_regularization_exponent:
+  desc: |
+    Dual inertia correction exponent (double).
+
+    The default value is ``0.25``.
+
+barrier_small_direction_factor:
+  desc: |
+    Machine epsilon multiple (double).
+
+    The default value is ``10.0``.
+
+barrier_push_variable_to_interior_k1:
+  desc: |
+    Initial bounds perturbation coefficient (double).
+
+    The default value is ``1e-2``.
+
+barrier_push_variable_to_interior_k2:
+  desc: |
+    Initial bounds perturbation coefficient (double).
+
+    The default value is ``1e-2``.
+
+barrier_damping_factor:
+  desc: |
+    Damping coefficient for single bounds (double).
+
+    The default value is ``1e-5``.
+
+barrier_small_infeasibility_factor:
+  desc: |
+    Factor in small infeasibility test (double).
+
+    The default value is ``1e-4``.
+
+least_square_multiplier_max_norm:
+  desc: |
+    Maximum least-square multiplier norm (double).
+
+    The default value is ``1e3``.
+
+# BQPD Solver Options
+BQPD_kmax_heuristic:
+  desc: |
+    Heuristic for upper bound on nullspace size (str).
+
+    The default value is ``filtersqp``.

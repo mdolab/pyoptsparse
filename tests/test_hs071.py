@@ -31,6 +31,7 @@ class TestHS71(OptTest):
         "SLSQP": 1e-6,
         "CONMIN": 1e-3,
         "PSQP": 1e-6,
+        "Uno": 1e-4,
     }
     optOptions = {
         "CONMIN": {
@@ -198,17 +199,28 @@ class TestHS71(OptTest):
         sol = self.optimize(optOptions={"max_cpu_time": 0.001})
         self.assert_inform_equal(sol, -4)
 
+    def test_uno_informs(self):
+        self.optName = "Uno"
+        self.setup_optProb()
+        # Test that the inform is 1 (Iteration Limit Exceeded) when iterations are too limited.
+        sol = self.optimize(optOptions={"max_iterations": 1, "logger": "SILENT"})
+        self.assert_inform_equal(sol, 1)
+
     def test_psqp_informs(self):
         self.optName = "PSQP"
         self.setup_optProb()
         sol = self.optimize(optOptions={"MIT": 1})
         self.assert_inform_equal(sol, 11)
 
-    @parameterized.expand(["SNOPT", "IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP"])
+    @parameterized.expand(["SNOPT", "IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "Uno"])
     def test_optimization(self, optName):
         self.optName = optName
         self.setup_optProb()
         optOptions = self.optOptions.pop(optName, None)
+        if optOptions is None:
+            optOptions = {}
+        if optName == "Uno":
+            optOptions["logger"] = "SILENT"
         sol = self.optimize(optOptions=optOptions)
         # Check Solution
         lambda_sign = -1.0 if optName == "IPOPT" else 1.0
@@ -222,7 +234,7 @@ class TestHS71(OptTest):
         con2_line_num = constraint_header_line_num + 3
         lambda_con1 = float(lines[con1_line_num].split()[-1])
         lambda_con2 = float(lines[con2_line_num].split()[-1])
-        if optName in ("IPOPT", "SNOPT"):
+        if optName in ("IPOPT", "SNOPT", "Uno"):
             # IPOPT returns Lagrange multipliers with opposite sign than SNOPT
             lambda_sign = -1.0 if optName == "IPOPT" else 1.0
             assert_allclose(
