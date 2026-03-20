@@ -1,5 +1,5 @@
 """
-pyUNO - A Python wrapper to the UNO optimizer via unopy.
+pyUNO - A Python wrapper to the Uno optimizer via unopy.
 """
 
 # Standard Python modules
@@ -22,16 +22,16 @@ unopy = import_module("unopy")
 _UNOPY_MIN_VERSION = "0.4.0"
 
 
-class UNO(Optimizer):
+class Uno(Optimizer):
     """
-    UNO Optimizer Class - Inherited from Optimizer Abstract Class.
+    Uno Optimizer Class - Inherited from Optimizer Abstract Class.
 
-    Uses the ``unopy`` Python bindings to the UNO unified nonlinear optimizer.
+    Uses the ``unopy`` Python bindings to the Uno unified nonlinear optimizer.
     """
 
     def __init__(self, raiseError=True, options={}):
         """
-        UNO Optimizer Class Initialization.
+        Uno Optimizer Class Initialization.
 
         Parameters
         ----------
@@ -40,7 +40,7 @@ class UNO(Optimizer):
         options : dict
             Dictionary of options to pass to the optimizer.
         """
-        name = "UNO"
+        name = "Uno"
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
@@ -51,7 +51,7 @@ class UNO(Optimizer):
 
         if Version(unopy_version) < Version(_UNOPY_MIN_VERSION):
             raise RuntimeError(
-                "The pyoptsparse UNO interface requires unopy "
+                "The pyoptsparse Uno interface requires unopy "
                 f"{_UNOPY_MIN_VERSION} or later, but {unopy_version} is installed"
             )
 
@@ -64,7 +64,7 @@ class UNO(Optimizer):
             checkDefaultOptions=False,
         )
 
-        # UNO needs Jacobians in COO format
+        # Uno needs Jacobians in COO format
         self.jacType = "coo"
 
         # Options handled outside of unopy's set_option interface.
@@ -110,6 +110,25 @@ class UNO(Optimizer):
         """
         defOpts = {
             "preset": [str, "filtersqp"],
+            # Termination Options
+            "primal_tolerance": [float, 1e-8],
+            "dual_tolerance": [float, 1e-8],
+            "loose_primal_tolerance": [float, 1e-6],
+            "loose_dual_tolerance": [float, 1e-6],
+            "loose_tolerance_iteration_threshold": [int, 15],
+            "max_iterations": [int, 2000],
+            "time_limit": [float, float("inf")],
+            "unbounded_objective_threshold": [float, -1e20],
+            # Logging and Output Options
+            "logger": [str, "INFO"],
+            "print_solution": [bool, False],
+            "print_subproblem": [bool, False],
+            "progress_norm": [str, "L1"],
+            "residual_norm": [str, "INF"],
+            # Numerical Options
+            "residual_scaling_threshold": [float, 100.0],
+            "protect_actual_reduction_against_roundoff": [bool, False],
+            "protected_actual_reduction_macheps_coefficient": [float, 10],
         }
         return defOpts
 
@@ -175,7 +194,7 @@ class UNO(Optimizer):
         self.storeSens = storeSens
 
         if len(optProb.constraints) == 0:
-            # UNO requires at least one constraint, so add a dummy one
+            # Uno requires at least one constraint, so add a dummy one
             # for unconstrained problems.
             self.unconstrained = True
             optProb.dummyConstraint = True
@@ -211,16 +230,16 @@ class UNO(Optimizer):
             buc = np.atleast_1d(INFINITY)
             ncon = 1
 
-        jac = convertToCOO(jac)  # Convert to COO format for UNO
+        jac = convertToCOO(jac)  # Convert to COO format for Uno
 
         # We make a split here: If the rank is zero we setup the
-        # problem and run UNO, otherwise we go to the waiting loop:
+        # problem and run Uno, otherwise we go to the waiting loop:
         if self.optProb.comm.rank == 0:
             row_indices = jac["coo"][IROW].copy().astype("int_")
             col_indices = jac["coo"][ICOL].copy().astype("int_")
             nnz = len(row_indices)
 
-            # Define the four callback functions that UNO needs.
+            # Define the four callback functions that Uno needs.
             # unopy now provides x and output arrays as numpy arrays directly.
             def _objective(x):
                 fobj, fail = self._masterFunc(x, ["fobj"])
@@ -301,7 +320,7 @@ class UNO(Optimizer):
                 self.hist.writeData("metadata", self.metadata)
                 self.hist.close()
 
-            # Map UNO optimization status to pyoptsparse inform code
+            # Map Uno optimization status to pyoptsparse inform code
             if self._userRequestedTermination:
                 # User requested termination
                 inform_code = 5
@@ -336,18 +355,18 @@ class UNO(Optimizer):
 
     def _set_uno_options(self, solver):
         """
-        Set all options in self.options on the UNO solver instance.
+        Set all options in self.options on the Uno solver instance.
 
         Parameters
         ----------
         solver : unopy.UnoSolver
-            The UNO solver instance to configure.
+            The Uno solver instance to configure.
         """
         preset = self.getOption("preset")
         solver.set_preset(preset)
 
         for name, value in self.options.items():
-            # skip pyUNO-specific options (preset)
+            # skip preset
             if name in self.pythonOptions:
                 continue
             solver.set_option(name, value)

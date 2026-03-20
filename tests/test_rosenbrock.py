@@ -47,7 +47,7 @@ class TestRosenbrock(OptTest):
         "SLSQP": 1e-6,
         "CONMIN": 1e-9,
         "PSQP": 1e-8,
-        "UNO": 1e-4,
+        "Uno": 1e-4,
     }
     optOptions = {
         "SLSQP": {"ACC": 1e-10},
@@ -144,7 +144,7 @@ class TestRosenbrock(OptTest):
         # The first is from a call we deleted and the second is the call after 'last'
         self.assertEqual(self.ng, 2)
 
-    @parameterized.expand(["IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "UNO"])
+    @parameterized.expand(["IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "Uno"])
     def test_optimization(self, optName):
         self.optName = optName
         if optName == "IPOPT" and sys.platform == "win32":
@@ -153,7 +153,7 @@ class TestRosenbrock(OptTest):
         optOptions = self.optOptions.pop(optName, None)
         if optOptions is None:
             optOptions = {}
-        if optName == "UNO":
+        if optName == "Uno":
             optOptions["logger"] = "SILENT"
         self.optimize_with_hotstart(self.tol[optName], optOptions=optOptions)
 

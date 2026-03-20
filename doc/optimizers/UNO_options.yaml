@@ -1,6 +1,6 @@
 preset:
   desc: |
-    Specifies the preset option in UNO (str).
+    Specifies the preset option in Uno (str).
 
     - ``filtersqp``: Trust region restoration filter SQP solver.
     - ``filterslp``: Trust region restoration filter SLP solver.

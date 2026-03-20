@@ -13,7 +13,7 @@ from . import testing
 # Now import all the individual optimizers
 from .pySNOPT.pySNOPT import SNOPT
 from .pyIPOPT.pyIPOPT import IPOPT
-from .pyUNO.pyUNO import UNO
+from .pyUno.pyUno import Uno
 from .pySLSQP.pySLSQP import SLSQP
 from .pyCONMIN.pyCONMIN import CONMIN
 from .pyPSQP.pyPSQP import PSQP
@@ -35,7 +35,7 @@ __all__ = [
     "Solution",
     "SNOPT",
     "IPOPT",
-    "UNO",
+    "Uno",
     "SLSQP",
     "CONMIN",
     "PSQP",
