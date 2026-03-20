@@ -1,5 +1,5 @@
 """
-pyUNO - A Python wrapper to the Uno optimizer via unopy.
+pyUno - A Python wrapper to the Uno optimizer via unopy.
 """
 
 # Standard Python modules
