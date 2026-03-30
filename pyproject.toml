@@ -7,12 +7,12 @@ name = "pyoptsparse"
 description = "Python package for formulating and solving nonlinear constrained optimization problems"
 readme = "README.md"
 license = {file = "LICENSE"}
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = [
     "packaging",
     "sqlitedict>=1.6",
-    "numpy>=1.21",
-    "scipy>=1.7",
+    "numpy>=1.25",
+    "scipy>=1.11",
     "mdolab-baseclasses>=1.3.1"
 ]
 dynamic = ["version"]  # version is dynamically populated from meson project

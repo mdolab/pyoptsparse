@@ -240,7 +240,7 @@ class Constraint:
             dvStart.append(dvOffset[dvGroup][0])
 
         # This sort wrt using the keys in dvOffset
-        self.wrt = [x for (y, x) in sorted(zip(dvStart, self.wrt))]
+        self.wrt = [x for (y, x) in sorted(zip(dvStart, self.wrt, strict=False))]
 
         # Now we know which dvGroups this constraint will have a
         # derivative with respect to (i.e. what is in the wrt list)
