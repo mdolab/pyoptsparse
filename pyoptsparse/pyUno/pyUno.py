@@ -128,7 +128,7 @@ class Uno(Optimizer):
             # Numerical Options
             "residual_scaling_threshold": [float, 100.0],
             "protect_actual_reduction_against_roundoff": [bool, False],
-            "protected_actual_reduction_macheps_coefficient": [float, 10.],
+            "protected_actual_reduction_macheps_coefficient": [float, 10.0],
         }
         return defOpts
 
