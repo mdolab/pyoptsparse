@@ -1,7 +1,6 @@
 """Test solution of problem HS71 from the Hock & Schittkowski collection"""
 
 # Standard Python modules
-import pathlib
 import unittest
 
 # External modules
@@ -206,20 +205,6 @@ class TestHS71(OptTest):
         # Test that the inform is 1 (Iteration Limit Exceeded) when iterations are too limited.
         sol = self.optimize(optOptions={"max_iterations": 1, "logger": "SILENT"})
         self.assert_inform_equal(sol, 1)
-
-    @unittest.skip("This test is skipped due to a bug in the unopy bindings for streams.")
-    @parameterized.expand(["SILENT", "DISCRETE", "WARNING", "INFO", "DEBUG", "DEBUG2", "DEBUG3"])
-    def test_uno_log_stream(self, logger):
-        self.optName = "Uno"
-        self.setup_optProb()
-        log_path = pathlib.Path(f"uno_log_{logger}.txt")
-        with open(log_path, 'w') as f:
-            sol = self.optimize(optOptions={"logger": logger, "logger_stream": f})
-            self.assert_inform_equal(sol, 1)
-        if logger == "SILENT":
-            self.assertTrue(log_path.stat().st_size == 0)
-        else:
-            self.assertTrue(log_path.stat().st_size > 0)
 
     def test_psqp_informs(self):
         self.optName = "PSQP"
