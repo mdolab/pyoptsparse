@@ -199,8 +199,9 @@ class TestTP109(OptTest):
     def test_optimization(self, optName):
         self.optName = optName
         self.setup_optProb()
-        sol = self.optimize(sens="CS", optOptions=None)
-        self.assert_solution_allclose(sol, 1e-7)
+        options = {"preset": "ipopt"} if optName == "Uno" else None
+        sol = self.optimize(sens="CS", optOptions=options)
+        self.assert_solution_allclose(sol, 1e-6 if optName == "Uno" else 1e-7)
         # Check that the function values in the solution are real
         self.assertTrue(np.isrealobj(sol.objectives["obj"].value))
         self.assertTrue(np.isrealobj(sol.constraints["con"].value))

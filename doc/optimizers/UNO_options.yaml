@@ -69,12 +69,6 @@ logger:
 
     The default value is ``INFO``.
 
-logger_stream:
-  desc: |
-    The stream to which the logger writes the log.
-
-    The default value is ``sys.stdout``.
-
 print_solution:
   desc: |
     Output primal-dual solution (bool).

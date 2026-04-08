@@ -207,11 +207,12 @@ class TestHS71(OptTest):
         sol = self.optimize(optOptions={"max_iterations": 1, "logger": "SILENT"})
         self.assert_inform_equal(sol, 1)
 
+    @unittest.skip("This test is skipped due to a bug in the unopy bindings for streams.")
     @parameterized.expand(["SILENT", "DISCRETE", "WARNING", "INFO", "DEBUG", "DEBUG2", "DEBUG3"])
     def test_uno_log_stream(self, logger):
         self.optName = "Uno"
         self.setup_optProb()
-        log_path = pathlib.Path("uno_log.txt")
+        log_path = pathlib.Path(f"uno_log_{logger}.txt")
         with open(log_path, 'w') as f:
             sol = self.optimize(optOptions={"logger": logger, "logger_stream": f})
             self.assert_inform_equal(sol, 1)
