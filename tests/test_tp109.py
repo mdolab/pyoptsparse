@@ -192,14 +192,12 @@ class TestTP109(OptTest):
         self.optName = "Uno"
         self.slowDownFunc = True
         self.setup_optProb()
-        sol = self.optimize(sens="CS", optOptions={"time_limit": 1e-15, "logger": "INFO"})
+        sol = self.optimize(sens="CS", optOptions={"time_limit": 1e-15, "logger": "SILENT"})
         self.assert_inform_equal(sol, 2)
 
     @parameterized.expand(["SLSQP", "PSQP", "NLPQLP", "Uno"])
     def test_optimization(self, optName):
         self.optName = optName
-        if optName == "Uno":
-            self.skipTest("Uno does not currently solve TP109")
         self.setup_optProb()
         sol = self.optimize(sens="CS", optOptions=None)
         self.assert_solution_allclose(sol, 1e-7)
