@@ -85,14 +85,19 @@ class TestUserTerminationStatus(unittest.TestCase):
             "Print file": "{}.out",
             "Summary file": "{}_summary.out",
         },
+        "Uno": {
+            "preset": "ipopt",
+            "logger": "SILENT",
+        },
     }
 
     optExitCode = {
         "IPOPT": 5,
         "SNOPT": 71,
+        "Uno": 5,  # User Termination from Uno informs
     }
 
-    @parameterized.expand(["IPOPT", "SNOPT"])
+    @parameterized.expand(["IPOPT", "SNOPT", "Uno"])
     def test_obj(self, optName):
         termcomp = TerminateComp(max_obj=2)
         optProb = setup_optProb(termcomp)
@@ -113,7 +118,7 @@ class TestUserTerminationStatus(unittest.TestCase):
         # Exit code for user requested termination.
         self.assertEqual(sol.optInform.value, self.optExitCode[optName])
 
-    @parameterized.expand(["IPOPT", "SNOPT"])
+    @parameterized.expand(["IPOPT", "SNOPT", "Uno"])
     def test_sens(self, optName):
         termcomp = TerminateComp(max_sens=3)
         optProb = setup_optProb(termcomp)
