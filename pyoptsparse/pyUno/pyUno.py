@@ -6,6 +6,7 @@ pyUno - A Python wrapper to the Uno optimizer via unopy.
 import datetime
 import importlib.metadata as ilmd
 import time
+from typing import TextIO
 
 # External modules
 import numpy as np
@@ -19,7 +20,7 @@ from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, impor
 unopy = import_module("unopy")
 
 
-_UNOPY_MIN_VERSION = "0.4.2"
+_UNOPY_MIN_VERSION = "0.4.3"
 
 
 class Uno(Optimizer):
@@ -69,7 +70,7 @@ class Uno(Optimizer):
 
         # Options handled outside of unopy's set_option interface.
         # 'preset' is applied via solver.set_preset() rather than set_option().
-        self.pythonOptions = {"preset"}
+        self.pythonOptions = {"preset", "logger_stream"}
 
         # Save the result object from the optimize call separately from the
         # pyoptsparse Solution object, in case the user wants more detail.
@@ -111,6 +112,7 @@ class Uno(Optimizer):
         defOpts = {
             # Special options handled differently by Uno
             "preset": [str, "filtersqp"],
+            "logger_stream": [TextIO, None],
             # Termination Options
             "primal_tolerance": [float, 1e-8],
             "dual_tolerance": [float, 1e-8],
@@ -364,6 +366,9 @@ class Uno(Optimizer):
             The Uno solver instance to configure.
         """
         solver.set_preset(self.getOption("preset"))
+
+        if self.getOption("logger_stream") is not None:
+            solver.set_logger_stream(self.getOption("logger_stream"))
 
         for name, value in self.options.items():
             # skip preset

@@ -86,6 +86,7 @@ class TestUserTerminationStatus(unittest.TestCase):
             "Summary file": "{}_summary.out",
         },
         "Uno": {
+            "preset": "ipopt",
             "logger": "SILENT",
         },
     }

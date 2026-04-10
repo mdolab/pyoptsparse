@@ -69,6 +69,12 @@ logger:
 
     The default value is ``INFO``.
 
+logger_stream:
+  desc: |
+    The stream to which the logger writes the log.
+
+    The default value is None, which leaves the logger stream unchanged.
+
 print_solution:
   desc: |
     Output primal-dual solution (bool).

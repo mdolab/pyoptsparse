@@ -1,6 +1,7 @@
 """Test solution of problem HS71 from the Hock & Schittkowski collection"""
 
 # Standard Python modules
+import pathlib
 import unittest
 
 # External modules
@@ -204,7 +205,26 @@ class TestHS71(OptTest):
         self.setup_optProb()
         # Test that the inform is 1 (Iteration Limit Exceeded) when iterations are too limited.
         sol = self.optimize(optOptions={"max_iterations": 1, "logger": "SILENT"})
+        print(sol)
         self.assert_inform_equal(sol, 1)
+
+    def test_uno_log_stream(self):
+        self.optName = "Uno"
+        self.setup_optProb()
+        log_file_size = 0
+        for logger in ["SILENT", "DISCRETE", "WARNING", "INFO", "DEBUG", "DEBUG2", "DEBUG3"]:
+            log_path = pathlib.Path(f"uno_log_{logger}.txt")
+            with open(log_path, "w") as f:
+                sol = self.optimize(optOptions={"logger": logger, "logger_stream": f})
+                self.assert_inform_equal(sol, 0)
+            prev_log_file_size = log_file_size
+            log_file_size = log_path.stat().st_size
+            if logger == "SILENT":
+                self.assertTrue(log_file_size == 0)
+            else:
+                self.assertTrue(log_file_size > 0)
+                self.assertTrue(log_file_size > prev_log_file_size)
+            log_path.unlink()
 
     def test_psqp_informs(self):
         self.optName = "PSQP"
