@@ -118,6 +118,14 @@ protected_actual_reduction_macheps_coefficient:
 
     The default value is ``10``.
 
+# Ingredients
+hessian_model:
+  desc: |
+    One of ``exact``, ``LBFGS``, ``LSR1``, ``identity``, ``zero``.
+
+    The default in pyOptSParse is ``LBFGS`` to prevent a fallback
+    to ``LSR1`` in trust region methods.
+
 # Globalization Strategy Options
 armijo_decrease_fraction:
   desc: |
@@ -320,7 +328,7 @@ quasi_newton_memory_size:
   desc: |
     Size of quasi-Newton limited memory (int).
 
-    The default value is ``6``.
+    The default value in pyOptSParse is ``20``.
 
 # Trust Region Options
 TR_radius:

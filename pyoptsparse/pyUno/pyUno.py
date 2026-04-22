@@ -132,6 +132,8 @@ class Uno(Optimizer):
             "residual_scaling_threshold": [float, 100.0],
             "protect_actual_reduction_against_roundoff": [bool, False],
             "protected_actual_reduction_macheps_coefficient": [float, 10.0],
+            "hessian_model": [str, "LBFGS"],
+            "quasi_newton_memory_size": [int, 20],
         }
         return defOpts
 
