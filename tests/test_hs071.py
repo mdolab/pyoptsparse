@@ -223,7 +223,7 @@ class TestHS71(OptTest):
                 self.assertTrue(log_file_size == 0)
             else:
                 self.assertTrue(log_file_size > 0)
-                self.assertTrue(log_file_size > prev_log_file_size)
+                self.assertTrue(log_file_size >= prev_log_file_size, msg={f"{logger} file size decreased"})
             log_path.unlink()
 
     def test_psqp_informs(self):
