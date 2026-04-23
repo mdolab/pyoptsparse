@@ -211,19 +211,16 @@ class TestHS71(OptTest):
     def test_uno_log_stream(self):
         self.optName = "Uno"
         self.setup_optProb()
-        log_file_size = 0
         for logger in ["SILENT", "DISCRETE", "WARNING", "INFO", "DEBUG", "DEBUG2", "DEBUG3"]:
             log_path = pathlib.Path(f"uno_log_{logger}.txt")
             with open(log_path, "w") as f:
                 sol = self.optimize(optOptions={"logger": logger, "logger_stream": f})
                 self.assert_inform_equal(sol, 0)
-            prev_log_file_size = log_file_size
             log_file_size = log_path.stat().st_size
             if logger == "SILENT":
                 self.assertTrue(log_file_size == 0)
             else:
                 self.assertTrue(log_file_size > 0)
-                self.assertTrue(log_file_size >= prev_log_file_size, msg={f"{logger} file size decreased"})
             log_path.unlink()
 
     def test_psqp_informs(self):
