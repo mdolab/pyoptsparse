@@ -7,8 +7,6 @@ preset:
     - ``funnelsqp``: Funnel-method SQP solver.
     - ``ipopt``: line-search filter restoration infeasible interior-point solver
 
-    IPOPT requires a direct linear solver and is not currently functional with pyOptSParse.
-
     The default value is ``filtersqp``.
 
 # Termination Options
