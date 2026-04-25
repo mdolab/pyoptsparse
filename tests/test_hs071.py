@@ -205,7 +205,6 @@ class TestHS71(OptTest):
         self.setup_optProb()
         # Test that the inform is 1 (Iteration Limit Exceeded) when iterations are too limited.
         sol = self.optimize(optOptions={"max_iterations": 1, "logger": "SILENT"})
-        print(sol)
         self.assert_inform_equal(sol, 1)
 
     def test_uno_log_stream(self):
