@@ -69,3 +69,4 @@ To get started, please see the :ref:`install` and the :ref:`quickstart`.
    optimizers/ParOpt
    optimizers/CONMIN
    optimizers/ALPSO
+   optimizers/UNO

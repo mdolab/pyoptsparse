@@ -60,6 +60,7 @@ class TestSphere(OptTest):
         "SNOPT": {
             "Major iterations limit": 10,
         },
+        "Uno": {"max_iterations": 100, "preset": "filtersqp", "logger": "SILENT"},
     }
 
     def objfunc(self, xdict):
@@ -97,8 +98,16 @@ class TestSphere(OptTest):
     def test_optimization(self, optName):
         self.optName = optName
         self.setup_optProb()
-        optOptions = self.optOptions.pop(optName, None)
+        optOptions = self.optOptions.get(optName, {})
         self.optimize_with_hotstart(self.tol[optName], optOptions=optOptions)
+
+    @parameterized.expand(["filtersqp", "funnelsqp"])
+    def test_uno_presets(self, preset):
+        self.optName = "Uno"
+        self.setup_optProb()
+        optOptions = self.optOptions.get(self.optName, {})
+        optOptions["preset"] = preset
+        self.optimize_with_hotstart(self.tol[self.optName], optOptions=optOptions)
 
 
 if __name__ == "__main__":
