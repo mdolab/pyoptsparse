@@ -54,7 +54,7 @@ class Variable:
             self.upper = len(self.choices)
             self.scale = scale
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """
         Compare two variable objects
         """

@@ -1,7 +1,6 @@
 # Standard Python modules
 import copy
 from dataclasses import asdict, dataclass
-from typing import Optional
 
 # External modules
 import numpy as np
@@ -31,7 +30,7 @@ class SolutionInform:
 
 
 class Solution(Optimization):
-    def __init__(self, optProb, xStar, fStar, lambdaStar, optInform: Optional[SolutionInform], info):
+    def __init__(self, optProb, xStar, fStar, lambdaStar, optInform: SolutionInform | None, info):
         """
         This class is used to describe the solution of an optimization
         problem. This class inherits from Optimization which enables a
