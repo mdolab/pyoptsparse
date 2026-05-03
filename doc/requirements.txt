@@ -1,3 +1,4 @@
 sphinx_mdolab_theme>=1.2
 sphinx-codeautolink
 numpy
+scipy
