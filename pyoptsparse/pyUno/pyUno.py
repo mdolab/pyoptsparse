@@ -199,8 +199,6 @@ class Uno(Optimizer):
         self.storeSens = storeSens
 
         if len(optProb.constraints) == 0:
-            # Uno requires at least one constraint, so add a dummy one
-            # for unconstrained problems.
             self.unconstrained = True
             optProb.dummyConstraint = True
 
