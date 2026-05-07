@@ -371,7 +371,7 @@ class Uno(Optimizer):
             solver.set_logger_stream(self.getOption("logger_stream"))
 
         for name, value in self.options.items():
-            # skip preset
+            # skip preset and logger_stream
             if name in self.pythonOptions:
                 continue
             solver.set_option(name, value)
