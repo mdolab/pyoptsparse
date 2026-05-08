@@ -27,7 +27,9 @@ class SLSQP(Optimizer):
     SLSQP Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, raiseError=True, options={}):
+    def __init__(self, raiseError=True, options=None):
+        if options is None:
+            options = {}
         name = "SLSQP"
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()

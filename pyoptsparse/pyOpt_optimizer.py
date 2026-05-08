@@ -31,9 +31,9 @@ class Optimizer(BaseSolver):
         self,
         name: str,
         category: str,
-        defaultOptions: Dict[str, Any] = {},
-        informs: Dict[int, str] = {},
-        options: Dict[str, Any] = {},
+        defaultOptions: Optional[Dict[str, Any]] = None,
+        informs: Optional[Dict[int, str]] = None,
+        options: Optional[Dict[str, Any]] = None,
         checkDefaultOptions: bool = True,
         caseSensitiveOptions: bool = True,
         version: Optional[str] = None,
@@ -53,6 +53,12 @@ class Optimizer(BaseSolver):
         informs : dict
             Dictionary of the inform codes
         """
+        if defaultOptions is None:
+            defaultOptions = {}
+        if informs is None:
+            informs = {}
+        if options is None:
+            options = {}
         super().__init__(
             name,
             category,
