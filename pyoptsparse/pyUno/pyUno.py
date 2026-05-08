@@ -5,6 +5,7 @@ pyUno - A Python wrapper to the Uno optimizer via unopy.
 # Standard Python modules
 import datetime
 import importlib.metadata as ilmd
+import pathlib
 import time
 from typing import TextIO
 
@@ -21,6 +22,12 @@ unopy = import_module("unopy")
 
 
 _UNOPY_MIN_VERSION = "0.4.3"
+
+
+class _UserTerminationError(Exception):
+    """Raised an Uno callback function returns 2."""
+
+    pass
 
 
 class Uno(Optimizer):
@@ -45,16 +52,18 @@ class Uno(Optimizer):
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
         informs = self._getInforms()
-        if isinstance(unopy, Exception) and raiseError:
-            raise unopy
 
-        unopy_version = ilmd.version("unopy")
+        if isinstance(unopy, Exception):
+            if raiseError:
+                raise unopy
+        else:
+            unopy_version = ilmd.version("unopy")
 
-        if Version(unopy_version) < Version(_UNOPY_MIN_VERSION):
-            raise RuntimeError(
-                "The pyoptsparse Uno interface requires unopy "
-                f"{_UNOPY_MIN_VERSION} or later, but {unopy_version} is installed"
-            )
+            if Version(unopy_version) < Version(_UNOPY_MIN_VERSION):
+                raise RuntimeError(
+                    "The pyoptsparse Uno interface requires unopy "
+                    f"{_UNOPY_MIN_VERSION} or later, but {unopy_version} is installed"
+                )
 
         super().__init__(
             name,
@@ -78,6 +87,9 @@ class Uno(Optimizer):
 
         # Flag to track user-requested termination
         self._userRequestedTermination = False
+
+        # Reference to logger file, if opened by this optimizer
+        self._logger_file_stream = None
 
     @staticmethod
     def _getInforms():
@@ -112,7 +124,7 @@ class Uno(Optimizer):
         defOpts = {
             # Special options handled differently by Uno
             "preset": [str, "filtersqp"],
-            "logger_stream": [TextIO, None],
+            "logger_stream": [(TextIO, str, pathlib.Path), None],
             # Termination Options
             "primal_tolerance": [float, 1e-8],
             "dual_tolerance": [float, 1e-8],
@@ -198,6 +210,9 @@ class Uno(Optimizer):
         self.callCounter = 0
         self.storeSens = storeSens
 
+        self._logger_file_stream = None
+        self._userRequestedTermination = False
+
         if len(optProb.constraints) == 0:
             self.unconstrained = True
             optProb.dummyConstraint = True
@@ -250,7 +265,7 @@ class Uno(Optimizer):
                     raise ValueError("Objective evaluation failed.")
                 elif fail == 2:
                     self._userRequestedTermination = True
-                    raise KeyboardInterrupt("User requested termination.")
+                    raise _UserTerminationError("User requested termination.")
                 return fobj
 
             def _constraints(x, con_val):
@@ -259,7 +274,7 @@ class Uno(Optimizer):
                     raise ValueError("Constraint evaluation failed.")
                 elif fail == 2:
                     self._userRequestedTermination = True
-                    raise KeyboardInterrupt("User requested termination.")
+                    raise _UserTerminationError("User requested termination.")
                 con_val[:] = fcon
 
             def _objective_gradient(x, grad):
@@ -268,7 +283,7 @@ class Uno(Optimizer):
                     raise ValueError("Objective gradient evaluation failed.")
                 elif fail == 2:
                     self._userRequestedTermination = True
-                    raise KeyboardInterrupt("User requested termination.")
+                    raise _UserTerminationError("User requested termination.")
                 grad[:] = gobj
 
             def _jacobian(x, jac_val):
@@ -277,7 +292,7 @@ class Uno(Optimizer):
                     raise ValueError("Constraint gradient evaluation failed.")
                 elif fail == 2:
                     self._userRequestedTermination = True
-                    raise KeyboardInterrupt("User requested termination.")
+                    raise _UserTerminationError("User requested termination.")
                 jac_val[:] = gcon_vals
 
             timeA = time.time()
@@ -306,14 +321,17 @@ class Uno(Optimizer):
             model.set_initial_primal_iterate(xs)
 
             solver = unopy.UnoSolver()
-            self._set_uno_options(solver)
 
             try:
+                self._set_uno_options(solver)
                 self.result = solver.optimize(model)
-            except KeyboardInterrupt:
+            except _UserTerminationError:
                 # User requested termination during optimization
                 # Create a result object indicating user termination
                 pass
+            finally:
+                if self._logger_file_stream:
+                    self._logger_file_stream.close()
 
             optTime = time.time() - timeA
 
@@ -367,8 +385,13 @@ class Uno(Optimizer):
         """
         solver.set_preset(self.getOption("preset"))
 
-        if self.getOption("logger_stream") is not None:
-            solver.set_logger_stream(self.getOption("logger_stream"))
+        logger_stream = self.getOption("logger_stream")
+        if logger_stream is not None:
+            if isinstance(logger_stream, (str, pathlib.Path)):
+                self._logger_file_stream = open(logger_stream, "w")
+                solver.set_logger_stream(self._logger_file_stream)
+            else:
+                solver.set_logger_stream(logger_stream)
 
         for name, value in self.options.items():
             # skip preset
