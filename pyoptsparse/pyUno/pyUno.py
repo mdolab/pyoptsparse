@@ -37,7 +37,7 @@ class Uno(Optimizer):
     Uses the ``unopy`` Python bindings to the Uno unified nonlinear optimizer.
     """
 
-    def __init__(self, raiseError=True, options={}):
+    def __init__(self, raiseError=True, options=None):
         """
         Uno Optimizer Class Initialization.
 
@@ -48,6 +48,8 @@ class Uno(Optimizer):
         options : dict
             Dictionary of options to pass to the optimizer.
         """
+        if options is None:
+            options = {}
         name = "Uno"
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
