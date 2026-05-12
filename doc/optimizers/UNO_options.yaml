@@ -72,6 +72,7 @@ logger_stream:
     The stream to which the logger writes the log.
 
     The default value is None, which leaves the logger stream unchanged.
+    If given as a string or Path, open that file for the log.
 
 print_solution:
   desc: |

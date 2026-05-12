@@ -222,6 +222,35 @@ class TestHS71(OptTest):
                 self.assertTrue(log_file_size > 0)
             log_path.unlink()
 
+    def test_uno_log_filename(self):
+        self.optName = "Uno"
+        self.setup_optProb()
+        for logger in ["SILENT", "DISCRETE", "WARNING", "INFO", "DEBUG", "DEBUG2", "DEBUG3"]:
+            log_filename = f"uno_log_{logger}_1.txt"
+            sol = self.optimize(optOptions={"logger": logger, "logger_stream": log_filename})
+            self.assert_inform_equal(sol, 0)
+            log_path = pathlib.Path(log_filename)
+            log_file_size = log_path.stat().st_size
+            if logger == "SILENT":
+                self.assertTrue(log_file_size == 0)
+            else:
+                self.assertTrue(log_file_size > 0)
+            log_path.unlink()
+
+    def test_uno_log_path(self):
+        self.optName = "Uno"
+        self.setup_optProb()
+        for logger in ["SILENT", "DISCRETE", "WARNING", "INFO", "DEBUG", "DEBUG2", "DEBUG3"]:
+            log_path = pathlib.Path(f"uno_log_{logger}_2.txt")
+            sol = self.optimize(optOptions={"logger": logger, "logger_stream": log_path})
+            self.assert_inform_equal(sol, 0)
+            log_file_size = log_path.stat().st_size
+            if logger == "SILENT":
+                self.assertTrue(log_file_size == 0)
+            else:
+                self.assertTrue(log_file_size > 0)
+            log_path.unlink()
+
     def test_psqp_informs(self):
         self.optName = "PSQP"
         self.setup_optProb()
