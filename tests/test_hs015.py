@@ -162,6 +162,39 @@ class TestHS15(OptTest):
         # Check that solution is found (though not as tight as default)
         self.assert_inform_equal(sol)
 
+    def test_uno_save_major_iteration_variables(self):
+        self.optName = "Uno"
+        self.setup_optProb()
+        store_vars = ["lower_bound_multipliers", "upper_bound_multipliers", "constraint_multipliers"]
+        optOptions = {"save_major_iteration_variables": store_vars, "logger": "SILENT"}
+        sol = self.optimize(optOptions=optOptions, storeHistory=True)
+        # Check Solution
+        self.assert_solution_allclose(sol, 1e-4)
+        self.assert_inform_equal(sol)
+
+        hist = History(self.histFileName, flag="r")
+
+        # Always-on residuals must appear in major-iteration records
+        data = hist.getValues(callCounters=["last"])
+        default_store_vars = [
+            "primal_feasibility_residual",
+            "stationarity_residual",
+            "complementarity_residual",
+            "objective_multiplier",
+            "nMajor",
+        ]
+        for var in default_store_vars + store_vars:
+            self.assertIn(var, data.keys(), msg=f"Expected key '{var}' in major-iteration data")
+
+        # Opt-in multipliers must have the right shapes.
+        # nDV is the total number of scalar design variables; nCon is the total
+        # number of scalar constraints (sum over all constraint groups).
+        nDV = len(sol.xStar["xvars"])
+        nCon = sum(con.ncon for con in sol.constraints.values())
+        self.assertEqual(data["lower_bound_multipliers"].shape, (1, nDV))
+        self.assertEqual(data["upper_bound_multipliers"].shape, (1, nDV))
+        self.assertEqual(data["constraint_multipliers"].shape, (1, nCon))
+
     def test_ipopt(self):
         self.optName = "IPOPT"
         self.setup_optProb()

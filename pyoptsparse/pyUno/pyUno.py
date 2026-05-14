@@ -21,7 +21,7 @@ from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, impor
 unopy = import_module("unopy")
 
 
-_UNOPY_MIN_VERSION = "0.4.3"
+_UNOPY_MIN_VERSION = "0.4.7"
 
 
 class _UserTerminationError(Exception):
@@ -81,7 +81,7 @@ class Uno(Optimizer):
 
         # Options handled outside of unopy's set_option interface.
         # 'preset' is applied via solver.set_preset() rather than set_option().
-        self.pythonOptions = {"preset", "logger_stream"}
+        self.pythonOptions = {"preset", "logger_stream", "save_major_iteration_variables"}
 
         # Save the result object from the optimize call separately from the
         # pyoptsparse Solution object, in case the user wants more detail.
@@ -127,6 +127,7 @@ class Uno(Optimizer):
             # Special options handled differently by Uno
             "preset": [str, "filtersqp"],
             "logger_stream": [(TextIO, str, pathlib.Path), None],
+            "save_major_iteration_variables": [list, []],
             # Termination Options
             "primal_tolerance": [float, 1e-8],
             "dual_tolerance": [float, 1e-8],
@@ -297,6 +298,52 @@ class Uno(Optimizer):
                     raise _UserTerminationError("User requested termination.")
                 jac_val[:] = gcon_vals
 
+            # Major-iteration callback: fired once per accepted iterate by Uno's outer loop,
+            # not on line-search / trust-region trial points. Mirrors _snstop in pySNOPT.
+            nMajorCounter = [0]
+
+            def _notifyAcceptableIterate(
+                primals,
+                lower_bound_multipliers,
+                upper_bound_multipliers,
+                constraint_multipliers,
+                objective_multiplier,
+                primal_feasibility_residual,
+                stationarity_residual,
+                complementarity_residual,
+            ):
+                iterDict = {
+                    "isMajor": True,
+                    "nMajor": nMajorCounter[0],
+                    "primal_feasibility_residual": primal_feasibility_residual,
+                    "stationarity_residual": stationarity_residual,
+                    "complementarity_residual": complementarity_residual,
+                    "objective_multiplier": objective_multiplier,
+                }
+                nMajorCounter[0] += 1
+
+                # Opt-in heavier data. Callback args are read-only views into Uno memory,
+                # so we copy before storing.
+                for saveVar in self.getOption("save_major_iteration_variables"):
+                    if saveVar == "lower_bound_multipliers":
+                        iterDict[saveVar] = np.array(lower_bound_multipliers, copy=True)
+                    elif saveVar == "upper_bound_multipliers":
+                        iterDict[saveVar] = np.array(upper_bound_multipliers, copy=True)
+                    elif saveVar == "constraint_multipliers":
+                        iterDict[saveVar] = np.array(constraint_multipliers, copy=True)
+                    else:
+                        raise ValueError(
+                            f"Received unknown Uno save variable '{saveVar}'. "
+                            "Please see 'save_major_iteration_variables' option in the "
+                            "pyOptSparse documentation under 'Uno'."
+                        )
+
+                if self.storeHistory:
+                    xuser_vec = self.optProb._mapXtoUser(np.array(primals, copy=True))
+                    callCounter = self.hist._searchCallCounter(xuser_vec)
+                    if callCounter is not None:
+                        self.hist.write(callCounter, iterDict)
+
             timeA = time.time()
 
             model = unopy.Model(
@@ -326,6 +373,7 @@ class Uno(Optimizer):
 
             try:
                 self._set_uno_options(solver)
+                solver.set_notify_acceptable_iterate_callback(_notifyAcceptableIterate)
                 self.result = solver.optimize(model)
             except _UserTerminationError:
                 # User requested termination during optimization

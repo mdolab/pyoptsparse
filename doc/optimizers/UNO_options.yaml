@@ -1,3 +1,26 @@
+save_major_iteration_variables:
+  desc: |
+    This option is unique to the Python wrapper, and takes a list of values which can be saved at each major iteration to the History file.
+    A "major iteration" corresponds to an accepted iterate in Uno's outer loop (i.e. an iterate that passed the globalization
+    strategy's acceptance test). Trial points evaluated during line search or trust-region rejections are not major iterations.
+
+    The following entries are always saved at every major iteration regardless of this option:
+
+    - ``isMajor`` (always ``True`` for major-iteration records)
+    - ``nMajor`` (zero-based count of major iterations)
+    - ``primal_feasibility_residual``
+    - ``stationarity_residual``
+    - ``complementarity_residual``
+    - ``objective_multiplier``
+
+    The possible values that can be added via this option are
+
+    - ``lower_bound_multipliers`` (one value per design variable)
+    - ``upper_bound_multipliers`` (one value per design variable)
+    - ``constraint_multipliers`` (one value per general constraint)
+
+    The default value is ``[]``.
+
 preset:
   desc: |
     Specifies the preset option in Uno (str).
