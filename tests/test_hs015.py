@@ -130,8 +130,7 @@ class TestHS15(OptTest):
     def test_uno(self):
         self.optName = "Uno"
         self.setup_optProb()
-        optOptions = {"logger": "SILENT"}
-        sol = self.optimize(optOptions=optOptions)
+        sol = self.optimize()
         # Check Solution
         self.assert_solution_allclose(sol, 1e-4)
         # Check informs
@@ -141,7 +140,7 @@ class TestHS15(OptTest):
     def test_uno_presets(self, preset):
         self.optName = "Uno"
         self.setup_optProb()
-        optOptions = {"preset": preset, "logger": "SILENT"}
+        optOptions = {"preset": preset}
         sol = self.optimize(optOptions=optOptions)
         # Check Solution
         self.assert_solution_allclose(sol, 1e-4)
@@ -156,7 +155,6 @@ class TestHS15(OptTest):
         optOptions = {
             "primal_tolerance": 1e-3,
             "dual_tolerance": 1e-3,
-            "logger": "SILENT",
         }
         sol = self.optimize(optOptions=optOptions)
         # Check that solution is found (though not as tight as default)
@@ -166,7 +164,7 @@ class TestHS15(OptTest):
         self.optName = "Uno"
         self.setup_optProb()
         store_vars = ["lower_bound_multipliers", "upper_bound_multipliers", "constraint_multipliers"]
-        optOptions = {"save_major_iteration_variables": store_vars, "logger": "SILENT"}
+        optOptions = {"save_major_iteration_variables": store_vars}
         sol = self.optimize(optOptions=optOptions, storeHistory=True)
         # Check Solution
         self.assert_solution_allclose(sol, 1e-4)

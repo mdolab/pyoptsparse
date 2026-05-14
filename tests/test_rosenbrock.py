@@ -153,8 +153,6 @@ class TestRosenbrock(OptTest):
         optOptions = self.optOptions.pop(optName, None)
         if optOptions is None:
             optOptions = {}
-        if optName == "Uno":
-            optOptions["logger"] = "SILENT"
         self.optimize_with_hotstart(self.tol[optName], optOptions=optOptions)
 
 

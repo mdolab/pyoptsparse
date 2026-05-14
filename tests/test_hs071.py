@@ -264,8 +264,6 @@ class TestHS71(OptTest):
         optOptions = self.optOptions.pop(optName, None)
         if optOptions is None:
             optOptions = {}
-        if optName == "Uno":
-            optOptions["logger"] = "SILENT"
         sol = self.optimize(optOptions=optOptions)
         # Check Solution
         lambda_sign = -1.0 if optName == "IPOPT" else 1.0

@@ -56,7 +56,7 @@ OUTPUT_FILENAMES = {
     "ParOpt": {"output_file": ".out", "tr_output_file": ".tr", "mma_output_file": ".mma"},
     "ALPSO": {"filename": ".out"},
     "NSGA2": {},
-    "Uno": {},
+    "Uno": {"logger_stream": ".out"},
 }
 
 # these are optimizers which are installed by default
