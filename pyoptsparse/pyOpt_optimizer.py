@@ -586,7 +586,9 @@ class Optimizer(BaseSolver):
 
         # Save information about major iteration counting (only matters for SNOPT, IPOPT and Uno).
         if self.name in ["SNOPT", "IPOPT", "Uno"]:
-            hist["isMajor"] = False  # this will be updated in _snstop, cyipopt's `intermediate`, or Uno's notify callback if it is major
+            hist["isMajor"] = (
+                False  # this will be updated in _snstop, cyipopt's `intermediate`, or Uno's notify callback if it is major
+            )
         else:
             hist["isMajor"] = True  # for other optimizers we assume everything's major
 
