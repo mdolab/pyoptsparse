@@ -339,10 +339,18 @@ class Uno(Optimizer):
                         )
 
                 if self.storeHistory:
-                    xuser_vec = self.optProb._mapXtoUser(np.array(primals, copy=True))
-                    callCounter = self.hist._searchCallCounter(xuser_vec)
-                    if callCounter is not None:
-                        self.hist.write(callCounter, iterDict)
+                    # Slice to len(xs): some presets (e.g. ipopt) append slack variables
+                    # to primals, making it longer than the original design variable vector.
+                    xuser_vec = self.optProb._mapXtoUser(np.array(primals[: len(xs)], copy=True))
+                    # Like IPOPT, Uno calls objective and constraints separately, so we find two call counters and append iter_dict to both counters.
+                    call_counter_1 = self.hist._searchCallCounter(xuser_vec)
+                    if call_counter_1 is None:
+                        call_counter_2 = None
+                    else:
+                        call_counter_2 = self.hist._searchCallCounter(xuser_vec, last=call_counter_1 - 1)
+                    for callCounter in [call_counter_2, call_counter_1]:
+                        if callCounter is not None:
+                            self.hist.write(callCounter, iterDict)
 
             timeA = time.time()
 
@@ -444,7 +452,7 @@ class Uno(Optimizer):
                 solver.set_logger_stream(logger_stream)
 
         for name, value in self.options.items():
-            # skip preset and logger_stream
+            # skip the options we handle externally
             if name in self.pythonOptions:
                 continue
             solver.set_option(name, value)
