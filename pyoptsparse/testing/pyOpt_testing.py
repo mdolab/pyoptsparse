@@ -179,6 +179,8 @@ class OptTest(unittest.TestCase):
         A general helper function to set a default output file name in optOptions
         based on the optimizer and test method name.
 
+        If the output file name option is already set in optOptions, it is left unchanged.
+
         Parameters
         ----------
         optOptions : dict
@@ -193,7 +195,8 @@ class OptTest(unittest.TestCase):
         for optionName, suffix in OUTPUT_FILENAMES[self.optName].items():
             # self.id() is provided by unittest.TestCase automatically
             # which is an unambiguous identifier
-            optOptions[optionName] = f"{self.id()}{suffix}"
+            if optionName not in optOptions:
+                optOptions[optionName] = f"{self.id()}{suffix}"
         return optOptions
 
     def optimize(self, sens=None, setDV=None, optOptions=None, storeHistory=False, hotStart=False):
