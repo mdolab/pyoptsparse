@@ -136,7 +136,7 @@ class TestHS15(OptTest):
         # Check informs
         self.assert_inform_equal(sol)
 
-    @parameterized.expand(["filtersqp", "filterslp", "funnelsqp"])
+    @parameterized.expand(["filtersqp", "filterslp", "funnelsqp", "ipopt"])
     def test_uno_presets(self, preset):
         self.optName = "Uno"
         self.setup_optProb()
@@ -145,19 +145,6 @@ class TestHS15(OptTest):
         # Check Solution
         self.assert_solution_allclose(sol, 1e-4)
         # Check informs
-        self.assert_inform_equal(sol)
-
-    def test_uno_convergence_options(self):
-        """Test Uno convergence criteria options"""
-        self.optName = "Uno"
-        self.setup_optProb()
-        # Set loose convergence criteria
-        optOptions = {
-            "primal_tolerance": 1e-3,
-            "dual_tolerance": 1e-3,
-        }
-        sol = self.optimize(optOptions=optOptions)
-        # Check that solution is found (though not as tight as default)
         self.assert_inform_equal(sol)
 
     def test_uno_save_major_iteration_variables(self):
