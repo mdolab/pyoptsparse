@@ -209,7 +209,7 @@ class Optimizer(BaseSolver):
                     self.hist.writeData("metadata", self.metadata)
         self.optProb.comm.Barrier()
 
-    def _masterFunc(self, x: ndarray, evaluate: list[str]):
+    def _masterFunc(self, x: ndarray, evaluate: list[str]) -> list[Any]:
         """
         This is the master function that **ALL** optimizers call from
         the specific signature functions. The reason for this is that
@@ -736,7 +736,9 @@ class Optimizer(BaseSolver):
         """
         self.cache["x"] = -999999999 * np.ones(self.optProb.ndvs)
 
-    def _assembleContinuousVariables(self) -> tuple[npt.NDArray, npt.NDArray, npt.NDArray]:
+    def _assembleContinuousVariables(
+        self,
+    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         """
         Utility function for assembling the design variables. Most
         optimizers here use continuous variables so this chunk of code
@@ -918,7 +920,7 @@ class Optimizer(BaseSolver):
         # Now call the optimizer specific routine
         self._on_setOption(name, value)
 
-    def _on_getOption(self, name) -> None:
+    def _on_getOption(self, name) -> Any:
         """
         Routine to be implemented by optimizer
         """

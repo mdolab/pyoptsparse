@@ -2,6 +2,7 @@
 from collections import OrderedDict
 import copy
 import os
+from typing import Any
 
 # External modules
 import numpy as np
@@ -68,7 +69,7 @@ class History:
             if self.temp:
                 os.remove(self.fileName)
 
-    def write(self, callCounter, data) -> None:
+    def write(self, callCounter: int, data: dict) -> None:
         """
         This is the main to write data. Basically, we just pass in
         the callCounter, the integer forming the key, and a dictionary
@@ -95,7 +96,7 @@ class History:
         self.db.sync()
         self.keys = list(self.db.keys())
 
-    def writeData(self, key, data) -> None:
+    def writeData(self, key: str, data: Any) -> None:
         """
         Write arbitrary `key:data` value to db.
 
@@ -152,7 +153,7 @@ class History:
         except KeyError:
             return None
 
-    def _searchCallCounter(self, x, last=None) -> int | None:
+    def _searchCallCounter(self, x: np.ndarray, last: int | None = None) -> int | None:
         """
         Searches through existing callCounters, and finds the one corresponding
         to an evaluation at the design vector `x`.

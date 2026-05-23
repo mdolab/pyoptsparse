@@ -612,7 +612,7 @@ def import_module(
 
     Returns
     -------
-    types.ModuleType | str
+    types.ModuleType | Exception
         If importable, the imported module is returned.
         If not importable, the exception is returned.
     """

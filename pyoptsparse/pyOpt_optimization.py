@@ -3,6 +3,7 @@ from collections import OrderedDict
 from collections.abc import Callable, Iterable
 import copy
 import os
+from typing import Any
 import warnings
 
 # External modules
@@ -493,7 +494,7 @@ class Optimization:
         scaled_DV = self._mapXtoUser_Dict(outDVs)
         return scaled_DV
 
-    def setDVs(self, inDVs) -> None:
+    def setDVs(self, inDVs: Dict1DType) -> None:
         """
         Set one or more groups of design variables from a dictionary.
         In most common usage, this function is not required.
@@ -702,7 +703,7 @@ class Optimization:
         for i in range(len(txt)):
             print("".join(txt[i]))
 
-    def getDVConIndex(self, startIndex: int = 1, printIndex: bool = True) -> tuple[OrderedDict, OrderedDict]:
+    def getDVConIndex(self, startIndex: int = 1, printIndex: bool = True) -> tuple[OrderedDict[str, list[int]], OrderedDict[str, list[int]]]:
         """
         Return the index of a scalar DV/constraint, or the beginning
         and end index (inclusive) of a DV/constraint array.
@@ -1368,7 +1369,7 @@ class Optimization:
         # Finally squeeze back out so we get a 1D vector for a single objective
         return np.squeeze(gobj)
 
-    def processConstraintJacobian(self, gcon) -> dict:
+    def processConstraintJacobian(self, gcon: Dict2DType) -> dict[str, Any]:
         """
         This generic function is used to assemble the entire
         constraint Jacobian. The order of the constraint Jacobian is
