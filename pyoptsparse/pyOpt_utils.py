@@ -197,7 +197,7 @@ def mapToCSC(mat: dict) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floati
     return row_idx, col_p, idx_data
 
 
-def convertToCOO(mat: dict | spmatrix | npt.NDArray[np.floating]):
+def convertToCOO(mat: dict | spmatrix | npt.NDArray[np.floating]) -> dict:
     """
     Take a pyoptsparse sparse matrix definition of a COO, CSR or
     CSC matrix or numpy array or scipy sparse matrix and return

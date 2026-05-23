@@ -168,7 +168,7 @@ class Constraint:
         self.oneSidedConstraints = oneSidedConstraints
         self.twoSidedConstraints = twoSidedConstraints
 
-    def finalize(self, variables: OrderedDict, dvOffset, index: int) -> None:
+    def finalize(self, variables: OrderedDict, dvOffset: OrderedDict, index: int) -> None:
         """
         After the design variables have been finalized and the order
         is known we can check the constraint for consistency.
