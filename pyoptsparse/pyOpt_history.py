@@ -162,7 +162,7 @@ class History:
 
         Parameters
         ----------
-        x : ndarray
+        x : npt.NDArray[np.floating]
             The unscaled DV as a single array.
         last : int, optional
             The last callCounter to search from. If not provided, use the last callCounter in db.

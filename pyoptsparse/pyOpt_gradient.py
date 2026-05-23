@@ -1,6 +1,6 @@
 # External modules
 import numpy as np
-from numpy import ndarray
+import numpy.typing as npt
 
 # Local modules
 from .pyOpt_MPI import MPI
@@ -55,7 +55,9 @@ class Gradient:
         else:
             self.mydvs = list(range(ndvs))
 
-    def _eval_func(self, x: ndarray) -> tuple[ndarray, ndarray, bool]:
+    def _eval_func(
+        self, x: npt.NDArray[np.floating]
+    ) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating], bool]:
         """Internal method to call function and extract obj, con"""
 
         xCall = self.optProb.processXtoDict(x)

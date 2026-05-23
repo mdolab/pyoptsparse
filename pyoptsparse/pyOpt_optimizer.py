@@ -15,7 +15,7 @@ import numpy.typing as npt
 
 # External modules
 from baseclasses import BaseSolver
-from numpy import ndarray
+
 
 from .pyOpt_error import pyOptSparseWarning
 from .pyOpt_gradient import Gradient
@@ -209,7 +209,7 @@ class Optimizer(BaseSolver):
                     self.hist.writeData("metadata", self.metadata)
         self.optProb.comm.Barrier()
 
-    def _masterFunc(self, x: ndarray, evaluate: list[str]) -> list[Any]:
+    def _masterFunc(self, x: npt.NDArray[np.floating], evaluate: list[str]) -> list[Any]:
         """
         This is the master function that **ALL** optimizers call from
         the specific signature functions. The reason for this is that

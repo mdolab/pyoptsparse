@@ -15,7 +15,7 @@ import numpy as np
 
 # External modules
 from baseclasses.utils import CaseInsensitiveSet, writePickle
-from numpy import ndarray
+import numpy.typing as npt
 from packaging.version import parse as parse_version
 
 # Local modules
@@ -102,7 +102,7 @@ class SNOPT(Optimizer):
         self.jacType = "csc"
 
         # SNOPT specific Jacobian map
-        self._snopt_jac_map_csr_to_csc: tuple[ndarray, ndarray, ndarray] | None = None
+        self._snopt_jac_map_csr_to_csc: tuple[npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating]] | None = None
 
     @staticmethod
     def _getDefaultOptions() -> dict[str, Any]:
@@ -716,7 +716,7 @@ class SNOPT(Optimizer):
             iabort = 0
         return iabort
 
-    def _set_snopt_options(self, iPrint: int, iSumm: int, cw: ndarray, iw: ndarray, rw: ndarray):
+    def _set_snopt_options(self, iPrint: int, iSumm: int, cw: npt.NDArray[np.floating], iw: npt.NDArray[np.floating], rw: npt.NDArray[np.floating]):
         """
         Set all the options into SNOPT that have been assigned
         by the user
