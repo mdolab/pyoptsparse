@@ -75,7 +75,7 @@ class Solution(Optimization):
                 i += 1
 
         # Now set the f-values
-        if isinstance(fStar, npt.NDArray[np.floating]) and len(fStar) == 1:
+        if isinstance(fStar, np.ndarray) and len(fStar) == 1:
             self.objectives[list(self.objectives.keys())[0]].value = fStar.item()
             fStar = fStar.item()
         else:
