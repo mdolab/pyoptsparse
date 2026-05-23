@@ -101,7 +101,9 @@ class SNOPT(Optimizer):
         self.jacType = "csc"
 
         # SNOPT specific Jacobian map
-        self._snopt_jac_map_csr_to_csc: tuple[npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating]] | None = None
+        self._snopt_jac_map_csr_to_csc: (
+            tuple[npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating]] | None
+        ) = None
 
     @staticmethod
     def _getDefaultOptions() -> dict[str, Any]:
