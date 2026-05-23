@@ -11,10 +11,9 @@ import sys
 import time
 from typing import Any
 
-import numpy as np
-
 # External modules
 from baseclasses.utils import CaseInsensitiveSet, writePickle
+import numpy as np
 import numpy.typing as npt
 from packaging.version import parse as parse_version
 

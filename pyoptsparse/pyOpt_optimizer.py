@@ -1,27 +1,25 @@
 # Standard Python modules
+from collections import OrderedDict
+from collections.abc import Callable
 import copy
 import datetime
+from enum import Enum
 import os
 import shutil
 import tempfile
 import time
-from collections import OrderedDict
-from collections.abc import Callable
-from enum import Enum
 from typing import Any
-
-import numpy as np
-import numpy.typing as npt
 
 # External modules
 from baseclasses import BaseSolver
-
-from .pyOpt_error import pyOptSparseWarning
-from .pyOpt_gradient import Gradient
-from .pyOpt_history import History
+import numpy as np
+import numpy.typing as npt
 
 # Local modules
 from .pyOpt_MPI import MPI
+from .pyOpt_error import pyOptSparseWarning
+from .pyOpt_gradient import Gradient
+from .pyOpt_history import History
 from .pyOpt_optimization import Optimization
 from .pyOpt_solution import Solution
 from .pyOpt_utils import EPS, IDATA, INFINITY, convertToCOO, convertToDense, extractRows, mapToCSC, scaleRows

@@ -1,7 +1,7 @@
 # Standard Python modules
+from collections import OrderedDict
 import copy
 import os
-from collections import OrderedDict
 from typing import Any
 
 # External modules
