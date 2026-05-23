@@ -1,10 +1,10 @@
 # Standard Python modules
-from collections import OrderedDict
-from collections.abc import Callable, Iterable
 import copy
 import os
-from typing import Any
 import warnings
+from collections import OrderedDict
+from collections.abc import Callable, Iterable
+from typing import Any
 
 # External modules
 import numpy as np
@@ -13,9 +13,10 @@ from numpy import ndarray
 from scipy.sparse import coo_matrix
 from sqlitedict import SqliteDict
 
+from .pyOpt_constraint import Constraint
+
 # Local modules
 from .pyOpt_MPI import MPI
-from .pyOpt_constraint import Constraint
 from .pyOpt_objective import Objective
 from .pyOpt_types import ArrayType, Dict1DType, Dict2DType, NumpyType
 from .pyOpt_utils import (
@@ -704,7 +705,9 @@ class Optimization:
         for i in range(len(txt)):
             print("".join(txt[i]))
 
-    def getDVConIndex(self, startIndex: int = 1, printIndex: bool = True) -> tuple[OrderedDict[str, list[int]], OrderedDict[str, list[int]]]:
+    def getDVConIndex(
+        self, startIndex: int = 1, printIndex: bool = True
+    ) -> tuple[OrderedDict[str, list[int]], OrderedDict[str, list[int]]]:
         """
         Return the index of a scalar DV/constraint, or the beginning
         and end index (inclusive) of a DV/constraint array.
@@ -895,7 +898,7 @@ class Optimization:
 
     def getOrdering(
         self, conOrder: list[str], oneSided: bool, noEquality: bool = False
-    ) -> tuple[ndarray, ndarray, ndarray, ndarray]:
+    ) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating]]:
         """
         Internal function that is used to produce a index list that
         reorders the constraints the way a particular optimizer needs.
@@ -1007,7 +1010,7 @@ class Optimization:
 
         return np.array(indices), np.array(lower), np.array(upper), np.array(fact)
 
-    def processXtoDict(self, x: ndarray) -> OrderedDict[str, npt.NDArray[np.floating]]:
+    def processXtoDict(self, x: npt.NDArray[np.floating]) -> OrderedDict[str, npt.NDArray[np.floating]]:
         """
         Take the flattened array of variables in 'x' and return a
         dictionary of variables keyed on the name of each variable.
@@ -1039,7 +1042,7 @@ class Optimization:
             raise ValueError("Error processing x. There is a mismatch in the number of variables.")
         return xg
 
-    def processXtoVec(self, x: dict) -> ndarray:
+    def processXtoVec(self, x: dict) -> npt.NDArray[np.floating]:
         """
         Take the dictionary form of x and convert back to flattened
         array.
@@ -1122,7 +1125,7 @@ class Optimization:
 
         Parameters
         ----------
-        fobj_in : float or ndarray
+        fobj_in : float or npt.NDArray[np.floating]
             The objective in array format. In the case of a single objective,
             a float can also be accepted.
         scaled : bool
@@ -1149,7 +1152,7 @@ class Optimization:
 
     def processContoVec(
         self, fcon_in: Dict1DType, scaled: bool = True, dtype: str = "d", natural: bool = False
-    ) -> ndarray:
+    ) -> npt.NDArray[np.floating]:
         """A function that converts a dictionary of constraints into a vector
 
         Parameters
@@ -1219,7 +1222,12 @@ class Optimization:
                 return fcon
 
     def processContoDict(
-        self, fcon_in: ndarray, scaled: bool = True, dtype: str = "d", natural: bool = False, multipliers: bool = False
+        self,
+        fcon_in: npt.NDArray[np.floating],
+        scaled: bool = True,
+        dtype: str = "d",
+        natural: bool = False,
+        multipliers: bool = False,
     ) -> Dict1DType:
         """A function that converts an array of constraints into a dictionary
 
@@ -1292,7 +1300,7 @@ class Optimization:
 
         return fcon
 
-    def evaluateLinearConstraints(self, x: ndarray, fcon: Dict1DType) -> None:
+    def evaluateLinearConstraints(self, x: npt.NDArray[np.floating], fcon: Dict1DType) -> None:
         """
         This function is required for optimizers that do not explicitly
         treat the linear constraints. For those optimizers, we will
@@ -1506,7 +1514,7 @@ class Optimization:
 
         return gcon
 
-    def _mapObjGradtoOpt(self, gobj: ndarray) -> ndarray:
+    def _mapObjGradtoOpt(self, gobj: npt.NDArray[np.floating]) -> npt.NDArray[np.floating]:
         gobj_return = np.copy(gobj)
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
@@ -1514,48 +1522,48 @@ class Optimization:
         gobj_return *= self.invXScale
         return gobj_return
 
-    def _mapContoOpt(self, fcon: ndarray) -> ndarray:
+    def _mapContoOpt(self, fcon: npt.NDArray[np.floating]) -> npt.NDArray[np.floating]:
         return fcon * self.conScale
 
-    def _mapContoUser(self, fcon: ndarray) -> ndarray:
+    def _mapContoUser(self, fcon: npt.NDArray[np.floating]) -> npt.NDArray[np.floating]:
         return fcon / self.conScale
 
-    def _mapObjtoOpt(self, fobj: ndarray) -> ndarray:
+    def _mapObjtoOpt(self, fobj: npt.NDArray[np.floating]) -> npt.NDArray[np.floating]:
         fobj_return = np.copy(np.atleast_1d(fobj))
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
             fobj_return[iObj] *= self.objectives[objKey].scale
         return fobj_return
 
-    def _mapObjtoUser(self, fobj: ndarray) -> ndarray:
+    def _mapObjtoUser(self, fobj: npt.NDArray[np.floating]) -> npt.NDArray[np.floating]:
         fobj_return = np.copy(np.atleast_1d(fobj))
         for objKey in self.objectives:
             iObj = self.objectiveIdx[objKey]
             fobj_return[iObj] /= self.objectives[objKey].scale
         return fobj_return
 
-    def _mapConJactoOpt(self, gcon: ndarray) -> ndarray:
+    def _mapConJactoOpt(self, gcon: npt.NDArray[np.floating]) -> npt.NDArray[np.floating]:
         """
         The mapping is done in memory, without any return.
         """
         scaleRows(gcon, self.conScale)
         scaleColumns(gcon, self.invXScale)
 
-    def _mapConJactoUser(self, gcon: ndarray) -> ndarray:
+    def _mapConJactoUser(self, gcon: npt.NDArray[np.floating]) -> npt.NDArray[np.floating]:
         """
         The mapping is done in memory, without any return.
         """
         scaleRows(gcon, 1 / self.conScale)
         scaleColumns(gcon, 1 / self.invXScale)
 
-    def _mapXtoOpt(self, x: ndarray) -> ndarray:
+    def _mapXtoOpt(self, x: npt.NDArray[np.floating]) -> npt.NDArray[np.floating]:
         """
         This performs the user-space to optimizer mapping for the DVs.
         All inputs/outputs are numpy arrays.
         """
         return (x - self.xOffset) / self.invXScale
 
-    def _mapXtoUser(self, x: ndarray) -> ndarray:
+    def _mapXtoUser(self, x: npt.NDArray[np.floating]) -> npt.NDArray[np.floating]:
         """
         This performs the optimizer to user-space mapping for the DVs.
         All inputs/outputs are numpy arrays.
