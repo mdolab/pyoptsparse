@@ -16,7 +16,6 @@ import numpy.typing as npt
 # External modules
 from baseclasses import BaseSolver
 
-
 from .pyOpt_error import pyOptSparseWarning
 from .pyOpt_gradient import Gradient
 from .pyOpt_history import History
@@ -738,7 +737,7 @@ class Optimizer(BaseSolver):
 
     def _assembleContinuousVariables(
         self,
-    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+    ) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating]]:
         """
         Utility function for assembling the design variables. Most
         optimizers here use continuous variables so this chunk of code

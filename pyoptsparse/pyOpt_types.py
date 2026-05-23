@@ -6,10 +6,10 @@ import numpy as np
 import numpy.typing as npt
 
 # Either ndarray or scalar
-NumpyType = float | npt.NDArray[np.float64]
+NumpyType = float | npt.NDArray[np.floating]
 # ndarray, list of numbers, or scalar
 ArrayType = NumpyType | Sequence[float]
 # funcs
-Dict1DType = dict[str, npt.NDArray[np.float64]]
+Dict1DType = dict[str, npt.NDArray[np.floating]]
 # funcsSens
-Dict2DType = dict[str, dict[str, npt.NDArray[np.float64]]]
+Dict2DType = dict[str, dict[str, npt.NDArray[np.floating]]]
