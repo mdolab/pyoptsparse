@@ -4,7 +4,6 @@ from dataclasses import asdict, dataclass
 
 # External modules
 import numpy as np
-import numpy.typing as npt
 
 # Local modules
 from .pyOpt_optimization import Optimization
