@@ -113,7 +113,7 @@ class History:
         self.db.commit()
         self.keys = list(self.db.keys())
 
-    def pointExists(self, callCounter) -> bool:
+    def pointExists(self, callCounter: int | str) -> bool:
         """
         Determine if callCounter is in the database
 
@@ -131,7 +131,7 @@ class History:
             callCounter = str(callCounter)
         return callCounter in self.keys
 
-    def read(self, key):
+    def read(self, key: int | str) -> dict | None:
         """
         Read data for an arbitrary key. Returns None if key is not found.
         If passing in a callCounter, it should be verified by calling pointExists() first.

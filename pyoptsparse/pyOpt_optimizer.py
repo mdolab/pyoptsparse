@@ -151,7 +151,7 @@ class Optimizer(BaseSolver):
                 "Unknown value given for sens. Must be one of [None,'FD','FDR','CD','CDR','CS'] or a python function handle"
             )
 
-    def _setHistory(self, storeHistory: str, hotStart: str) -> None:
+    def _setHistory(self, storeHistory: str | None, hotStart: str | None) -> None:
         """
         Generic routine for setting up the hot start information
 
@@ -330,7 +330,7 @@ class Optimizer(BaseSolver):
         self.interfaceTime += time.time() - timeA
         return result
 
-    def _masterFunc2(self, x, evaluate, writeHist=True):
+    def _masterFunc2(self, x: npt.NDArray[np.floating], evaluate: list[str], writeHist: bool = True) -> list[Any]:
         """
         Another shell function. This function is now actually called
         on all the processors.
@@ -647,7 +647,7 @@ class Optimizer(BaseSolver):
 
         return returns
 
-    def _internalEval(self, x) -> None:
+    def _internalEval(self, x: npt.NDArray[np.floating]) -> None:
         """
         Special internal evaluation for optimizers that have a
         separate callback for each constraint
@@ -661,7 +661,7 @@ class Optimizer(BaseSolver):
         self.storedData["gobj"] = gobj.copy()
         self.storedData["gcon"] = gcon.copy()
 
-    def _checkEval(self, x) -> bool:
+    def _checkEval(self, x: npt.NDArray[np.floating]) -> bool:
         """Special check to be used with _internalEval()"""
         if self.storedData["x"] is None:
             return True
@@ -670,7 +670,7 @@ class Optimizer(BaseSolver):
         else:
             return True
 
-    def _convertJacobian(self, gcon_csr_in):
+    def _convertJacobian(self, gcon_csr_in: dict[str, Any]) -> npt.NDArray[np.floating]:
         """
         Convert gcon which is a coo matrix into the format we need.
 
@@ -762,7 +762,7 @@ class Optimizer(BaseSolver):
 
         return blx, bux, xs
 
-    def _assembleConstraints(self):
+    def _assembleConstraints(self) -> tuple[int, npt.NDArray[np.floating], npt.NDArray[np.floating]]:
         """
         Utility function for assembling the design variables. Most
         optimizers here use continuous variables so this chunk of code
@@ -794,7 +794,7 @@ class Optimizer(BaseSolver):
 
         return ncon, blc, buc
 
-    def _assembleObjective(self):
+    def _assembleObjective(self) -> npt.NDArray[np.floating]:
         """
         Utility function for assembling the objective, fetching the information in the Objective object within the Optimization class.
         Most optimizers use a single objective. In that case, the function will return a 0-length array (not a scalar).
@@ -925,7 +925,7 @@ class Optimizer(BaseSolver):
         """
         pass
 
-    def getOption(self, name):
+    def getOption(self, name: str) -> Any:
         """
         Return the optimizer option value for name
 
@@ -945,7 +945,7 @@ class Optimizer(BaseSolver):
 
         return super().getOption(name)
 
-    def _on_getInform(self, info):
+    def _on_getInform(self, info: int) -> str:
         """
         Routine to be implemented by optimizer
         """
@@ -954,7 +954,7 @@ class Optimizer(BaseSolver):
         except KeyError:
             return f"Unknown Exit Status, Exit Code {info}"
 
-    def getInform(self, infocode=None):
+    def getInform(self, infocode: int | None = None) -> str | dict[int, str]:
         """
         Get optimizer result inform code at exit
 

@@ -8,6 +8,7 @@ import warnings
 
 # External modules
 import numpy as np
+import numpy.typing as npt
 from numpy import ndarray
 from scipy.sparse import coo_matrix
 from sqlitedict import SqliteDict
@@ -16,7 +17,7 @@ from sqlitedict import SqliteDict
 from .pyOpt_MPI import MPI
 from .pyOpt_constraint import Constraint
 from .pyOpt_objective import Objective
-from .pyOpt_types import Dict1DType, Dict2DType, NumpyType
+from .pyOpt_types import ArrayType, Dict1DType, Dict2DType, NumpyType
 from .pyOpt_utils import (
     ICOL,
     IDATA,
@@ -157,14 +158,14 @@ class Optimization:
         name: str,
         nVars: int,
         varType: str = "c",
-        value=0.0,
-        lower=None,
-        upper=None,
-        scale=1.0,
-        offset=0.0,
+        value: ArrayType = 0.0,
+        lower: ArrayType | None = None,
+        upper: ArrayType | None = None,
+        scale: ArrayType = 1.0,
+        offset: ArrayType = 0.0,
         choices: list[str] = [],
         **kwargs,
-    ):
+    ) -> None:
         """
         Add a group of variables into a variable set. This is the main
         function used for adding variables to pyOptSparse.
@@ -297,7 +298,7 @@ class Optimization:
         except KeyError:
             print(f"{name} was not a valid design variable name.")
 
-    def _reduceDict(self, variables):
+    def _reduceDict(self, variables: OrderedDict) -> OrderedDict:
         """
         This is a specialized function that is used to communicate
         variables from dictionaries across the comm to ensure that all
@@ -526,7 +527,7 @@ class Optimization:
                         # Must be an array
                         var.value = scaled_DV[dvGroup][i]
 
-    def setDVsFromHistory(self, histFile, key=None) -> None:
+    def setDVsFromHistory(self, histFile: str, key: str | None = None) -> None:
         """
         Set optimization variables from a previous optimization. This
         is like a cold start, but some variables may have been added
@@ -553,7 +554,7 @@ class Optimization:
         else:
             raise FileNotFoundError(f"History file '{histFile}' not found!.")
 
-    def printSparsity(self, verticalPrint=False) -> None:
+    def printSparsity(self, verticalPrint: bool = False) -> None:
         """
         This function prints an (ASCII) visualization of the Jacobian
         sparsity structure. This helps the user visualize what
@@ -1006,7 +1007,7 @@ class Optimization:
 
         return np.array(indices), np.array(lower), np.array(upper), np.array(fact)
 
-    def processXtoDict(self, x: ndarray) -> OrderedDict:
+    def processXtoDict(self, x: ndarray) -> OrderedDict[str, npt.NDArray[np.floating]]:
         """
         Take the flattened array of variables in 'x' and return a
         dictionary of variables keyed on the name of each variable.
@@ -1592,7 +1593,7 @@ class Optimization:
         con_opt = self._mapContoOpt(con)
         return self.processContoDict(con_opt, scaled=False, natural=True)
 
-    def summary_str(self, minimal_print=False, print_multipliers=False) -> str:
+    def summary_str(self, minimal_print: bool = False, print_multipliers: bool = False) -> str:
         """
         Print Structured Optimization Problem
 
