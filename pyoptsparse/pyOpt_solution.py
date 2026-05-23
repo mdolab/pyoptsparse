@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass
 
 # External modules
 import numpy as np
+import numpy.typing as npt
 
 # Local modules
 from .pyOpt_optimization import Optimization
@@ -74,7 +75,7 @@ class Solution(Optimization):
                 i += 1
 
         # Now set the f-values
-        if isinstance(fStar, np.ndarray) and len(fStar) == 1:
+        if isinstance(fStar, npt.NDArray[np.floating]) and len(fStar) == 1:
             self.objectives[list(self.objectives.keys())[0]].value = fStar.item()
             fStar = fStar.item()
         else:

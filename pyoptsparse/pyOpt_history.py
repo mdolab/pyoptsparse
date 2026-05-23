@@ -1,11 +1,12 @@
 # Standard Python modules
-from collections import OrderedDict
 import copy
 import os
+from collections import OrderedDict
 from typing import Any
 
 # External modules
 import numpy as np
+import numpy.typing as npt
 from sqlitedict import SqliteDict
 
 # Local modules
@@ -153,7 +154,7 @@ class History:
         except KeyError:
             return None
 
-    def _searchCallCounter(self, x: np.ndarray, last: int | None = None) -> int | None:
+    def _searchCallCounter(self, x: npt.NDArray[np.floating], last: int | None = None) -> int | None:
         """
         Searches through existing callCounters, and finds the one corresponding
         to an evaluation at the design vector `x`.
