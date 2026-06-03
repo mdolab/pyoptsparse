@@ -8,7 +8,6 @@ import warnings
 
 # External modules
 import numpy as np
-from numpy import ndarray
 import numpy.typing as npt
 from scipy.sparse import coo_matrix
 from sqlitedict import SqliteDict
@@ -74,17 +73,17 @@ class Optimization:
         # have finalized the specification of the variable and the
         # constraints
         self.ndvs: int = 0
-        self.conScale: ndarray = None
+        self.conScale: npt.NDArray[np.floating] | None = None
         self.nCon: int = 0
         self.nObj: int = 0
-        self.invXScale: ndarray = None
-        self.xOffset: ndarray = None
+        self.invXScale: npt.NDArray[np.floating] | None = None
+        self.xOffset: npt.NDArray[np.floating] | None = None
         self.dummyConstraint = False
         self.objectiveIdx: dict[str, int] = {}
         self.finalized: bool = False
-        self.jacIndices: ndarray = None
-        self.fact: ndarray = None
-        self.offset: ndarray = None
+        self.jacIndices: npt.NDArray[np.floating] | None = None
+        self.fact: npt.NDArray[np.floating] | None = None
+        self.offset: npt.NDArray[np.floating] | None = None
 
         # Store the Jacobian conversion maps
         self._jac_map_coo_to_csr = None
@@ -1417,7 +1416,7 @@ class Optimization:
             if self.dummyConstraint:
                 return convertToCSR(np.zeros((1, self.ndvs)))
             else:
-                return np.zeros((0, self.ndvs), "d")
+                return convertToCSR(np.zeros((0, self.ndvs), "d"))
 
         # For simplicity we just add the linear constraints into gcon
         # so they can be processed along with the rest:
