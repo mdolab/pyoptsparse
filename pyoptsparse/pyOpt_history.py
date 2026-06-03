@@ -2,9 +2,11 @@
 from collections import OrderedDict
 import copy
 import os
+from typing import Any
 
 # External modules
 import numpy as np
+import numpy.typing as npt
 from sqlitedict import SqliteDict
 
 # Local modules
@@ -57,7 +59,7 @@ class History:
         self.temp = temp
         self.fileName = fileName
 
-    def close(self):
+    def close(self) -> None:
         """
         Close the underlying database.
         This should only be used in write mode. In read mode, we close the db
@@ -68,7 +70,7 @@ class History:
             if self.temp:
                 os.remove(self.fileName)
 
-    def write(self, callCounter, data):
+    def write(self, callCounter: int, data: dict) -> None:
         """
         This is the main to write data. Basically, we just pass in
         the callCounter, the integer forming the key, and a dictionary
@@ -95,7 +97,7 @@ class History:
         self.db.sync()
         self.keys = list(self.db.keys())
 
-    def writeData(self, key, data):
+    def writeData(self, key: str, data: Any) -> None:
         """
         Write arbitrary `key:data` value to db.
 
@@ -111,7 +113,7 @@ class History:
         self.db.commit()
         self.keys = list(self.db.keys())
 
-    def pointExists(self, callCounter):
+    def pointExists(self, callCounter: int | str) -> bool:
         """
         Determine if callCounter is in the database
 
@@ -129,7 +131,7 @@ class History:
             callCounter = str(callCounter)
         return callCounter in self.keys
 
-    def read(self, key):
+    def read(self, key: int | str) -> dict | None:
         """
         Read data for an arbitrary key. Returns None if key is not found.
         If passing in a callCounter, it should be verified by calling pointExists() first.
@@ -152,7 +154,7 @@ class History:
         except KeyError:
             return None
 
-    def _searchCallCounter(self, x, last=None):
+    def _searchCallCounter(self, x: npt.NDArray[np.floating], last: int | None = None) -> int | None:
         """
         Searches through existing callCounters, and finds the one corresponding
         to an evaluation at the design vector `x`.
@@ -160,7 +162,7 @@ class History:
 
         Parameters
         ----------
-        x : ndarray
+        x : npt.NDArray[np.floating]
             The unscaled DV as a single array.
         last : int, optional
             The last callCounter to search from. If not provided, use the last callCounter in db.
@@ -186,7 +188,7 @@ class History:
                 break
         return callCounter
 
-    def _processDB(self):
+    def _processDB(self) -> None:
         """
         Pre-processes the DB file and store various values into class attributes.
         These will be used later when calling self.getXX functions.
@@ -735,7 +737,7 @@ class History:
             # end if - ("funcs" in val.keys()
         # end if - pointExists
 
-    def __del__(self):
+    def __del__(self) -> None:
         try:
             self.db.close()
             if self.temp:

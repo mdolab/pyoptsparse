@@ -1,5 +1,6 @@
 # Standard Python modules
 from collections import OrderedDict
+from collections.abc import Callable
 import copy
 import datetime
 from enum import Enum
@@ -7,12 +8,12 @@ import os
 import shutil
 import tempfile
 import time
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any
 
 # External modules
 from baseclasses import BaseSolver
 import numpy as np
-from numpy import ndarray
+import numpy.typing as npt
 
 # Local modules
 from .pyOpt_MPI import MPI
@@ -31,12 +32,12 @@ class Optimizer(BaseSolver):
         self,
         name: str,
         category: str,
-        defaultOptions: Optional[Dict[str, Any]] = None,
-        informs: Optional[Dict[int, str]] = None,
-        options: Optional[Dict[str, Any]] = None,
+        defaultOptions: dict[str, Any] | None = None,
+        informs: dict[int, str] | None = None,
+        options: dict[str, Any] | None = None,
         checkDefaultOptions: bool = True,
         caseSensitiveOptions: bool = True,
-        version: Optional[str] = None,
+        version: str | None = None,
     ):
         """
         This is the base optimizer class that all optimizers inherit from.
@@ -71,9 +72,9 @@ class Optimizer(BaseSolver):
         # callCounter will be incremented after the function calls, iterCounters will be incremented before the calls.
         self.callCounter = 0  # counts all function calls (fobj, fcon, gobj, gcon)
         self.iterCounter = -1  # counts iteration(new x point)
-        self.sens: Union[None, Callable, Gradient] = None
+        self.sens: Callable | Gradient | None = None
         self.optProb: Optimization
-        self.version: Optional[str] = version
+        self.version: str | None = version
 
         # Default options:
         self.appendLinearConstraints: bool = False
@@ -87,20 +88,20 @@ class Optimizer(BaseSolver):
         self.storeSens: bool = True
 
         # Cache storage
-        self.cache: Dict[str, Any] = {"x": None, "fobj": None, "fcon": None, "gobj": None, "gcon": None, "fail": None}
+        self.cache: dict[str, Any] = {"x": None, "fobj": None, "fcon": None, "gobj": None, "gcon": None, "fail": None}
 
         # A second-level cache for optimizers that require callbacks
         # for each constraint. (eg. PSQP etc)
-        self.storedData: Dict[str, Any] = {"x": None}
+        self.storedData: dict[str, Any] = {"x": None}
 
         # Store the Jacobian conversion maps
         self._jac_map_csr_to_csc = None
 
         # Initialize metadata
-        self.metadata: Dict[str, Any] = {}
+        self.metadata: dict[str, Any] = {}
         self.startTime = None
 
-    def _clearTimings(self):
+    def _clearTimings(self) -> None:
         """Clear timings and call counters"""
         self.userObjTime = 0.0
         self.userSensTime = 0.0
@@ -108,7 +109,7 @@ class Optimizer(BaseSolver):
         self.userObjCalls = 0
         self.userSensCalls = 0
 
-    def _setSens(self, sens: Union[None, str, Callable], sensStep: float, sensMode: str):
+    def _setSens(self, sens: str | Callable | None, sensStep: float, sensMode: str) -> None:
         """
         Common function to setup sens function
         """
@@ -148,7 +149,7 @@ class Optimizer(BaseSolver):
                 "Unknown value given for sens. Must be one of [None,'FD','FDR','CD','CDR','CS'] or a python function handle"
             )
 
-    def _setHistory(self, storeHistory: str, hotStart: str):
+    def _setHistory(self, storeHistory: str | None, hotStart: str | None) -> None:
         """
         Generic routine for setting up the hot start information
 
@@ -205,7 +206,7 @@ class Optimizer(BaseSolver):
                     self.hist.writeData("metadata", self.metadata)
         self.optProb.comm.Barrier()
 
-    def _masterFunc(self, x: ndarray, evaluate: List[str]):
+    def _masterFunc(self, x: npt.NDArray[np.floating], evaluate: list[str]) -> list[Any]:
         """
         This is the master function that **ALL** optimizers call from
         the specific signature functions. The reason for this is that
@@ -327,7 +328,7 @@ class Optimizer(BaseSolver):
         self.interfaceTime += time.time() - timeA
         return result
 
-    def _masterFunc2(self, x, evaluate, writeHist=True):
+    def _masterFunc2(self, x: npt.NDArray[np.floating], evaluate: list[str], writeHist: bool = True) -> list[Any]:
         """
         Another shell function. This function is now actually called
         on all the processors.
@@ -644,7 +645,7 @@ class Optimizer(BaseSolver):
 
         return returns
 
-    def _internalEval(self, x):
+    def _internalEval(self, x: npt.NDArray[np.floating]) -> None:
         """
         Special internal evaluation for optimizers that have a
         separate callback for each constraint
@@ -658,7 +659,7 @@ class Optimizer(BaseSolver):
         self.storedData["gobj"] = gobj.copy()
         self.storedData["gcon"] = gcon.copy()
 
-    def _checkEval(self, x):
+    def _checkEval(self, x: npt.NDArray[np.floating]) -> bool:
         """Special check to be used with _internalEval()"""
         if self.storedData["x"] is None:
             return True
@@ -667,7 +668,7 @@ class Optimizer(BaseSolver):
         else:
             return True
 
-    def _convertJacobian(self, gcon_csr_in):
+    def _convertJacobian(self, gcon_csr_in: dict[str, Any]) -> npt.NDArray[np.floating]:
         """
         Convert gcon which is a coo matrix into the format we need.
 
@@ -701,7 +702,7 @@ class Optimizer(BaseSolver):
             gcon = gcon_csr_in["csr"][IDATA]
         return gcon
 
-    def _waitLoop(self):
+    def _waitLoop(self) -> None:
         """Non-root processors go into this waiting loop while the
         root proc does all the work in the optimization algorithm
         """
@@ -724,7 +725,7 @@ class Optimizer(BaseSolver):
             # about return values on these procs
             self._masterFunc2(*info)
 
-    def _setInitialCacheValues(self):
+    def _setInitialCacheValues(self) -> None:
         """
         Once we know that the optProb has been set, we populate the
         cache with a magic number. If the starting points for your
@@ -732,7 +733,9 @@ class Optimizer(BaseSolver):
         """
         self.cache["x"] = -999999999 * np.ones(self.optProb.ndvs)
 
-    def _assembleContinuousVariables(self):
+    def _assembleContinuousVariables(
+        self,
+    ) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating]]:
         """
         Utility function for assembling the design variables. Most
         optimizers here use continuous variables so this chunk of code
@@ -757,7 +760,7 @@ class Optimizer(BaseSolver):
 
         return blx, bux, xs
 
-    def _assembleConstraints(self):
+    def _assembleConstraints(self) -> tuple[int, npt.NDArray[np.floating], npt.NDArray[np.floating]]:
         """
         Utility function for assembling the design variables. Most
         optimizers here use continuous variables so this chunk of code
@@ -789,7 +792,7 @@ class Optimizer(BaseSolver):
 
         return ncon, blc, buc
 
-    def _assembleObjective(self):
+    def _assembleObjective(self) -> npt.NDArray[np.floating]:
         """
         Utility function for assembling the objective, fetching the information in the Objective object within the Optimization class.
         Most optimizers use a single objective. In that case, the function will return a 0-length array (not a scalar).
@@ -838,7 +841,7 @@ class Optimizer(BaseSolver):
 
         return sol
 
-    def _communicateSolution(self, sol: Optional[Solution]) -> Solution:
+    def _communicateSolution(self, sol: Solution | None) -> Solution:
         """
         Broadcast the solution from the root proc back to everyone. We
         have to be a little careful since we can't in general
@@ -853,7 +856,7 @@ class Optimizer(BaseSolver):
 
         return commSol
 
-    def _setMetadata(self):
+    def _setMetadata(self) -> None:
         """
         This function is used to set the self.metadata object.
         Importantly, this sets the startTime, so should be called just before the start
@@ -879,13 +882,13 @@ class Optimizer(BaseSolver):
             "startTime": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
 
-    def _on_setOption(self, name, value):
+    def _on_setOption(self, name, value) -> None:
         """
         Set Optimizer Option Value (Optimizer Specific Routine)
         """
         pass
 
-    def _checkLinearConstraints(self, funcs):
+    def _checkLinearConstraints(self, funcs) -> None:
         """
         Makes sure that the user-defined obj/con function does not compute the linear constraint values
         because the linear constraints are exclusively defined by jac and bounds in addConGroup.
@@ -897,7 +900,7 @@ class Optimizer(BaseSolver):
                     + "are evaluated internally and should not be returned from the user's function."
                 )
 
-    def setOption(self, name, value=None):
+    def setOption(self, name, value=None) -> None:
         """
         Generic routine for all option setting. The routine does
         error checking on the type of the value.
@@ -914,13 +917,13 @@ class Optimizer(BaseSolver):
         # Now call the optimizer specific routine
         self._on_setOption(name, value)
 
-    def _on_getOption(self, name):
+    def _on_getOption(self, name) -> Any:
         """
         Routine to be implemented by optimizer
         """
         pass
 
-    def getOption(self, name):
+    def getOption(self, name: str) -> Any:
         """
         Return the optimizer option value for name
 
@@ -940,7 +943,7 @@ class Optimizer(BaseSolver):
 
         return super().getOption(name)
 
-    def _on_getInform(self, info):
+    def _on_getInform(self, info: int) -> str:
         """
         Routine to be implemented by optimizer
         """
@@ -949,7 +952,7 @@ class Optimizer(BaseSolver):
         except KeyError:
             return f"Unknown Exit Status, Exit Code {info}"
 
-    def getInform(self, infocode=None):
+    def getInform(self, infocode: int | None = None) -> str | dict[int, str]:
         """
         Get optimizer result inform code at exit
 

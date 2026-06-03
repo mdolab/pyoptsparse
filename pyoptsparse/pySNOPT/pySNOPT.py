@@ -9,12 +9,12 @@ import os
 import re
 import sys
 import time
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 # External modules
 from baseclasses.utils import CaseInsensitiveSet, writePickle
 import numpy as np
-from numpy import ndarray
+import numpy.typing as npt
 from packaging.version import parse as parse_version
 
 # Local modules
@@ -43,7 +43,7 @@ class SNOPT(Optimizer):
     SNOPT Optimizer Class
     """
 
-    def __init__(self, raiseError=True, options: Optional[Dict] = None):
+    def __init__(self, raiseError=True, options: dict | None = None):
         if options is None:
             options = {}
         name = "SNOPT"
@@ -101,10 +101,12 @@ class SNOPT(Optimizer):
         self.jacType = "csc"
 
         # SNOPT specific Jacobian map
-        self._snopt_jac_map_csr_to_csc: Optional[Tuple[ndarray, ndarray, ndarray]] = None
+        self._snopt_jac_map_csr_to_csc: (
+            tuple[npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating]] | None
+        ) = None
 
     @staticmethod
-    def _getDefaultOptions() -> Dict[str, Any]:
+    def _getDefaultOptions() -> dict[str, Any]:
         defOpts = {
             "iPrint": [int, 18],
             "iSumm": [int, 19],
@@ -129,7 +131,7 @@ class SNOPT(Optimizer):
         return defOpts
 
     @staticmethod
-    def _getInforms() -> Dict[int, str]:
+    def _getInforms() -> dict[int, str]:
         # INFO exit codes for SNOPT 7.7
         informs = {
             0: "finished successfully",
@@ -715,7 +717,7 @@ class SNOPT(Optimizer):
             iabort = 0
         return iabort
 
-    def _set_snopt_options(self, iPrint: int, iSumm: int, cw: ndarray, iw: ndarray, rw: ndarray):
+    def _set_snopt_options(self, iPrint: int, iSumm: int, cw: npt.NDArray[np.floating], iw: npt.NDArray[np.floating], rw: npt.NDArray[np.floating]):
         """
         Set all the options into SNOPT that have been assigned
         by the user
