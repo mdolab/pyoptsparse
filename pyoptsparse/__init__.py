@@ -21,6 +21,7 @@ from .pyNLPQLP.pyNLPQLP import NLPQLP
 from .pyNSGA2.pyNSGA2 import NSGA2
 from .pyALPSO.pyALPSO import ALPSO
 from .pyParOpt.ParOpt import ParOpt
+from .pyEgor.pyEgor import Egor
 
 __all__ = [
     "History",
@@ -43,6 +44,7 @@ __all__ = [
     "NSGA2",
     "ALPSO",
     "ParOpt",
+    "Egor",
     "testing",
     "list_optimizers",
 ]

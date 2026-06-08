@@ -1,0 +1,48 @@
+gp_config:
+  desc: GpConfig instance used by Egor for surrogate model configuration
+cstr_tol:
+  desc: Constraint tolerances list passed to Egor (size n_cstr plus n_fcstr)
+fcstrs:
+  desc: Optional list of native Egobox function constraints passed to minimize
+fcstr_specs:
+  desc: Optional list of egobox.CstrSpec for function constraints passed as fcstrs
+n_start:
+  desc: Number of infill optimization runs (best run selected)
+n_doe:
+  desc: Number of initial DOE samples (0 lets Egor choose automatically)
+doe:
+  desc: Initial DOE array, either x-only or concatenated x and y
+infill_strategy:
+  desc: Infill criterion enum (EI, WB2, WB2S, LOG_EI)
+cstr_infill:
+  desc: Enable constrained infill criterion
+cstr_strategy:
+  desc: Constraint strategy enum for surrogate constraint handling
+qei_config:
+  desc: QEiConfig for batch (qEI) point selection
+infill_optimizer:
+  desc: Internal infill optimizer enum (COBYLA or SLSQP)
+trego:
+  desc: TREGO configuration (TregoConfig, True for defaults, or None)
+coego_n_coop:
+  desc: Number of cooperative groups for CoEGO mode
+target:
+  desc: Known objective target used as stopping criterion
+outdir:
+  desc: Output directory for Egor history and warm start search
+warm_start:
+  desc: Load initial DOE from outdir when enabled
+hot_start:
+  desc: Egor checkpoint restart/extension parameter
+failsafe_strategy:
+  desc: Failure handling enum (REJECTION, IMPUTATION, VIABILITY)
+seed:
+  desc: Constructor seed (deprecated in egobox in favor of minimize seed)
+verbose:
+  desc: Constructor verbosity (deprecated in egobox in favor of minimize verbose)
+max_iters:
+  desc: Egor minimize iteration budget
+run_info:
+  desc: Optional RunInfo object passed to Egor minimize
+timeout:
+  desc: Optional minimize timeout in seconds
