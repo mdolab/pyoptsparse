@@ -60,7 +60,7 @@ class Egor(Optimizer):
             "target": [float, -np.finfo(float).max],
             "outdir": [object, None],
             "warm_start": [bool, False],
-            "hot_start": [object, None],
+            "hot_start": [bool, False],
             "failsafe_strategy": [object, None],
             "seed": [object, None],
             "verbose": [object, None],
@@ -178,11 +178,7 @@ class Egor(Optimizer):
                 "coego_n_coop": opt("coego_n_coop"),
                 "target": opt("target"),
                 "outdir": opt("outdir"),
-                "warm_start": opt("warm_start"),
-                "hot_start": opt("hot_start"),
                 "failsafe_strategy": failsafe_strategy,
-                "seed": opt("seed"),
-                "verbose": opt("verbose"),
             }
             ctor_kwargs = {k: v for k, v in ctor_kwargs.items() if k in ctor_supported}
             solver = egobox.Egor(xspecs, **ctor_kwargs)
@@ -211,7 +207,7 @@ class Egor(Optimizer):
                 "run_info": opt("run_info"),
                 "outdir": opt("outdir"),
                 "warm_start": opt("warm_start"),
-                "hot_start": opt("hot_start"),
+                "hot_start": True if opt("hot_start") else False,
                 "seed": opt("seed"),
                 "timeout": opt("timeout"),
                 "verbose": opt("verbose"),

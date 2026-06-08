@@ -47,8 +47,16 @@ class TestHS15(OptTest):
         "IPOPT": 1e-4,
         "CONMIN": 1e-10,
         "PSQP": 5e-12,
+        "Uno": 1e-4,
+        "Egor": 5e-2,
     }
-    optOptions = {}
+    optOptions = {
+        "Egor": {
+            "max_iters": 50,
+            "n_doe": 12,
+            "seed": 42,
+        }
+    }
 
     def objfunc(self, xdict):
         self.nf += 1
@@ -116,11 +124,11 @@ class TestHS15(OptTest):
         # sol_xvars = [sol.variables["xvars"][i].value for i in range(2)]
         # assert_allclose(sol_xvars, dv["xvars"], atol=tol, rtol=tol)
 
-    @parameterized.expand(["SLSQP", "PSQP", "CONMIN", "NLPQLP"])
+    @parameterized.expand(["SLSQP", "PSQP", "CONMIN", "NLPQLP", "Egor"])
     def test_optimization(self, optName):
         self.optName = optName
         self.setup_optProb()
-        optOptions = self.optOptions.pop(optName, None)
+        optOptions = self.optOptions.get(optName, None)
         sol = self.optimize(optOptions=optOptions)
         # Check Solution
         self.assert_solution_allclose(sol, self.tol[optName])

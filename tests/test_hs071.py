@@ -33,12 +33,17 @@ class TestHS71(OptTest):
         "CONMIN": 1e-3,
         "PSQP": 1e-6,
         "Uno": 1e-4,
+        "Egor": 1e-2,
     }
     optOptions = {
         "CONMIN": {
             "DELFUN": 1e-10,
             "DABFUN": 1e-10,
-        }
+        },
+        "Egor"  : {
+            "max_iters": 100,
+            "seed": 42
+        }, 
     }
 
     def objfunc(self, xdict):
@@ -257,7 +262,7 @@ class TestHS71(OptTest):
         sol = self.optimize(optOptions={"MIT": 1})
         self.assert_inform_equal(sol, 11)
 
-    @parameterized.expand(["SNOPT", "IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "Uno"])
+    @parameterized.expand(["SNOPT", "IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "Uno", "Egor"])
     def test_optimization(self, optName):
         self.optName = optName
         self.setup_optProb()
