@@ -4,7 +4,11 @@ Egor
 ====
 
 Egor is a surrogate-based Efficient Global Optimization (EGO) algorithm provided by the
-`egobox <https://github.com/rel/EGObox>`_ package.
+`egobox <https://github.com/relf/EGObox>`_ package which is intalled with:
+
+.. prompt:: bash
+
+   pip install egobox
 
 The pyOptSparse wrapper is derivative-free and targets single-objective, bounded,
 continuous design spaces. Constraint values are passed to Egor with the pyOptSparse
