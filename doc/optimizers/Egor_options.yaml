@@ -1,11 +1,7 @@
 gp_config:
-  desc: GpConfig instance used by Egor for surrogate model configuration
+  desc: GpConfig as a dict used by Egor for surrogate model configuration
 cstr_tol:
   desc: Constraint tolerances list passed to Egor (size n_cstr plus n_fcstr)
-fcstrs:
-  desc: Optional list of native Egobox function constraints passed to minimize
-fcstr_specs:
-  desc: Optional list of egobox.CstrSpec for function constraints passed as fcstrs
 n_start:
   desc: Number of infill optimization runs (best run selected)
 n_doe:
@@ -23,7 +19,7 @@ qei_config:
 infill_optimizer:
   desc: Internal infill optimizer enum (COBYLA or SLSQP)
 trego:
-  desc: TREGO configuration (TregoConfig, True for defaults, or None)
+  desc: Enable treg
 coego_n_coop:
   desc: Number of cooperative groups for CoEGO mode
 target:
@@ -37,12 +33,16 @@ hot_start:
 failsafe_strategy:
   desc: Failure handling enum (REJECTION, IMPUTATION, VIABILITY)
 seed:
-  desc: Constructor seed (deprecated in egobox in favor of minimize seed)
+  desc: Seed for random number generator (default -1 for random seed)
 verbose:
-  desc: Constructor verbosity (deprecated in egobox in favor of minimize verbose)
+  desc: Constructor verbosity
 max_iters:
   desc: Egor minimize iteration budget
 run_info:
-  desc: Optional RunInfo object passed to Egor minimize
+  desc: Optional RunInfo used to pass additional information to Egor (e.g., for logging)
 timeout:
   desc: Optional minimize timeout in seconds
+fcstrs:
+  desc: Optional list of native Egobox function constraints passed to minimize
+fcstr_specs:
+  desc: Optional list of egobox.CstrSpec for function constraints passed as fcstrs

@@ -11,6 +11,7 @@ import time
 import numpy as np
 
 # Local modules
+from ..pyOpt_solution import SolutionInform
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_utils import import_module
 
@@ -37,36 +38,43 @@ class Egor(Optimizer):
 
     @staticmethod
     def _getInforms():
-        informs = {}
+        informs = {
+            1: "Reached maximum number of iterations",
+            2: "Reached target cost function value",
+            3: "Algorithm manually interrupted with SIGINT (Ctrl+C), SIGTERM or SIGHUP",
+            4: "Algorithm peek at the same point twice. We consider it is converged.",
+            5: "Timeout reached",
+            6: "Solver unexpected exit. See logs for details.",
+        }
         return informs
 
     @staticmethod
     def _getDefaultOptions():
         defOpts = {
-            "gp_config": [object, None],
-            "cstr_tol": [object, None],
-            "fcstrs": [object, None],
-            "fcstr_specs": [object, None],
+            "gp_config": [dict, dict()],  # GpConfig as a dict used by Egor for surrogate model configuration
+            "cstr_tol": [list, []],
             "n_start": [int, 20],
             "n_doe": [int, 0],
-            "doe": [object, None],
-            "infill_strategy": [object, None],
+            "doe": [list, [[]]],
+            "infill_strategy": [int, 4],  # default to LOG_EI
             "cstr_infill": [bool, False],
-            "cstr_strategy": [object, None],
-            "qei_config": [object, None],
-            "infill_optimizer": [object, None],
-            "trego": [object, None],
+            "cstr_strategy": [int, 1],  # default to MC
+            "qei_config": [dict, dict()],
+            "infill_optimizer": [int, 1], # default to COBYLA
+            "trego": [dict, dict()],
             "coego_n_coop": [int, 0],
-            "target": [float, -np.finfo(float).max],
-            "outdir": [object, None],
+            "target": [float, -1e12],
+            "outdir": [str, ""],
             "warm_start": [bool, False],
             "hot_start": [bool, False],
-            "failsafe_strategy": [object, None],
-            "seed": [object, None],
-            "verbose": [object, None],
+            "failsafe_strategy": [int, 1], # default to REJECTION 
+            "seed": [int, -1],
+            "verbose": [int, 0], # level of verbosity, 0 = error, 1 = warn, 2 = info, 3 = debug 
             "max_iters": [int, 20],
-            "run_info": [object, None],
-            "timeout": [object, None],
+            "run_info": [dict, dict()],
+            "timeout": [int, -1],
+            "fcstrs": [list, []],
+            "fcstr_specs": [list, []],
         }
         return defOpts
 
@@ -165,10 +173,10 @@ class Egor(Optimizer):
             ctor_kwargs = {
                 "gp_config": gp_config,
                 "n_cstr": n_cstr,
-                "cstr_tol": opt("cstr_tol"),
+                "cstr_tol": opt("cstr_tol") if len(opt("cstr_tol")) > 0 else None,
                 "n_start": opt("n_start"),
                 "n_doe": opt("n_doe"),
-                "doe": opt("doe"),
+                "doe": np.array(opt("doe")) if np.array(opt("doe")).size > 0 else None,
                 "infill_strategy": infill_strategy,
                 "cstr_infill": opt("cstr_infill"),
                 "cstr_strategy": cstr_strategy,
@@ -177,7 +185,6 @@ class Egor(Optimizer):
                 "trego": opt("trego"),
                 "coego_n_coop": opt("coego_n_coop"),
                 "target": opt("target"),
-                "outdir": opt("outdir"),
                 "failsafe_strategy": failsafe_strategy,
             }
             ctor_kwargs = {k: v for k, v in ctor_kwargs.items() if k in ctor_supported}
@@ -209,7 +216,7 @@ class Egor(Optimizer):
                 "warm_start": opt("warm_start"),
                 "hot_start": True if opt("hot_start") else False,
                 "seed": opt("seed"),
-                "timeout": opt("timeout"),
+                "timeout": opt("timeout") if opt("timeout") > 0 else None,
                 "verbose": opt("verbose"),
             }
 
@@ -227,7 +234,7 @@ class Egor(Optimizer):
             self.optProb.comm.bcast(-1, root=0)
 
             # Optimizer has no standardized exit code mapping in this wrapper.
-            sol_inform = None
+            sol_inform = SolutionInform.from_informs(self.informs, int(egor_result.status.exit))
 
             result = egor_result.result
 
