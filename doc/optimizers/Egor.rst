@@ -10,6 +10,11 @@ Egor is a surrogate-based Efficient Global Optimization (EGO) algorithm provided
 
    pip install egobox
 
+Egor uses `bayesian optimization <https://en.wikipedia.org/wiki/Bayesian_optimization>`_ techniques 
+well-suited to find the global optimum of an expansive-to-evaluate black-box function. 
+Basically, it uses a surrogate model to approximate the objective function and 
+an infill criterion (aka acquisition function) to guide the search for the optimum.
+
 The pyOptSparse wrapper is derivative-free and targets single-objective, bounded,
 continuous design spaces. Constraint values are passed to Egor with the pyOptSparse
 constraint convention transformed to :math:`c(x) \le 0`.

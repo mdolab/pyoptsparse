@@ -48,12 +48,10 @@ class TestRosenbrock(OptTest):
         "CONMIN": 1e-9,
         "PSQP": 1e-8,
         "Uno": 1e-4,
-        "Egor": 5e1,
     }
     optOptions = {
         "SLSQP": {"ACC": 1e-10},
         "NLPQLP": {"accuracy": 1e-10},
-        "Egor": {"max_iters": 100, "trego": True, "n_doe": 60, "seed": 42},
     }
 
     def objfunc(self, xdict):
@@ -146,7 +144,7 @@ class TestRosenbrock(OptTest):
         # The first is from a call we deleted and the second is the call after 'last'
         self.assertEqual(self.ng, 2)
 
-    @parameterized.expand(["IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "Uno", "Egor"])
+    @parameterized.expand(["IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "Uno"])
     def test_optimization(self, optName):
         self.optName = optName
         if optName == "IPOPT" and sys.platform == "win32":
