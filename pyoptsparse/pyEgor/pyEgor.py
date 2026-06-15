@@ -60,19 +60,19 @@ class Egor(Optimizer):
             "cstr_infill": [bool, False],
             "cstr_strategy": [int, 1],  # default to MC
             "qei_config": [dict, dict()],
-            "infill_optimizer": [int, 1], # default to COBYLA
+            "infill_optimizer": [int, 1],  # default to COBYLA
             "trego": [dict, dict()],
             "coego_n_coop": [int, 0],
             "target": [float, -1e12],
             "outdir": [str, ""],
             "warm_start": [bool, False],
             "hot_start": [bool, False],
-            "failsafe_strategy": [int, 1], # default to REJECTION 
+            "failsafe_strategy": [int, 1],  # default to REJECTION
             "seed": [int, -1],
-            "verbose": [int, 0], # level of verbosity, 0 = error, 1 = warn, 2 = info, 3 = debug 
+            "verbose": [int, 0],  # level of verbosity, 0 = error, 1 = warn, 2 = info, 3 = debug
             "max_iters": [int, 20],
             "run_info": [dict, dict()],
-            "timeout": [float, -1.],
+            "timeout": [float, -1.0],
             "fcstrs": [list, []],
             "fcstr_specs": [list, []],
         }
@@ -115,9 +115,7 @@ class Egor(Optimizer):
         if self.unconstrained:
             m = 0
         else:
-            indices, blc, buc, fact = self.optProb.getOrdering(
-                ["ne", "le", "ni", "li"], oneSided=True, noEquality=True
-            )
+            indices, blc, buc, fact = self.optProb.getOrdering(["ne", "le", "ni", "li"], oneSided=True, noEquality=True)
             m = len(indices)
             self.optProb.jacIndices = indices
             self.optProb.fact = fact
@@ -127,10 +125,7 @@ class Egor(Optimizer):
             opt = self.getOption
 
             # Build x specifications from pyOptSparse bounds.
-            xspecs = [
-                egobox.XSpec(egobox.XType.FLOAT, [float(blx[i]), float(bux[i])])
-                for i in range(n)
-            ]
+            xspecs = [egobox.XSpec(egobox.XType.FLOAT, [float(blx[i]), float(bux[i])]) for i in range(n)]
 
             gp_config = opt("gp_config")
             if gp_config is None:
@@ -162,7 +157,9 @@ class Egor(Optimizer):
 
             n_fcstrs = 0 if fcstrs_opt is None else len(fcstrs_opt)
             if fcstr_specs is not None and len(fcstr_specs) not in (0, n_fcstrs):
-                raise ValueError("Option 'fcstr_specs' length must be zero or match the number of function constraints.")
+                raise ValueError(
+                    "Option 'fcstr_specs' length must be zero or match the number of function constraints."
+                )
 
             ctor_supported = set(inspect.signature(egobox.Egor).parameters.keys())
             supports_ctor_verbose = "verbose" in ctor_supported

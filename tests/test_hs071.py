@@ -40,10 +40,7 @@ class TestHS71(OptTest):
             "DELFUN": 1e-10,
             "DABFUN": 1e-10,
         },
-        "Egor"  : {
-            "max_iters": 100,
-            "seed": 42
-        }, 
+        "Egor": {"max_iters": 100, "seed": 42},
     }
 
     def objfunc(self, xdict):
