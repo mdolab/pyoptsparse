@@ -1,31 +1,47 @@
 gp_config:
-  desc: GpConfig as a dict used by Egor for surrogate model configuration
+  desc: |
+    GpConfig as a dict used by Egor for surrogate model configuration.
+    Main defaults are:
+    - "regr_spec": 1 (Constant)
+    - "corr_spec": 2 (Squared Exponential)
+    - "kpls_dim": no PLS dimensionality reduction (otherwise int)
+    - "n_clusters": no clustering (otherwise int)
 cstr_tol:
-  desc: Constraint tolerances list passed to Egor (size n_cstr plus n_fcstr)
+  desc: |
+    Constraint tolerances list passed to Egor (size n_cstr plus n_fcstr)
+    Default is 1e-4 for all constraints.
 n_start:
   desc: Number of infill optimization runs (best run selected)
 n_doe:
   desc: Number of initial DOE samples (0 lets Egor choose automatically)
 doe:
-  desc: Initial DOE array, either x-only or concatenated x and y
+  desc: |
+    Initial DOE array, either x-only or concatenated x and y
+    to be passed as list of lists of floats. If not provided, Egor will generate a DOE automatically.
 infill_strategy:
-  desc: Infill criterion enum (EI, WB2, WB2S, LOG_EI)
+  desc: Infill criterion enum (EI=1, WB2=2, WB2S=3, LOG_EI=4)
 cstr_infill:
-  desc: Enable constrained infill criterion
+  desc: Enable constrained infill criterion (aka CEI)
 cstr_strategy:
-  desc: Constraint strategy enum for surrogate constraint handling
+  desc: |
+    Constraint strategy enum for surrogate constraint handling
+    - MeanConstraint=1 (default)
+    - UpperConfidenceBound=2
 qei_config:
   desc: QEiConfig for batch (qEI) point selection
 infill_optimizer:
-  desc: Internal infill optimizer enum (COBYLA or SLSQP)
+  desc: |
+    Internal infill optimizer:
+    - COBYLA=1 (default)
+    - SLSQP=2
 trego:
   desc: Enable TREGO (aka Trust Region EGO) algorithm
 coego_n_coop:
-  desc: Number of cooperative groups for CoEGO mode
+  desc: Number of cooperative groups for CoEGO algorithm
 target:
   desc: Known objective target used as stopping criterion
 outdir:
-  desc: Output directory for Egor history and warm start search
+  desc: Output directory for Egor output files (configuration, does, history and warm start search)
 warm_start:
   desc: Load initial DOE from outdir when enabled
 hot_start:
@@ -37,13 +53,14 @@ failsafe_strategy:
 seed:
   desc: Seed for random number generator (default -1 for random seed)
 verbose:
-  desc: Constructor verbosity
+  desc:
+    Verbosity level for Egor logging (0=error, 1=warn, 2=info, 3=debug, 4=trace)
 max_iters:
   desc: Egor minimize iteration budget
 run_info:
   desc: Optional RunInfo used to pass additional information to Egor (e.g., for logging)
 timeout:
-  desc: Optional minimize timeout in seconds
+  desc: Optional timeout in seconds used as sttopping criterion for Egor minimize
 fcstrs:
   desc: Optional list of native Egobox function constraints passed to minimize
 fcstr_specs:

@@ -4,11 +4,7 @@ Egor
 ====
 
 Egor is a surrogate-based Efficient Global Optimization (EGO) algorithm provided by the
-`egobox <https://github.com/relf/EGObox>`_ package which is intalled with:
-
-.. prompt:: bash
-
-   pip install egobox
+`egobox <https://github.com/relf/EGObox>`_.
 
 Egor uses `bayesian optimization <https://en.wikipedia.org/wiki/Bayesian_optimization>`_ techniques
 well-suited to find the global optimum of an expansive-to-evaluate black-box function.
@@ -18,6 +14,16 @@ an infill criterion (aka acquisition function) to guide the search for the optim
 The pyOptSparse wrapper is derivative-free and targets single-objective, bounded,
 continuous design spaces. Constraint values are passed to Egor with the pyOptSparse
 constraint convention transformed to :math:`c(x) \le 0`.
+
+Installation
+------------
+
+Egor is made available through the `egobox <https://pypi.org/project/egobox/>`_ Python package.
+
+.. prompt:: bash
+
+   pip install egobox
+
 
 Options
 -------
@@ -38,6 +44,11 @@ Names and default values of the fields are provided in the descriptions below.
 
 .. optionstable:: pyoptsparse.pyEgor.pyEgor.Egor
    :filename: Egor_options.yaml
+
+Informs
+-------
+.. optionstable:: pyoptsparse.pyEgor.pyEgor.Egor
+   :type: informs
 
 API
 ---
