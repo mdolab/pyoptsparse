@@ -1,7 +1,11 @@
 """Test class for Egor specific tests"""
 
-import numpy as np
+# Standard Python modules
+import json
 import tempfile
+
+# External modules
+import numpy as np
 
 # First party modules
 from pyoptsparse import Optimization
@@ -81,8 +85,6 @@ class TestEgor(OptTest):
                 }
             )
             # read egor_config.json from outdir and check that corr_spec is 4
-            import json
-
             with open(f"{outdir}/egor_config.json", "r") as f:
                 egor_config = json.load(f)
             print("Egor config: ", egor_config)

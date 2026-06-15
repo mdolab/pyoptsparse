@@ -11,8 +11,8 @@ import time
 import numpy as np
 
 # Local modules
-from ..pyOpt_solution import SolutionInform
 from ..pyOpt_optimizer import Optimizer
+from ..pyOpt_solution import SolutionInform
 from ..pyOpt_utils import import_module
 
 # import the Python module
