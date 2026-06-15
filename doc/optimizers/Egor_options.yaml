@@ -19,7 +19,7 @@ qei_config:
 infill_optimizer:
   desc: Internal infill optimizer enum (COBYLA or SLSQP)
 trego:
-  desc: Enable treg
+  desc: Enable TREGO (aka Trust Region EGO) algorithm
 coego_n_coop:
   desc: Number of cooperative groups for CoEGO mode
 target:

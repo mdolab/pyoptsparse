@@ -21,7 +21,7 @@ egobox = import_module("egobox")
 
 class Egor(Optimizer):
     """
-    Egor Optimizer Class - Inherited from Optimizer Abstract Class
+    Egor Optimizer Class - wrapper for the Egor global optimization algorithm from egobox.
     """
 
     def __init__(self, raiseError=True, options=None):
@@ -72,7 +72,7 @@ class Egor(Optimizer):
             "verbose": [int, 0], # level of verbosity, 0 = error, 1 = warn, 2 = info, 3 = debug 
             "max_iters": [int, 20],
             "run_info": [dict, dict()],
-            "timeout": [int, -1],
+            "timeout": [float, -1.],
             "fcstrs": [list, []],
             "fcstr_specs": [list, []],
         }
@@ -184,7 +184,7 @@ class Egor(Optimizer):
                 "infill_optimizer": infill_optimizer,
                 "trego": opt("trego"),
                 "coego_n_coop": opt("coego_n_coop"),
-                "target": opt("target"),
+                "target": float(opt("target")),
                 "failsafe_strategy": failsafe_strategy,
             }
             ctor_kwargs = {k: v for k, v in ctor_kwargs.items() if k in ctor_supported}
@@ -212,11 +212,11 @@ class Egor(Optimizer):
                 "fcstr_specs": [] if fcstr_specs is None else fcstr_specs,
                 "max_iters": opt("max_iters"),
                 "run_info": opt("run_info"),
-                "outdir": opt("outdir"),
+                "outdir": opt("outdir") if opt("outdir") != "" else None,
                 "warm_start": opt("warm_start"),
                 "hot_start": True if opt("hot_start") else False,
-                "seed": opt("seed"),
-                "timeout": opt("timeout") if opt("timeout") > 0 else None,
+                "seed": opt("seed") if opt("seed") >= 0 else None,
+                "timeout": float(opt("timeout")) if opt("timeout") > 0 else None,
                 "verbose": opt("verbose"),
             }
 
