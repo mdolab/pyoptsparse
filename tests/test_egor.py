@@ -61,7 +61,7 @@ class TestEgor(OptTest):
         with tempfile.TemporaryDirectory() as outdir:
             self.setup_xsinx_optProb()
             # First run to generate a history file
-            sol1 = self.optimize(optOptions={"max_iters": 1, "outdir": outdir})
+            sol1 = self.optimize(optOptions={"max_iters": 1, "outdir": outdir, "seed": 0})
             print("First run: ", sol1.xStar, "f: ", sol1.fStar)
             # Second run with warm start
             sol2 = self.optimize(optOptions={"max_iters": 5, "outdir": outdir, "warm_start": True})
@@ -73,7 +73,7 @@ class TestEgor(OptTest):
         with tempfile.TemporaryDirectory() as outdir:
             self.setup_xsinx_optProb()
             # Test that the gp_config option is passed correctly
-            gp_config = {"corr_spec": 4}  # Matern 3/2
+            gp_config = {"corr_spec": 4, "kpls_dim": 1}
             _ = self.optimize(
                 optOptions={
                     "infill_strategy": 1,
@@ -89,6 +89,7 @@ class TestEgor(OptTest):
                 egor_config = json.load(f)
             print("Egor config: ", egor_config)
             self.assertEqual(egor_config["gp"]["correlation_spec"], "MATERN32")
+            self.assertEqual(egor_config["gp"]["kpls_dim"], 1)
             self.assertEqual(egor_config["infill_criterion"]["type_infill"], "ExpectedImprovement")
             self.assertEqual(egor_config["iteration_strategy"]["type_iteration_strategy"], "TregoStrategy")
             self.assertEqual(egor_config["iteration_strategy"]["n_gl_steps"], [1, 3])
@@ -131,3 +132,43 @@ class TestEgor(OptTest):
         self.assertAlmostEqual(sol.fStar, 0.0, delta=1e-2)
         self.assertAlmostEqual(sol.xStar["xvars"][0], 0.0, delta=1e-2)
         self.assertAlmostEqual(sol.xStar["xvars"][1], 0.0, delta=1e-2)
+
+    def test_egor_g24(self):
+        """
+        Test Egor on the G24 problem.
+
+        The G24 problem is defined as:
+            minimize f(x) = -x1 - x2
+            subject to:
+                c1(x) = -2*x1^4 + 8*x1^3 - 8*x1^2 + x2 - 2 <= 0
+                c2(x) = -4*x1^4 + 32*x1^3 - 88*x1^2 + 96*x1 + x2 - 36 <= 0
+            with x1 in [0, 3] and x2 in [0, 4]
+
+        Global optimum: x_opt = (2.3295, 3.1785), f_opt = -5.5080
+        """
+
+        def objfunc(xdict):
+            x = xdict["xvars"]
+            funcs = {}
+            funcs["obj"] = -x[0] - x[1]
+            funcs["con"] = [
+                -2.0 * x[0] ** 4 + 8.0 * x[0] ** 3 - 8.0 * x[0] ** 2 + x[1] - 2.0,
+                -4.0 * x[0] ** 4 + 32.0 * x[0] ** 3 - 88.0 * x[0] ** 2 + 96.0 * x[0] + x[1] - 36.0,
+            ]
+            fail = False
+            return funcs, fail
+
+        optProb = Optimization("G24 Function", objfunc)
+        optProb.addVarGroup("xvars", 2, lower=[0.0, 0.0], upper=[3.0, 4.0])
+        optProb.addObj("obj")
+        optProb.addConGroup("con", 2, upper=0.0)
+        self.optName = "Egor"
+        self.optProb = optProb
+        sol = self.optimize(
+            optOptions={"max_iters": 30, "n_doe": 5, "target": -5.50, "cstr_tol": [1e-3, 1e-3], "verbose": 2}
+        )
+        # Check Solution
+        print("G24 Solution: ", sol.xStar, "f: ", sol.fStar)
+        self.assertLess(sol.fStar, -5.50)  # Should find a value close to -5.5080
+        self.assertAlmostEqual(sol.xStar["xvars"][0], 2.3295, delta=0.1)
+        self.assertAlmostEqual(sol.xStar["xvars"][1], 3.1785, delta=0.1)
