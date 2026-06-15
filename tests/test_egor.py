@@ -7,8 +7,6 @@ import tempfile
 from pyoptsparse import Optimization
 from pyoptsparse.testing import OptTest
 
-import egobox as egx
-
 
 class TestEgor(OptTest):
     def setup_xsinx_optProb(self):
@@ -47,15 +45,15 @@ class TestEgor(OptTest):
         self.setup_xsinx_optProb()
         # Test that the inform is "Maximum number of iterations reached"
         sol = self.optimize(optOptions={"max_iters": 1})
-        self.assert_inform_equal(sol, int(egx.ExitStatus.MAX_ITERS_REACHED))
+        self.assert_inform_equal(sol, 1)
 
         # Test that the inform is "Target function value reached"
         sol = self.optimize(optOptions={"target": -10.0})
-        self.assert_inform_equal(sol, int(egx.ExitStatus.TARGET_COST_REACHED))
+        self.assert_inform_equal(sol, 2)
 
         # Test that the inform is "Time limit reached"
         sol = self.optimize(optOptions={"timeout": 1e-6})
-        self.assert_inform_equal(sol, int(egx.ExitStatus.TIMEOUT))
+        self.assert_inform_equal(sol, 5)
 
     def test_egor_warm_start(self):
         with tempfile.TemporaryDirectory() as outdir:
