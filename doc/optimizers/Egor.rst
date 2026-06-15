@@ -3,8 +3,8 @@
 Egor
 ====
 
-Egor is a surrogate-based Efficient Global Optimization (EGO) algorithm provided by the
-`egobox <https://github.com/relf/EGObox>`_.
+Egor is the surrogate-based Efficient Global Optimization (EGO) optimizer from the open-source
+`EGObox <https://github.com/relf/EGObox>`_ library.
 
 Egor uses `bayesian optimization <https://en.wikipedia.org/wiki/Bayesian_optimization>`_ techniques
 well-suited to find the global optimum of an expansive-to-evaluate black-box function.
@@ -44,15 +44,3 @@ Names and default values of the fields are provided in the descriptions below.
 
 .. optionstable:: pyoptsparse.pyEgor.pyEgor.Egor
    :filename: Egor_options.yaml
-
-Informs
--------
-.. optionstable:: pyoptsparse.pyEgor.pyEgor.Egor
-   :type: informs
-
-API
----
-.. currentmodule:: pyoptsparse.pyEgor.pyEgor
-
-.. autoclass:: Egor
-   :members: __call__

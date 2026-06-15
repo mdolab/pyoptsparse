@@ -2,14 +2,15 @@ gp_config:
   desc: |
     GpConfig as a dict used by Egor for surrogate model configuration.
     Main defaults are:
-    - "regr_spec": 1 (Constant)
-    - "corr_spec": 2 (Squared Exponential)
-    - "kpls_dim": no PLS dimensionality reduction (otherwise int)
-    - "n_clusters": no clustering (otherwise int)
+
+    - ``regr_spec``: 1 (Constant)
+    - ``corr_spec``: 2 (Squared Exponential)
+    - ``kpls_dim``: no PLS dimensionality reduction (otherwise int)
+    - ``n_clusters``: no clustering (otherwise int)
 cstr_tol:
   desc: |
     Constraint tolerances list passed to Egor (size n_cstr plus n_fcstr)
-    Default is 1e-4 for all constraints.
+    Default is ``1e-4`` for all constraints.
 n_start:
   desc: Number of infill optimization runs (best run selected)
 n_doe:
@@ -19,23 +20,40 @@ doe:
     Initial DOE array, either x-only or concatenated x and y
     to be passed as list of lists of floats. If not provided, Egor will generate a DOE automatically.
 infill_strategy:
-  desc: Infill criterion enum (EI=1, WB2=2, WB2S=3, LOG_EI=4)
+  desc: |
+  Infill criterion:
+
+    - 1 = ``EI``,
+    - 2 = ``WB2``,
+    - 3 = ``WB2S``,
+    - 4 = ``LOG_EI`` (default)
 cstr_infill:
   desc: Enable constrained infill criterion (aka CEI)
 cstr_strategy:
   desc: |
-    Constraint strategy enum for surrogate constraint handling
-    - MeanConstraint=1 (default)
-    - UpperConfidenceBound=2
+    Constraint strategy enum for surrogate constraint handling:
+
+    - 1 = ``MeanConstraint`` (default)
+    - 2 = ``UpperConfidenceBound``
 qei_config:
-  desc: QEiConfig for batch (qEI) point selection
+  desc: |
+    QEiConfig for batch (qEI) point selection passed as a dict with main keys being:
+
+    - ``batch``: size of batch (int)
+    - ``strategy``: qEI strategy enum
 infill_optimizer:
   desc: |
     Internal infill optimizer:
-    - COBYLA=1 (default)
-    - SLSQP=2
+
+    - 1 = ``COBYLA`` (default)
+    - 2 = ``SLSQP``
 trego:
-  desc: Enable TREGO (aka Trust Region EGO) algorithm
+  desc: |
+    Enable TREGO (aka Trust Region EGO) algorithm configured with main parameters:
+
+    - ``n_gl_steps``: (nb of global search steps default 1, nb of local search steps default 4)
+    - ``beta``: trust region factor (default 0.9)
+
 coego_n_coop:
   desc: Number of cooperative groups for CoEGO algorithm
 target:
@@ -49,19 +67,32 @@ hot_start:
     Egor checkpoint restart parameter to be used in case of fallible environment
     to continue with the same Egor parameterization till max iterations or timeout is reached.
 failsafe_strategy:
-  desc: Failure handling enum (REJECTION, IMPUTATION, VIABILITY)
+  desc: |
+    Failure handling enum
+
+    - 1 = ``REJECTION`` (default),
+    - 2 = ``IMPUTATION``,
+    - 3 = ``PROBA OF VIABILITY``
 seed:
   desc: Seed for random number generator (default -1 for random seed)
 verbose:
-  desc:
-    Verbosity level for Egor logging (0=error, 1=warn, 2=info, 3=debug, 4=trace)
+  desc: |
+    Verbosity level for Egor logging
+
+    - 0 = ``error`` (default)
+    - 1 = ``warning``
+    - 2 = ``info``
+    - 3 = ``debug``
 max_iters:
-  desc: Egor minimize iteration budget
+  desc: Egor iteration budget
 run_info:
   desc: Optional RunInfo used to pass additional information to Egor (e.g., for logging)
 timeout:
   desc: Optional timeout in seconds used as sttopping criterion for Egor minimize
 fcstrs:
-  desc: Optional list of native Egobox function constraints passed to minimize
+  desc: |
+    Optional list of native Egobox function constraints passed directly as fcstrs
+    (instead of pyOptSparse constraints which are metamodelized)
 fcstr_specs:
-  desc: Optional list of egobox.CstrSpec for function constraints passed as fcstrs
+  desc: |
+    Optional list of egobox.CstrSpec for function constraints passed as fcstrs
