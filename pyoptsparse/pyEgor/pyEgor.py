@@ -182,7 +182,7 @@ class Egor(Optimizer):
                 "cstr_strategy": cstr_strategy,
                 "qei_config": qei_config,
                 "infill_optimizer": infill_optimizer,
-                "trego": opt("trego"),
+                "trego": opt("trego") if opt("trego") else None,
                 "coego_n_coop": opt("coego_n_coop"),
                 "target": float(opt("target")),
                 "failsafe_strategy": failsafe_strategy,

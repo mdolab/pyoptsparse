@@ -69,6 +69,23 @@ class TestEgor(OptTest):
             # Check that the second run continued from the first run
             self.assertGreater(sol1.fStar, sol2.fStar)
 
+    def test_egor_config(self):
+        with tempfile.TemporaryDirectory() as outdir: 
+            self.setup_xsinx_optProb()
+            # Test that the gp_config option is passed correctly
+            gp_config = {"corr_spec": 4}  # Matern 3/2
+            sol = self.optimize(optOptions={"infill_strategy": 1, "gp_config": gp_config, 
+                                            "outdir": outdir, "trego": {"n_gl_steps": (1, 3)}})
+            # read egor_config.json from outdir and check that corr_spec is 4
+            import json
+            with open(f"{outdir}/egor_config.json", "r") as f:
+                egor_config = json.load(f)
+            print("Egor config: ", egor_config)
+            self.assertEqual(egor_config["gp"]["correlation_spec"], "MATERN32")
+            self.assertEqual(egor_config["infill_criterion"]["type_infill"], "ExpectedImprovement")
+            self.assertEqual(egor_config["iteration_strategy"]["type_iteration_strategy"], "TregoStrategy")
+            self.assertEqual(egor_config["iteration_strategy"]["n_gl_steps"], [1,3])
+
     def test_egor_ackley(self):
         """
         Test that Egor can optimize the Ackley function.
