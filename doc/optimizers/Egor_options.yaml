@@ -29,7 +29,9 @@ outdir:
 warm_start:
   desc: Load initial DOE from outdir when enabled
 hot_start:
-  desc: Egor checkpoint restart/extension parameter
+  desc: | 
+    Egor checkpoint restart parameter to be used in case of fallible environment 
+    to continue with the same Egor parameterization till max iterations or timeout is reached.
 failsafe_strategy:
   desc: Failure handling enum (REJECTION, IMPUTATION, VIABILITY)
 seed:

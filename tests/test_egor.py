@@ -1,6 +1,7 @@
 """Test class for Egor specific tests"""
 
 import numpy as np
+import tempfile
 
 # First party modules
 from pyoptsparse import OPT, Optimization
@@ -54,7 +55,19 @@ class TestEgor(OptTest):
 
         # Test that the inform is "Time limit reached"
         sol = self.optimize(optOptions={"timeout": 1e-6})
-        self.assert_inform_equal(sol, int(egx.ExitStatus.TIMEOUT)) 
+        self.assert_inform_equal(sol, int(egx.ExitStatus.TIMEOUT))
+
+    def test_egor_warm_start(self):
+        with tempfile.TemporaryDirectory() as outdir: 
+            self.setup_xsinx_optProb()
+            # First run to generate a history file
+            sol1 = self.optimize(optOptions={"max_iters": 1, "outdir": outdir})
+            print("First run: ", sol1.xStar, "f: ", sol1.fStar)
+            # Second run with warm start
+            sol2 = self.optimize(optOptions={"max_iters": 5, "outdir": outdir, "warm_start": True})
+            print("Second run (warm start): ", sol2.xStar, "f: ", sol2.fStar)
+            # Check that the second run continued from the first run
+            self.assertGreater(sol1.fStar, sol2.fStar)
 
     def test_egor_ackley(self):
         """
