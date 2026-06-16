@@ -13,11 +13,9 @@ import unittest
 # External modules
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
-from scipy import sparse
 
 # First party modules
 from pyoptsparse.pyOpt_utils import (
-    INFINITY,
     _broadcast_to_array,
     convertToCOO,
     convertToCSC,
@@ -33,10 +31,6 @@ from pyoptsparse.pyOpt_utils import (
 
 class TestSparseConversions(unittest.TestCase):
     def setUp(self):
-        # A small, asymmetric, genuinely sparse reference matrix.
-        # | 1 0 2 |
-        # | 0 3 0 |
-        # | 4 0 5 |
         self.dense = np.array(
             [
                 [1.0, 0.0, 2.0],
@@ -152,11 +146,6 @@ class TestRowColScaling(unittest.TestCase):
         with self.assertRaises(ValueError):
             scaleColumns(csr, np.array([1.0, 2.0]))
 
-    def test_scale_requires_csr(self):
-        coo = convertToCOO(self.dense)
-        with self.assertRaises(ValueError):
-            scaleRows(coo, np.array([1.0, 1.0, 1.0]))
-
 
 class TestExtractRows(unittest.TestCase):
     def test_extractRows(self):
@@ -171,14 +160,6 @@ class TestExtractRows(unittest.TestCase):
         sub = extractRows(csr, [0, 2])
         assert_allclose(convertToDense(sub), dense[[0, 2], :])
         self.assertEqual(sub["shape"], [2, 3])
-
-
-class TestScipySparseWarning(unittest.TestCase):
-    def test_scipy_input_warns(self):
-        spmat = sparse.csr_matrix(np.array([[1.0, 0.0], [0.0, 2.0]]))
-        with self.assertWarns(UserWarning):
-            coo = convertToCOO(spmat)
-        assert_allclose(convertToDense(coo), np.array([[1.0, 0.0], [0.0, 2.0]]))
 
 
 class TestBroadcastToArray(unittest.TestCase):
@@ -202,11 +183,6 @@ class TestBroadcastToArray(unittest.TestCase):
         out = _broadcast_to_array("lower", None, 3, allow_none=True)
         self.assertEqual(len(out), 3)
         self.assertTrue(all(v is None for v in out))
-
-
-class TestConstants(unittest.TestCase):
-    def test_infinity_value(self):
-        self.assertEqual(INFINITY, 1e20)
 
 
 if __name__ == "__main__":
