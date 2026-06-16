@@ -36,16 +36,15 @@ ANALYTIC = {
 
 
 def objfunc(xdict):
-    x = xdict["x"]
-    y = xdict["y"]
+    x, y = xdict["x"], xdict["y"]
     funcs = {}
     funcs["obj"] = x[0] ** 2 + 2 * x[1] ** 2 + 3 * y[0] ** 2
-    funcs["c"] = np.array([x[0] * x[1] + y[0]])
+    funcs["c"] = x[0] * x[1] + y[0]
     return funcs, False
 
 
-def build_optProb(xScale=1.0, conScale=1.0):
-    optProb = Optimization("grad-test", objfunc)
+def build_optProb(objfun=objfunc, xScale=1.0, conScale=1.0):
+    optProb = Optimization("grad-test", objfun)
     optProb.addVarGroup("x", 2, lower=-10, upper=10, value=X0["x"], scale=xScale)
     optProb.addVarGroup("y", 1, lower=-10, upper=10, value=X0["y"], scale=xScale)
     optProb.addObj("obj")
@@ -76,6 +75,17 @@ class TestGradient(unittest.TestCase):
             for funcKey in ANALYTIC:
                 for dvGroup in ANALYTIC[funcKey]:
                     self.assertFalse(np.iscomplexobj(funcsSens[funcKey][dvGroup]))
+
+    def test_failed_eval(self):
+        def always_fail(xdict):
+            funcs, _ = objfunc(xdict)
+            return funcs, True
+
+        optProb = build_optProb(objfun=always_fail)
+        funcs, _ = objfunc(X0)
+        grad = Gradient(optProb, sensType="fd")
+        _, fail = grad(X0, funcs)
+        self.assertTrue(fail)
 
     def test_scaling(self):
         optProb = build_optProb(xScale=7.0, conScale=0.3)
