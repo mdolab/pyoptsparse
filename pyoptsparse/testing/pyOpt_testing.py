@@ -2,9 +2,10 @@
 import os
 import unittest
 
+import numpy as np
+
 # External modules
 from baseclasses.testing.assertions import assert_dict_allclose, assert_equal
-import numpy as np
 from numpy.testing import assert_allclose
 
 # First party modules
@@ -356,7 +357,7 @@ class OptTest(unittest.TestCase):
             for varName in self.DVs:
                 assert_allclose(val[varName].flatten(), self.xStar[self.sol_index][varName], atol=tol, rtol=tol)
 
-    def optimize_with_hotstart(self, tol, optOptions=None, x0=None):
+    def optimize_with_hotstart(self, tol, x0=None, **kwargs):
         """
         This code will perform 4 optimizations, one real opt and three restarts.
         In this process, it will check various combinations of storeHistory and hotStart filenames.
@@ -364,7 +365,7 @@ class OptTest(unittest.TestCase):
         """
         # we use a non-default starting point to test that the hotstart works
         # even if it does not match optProb initial values
-        sol = self.optimize(storeHistory=True, optOptions=optOptions, setDV=x0)
+        sol = self.optimize(storeHistory=True, setDV=x0, **kwargs)
         self.assert_solution_allclose(sol, tol)
         self.assertGreater(self.nf, 0)
         if self.optName in GRAD_BASED_OPTIMIZERS:
@@ -372,30 +373,26 @@ class OptTest(unittest.TestCase):
         self.check_hist_file(tol)
 
         # re-optimize with hotstart
-        sol = self.optimize(storeHistory=False, hotStart=True, optOptions=optOptions)
+        sol = self.optimize(storeHistory=False, hotStart=True, **kwargs)
         self.assert_solution_allclose(sol, tol)
         # we should have zero actual function/gradient evaluations
         self.assertEqual(self.nf, 0)
         self.assertEqual(self.ng, 0)
         # another test with hotstart, this time with storeHistory = hotStart
-        sol = self.optimize(storeHistory=True, hotStart=True, optOptions=optOptions)
+        sol = self.optimize(storeHistory=True, hotStart=True, **kwargs)
         self.assert_solution_allclose(sol, tol)
         # we should have zero actual function/gradient evaluations
         self.assertEqual(self.nf, 0)
         self.assertEqual(self.ng, 0)
         # another test with hotstart, this time with a non-existing history file
         # this will perform a cold start
-        self.optimize(storeHistory=True, hotStart="notexisting.hst", optOptions=optOptions)
+        self.optimize(storeHistory=True, hotStart="notexisting.hst", **kwargs)
         self.assertGreater(self.nf, 0)
         if self.optName in GRAD_BASED_OPTIMIZERS:
             self.assertGreater(self.ng, 0)
         self.check_hist_file(tol)
         # final test with hotstart, this time with a different storeHistory
-        sol = self.optimize(
-            storeHistory=f"{self.id()}_new_hotstart.hst",
-            hotStart=True,
-            optOptions=optOptions,
-        )
+        sol = self.optimize(storeHistory=f"{self.id()}_new_hotstart.hst", hotStart=True, **kwargs)
         self.assert_solution_allclose(sol, tol)
         # we should have zero actual function/gradient evaluations
         self.assertEqual(self.nf, 0)
