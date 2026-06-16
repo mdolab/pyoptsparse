@@ -58,6 +58,9 @@ class TestSphere(OptTest):
             "maxGen": 100,
             "seed": 123,
         },
+        "CONMIN": {  # CONMIN diverges when gradient is near zero, here we stop on first optimal iterate
+            "ITRM": 1,
+        },
         "SNOPT": {
             "Major iterations limit": 10,
         },
