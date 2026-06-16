@@ -1,18 +1,3 @@
-"""
-Unit tests for the automatic-sensitivity engine (pyOpt_gradient.Gradient).
-
-Previously only FD (the default) and CS were exercised, and only indirectly
-through full optimizations where a derivative error shows up as slow/failed
-convergence rather than a clear assertion. Here we drive the Gradient object
-directly at a fixed point against a problem with a known analytic Jacobian, for
-every sensitivity mode.
-
-The test problem (all derivatives exact):
-    obj = x0^2 + 2*x1^2 + 3*y^2
-    c   = x0*x1 + y
-with DV groups "x" (2 vars) and "y" (1 var).
-"""
-
 # Standard Python modules
 import unittest
 
@@ -26,29 +11,33 @@ from pyoptsparse import Optimization
 from pyoptsparse.pyOpt_gradient import Gradient
 
 # Base point at which we evaluate the derivatives
-X0 = {"x": [1.5, -2.0], "y": [0.5]}
+X0 = {"x": [1.5, -2.0], "y": 0.5}
 
 # Analytic Jacobian at X0
 ANALYTIC = {
-    "obj": {"x": [3.0, -8.0], "y": [3.0]},
-    "c": {"x": [[-2.0, 1.5]], "y": [[1.0]]},
+    "obj": {"x": [3.0, -8.0], "y": 3.0},
+    "c": {"x": [[-2.0, 1.5]], "y": 1.0},
 }
 
 
 def objfunc(xdict):
+    """
+    obj = x0^2 + 2*x1^2 + 3*y^2
+    c   = x0*x1 + y
+    """
     x, y = xdict["x"], xdict["y"]
     funcs = {}
-    funcs["obj"] = x[0] ** 2 + 2 * x[1] ** 2 + 3 * y[0] ** 2
-    funcs["c"] = x[0] * x[1] + y[0]
+    funcs["obj"] = x[0] ** 2 + 2 * x[1] ** 2 + 3 * y**2
+    funcs["c"] = x[0] * x[1] + y
     return funcs, False
 
 
 def build_optProb(objfun=objfunc, xScale=1.0, conScale=1.0):
     optProb = Optimization("grad-test", objfun)
     optProb.addVarGroup("x", 2, lower=-10, upper=10, value=X0["x"], scale=xScale)
-    optProb.addVarGroup("y", 1, lower=-10, upper=10, value=X0["y"], scale=xScale)
+    optProb.addVar("y", lower=-10, upper=10, value=X0["y"], scale=xScale)
     optProb.addObj("obj")
-    optProb.addConGroup("c", 1, lower=-100, upper=100, scale=conScale)
+    optProb.addCon("c", lower=-100, upper=100, scale=conScale)
     optProb.finalize()
     return optProb
 
