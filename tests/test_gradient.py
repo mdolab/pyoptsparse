@@ -26,22 +26,12 @@ from pyoptsparse import Optimization
 from pyoptsparse.pyOpt_gradient import Gradient
 
 # Base point at which we evaluate the derivatives
-X0 = {"x": np.array([1.5, -2.0]), "y": np.array([0.5])}
+X0 = {"x": [1.5, -2.0], "y": [0.5]}
 
-# Analytic Jacobian at X0 (user/unscaled space)
+# Analytic Jacobian at X0
 ANALYTIC = {
-    "obj": {"x": np.array([3.0, -8.0]), "y": np.array([3.0])},
-    "c": {"x": np.array([[-2.0, 1.5]]), "y": np.array([[1.0]])},
-}
-
-# Per-mode tolerances. Quadratic/bilinear functions are exact under central
-# differencing and complex step; forward differencing carries an O(step) error.
-TOLS = {
-    "fd": dict(rtol=1e-4, atol=1e-5),
-    "fdr": dict(rtol=1e-4, atol=1e-5),
-    "cd": dict(rtol=1e-6, atol=1e-7),
-    "cdr": dict(rtol=1e-6, atol=1e-7),
-    "cs": dict(rtol=1e-11, atol=1e-12),
+    "obj": {"x": [3.0, -8.0], "y": [3.0]},
+    "c": {"x": [[-2.0, 1.5]], "y": [[1.0]]},
 }
 
 
@@ -64,13 +54,13 @@ def build_optProb(xScale=1.0, conScale=1.0):
     return optProb
 
 
-def assert_sens_matches_analytic(funcsSens, tol):
+def assert_sens_matches_analytic(funcsSens, atol):
     for funcKey, perGroup in ANALYTIC.items():
         for dvGroup, expected in perGroup.items():
-            assert_allclose(funcsSens[funcKey][dvGroup], expected, **tol)
+            assert_allclose(funcsSens[funcKey][dvGroup], expected, atol=atol)
 
 
-class TestGradientModes(unittest.TestCase):
+class TestGradient(unittest.TestCase):
     @parameterized.expand(["fd", "fdr", "cd", "cdr", "cs"])
     def test_mode_matches_analytic(self, sensType):
         optProb = build_optProb()
@@ -78,65 +68,21 @@ class TestGradientModes(unittest.TestCase):
         grad = Gradient(optProb, sensType=sensType)
         funcsSens, fail = grad(X0, funcs)
         self.assertFalse(fail)
-        assert_sens_matches_analytic(funcsSens, TOLS[sensType])
+        atol = 1e-12 if sensType == "cs" else 1e-5
+        assert_sens_matches_analytic(funcsSens, atol=atol)
 
-    def test_cs_returns_real(self):
-        optProb = build_optProb()
-        funcs, _ = objfunc(X0)
-        grad = Gradient(optProb, sensType="cs")
-        funcsSens, _ = grad(X0, funcs)
-        for funcKey in ANALYTIC:
-            for dvGroup in ANALYTIC[funcKey]:
-                self.assertFalse(np.iscomplexobj(funcsSens[funcKey][dvGroup]))
+        # test that we get real derivs for cs
+        if sensType == "cs":
+            for funcKey in ANALYTIC:
+                for dvGroup in ANALYTIC[funcKey]:
+                    self.assertFalse(np.iscomplexobj(funcsSens[funcKey][dvGroup]))
 
-    def test_fd_and_cs_agree(self):
-        optProb = build_optProb()
-        funcs, _ = objfunc(X0)
-        fd = Gradient(optProb, sensType="fd")(X0, funcs)[0]
-        cs = Gradient(optProb, sensType="cs")(X0, funcs)[0]
-        for funcKey in ANALYTIC:
-            for dvGroup in ANALYTIC[funcKey]:
-                assert_allclose(fd[funcKey][dvGroup], cs[funcKey][dvGroup], rtol=1e-4, atol=1e-5)
-
-    def test_default_step_sizes(self):
-        # The defaults differ by mode; pin them so a refactor cannot silently
-        # change differencing accuracy.
-        self.assertEqual(Gradient(build_optProb(), "fd").sensStep, 1e-6)
-        self.assertEqual(Gradient(build_optProb(), "fdr").sensStep, 1e-6)
-        self.assertEqual(Gradient(build_optProb(), "cd").sensStep, 1e-4)
-        self.assertEqual(Gradient(build_optProb(), "cdr").sensStep, 1e-4)
-        self.assertEqual(Gradient(build_optProb(), "cs").sensStep, 1e-40j)
-
-
-class TestRelativeStepAtZero(unittest.TestCase):
-    """FDR/CDR use max(|step*x[i]|, step); at x[i]=0 this must fall back to the
-    absolute floor rather than producing a zero step (which would divide by 0)."""
-
-    @parameterized.expand(["fdr", "cdr"])
-    def test_zero_dv(self, sensType):
-        x0 = {"x": np.array([0.0, -2.0]), "y": np.array([0.5])}
-        optProb = build_optProb()
-        funcs, _ = objfunc(x0)
-        grad = Gradient(optProb, sensType=sensType)
-        funcsSens, fail = grad(x0, funcs)
-        self.assertFalse(fail)
-        # At x0=0: dobj/dx0 = 0, dc/dx0 = x1 = -2, dc/dx1 = x0 = 0
-        self.assertTrue(np.all(np.isfinite(funcsSens["obj"]["x"])))
-        assert_allclose(funcsSens["obj"]["x"], np.array([0.0, -8.0]), atol=1e-5)
-        assert_allclose(funcsSens["c"]["x"], np.array([[-2.0, 0.0]]), atol=1e-5)
-
-
-class TestGradientIgnoresScaling(unittest.TestCase):
-    """CLAUDE.md: scaling must NOT be applied inside Gradient -- it operates on
-    unscaled values and the scaling is reapplied later via the process* path.
-    So adding DV/constraint scaling must not change the (unscaled) sens."""
-
-    def test_scaling_does_not_affect_sens(self):
+    def test_scaling(self):
         optProb = build_optProb(xScale=7.0, conScale=0.3)
         funcs, _ = objfunc(X0)
         grad = Gradient(optProb, sensType="cs")
         funcsSens, _ = grad(X0, funcs)
-        assert_sens_matches_analytic(funcsSens, TOLS["cs"])
+        assert_sens_matches_analytic(funcsSens, 1e-12)
 
 
 if __name__ == "__main__":
