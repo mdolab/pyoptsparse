@@ -61,7 +61,7 @@ class TestSphere(OptTest):
             "Major iterations limit": 10,
         },
         "Uno": {"max_iterations": 100, "preset": "filtersqp"},
-        "Egor": {"max_iters": 100, "seed": 123},
+        "Egor": {"max_iters": 100, "seed": 123, "trego": {"n_gl_steps": (1, 4)}},
     }
 
     def objfunc(self, xdict):
