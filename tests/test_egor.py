@@ -42,7 +42,6 @@ class TestEgor(OptTest):
         self.setup_xsinx_optProb()
         sol = self.optimize()
         # Check Solution
-        print("xsinx Solution: ", sol.xStar, "f: ", sol.fStar)
         self.assertLess(sol.fStar, -15.1)  # Should find a negative minimum
 
     def test_egor_inform(self):
@@ -64,10 +63,8 @@ class TestEgor(OptTest):
             self.setup_xsinx_optProb()
             # First run to generate a history file
             sol1 = self.optimize(optOptions={"max_iters": 1, "outdir": outdir, "seed": 0})
-            print("First run: ", sol1.xStar, "f: ", sol1.fStar)
             # Second run with warm start
             sol2 = self.optimize(optOptions={"max_iters": 5, "outdir": outdir, "warm_start": True})
-            print("Second run (warm start): ", sol2.xStar, "f: ", sol2.fStar)
             # Check that the second run continued from the first run
             self.assertGreater(sol1.fStar, sol2.fStar)
 
@@ -87,7 +84,6 @@ class TestEgor(OptTest):
             # read egor_config.json from outdir and check that corr_spec is 4
             with open(f"{outdir}/egor_config.json", "r") as f:
                 egor_config = json.load(f)
-            print("Egor config: ", egor_config)
             self.assertEqual(egor_config["gp"]["correlation_spec"], "MATERN32")
             self.assertEqual(egor_config["gp"]["kpls_dim"], 1)
             self.assertEqual(egor_config["infill_criterion"]["type_infill"], "ExpectedImprovement")
@@ -128,7 +124,6 @@ class TestEgor(OptTest):
             }
         )
         # Check Solution
-        print("Ackley Solution: ", sol.xStar, "f: ", sol.fStar)
         self.assertAlmostEqual(sol.fStar, 0.0, delta=1e-2)
         self.assertAlmostEqual(sol.xStar["xvars"][0], 0.0, delta=1e-2)
         self.assertAlmostEqual(sol.xStar["xvars"][1], 0.0, delta=1e-2)
@@ -168,7 +163,6 @@ class TestEgor(OptTest):
             optOptions={"max_iters": 30, "n_doe": 5, "target": -5.50, "cstr_tol": [1e-3, 1e-3], "verbose": 2}
         )
         # Check Solution
-        print("G24 Solution: ", sol.xStar, "f: ", sol.fStar)
         self.assertLess(sol.fStar, -5.50)  # Should find a value close to -5.5080
         self.assertAlmostEqual(sol.xStar["xvars"][0], 2.3295, delta=0.1)
         self.assertAlmostEqual(sol.xStar["xvars"][1], 3.1785, delta=0.1)
