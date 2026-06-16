@@ -179,7 +179,8 @@ class TestConvertToCSC(unittest.TestCase):
 
 class TestIndexMaps(unittest.TestCase):
     """mapToCSR/mapToCSC return index arrays into the original data; the subtle
-    part is that the permutation must reproduce the matrix exactly."""
+    part is that the permutation must reproduce the matrix exactly.
+    """
 
     def test_mapToCSR(self):
         row_p, col_idx, idx_data = mapToCSR(_COO)

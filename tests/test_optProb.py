@@ -378,7 +378,8 @@ class TestScaling(unittest.TestCase):
 
     def test_combined_scale_and_offset(self):
         """A DV group with both a non-unit scale and a non-zero offset is the
-        classic place to get the order of operations wrong."""
+        classic place to get the order of operations wrong.
+        """
 
         def objfunc(xdict):
             return {"obj": 0.0}, False
@@ -396,7 +397,8 @@ class TestScaling(unittest.TestCase):
 
     def test_infinite_bounds_not_scaled(self):
         """INFINITY bounds must remain unbounded; scale/offset must not turn
-        them into finite numbers in the assembled bounds."""
+        them into finite numbers in the assembled bounds.
+        """
 
         def objfunc(xdict):
             return {"obj": 0.0}, False

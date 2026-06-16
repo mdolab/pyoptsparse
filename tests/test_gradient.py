@@ -22,7 +22,7 @@ ANALYTIC = {
 
 def objfunc(xdict):
     """
-    obj = x0^2 + 2*x1^2 + 3*y^2
+    Obj = x0^2 + 2*x1^2 + 3*y^2
     c   = x0*x1 + y
     """
     x, y = xdict["x"], xdict["y"]
