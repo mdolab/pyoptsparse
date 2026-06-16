@@ -44,6 +44,12 @@ class Gradient:
                 self.sensStep = 1e-40j
         else:
             self.sensStep = sensStep
+
+        # Complex step divides by the imaginary part of the step, so a purely
+        # real step would silently yield NaN gradients.
+        if self.sensType == "cs" and np.imag(self.sensStep) == 0:
+            raise ValueError(f"The complex step size must have a nonzero imaginary part, got {self.sensStep}.")
+
         self.sensMode = sensMode
         self.comm = comm
 
