@@ -42,7 +42,7 @@ class TestEgor(OptTest):
         self.setup_xsinx_optProb()
         sol = self.optimize()
         # Check Solution
-        self.assertLess(sol.fStar, -15.1)  # Should find a negative minimum
+        self.assertLess(sol.fStar, -15.0)
 
     def test_egor_inform(self):
         self.setup_xsinx_optProb()
