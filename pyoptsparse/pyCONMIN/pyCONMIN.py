@@ -212,7 +212,7 @@ class CONMIN(Optimizer):
             dabfun = self.getOption("DABFUN")
 
             itrm = self.getOption("ITRM")
-            nfeasct = self.getOption("ITRM")
+            nfeasct = self.getOption("NFEASCT")
             nfdg = 1  # User will supply all gradients
 
             # Counters for functions and gradients
