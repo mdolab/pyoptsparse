@@ -121,6 +121,7 @@ class TestEgor(OptTest):
                     "corr_spec": 8
                 },  # corr spec: 1 = absolute exponential, 2 = squared exponential, 4 = matern 3/2, 8 = matern 5/2
                 "seed": 0,
+                "trego": {"n_gl_steps": (1, 4)},
             }
         )
         # Check Solution
