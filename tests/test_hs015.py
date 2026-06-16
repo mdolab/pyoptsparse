@@ -53,7 +53,7 @@ class TestHS15(OptTest):
     optOptions = {
         "Egor": {
             "max_iters": 50,
-            "n_doe": 12,
+            "n_doe": 30,
             "seed": 42,
         }
     }
