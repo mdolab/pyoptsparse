@@ -2,6 +2,7 @@
 
 # Standard Python modules
 import unittest
+from itertools import product
 
 # External modules
 import numpy as np
@@ -100,6 +101,17 @@ class TestSphere(OptTest):
         self.setup_optProb()
         optOptions = self.optOptions.get(optName, {})
         self.optimize_with_hotstart(self.tol[optName], optOptions=optOptions)
+
+    @parameterized.expand(
+        product(ALL_OPTIMIZERS, ["fd", "fdr", "cd", "cdr", "cs"]),
+        name_func=lambda f, n, p: f"{f.__name__}_{p.args[0]}_{p.args[1]}",
+    )
+    def test_optimization_approx_deriv(self, optName, sens):
+        self.optName = optName
+        self.setup_optProb()
+        optOptions = self.optOptions.get(optName, {})
+        sol = self.optimize(optOptions=optOptions, sens=sens)
+        self.assert_solution_allclose(sol, self.tol[optName])
 
     @parameterized.expand(["filtersqp", "funnelsqp"])
     def test_uno_presets(self, preset):
