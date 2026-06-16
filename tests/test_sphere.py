@@ -1,8 +1,8 @@
 """Test solution of Sphere problem"""
 
 # Standard Python modules
-import unittest
 from itertools import product
+import unittest
 
 # External modules
 import numpy as np

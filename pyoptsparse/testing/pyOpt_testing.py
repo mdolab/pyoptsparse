@@ -2,10 +2,9 @@
 import os
 import unittest
 
-import numpy as np
-
 # External modules
 from baseclasses.testing.assertions import assert_dict_allclose, assert_equal
+import numpy as np
 from numpy.testing import assert_allclose
 
 # First party modules
