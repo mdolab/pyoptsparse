@@ -99,8 +99,8 @@ class TestConvertToCOO(unittest.TestCase):
         self.assertEqual(coo["shape"], [3, 3])
 
     def test_from_csc(self):
-        # CSC scans the column pointer, so COO entries emerge in column order, not _COO arrival order.
-        # col 0: (row 0, 1.0),(row 2, 4.0); col 1: (row 1, 3.0); col 2: (row 0, 2.0),(row 2, 5.0)
+        """CSC scans the column pointer, so COO entries emerge in column order, not _COO arrival order.
+        col 0: (row 0, 1.0),(row 2, 4.0); col 1: (row 1, 3.0); col 2: (row 0, 2.0),(row 2, 5.0)"""
         coo = convertToCOO(_CSC)
         rows, cols, data = coo["coo"]
         assert_array_equal(rows, [0, 2, 1, 0, 2])
@@ -122,8 +122,8 @@ class TestConvertToCOO(unittest.TestCase):
 
 class TestConvertToCSR(unittest.TestCase):
     def test_from_coo(self):
-        # COO arrives unordered; elements land in row buckets in COO-arrival order.
-        # row 0: (col 0, 1.0) then (col 2, 2.0); row 2: (col 2, 5.0) then (col 0, 4.0)
+        """COO arrives unordered; elements land in row buckets in COO-arrival order.
+        row 0: (col 0, 1.0) then (col 2, 2.0); row 2: (col 2, 5.0) then (col 0, 4.0)"""
         csr = convertToCSR(_COO)
         rowp, col_idx, data = csr["csr"]
         assert_array_equal(rowp, [0, 2, 3, 5])
@@ -132,8 +132,8 @@ class TestConvertToCSR(unittest.TestCase):
         self.assertEqual(csr["shape"], [3, 3])
 
     def test_from_csc(self):
-        # _CSC expands to COO in column-scan order; that COO then feeds the CSR builder.
-        # row 0: (col 0, 1.0) then (col 2, 2.0); row 2: (col 0, 4.0) then (col 2, 5.0)
+        """_CSC expands to COO in column-scan order; that COO then feeds the CSR builder.
+        row 0: (col 0, 1.0) then (col 2, 2.0); row 2: (col 0, 4.0) then (col 2, 5.0)"""
         csr = convertToCSR(_CSC)
         rowp, col_idx, data = csr["csr"]
         assert_array_equal(rowp, [0, 2, 3, 5])
@@ -152,8 +152,8 @@ class TestConvertToCSR(unittest.TestCase):
 
 class TestConvertToCSC(unittest.TestCase):
     def test_from_coo(self):
-        # Converts COO -> CSR -> CSC. Column-scan order from _CSR:
-        # col 0: (row 0, 1.0),(row 2, 4.0); col 1: (row 1, 3.0); col 2: (row 0, 2.0),(row 2, 5.0)
+        """Converts COO -> CSR -> CSC. Column-scan order from _CSR:
+        col 0: (row 0, 1.0),(row 2, 4.0); col 1: (row 1, 3.0); col 2: (row 0, 2.0),(row 2, 5.0)"""
         csc = convertToCSC(_COO)
         colp, row_idx, data = csc["csc"]
         assert_array_equal(colp, [0, 2, 3, 5])
@@ -162,7 +162,7 @@ class TestConvertToCSC(unittest.TestCase):
         self.assertEqual(csc["shape"], [3, 3])
 
     def test_from_csr(self):
-        # _CSR -> CSC: same column-scan order, same result as test_from_coo.
+        """_CSR -> CSC: same column-scan order, same result as test_from_coo."""
         csc = convertToCSC(_CSR)
         colp, row_idx, data = csc["csc"]
         assert_array_equal(colp, [0, 2, 3, 5])

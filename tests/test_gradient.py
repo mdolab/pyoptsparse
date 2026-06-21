@@ -51,6 +51,8 @@ def assert_sens_matches_analytic(funcsSens, atol):
 class TestGradient(unittest.TestCase):
     @parameterized.expand(["fd", "fdr", "cd", "cdr", "cs"])
     def test_mode_matches_analytic(self, sensType):
+        """Test that all differentiation modes produce Jacobians matching the analytic values,
+        and that CS returns real (not complex) values."""
         optProb = build_optProb()
         funcs, _ = objfunc(X0)
         grad = Gradient(optProb, sensType=sensType)
@@ -59,7 +61,6 @@ class TestGradient(unittest.TestCase):
         atol = 1e-12 if sensType == "cs" else 1e-5
         assert_sens_matches_analytic(funcsSens, atol=atol)
 
-        # test that we get real derivs for cs
         if sensType == "cs":
             for funcKey in ANALYTIC:
                 for dvGroup in ANALYTIC[funcKey]:
