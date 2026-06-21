@@ -99,6 +99,8 @@ class TestConvertToCOO(unittest.TestCase):
         self.assertEqual(coo["shape"], [3, 3])
 
     def test_from_csc(self):
+        # CSC scans the column pointer, so COO entries emerge in column order, not _COO arrival order.
+        # col 0: (row 0, 1.0),(row 2, 4.0); col 1: (row 1, 3.0); col 2: (row 0, 2.0),(row 2, 5.0)
         coo = convertToCOO(_CSC)
         rows, cols, data = coo["coo"]
         assert_array_equal(rows, [0, 2, 1, 0, 2])

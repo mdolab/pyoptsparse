@@ -66,6 +66,8 @@ class TestGradient(unittest.TestCase):
                     self.assertFalse(np.iscomplexobj(funcsSens[funcKey][dvGroup]))
 
     def test_failed_eval(self):
+        """Test that failed flags from objfunc are caught by the Gradient class"""
+
         def always_fail(xdict):
             funcs, _ = objfunc(xdict)
             return funcs, True
@@ -77,6 +79,7 @@ class TestGradient(unittest.TestCase):
         self.assertTrue(fail)
 
     def test_scaling(self):
+        """Test that CS gradients are invariant under scaling"""
         optProb = build_optProb(xScale=7.0, conScale=0.3)
         funcs, _ = objfunc(X0)
         grad = Gradient(optProb, sensType="cs")
