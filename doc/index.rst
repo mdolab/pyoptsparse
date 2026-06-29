@@ -14,7 +14,7 @@ The list of supported optimizers is shown on the sidebar to the left.
 Of those, the following are not installed by default:
 
 - SNOPT and NLPQLP are proprietary and must be obtained from their respective authors
-- IPOPT and ParOpt must be installed separately
+- IPOPT, ParOpt and Egor must be installed separately
 
 
 pyOptSparse is a fork of `pyOpt <http://www.pyopt.org/>`_.

@@ -20,9 +20,13 @@ Installation
 
 Egor is made available through the `egobox <https://pypi.org/project/egobox/>`_ Python package.
 
-.. prompt:: bash
+.. prompt::
 
-   pip install egobox
+   $ pip install egobox
+
+``egobox`` is also available via conda-forge:: 
+
+   $ conda install -c conda-forge egobox
 
 
 Options
@@ -30,15 +34,15 @@ Options
 
 Please refer to the Egor help for a complete listing of options and their default values.
 
-.. prompt:: bash
+.. prompt::
 
-   python
+   $ python
    >>> import egobox as egx
    >>> help(egx.Egor)
    >>> help(egx.GpConfig)
 
 pyoptSparse expects pickable objects while native Egor structures as GpConfig are not pickable.
-To workaround this constraint, the pyOptSparse Egor wrapper uses dictionaries which are accepted by EGor
+To workaround this constraint, the pyOptSparse Egor wrapper uses dictionaries which are accepted by Egor
 to update the default field values of Egor structures.
 Names and default values of the fields are provided in the descriptions below.
 
