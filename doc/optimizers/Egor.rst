@@ -24,7 +24,7 @@ Egor is made available through the `egobox <https://pypi.org/project/egobox/>`_ 
 
    $ pip install egobox
 
-``egobox`` is also available via conda-forge:: 
+``egobox`` is also available via conda-forge::
 
    $ conda install -c conda-forge egobox
 
