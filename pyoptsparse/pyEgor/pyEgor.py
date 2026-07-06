@@ -88,7 +88,8 @@ class Egor(Optimizer):
         Any sensitivity settings are ignored because Egor is derivative-free.
         """
         self.startTime = time.time()
-
+        self.callCounter = 0
+        
         # Save the optimization problem and finalize constraint Jacobian
         self.optProb = optProb
         self.optProb.finalize()
