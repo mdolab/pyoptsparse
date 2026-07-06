@@ -4,7 +4,6 @@ pyEgor - A pyOptSparse interface to Egor from egobox.
 
 # Standard Python modules
 import datetime
-import inspect
 import time
 
 # External modules
@@ -109,7 +108,7 @@ class Egor(Optimizer):
         """
         self.startTime = time.time()
         self.callCounter = 0
-        
+
         # Save the optimization problem and finalize constraint Jacobian
         self.optProb = optProb
         self.optProb.finalize()
@@ -165,7 +164,7 @@ class Egor(Optimizer):
                     "Option 'fcstr_specs' length must be zero or match the number of function constraints."
                 )
 
-            # Prepare the constructor kwargs for Egor. 
+            # Prepare the constructor kwargs for Egor.
             ctor_kwargs = {
                 "gp_config": gp_config,
                 "n_cstr": n_cstr,
@@ -203,7 +202,7 @@ class Egor(Optimizer):
 
             fcstrs = [] if fcstrs_opt is None else list(fcstrs_opt)
 
-            # Prepare the minimize kwargs for Egor minimize. 
+            # Prepare the minimize kwargs for Egor minimize.
             minimize_kwargs = {
                 "fcstrs": fcstrs,
                 "fcstr_specs": [] if fcstr_specs is None else fcstr_specs,

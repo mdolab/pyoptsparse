@@ -126,8 +126,10 @@ class TestEgor(OptTest):
         )
         # Check Solution
         self.fStar = [0.0]
-        self.xStar = [{"xvars": (0.0, 0.0)},]
-        self.assert_solution_allclose(sol, tol=1e-2)            
+        self.xStar = [
+            {"xvars": (0.0, 0.0)},
+        ]
+        self.assert_solution_allclose(sol, tol=1e-2)
 
     def test_egor_g24(self):
         """
@@ -165,5 +167,7 @@ class TestEgor(OptTest):
         )
         # Check Solution
         self.fStar = [-5.5080]
-        self.xStar = [{"xvars": (2.3295, 3.1785)},]
+        self.xStar = [
+            {"xvars": (2.3295, 3.1785)},
+        ]
         self.assert_solution_allclose(sol, tol=1e-2)
