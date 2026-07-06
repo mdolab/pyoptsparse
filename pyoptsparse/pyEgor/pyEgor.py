@@ -143,12 +143,7 @@ class Egor(Optimizer):
                     "Option 'fcstr_specs' length must be zero or match the number of function constraints."
                 )
 
-            ctor_supported = set(inspect.signature(egobox.Egor).parameters.keys())
-            supports_ctor_verbose = "verbose" in ctor_supported
-
-            if opt("verbose") is not None and not supports_ctor_verbose:
-                raise ValueError("Installed egobox version does not support constructor option 'verbose'.")
-
+            # Prepare the constructor kwargs for Egor. 
             ctor_kwargs = {
                 "gp_config": gp_config,
                 "n_cstr": n_cstr,
@@ -166,7 +161,6 @@ class Egor(Optimizer):
                 "target": float(opt("target")),
                 "failsafe_strategy": failsafe_strategy,
             }
-            ctor_kwargs = {k: v for k, v in ctor_kwargs.items() if k in ctor_supported}
             solver = egobox.Egor(xspecs, **ctor_kwargs)
 
             def fun(x):
@@ -186,6 +180,7 @@ class Egor(Optimizer):
 
             fcstrs = [] if fcstrs_opt is None else list(fcstrs_opt)
 
+            # Prepare the minimize kwargs for Egor minimize. 
             minimize_kwargs = {
                 "fcstrs": fcstrs,
                 "fcstr_specs": [] if fcstr_specs is None else fcstr_specs,
