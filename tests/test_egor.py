@@ -125,9 +125,9 @@ class TestEgor(OptTest):
             }
         )
         # Check Solution
-        self.assertAlmostEqual(sol.fStar, 0.0, delta=1e-2)
-        self.assertAlmostEqual(sol.xStar["xvars"][0], 0.0, delta=1e-2)
-        self.assertAlmostEqual(sol.xStar["xvars"][1], 0.0, delta=1e-2)
+        self.fStar = [0.0]
+        self.xStar = [{"xvars": (0.0, 0.0)},]
+        self.assert_solution_allclose(sol, tol=1e-2)            
 
     def test_egor_g24(self):
         """
@@ -164,6 +164,6 @@ class TestEgor(OptTest):
             optOptions={"max_iters": 30, "n_doe": 5, "target": -5.50, "cstr_tol": [1e-3, 1e-3], "verbose": 2}
         )
         # Check Solution
-        self.assertLess(sol.fStar, -5.50)  # Should find a value close to -5.5080
-        self.assertAlmostEqual(sol.xStar["xvars"][0], 2.3295, delta=0.1)
-        self.assertAlmostEqual(sol.xStar["xvars"][1], 3.1785, delta=0.1)
+        self.fStar = [-5.5080]
+        self.xStar = [{"xvars": (2.3295, 3.1785)},]
+        self.assert_solution_allclose(sol, tol=1e-2)
