@@ -82,6 +82,26 @@ class Egor(Optimizer):
         """
         Solve optimization problem using Egor from egobox.
 
+        Parameters
+        ----------
+        optProb : Optimization or Solution class instance
+            This is the complete description of the optimization problem
+            to be solved by the optimizer
+
+        storeHistory : str
+            File name of the history file into which the history of
+            this optimization will be stored
+
+        hotStart : str
+            File name of the history file to "replay" for the
+            optimization.  The optimization problem used to generate
+            the history file specified in 'hotStart' must be
+            **IDENTICAL** to the currently supplied 'optProb'. By
+            identical we mean, **EVERY SINGLE PARAMETER MUST BE
+            IDENTICAL**. As soon as he requested evaluation point
+            from NSGA2 does not match the history, function and
+            gradient evaluations revert back to normal evaluations.
+
         Notes
         -----
         The kwargs are present for compatibility with other optimizers.
@@ -89,6 +109,7 @@ class Egor(Optimizer):
         """
         self.startTime = time.time()
         self.callCounter = 0
+        
         # Save the optimization problem and finalize constraint Jacobian
         self.optProb = optProb
         self.optProb.finalize()
@@ -112,6 +133,7 @@ class Egor(Optimizer):
         if np.any(~np.isfinite(blx)) or np.any(~np.isfinite(bux)):
             raise ValueError("Egor requires finite lower and upper bounds for all design variables.")
 
+        # Determine the number of constraints and set up constraint information
         if self.unconstrained:
             n_cstr = 0
         else:
@@ -163,6 +185,7 @@ class Egor(Optimizer):
             }
             solver = egobox.Egor(xspecs, **ctor_kwargs)
 
+            # Adapt the objective and constraint function to the Egor interface.
             def fun(x):
                 x_eval = np.atleast_2d(np.asarray(x, dtype=float))
                 ncols = 1 + n_cstr
