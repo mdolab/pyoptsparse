@@ -89,7 +89,6 @@ class Egor(Optimizer):
         """
         self.startTime = time.time()
         self.callCounter = 0
-        
         # Save the optimization problem and finalize constraint Jacobian
         self.optProb = optProb
         self.optProb.finalize()
@@ -114,10 +113,10 @@ class Egor(Optimizer):
             raise ValueError("Egor requires finite lower and upper bounds for all design variables.")
 
         if self.unconstrained:
-            m = 0
+            n_cstr = 0
         else:
             indices, blc, buc, fact = self.optProb.getOrdering(["ne", "le", "ni", "li"], oneSided=True, noEquality=True)
-            m = len(indices)
+            n_cstr = len(indices)
             self.optProb.jacIndices = indices
             self.optProb.fact = fact
             self.optProb.offset = buc
@@ -129,31 +128,13 @@ class Egor(Optimizer):
             xspecs = [egobox.XSpec(egobox.XType.FLOAT, [float(blx[i]), float(bux[i])]) for i in range(n)]
 
             gp_config = opt("gp_config")
-            if gp_config is None:
-                gp_config = egobox.GpConfig()
-
             infill_strategy = opt("infill_strategy")
-            if infill_strategy is None:
-                infill_strategy = egobox.InfillStrategy.LOG_EI
-
             cstr_strategy = opt("cstr_strategy")
-            if cstr_strategy is None:
-                cstr_strategy = egobox.ConstraintStrategy.MC
-
             qei_config = opt("qei_config")
-            if qei_config is None:
-                qei_config = egobox.QEiConfig()
-
             infill_optimizer = opt("infill_optimizer")
-            if infill_optimizer is None:
-                infill_optimizer = egobox.InfillOptimizer.COBYLA
-
             failsafe_strategy = opt("failsafe_strategy")
-            if failsafe_strategy is None:
-                failsafe_strategy = egobox.FailsafeStrategy.REJECTION
 
             fcstrs_opt = opt("fcstrs")
-            n_cstr = m
             fcstr_specs = opt("fcstr_specs")
 
             n_fcstrs = 0 if fcstrs_opt is None else len(fcstrs_opt)
@@ -190,7 +171,7 @@ class Egor(Optimizer):
 
             def fun(x):
                 x_eval = np.atleast_2d(np.asarray(x, dtype=float))
-                ncols = 1 + m
+                ncols = 1 + n_cstr
                 y = np.zeros((x_eval.shape[0], ncols), dtype=float)
                 for i in range(x_eval.shape[0]):
                     xi = np.clip(x_eval[i], blx, bux)
@@ -199,7 +180,7 @@ class Egor(Optimizer):
                         y[i, :] = np.nan
                         continue
                     y[i, 0] = float(np.atleast_1d(fobj)[0])
-                    if m > 0:
+                    if n_cstr > 0:
                         y[i, 1:] = np.asarray(fcon, dtype=float)
                 return y
 
