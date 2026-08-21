@@ -325,12 +325,18 @@ class TestScaling(unittest.TestCase):
         # conScale in natural (un-reordered) order: c1, c2
         self.conScale = optProb.conScale
 
-    def test_finalize_populated_scales(self):
+    def test_finalize_scale(self):
+        """Check that finalize() assembles per-DV/constraint scale and offset arrays
+        in the correct flattened order.
+        """
         assert_allclose(self.invXScale, 1.0 / np.array([2.0, 0.5, 4.0, 10.0, 0.1]))
         assert_allclose(self.conScale, [5.0, 0.2, 7.0])
         assert_allclose(self.optProb.xOffset, [1.0, -2.0, 0.5, 0.0, 3.0])
 
-    def test_mapX_roundtrip_and_formula(self):
+    def test_mapX_roundtrip(self):
+        """Check that _mapXtoOpt matches the documented formula and that _mapXtoUser
+        exactly inverts it.
+        """
         rng = np.random.default_rng(0)
         x_user = rng.uniform(-5, 5, self.ndvs)
         x_opt = self.optProb._mapXtoOpt(x_user)
@@ -340,6 +346,9 @@ class TestScaling(unittest.TestCase):
         assert_allclose(self.optProb._mapXtoUser(x_opt), x_user)
 
     def test_mapObjGrad(self):
+        """Check the objective gradient mapping g_opt = g_user * s_f * invXScale, and that
+        the mapping does not mutate its input array in place.
+        """
         # Objective gradient mapping: g_opt = g_user * s_f * invXScale (column/chain-rule scaling).
         rng = np.random.default_rng(1)
         gobj = rng.uniform(-3, 3, (self.optProb.nObj, self.ndvs))
@@ -349,7 +358,10 @@ class TestScaling(unittest.TestCase):
         # the method must not mutate its input
         assert_allclose(gobj, gobj_orig)
 
-    def test_mapConJac_formula_and_roundtrip(self):
+    def test_mapConJac_roundtrip(self):
+        """Check the in-place constraint Jacobian scaling J_opt = diag(conScale) . J . diag(invXScale),
+        and that _mapConJactoUser inverts it back to the original values.
+        """
         # Build an arbitrary dense Jacobian of the right shape and convert to CSR.
         rng = np.random.default_rng(2)
         dense = rng.uniform(-2, 2, (self.nCon, self.ndvs))
@@ -364,19 +376,25 @@ class TestScaling(unittest.TestCase):
         self.optProb._mapConJactoUser(jac)
         assert_allclose(convertToDense(jac), dense)
 
-    def test_mapObj_value_roundtrip(self):
+    def test_mapObj_roundtrip(self):
+        """Check the scalar objective value mapping and its round trip through
+        _mapObjtoOpt / _mapObjtoUser.
+        """
         f_user = 2.5
         f_opt = self.optProb._mapObjtoOpt(f_user)
         assert_allclose(f_opt, f_user * self.objScale)
         assert_allclose(self.optProb._mapObjtoUser(f_opt), f_user)
 
-    def test_mapCon_value_roundtrip(self):
+    def test_mapCon_roundtrip(self):
+        """Check the constraint value mapping and its round trip through
+        _mapContoOpt / _mapContoUser.
+        """
         c_user = [1.0, -2.0, 3.0]
         c_opt = self.optProb._mapContoOpt(c_user)
         assert_allclose(c_opt, c_user * self.conScale)
         assert_allclose(self.optProb._mapContoUser(c_opt), c_user)
 
-    def test_combined_scale_and_offset(self):
+    def test_scale_and_offset(self):
         """A DV group with both a non-unit scale and a non-zero offset is the
         classic place to get the order of operations wrong.
         """

@@ -76,6 +76,10 @@ _CSC = {
 
 
 class TestConvertToDense(unittest.TestCase):
+    """Check that convertToDense reconstructs the same dense matrix regardless of
+    which sparse format (COO/CSR/CSC) it starts from.
+    """
+
     def test_from_coo(self):
         assert_allclose(convertToDense(_COO), _DENSE)
 
@@ -90,6 +94,10 @@ class TestConvertToDense(unittest.TestCase):
 
 
 class TestConvertToCOO(unittest.TestCase):
+    """Check that convertToCOO produces the exact (row, col, data) triplets expected
+    from each source format, and is a no-op (identity) when already COO.
+    """
+
     def test_from_csr(self):
         coo = convertToCOO(_CSR)
         rows, cols, data = coo["coo"]
@@ -119,6 +127,10 @@ class TestConvertToCOO(unittest.TestCase):
 
 
 class TestConvertToCSR(unittest.TestCase):
+    """Check that convertToCSR produces the expected row-pointer/col-index/data arrays
+    from each source format, including from unsorted COO input, and is idempotent on CSR.
+    """
+
     def test_from_coo(self):
         # COO arrives unordered; elements land in row buckets in COO-arrival order.
         # row 0: (col 0, 1.0) then (col 2, 2.0); row 2: (col 2, 5.0) then (col 0, 4.0)
@@ -149,6 +161,10 @@ class TestConvertToCSR(unittest.TestCase):
 
 
 class TestConvertToCSC(unittest.TestCase):
+    """Check that convertToCSC produces the expected column-pointer/row-index/data
+    arrays from each source format, and is idempotent on CSC.
+    """
+
     def test_from_coo(self):
         # Converts COO -> CSR -> CSC. Column-scan order from _CSR:
         # col 0: (row 0, 1.0),(row 2, 4.0); col 1: (row 1, 3.0); col 2: (row 0, 2.0),(row 2, 5.0)
@@ -183,6 +199,9 @@ class TestIndexMaps(unittest.TestCase):
     """
 
     def test_mapToCSR(self):
+        """Check that the permutation returned by mapToCSR, applied to the original
+        COO data array, reconstructs the correct matrix.
+        """
         row_p, col_idx, idx_data = mapToCSR(_COO)
         data = np.asarray(_COO["coo"][2])
         csr = {"csr": [row_p, col_idx, data[idx_data]], "shape": [3, 3]}
@@ -191,6 +210,9 @@ class TestIndexMaps(unittest.TestCase):
         self.assertEqual(row_p[-1], 5)
 
     def test_mapToCSC(self):
+        """Check that the permutation returned by mapToCSC, applied to the original
+        COO data array, reconstructs the correct matrix.
+        """
         row_idx, col_p, idx_data = mapToCSC(_COO)
         data = np.asarray(_COO["coo"][2])
         csc = {"csc": [col_p, row_idx, data[idx_data]], "shape": [3, 3]}
@@ -200,18 +222,23 @@ class TestIndexMaps(unittest.TestCase):
 
 class TestRowColScaling(unittest.TestCase):
     def test_scaleRows(self):
+        """Check that scaleRows applies an in-place left-multiply by diag(factor)."""
         csr = convertToCSR(_DENSE)
         factor = np.array([10.0, 100.0, 1000.0])
         scaleRows(csr, factor)
         assert_allclose(convertToDense(csr), np.diag(factor) @ _DENSE)
 
     def test_scaleColumns(self):
+        """Check that scaleColumns applies an in-place right-multiply by diag(factor)."""
         csr = convertToCSR(_DENSE)
         factor = np.array([2.0, 3.0, 4.0])
         scaleColumns(csr, factor)
         assert_allclose(convertToDense(csr), _DENSE @ np.diag(factor))
 
     def test_scale_wrong_length_raises(self):
+        """Check that a scale factor array of the wrong length is rejected rather than
+        silently broadcast or truncated.
+        """
         csr = convertToCSR(_DENSE)
         with self.assertRaises(ValueError):
             scaleRows(csr, np.array([1.0, 2.0]))
@@ -221,6 +248,9 @@ class TestRowColScaling(unittest.TestCase):
 
 class TestExtractRows(unittest.TestCase):
     def test_extractRows(self):
+        """Check that extractRows returns a valid CSR submatrix containing only the
+        requested rows, with a correctly updated shape.
+        """
         csr = convertToCSR(_DENSE)
         sub = extractRows(csr, [0, 2])
         assert_allclose(convertToDense(sub), _DENSE[[0, 2], :])
@@ -229,22 +259,31 @@ class TestExtractRows(unittest.TestCase):
 
 class TestBroadcastToArray(unittest.TestCase):
     def test_scalar_broadcast(self):
+        """Check that a scalar value is broadcast to an array of the requested length."""
         out = _broadcast_to_array("scale", 2.0, 4)
         assert_array_equal(out, np.full(4, 2.0))
 
     def test_array_passthrough(self):
+        """Check that an array already of the requested length is passed through unchanged."""
         out = _broadcast_to_array("scale", [1.0, 2.0, 3.0], 3)
         assert_array_equal(out, np.array([1.0, 2.0, 3.0]))
 
     def test_wrong_length_raises(self):
+        """Check that an array of the wrong length raises rather than being silently
+        truncated or padded.
+        """
         with self.assertRaises(ValueError):
             _broadcast_to_array("scale", [1.0, 2.0], 3)
 
     def test_none_disallowed_by_default(self):
+        """Check that None is rejected by default, since most callers require a value."""
         with self.assertRaises(ValueError):
             _broadcast_to_array("lower", None, 3)
 
     def test_none_allowed_when_requested(self):
+        """Check that None is broadcast to an array of Nones when allow_none=True,
+        as used for optional per-DV bounds.
+        """
         out = _broadcast_to_array("lower", None, 3, allow_none=True)
         self.assertEqual(len(out), 3)
         self.assertTrue(all(v is None for v in out))

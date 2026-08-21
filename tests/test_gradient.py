@@ -51,6 +51,9 @@ def assert_sens_matches_analytic(funcsSens, atol):
 class TestGradient(unittest.TestCase):
     @parameterized.expand(["fd", "fdr", "cd", "cdr", "cs"])
     def test_mode_matches_analytic(self, sensType):
+        """Check that every Gradient sensType (FD, FDR, CD, CDR, CS) reproduces the
+        analytic Jacobian at X0, and that CS returns purely real derivatives.
+        """
         optProb = build_optProb()
         funcs, _ = objfunc(X0)
         grad = Gradient(optProb, sensType=sensType)
@@ -66,6 +69,10 @@ class TestGradient(unittest.TestCase):
                     self.assertFalse(np.iscomplexobj(funcsSens[funcKey][dvGroup]))
 
     def test_failed_eval(self):
+        """Check that Gradient propagates a fail=True flag from the user function
+        instead of raising or silently returning a bad derivative.
+        """
+
         def always_fail(xdict):
             funcs, _ = objfunc(xdict)
             return funcs, True
@@ -77,6 +84,9 @@ class TestGradient(unittest.TestCase):
         self.assertTrue(fail)
 
     def test_scaling(self):
+        """Check that Gradient differences on unscaled (user-space) values regardless
+        of DV/constraint scale, since scaling is reapplied afterward by the caller.
+        """
         optProb = build_optProb(xScale=7.0, conScale=0.3)
         funcs, _ = objfunc(X0)
         grad = Gradient(optProb, sensType="cs")
