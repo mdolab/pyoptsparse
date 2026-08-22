@@ -1,3 +1,5 @@
+from typing import Literal
+
 # External modules
 import numpy as np
 import numpy.typing as npt
@@ -12,7 +14,7 @@ class Gradient:
     def __init__(
         self,
         optProb: Optimization,
-        sensType: str,
+        sensType: Literal["fd", "cd", "fdr", "cdr", "cs"],
         sensStep: complex | None = None,
         sensMode: str = "",
         comm=None,
@@ -34,7 +36,8 @@ class Gradient:
             - ``cs`` for complex step
 
         sensStep : float | complex, optional
-            Step size to use for differencing. By default ``1e-4`` for ``fd/fdr``, ``1e-6``` for ``cd/cdr``, ``1e-40j`` for ``cs``. Must be a purely imaginary value for ``cs``.
+            Step size to use for differencing. By default ``1e-4`` for ``fd/fdr``, ``1e-6``` for ``cd/cdr``, ``1e-40j`` for ``cs``.
+            Must be a purely imaginary value for ``cs``.
 
         sensMode : str
             Flag to compute gradients in parallel.
