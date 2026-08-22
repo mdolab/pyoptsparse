@@ -1,3 +1,4 @@
+# Standard Python modules
 from typing import Literal
 
 # External modules
@@ -59,16 +60,12 @@ class Gradient:
             # Complex step divides by the imaginary part of the step, so a purely
             # real step would silently yield NaN gradients.
             if np.imag(self.sensStep) == 0:
-                raise ValueError(
-                    f"The complex step size must have a nonzero imaginary part, got {self.sensStep}."
-                )
+                raise ValueError(f"The complex step size must have a nonzero imaginary part, got {self.sensStep}.")
 
             # A nonzero real part would perturb x along the real axis as well, corrupting the function
             # value used implicitly in the complex-step formula.
             if np.real(self.sensStep) != 0:
-                raise ValueError(
-                    f"The complex step size must have a zero real part, got {self.sensStep}."
-                )
+                raise ValueError(f"The complex step size must have a zero real part, got {self.sensStep}.")
 
         self.sensMode = sensMode
         self.comm = comm
@@ -95,9 +92,7 @@ class Gradient:
         fobj = self.optProb.processObjtoVec(funcs, scaled=False)
 
         if self.sensType == "cs":
-            fcon = self.optProb.processContoVec(
-                funcs, scaled=False, dtype="D", natural=True
-            )
+            fcon = self.optProb.processContoVec(funcs, scaled=False, dtype="D", natural=True)
         else:
             fcon = self.optProb.processContoVec(funcs, scaled=False, natural=True)
 
