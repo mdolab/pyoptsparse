@@ -9,7 +9,14 @@ from .pyOpt_types import Dict1DType, Dict2DType
 
 
 class Gradient:
-    def __init__(self, optProb: Optimization, sensType: str, sensStep: float = None, sensMode: str = "", comm=None):
+    def __init__(
+        self,
+        optProb: Optimization,
+        sensType: str,
+        sensStep: complex | None = None,
+        sensMode: str = "",
+        comm=None,
+    ):
         """
         Gradient class for automatically computing gradients with finite
         difference or complex step.
@@ -49,12 +56,16 @@ class Gradient:
             # Complex step divides by the imaginary part of the step, so a purely
             # real step would silently yield NaN gradients.
             if np.imag(self.sensStep) == 0:
-                raise ValueError(f"The complex step size must have a nonzero imaginary part, got {self.sensStep}.")
+                raise ValueError(
+                    f"The complex step size must have a nonzero imaginary part, got {self.sensStep}."
+                )
 
             # A nonzero real part would perturb x along the real axis as well, corrupting the function
             # value used implicitly in the complex-step formula.
             if np.real(self.sensStep) != 0:
-                raise ValueError(f"The complex step size must have a zero real part, got {self.sensStep}.")
+                raise ValueError(
+                    f"The complex step size must have a zero real part, got {self.sensStep}."
+                )
 
         self.sensMode = sensMode
         self.comm = comm
@@ -81,7 +92,9 @@ class Gradient:
         fobj = self.optProb.processObjtoVec(funcs, scaled=False)
 
         if self.sensType == "cs":
-            fcon = self.optProb.processContoVec(funcs, scaled=False, dtype="D", natural=True)
+            fcon = self.optProb.processContoVec(
+                funcs, scaled=False, dtype="D", natural=True
+            )
         else:
             fcon = self.optProb.processContoVec(funcs, scaled=False, natural=True)
 
