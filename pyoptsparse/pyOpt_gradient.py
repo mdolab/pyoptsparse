@@ -20,14 +20,14 @@ class Gradient:
             This is the complete description of the optimization problem.
 
         sensType : str
-            - ``FD`` for forward difference
-            - ``CD`` for central difference
-            - ``FDR`` for forward difference with relative step size
-            - ``CDR`` for central difference with relative step size
-            - ``CS`` for complex step
+            - ``fd`` for forward difference
+            - ``cd`` for central difference
+            - ``fdr`` for forward difference with relative step size
+            - ``cdr`` for central difference with relative step size
+            - ``cs`` for complex step
 
-        sensStep : float
-            Step size to use for differencing
+        sensStep : float | complex, optional
+            Step size to use for differencing. By default ``1e-4`` for ``fd/fdr``, ``1e-6``` for ``cd/cdr``, ``1e-40j`` for ``cs``. Must be a purely imaginary value for ``cs``.
 
         sensMode : str
             Flag to compute gradients in parallel.
