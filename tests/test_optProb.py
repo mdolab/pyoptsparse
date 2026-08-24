@@ -10,9 +10,9 @@ from numpy.testing import assert_allclose
 
 try:
     # External modules
-    import mpi4py  # noqa:F401
+    from mpi4py import MPI
 
-    comm = mpi4py.MPI.COMM_WORLD
+    comm = MPI.COMM_WORLD
 except ImportError:
     comm = None
 
