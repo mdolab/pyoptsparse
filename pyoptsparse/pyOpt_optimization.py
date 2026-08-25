@@ -541,17 +541,34 @@ class Optimization:
             Key of the history file to use for the x values. The
             default is None which will use the last x-value stored in
             the dictionary.
+
+        Notes
+        -----
+        This method is collective on the communicator of this optimization
+        problem: every processor must call it, but only the root processor
+        reads the history file. The SQLite database backing the history file
+        takes POSIX file locks, which can block indefinitely on network
+        filesystems (e.g. NFS) when opened from many processors at once.
         """
-
-        if os.path.exists(histFile):
-            hist = SqliteDict(histFile)
-            if key is None:
-                key = hist["last"]
-
-            self.setDVs(hist[key]["xuser"])
-            hist.close()
-        else:
-            raise FileNotFoundError(f"History file '{histFile}' not found!.")
+        xuser = None
+        exc: Exception | None = None
+        if self.comm.rank == 0:
+            try:
+                if not os.path.exists(histFile):
+                    raise FileNotFoundError(f"History file '{histFile}' not found!.")
+                hist = SqliteDict(histFile)
+                try:
+                    if key is None:
+                        key = hist["last"]
+                    xuser = hist[key]["xuser"]
+                finally:
+                    hist.close()
+            except Exception as e:  # re-raised on all processors after the bcast
+                exc = e
+        exc, xuser = self.comm.bcast((exc, xuser), root=0)
+        if exc is not None:
+            raise exc
+        self.setDVs(xuser)
 
     def printSparsity(self, verticalPrint: bool = False) -> None:
         """
