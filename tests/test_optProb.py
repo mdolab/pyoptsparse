@@ -10,14 +10,15 @@ from numpy.testing import assert_allclose
 
 try:
     # External modules
-    import mpi4py  # noqa:F401
+    from mpi4py import MPI
 
-    comm = mpi4py.MPI.COMM_WORLD
+    comm = MPI.COMM_WORLD
 except ImportError:
     comm = None
 
 # First party modules
 from pyoptsparse import OPT, Optimization
+from pyoptsparse.pyOpt_utils import INFINITY, convertToCSR, convertToDense
 from pyoptsparse.testing.pyOpt_testing import assert_optProb_size
 
 
@@ -293,6 +294,142 @@ class TestOptProb(unittest.TestCase):
         self.assertEqual(allDVNames[0], allDVNames[1])
         allConNames = comm.allgather(list(self.optProb.constraints.keys()))
         self.assertEqual(allConNames[0], allConNames[1])
+
+
+class TestScaling(unittest.TestCase):
+    def setUp(self):
+        # Distinct, non-trivial per-element scales and offsets so that any
+        # mixed-up indexing or row/column confusion shows up.
+        self.xScale = {"x": [2.0, 0.5, 4.0], "y": [10.0, 0.1]}
+        self.xOffset = {"x": [1.0, -2.0, 0.5], "y": [0.0, 3.0]}
+        self.objScale = 3.0
+        self.conScaleVals = {"c1": [5.0, 0.2], "c2": [7.0]}
+
+        def objfunc(xdict):
+            # Never actually called in these tests, but required by the API.
+            return {"obj": 0.0, "c1": np.zeros(2), "c2": np.zeros(1)}, False
+
+        optProb = Optimization("scaling-test", objfunc)
+        optProb.addVarGroup("x", 3, lower=-10, upper=10, scale=self.xScale["x"], offset=self.xOffset["x"])
+        optProb.addVarGroup("y", 2, lower=-10, upper=10, scale=self.xScale["y"], offset=self.xOffset["y"])
+        optProb.addObj("obj", scale=self.objScale)
+        optProb.addConGroup("c1", 2, lower=-1, upper=1, scale=self.conScaleVals["c1"])
+        optProb.addConGroup("c2", 1, lower=-1, upper=1, scale=self.conScaleVals["c2"])
+        optProb.finalize()
+
+        self.optProb = optProb
+        self.ndvs = optProb.ndvs
+        self.nCon = optProb.nCon
+        # invXScale = 1/scale, in DV order (x then y)
+        self.invXScale = optProb.invXScale
+        # conScale in natural (un-reordered) order: c1, c2
+        self.conScale = optProb.conScale
+
+    def test_finalize_scale(self):
+        """Check that finalize() assembles per-DV/constraint scale and offset arrays
+        in the correct flattened order.
+        """
+        assert_allclose(self.invXScale, 1.0 / np.array([2.0, 0.5, 4.0, 10.0, 0.1]))
+        assert_allclose(self.conScale, [5.0, 0.2, 7.0])
+        assert_allclose(self.optProb.xOffset, [1.0, -2.0, 0.5, 0.0, 3.0])
+
+    def test_mapX_roundtrip(self):
+        """Check that _mapXtoOpt matches the documented formula and that _mapXtoUser
+        exactly inverts it.
+        """
+        rng = np.random.default_rng(0)
+        x_user = rng.uniform(-5, 5, self.ndvs)
+        x_opt = self.optProb._mapXtoOpt(x_user)
+        # x_opt = (x_user - offset) / invXScale
+        assert_allclose(x_opt, (x_user - self.optProb.xOffset) / self.invXScale)
+        # round trip
+        assert_allclose(self.optProb._mapXtoUser(x_opt), x_user)
+
+    def test_mapObjGrad(self):
+        """Check the objective gradient mapping g_opt = g_user * s_f * invXScale, and that
+        the mapping does not mutate its input array in place.
+        """
+        # Objective gradient mapping: g_opt = g_user * s_f * invXScale (column/chain-rule scaling).
+        rng = np.random.default_rng(1)
+        gobj = rng.uniform(-3, 3, (self.optProb.nObj, self.ndvs))
+        gobj_orig = gobj.copy()
+        gobj_opt = self.optProb._mapObjGradtoOpt(gobj)
+        assert_allclose(gobj_opt, gobj * self.objScale * self.invXScale)
+        # the method must not mutate its input
+        assert_allclose(gobj, gobj_orig)
+
+    def test_mapConJac_roundtrip(self):
+        """Check the in-place constraint Jacobian scaling J_opt = diag(conScale) . J . diag(invXScale),
+        and that _mapConJactoUser inverts it back to the original values.
+        """
+        # Build an arbitrary dense Jacobian of the right shape and convert to CSR.
+        rng = np.random.default_rng(2)
+        dense = rng.uniform(-2, 2, (self.nCon, self.ndvs))
+        jac = convertToCSR(dense)
+
+        # _mapConJactoOpt works in place: J_opt = diag(conScale) . J . diag(invXScale)
+        self.optProb._mapConJactoOpt(jac)
+        expected = np.diag(self.conScale) @ dense @ np.diag(self.invXScale)
+        assert_allclose(convertToDense(jac), expected)
+
+        # _mapConJactoUser must invert it back to the original.
+        self.optProb._mapConJactoUser(jac)
+        assert_allclose(convertToDense(jac), dense)
+
+    def test_mapObj_roundtrip(self):
+        """Check the scalar objective value mapping and its round trip through
+        _mapObjtoOpt / _mapObjtoUser.
+        """
+        f_user = 2.5
+        f_opt = self.optProb._mapObjtoOpt(f_user)
+        assert_allclose(f_opt, f_user * self.objScale)
+        assert_allclose(self.optProb._mapObjtoUser(f_opt), f_user)
+
+    def test_mapCon_roundtrip(self):
+        """Check the constraint value mapping and its round trip through
+        _mapContoOpt / _mapContoUser.
+        """
+        c_user = [1.0, -2.0, 3.0]
+        c_opt = self.optProb._mapContoOpt(c_user)
+        assert_allclose(c_opt, c_user * self.conScale)
+        assert_allclose(self.optProb._mapContoUser(c_opt), c_user)
+
+    def test_scale_and_offset(self):
+        """A DV group with both a non-unit scale and a non-zero offset is the
+        classic place to get the order of operations wrong.
+        """
+
+        def objfunc(xdict):
+            return {"obj": 0.0}, False
+
+        optProb = Optimization("edge", objfunc)
+        optProb.addVarGroup("x", 2, lower=-10, upper=10, scale=4.0, offset=3.0)
+        optProb.addObj("obj")
+        optProb.finalize()
+
+        x_user = [3.0, 7.0]  # note x_user[0] == offset
+        x_opt = optProb._mapXtoOpt(x_user)
+        # (x - 3) * 4
+        assert_allclose(x_opt, [0.0, 16.0])
+        assert_allclose(optProb._mapXtoUser(x_opt), x_user)
+
+    def test_infinite_bounds_not_scaled(self):
+        """INFINITY bounds must remain unbounded; scale/offset must not turn
+        them into finite numbers in the assembled bounds.
+        """
+
+        def objfunc(xdict):
+            return {"obj": 0.0}, False
+
+        optProb = Optimization("inf", objfunc)
+        optProb.addVarGroup("x", 1, lower=None, upper=None, scale=10.0, offset=5.0)
+        optProb.addObj("obj")
+        optProb.finalize()
+
+        var = optProb.variables["x"][0]
+        # Variable stores scaled bounds; unbounded sides stay at exactly +/- INFINITY.
+        self.assertEqual(var.lower, -INFINITY)
+        self.assertEqual(var.upper, INFINITY)
 
 
 if __name__ == "__main__":
