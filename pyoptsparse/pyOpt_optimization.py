@@ -541,14 +541,6 @@ class Optimization:
             Key of the history file to use for the x values. The
             default is None which will use the last x-value stored in
             the dictionary.
-
-        Notes
-        -----
-        This method is collective on the communicator of this optimization
-        problem: every processor must call it, but only the root processor
-        reads the history file. The SQLite database backing the history file
-        takes POSIX file locks, which can block indefinitely on network
-        filesystems (e.g. NFS) when opened from many processors at once.
         """
         xuser = None
         exc: Exception | None = None
