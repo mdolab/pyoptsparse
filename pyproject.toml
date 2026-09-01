@@ -1,5 +1,5 @@
 [build-system]
-requires = ["meson-python", "ninja", "numpy>=2.0", "swig", "setuptools_scm>=8"]
+requires = ["meson-python", "ninja", "numpy>=2.0", "swig", "setuptools_scm[simple]>=8.2"]
 build-backend = "mesonpy"
 
 [project]
@@ -41,7 +41,7 @@ dev = [
 ]
 
 # Version is derived from git tags (or PKG-INFO in an sdist, or SETUPTOOLS_SCM_PRETEND_VERSION).
-# meson calls generate_version.py at configure time, which writes pyoptsparse/_version.py.
+# meson runs `python -m setuptools_scm` at configure time, which writes pyoptsparse/_version.py.
 [tool.setuptools_scm]
 version_file = "pyoptsparse/_version.py"
 

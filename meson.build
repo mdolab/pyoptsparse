@@ -1,9 +1,12 @@
 project(
   'pyoptsparse',
   'c', 'cpp',
-  # generate_version.py derives the version via setuptools_scm and writes
+  # setuptools_scm (configured in pyproject.toml) derives the version and writes
   # pyoptsparse/_version.py, which is installed as part of the package below
-  version: run_command('python', 'generate_version.py', check: true).stdout().strip(),
+  version: run_command(
+        'python', '-m', 'setuptools_scm', '--force-write-version-files',
+        check: true
+    ).stdout().strip(),
   meson_version: '>= 0.64',
   default_options: [
     'buildtype=debugoptimized',
