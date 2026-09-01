@@ -1,5 +1,5 @@
 [build-system]
-requires = ["meson-python", "ninja", "numpy>=2.0", "swig"]
+requires = ["meson-python", "ninja", "numpy>=2.0", "swig", "setuptools_scm>=8"]
 build-backend = "mesonpy"
 
 [project]
@@ -15,7 +15,7 @@ dependencies = [
     "scipy>=1.11",
     "mdolab-baseclasses>=1.3.1"
 ]
-dynamic = ["version"]  # version is dynamically populated from meson project
+dynamic = ["version"]  # version is dynamically populated from meson project, which gets it from setuptools_scm
 
 [project.optional-dependencies]
 optview = [
@@ -39,6 +39,11 @@ dev = [
     "testflo>=1.4.5",
     "parameterized",
 ]
+
+# Version is derived from git tags (or PKG-INFO in an sdist, or SETUPTOOLS_SCM_PRETEND_VERSION).
+# meson calls generate_version.py at configure time, which writes pyoptsparse/_version.py.
+[tool.setuptools_scm]
+version_file = "pyoptsparse/_version.py"
 
 [project.urls]
 Homepage = "https://github.com/mdolab/pyoptsparse"
