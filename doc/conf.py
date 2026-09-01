@@ -19,7 +19,9 @@ sys.path.insert(0, os.path.abspath("../"))
 # -- Project information -----------------------------------------------------
 
 project = "pyOptSparse"
-version = get_version(root="..", relative_to=__file__)
+# version_file (resolved relative to this file's directory) is written into the checkout so
+# that optionstable can import pyoptsparse from the source tree (RTD does not install the package)
+version = get_version(root="..", relative_to=__file__, version_file="../pyoptsparse/_version.py")
 
 # -- General configuration ---------------------------------------------------
 
