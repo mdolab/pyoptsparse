@@ -11,7 +11,7 @@ from parameterized import parameterized
 # First party modules
 from pyoptsparse import Optimization
 from pyoptsparse.pyOpt_optimizer import Optimizers
-from pyoptsparse.testing import OptTest
+from pyoptsparse.testing import GRAD_BASED_OPTIMIZERS, OptTest
 
 ALL_OPTIMIZERS = sorted({e.name for e in Optimizers} - {"ParOpt", "NSGA2"})
 
@@ -106,7 +106,7 @@ class TestSphere(OptTest):
         self.optimize_with_hotstart(self.tol[optName], optOptions=optOptions)
 
     @parameterized.expand(
-        product(ALL_OPTIMIZERS, ["fd", "fdr", "cd", "cdr", "cs"]),
+        product(sorted(GRAD_BASED_OPTIMIZERS), ["fd", "fdr", "cd", "cdr", "cs"]),
         name_func=lambda f, n, p: f"{f.__name__}_{p.args[0]}_{p.args[1]}",
     )
     def test_optimization_approx_deriv(self, optName, sens):
