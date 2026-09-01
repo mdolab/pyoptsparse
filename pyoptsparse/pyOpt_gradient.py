@@ -16,7 +16,7 @@ class Gradient:
         self,
         optProb: Optimization,
         sensType: Literal["fd", "cd", "fdr", "cdr", "cs"],
-        sensStep: complex | None = None,
+        sensStep: float | complex | None = None,
         sensMode: str = "",
         comm=None,
     ):

@@ -109,7 +109,7 @@ class Optimizer(BaseSolver):
         self.userObjCalls = 0
         self.userSensCalls = 0
 
-    def _setSens(self, sens: str | Callable | None, sensStep: float, sensMode: str) -> None:
+    def _setSens(self, sens: str | Callable | None, sensStep: float | complex | None, sensMode: str) -> None:
         """
         Common function to setup sens function
         """
