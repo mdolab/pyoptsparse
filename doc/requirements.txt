@@ -1,4 +1,5 @@
 sphinx_mdolab_theme>=1.2
+setuptools_scm>=8
 sphinx-codeautolink
 numpy
 scipy
