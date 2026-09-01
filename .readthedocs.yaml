@@ -10,8 +10,10 @@ build:
     python: "3.11"
   jobs:
     post_checkout:
-      # RTD clones shallowly; setuptools_scm needs the full history to find version tags
-      - git fetch --unshallow || true
+      # RTD clones shallowly; setuptools_scm needs the full history to find version tags.
+      # --unshallow errors on an already-complete repo, so only run it when actually
+      # shallow; a real fetch failure then still fails the build instead of being masked.
+      - test $(git rev-parse --is-shallow-repository) = false || git fetch --unshallow
 
 sphinx:
   configuration: doc/conf.py
