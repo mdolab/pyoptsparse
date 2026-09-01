@@ -37,7 +37,7 @@ class Gradient:
             - ``cs`` for complex step
 
         sensStep : float | complex, optional
-            Step size to use for differencing. By default ``1e-4`` for ``fd/fdr``, ``1e-6``` for ``cd/cdr``, ``1e-40j`` for ``cs``.
+            Step size to use for differencing. By default ``1e-6`` for ``fd/fdr``, ``1e-4`` for ``cd/cdr``, ``1e-40j`` for ``cs``.
             Must be a purely imaginary value for ``cs``.
 
         sensMode : str
