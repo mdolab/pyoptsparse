@@ -93,6 +93,12 @@ class TestGradient(unittest.TestCase):
         funcsSens, _ = grad(X0, funcs)
         assert_sens_matches_analytic(funcsSens, 1e-12)
 
+    @parameterized.expand([("real_step", 1e-40), ("nonzero_real_part", 1 + 1e-40j)])
+    def test_cs_invalid_step_raises(self, _, sensStep):
+        optProb = build_optProb()
+        with self.assertRaises(ValueError):
+            Gradient(optProb, sensType="cs", sensStep=sensStep)
+
 
 if __name__ == "__main__":
     unittest.main()
