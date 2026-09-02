@@ -55,6 +55,7 @@ OUTPUT_FILENAMES = {
     "NLPQLP": {"iFile": ".out"},
     "ParOpt": {"output_file": ".out", "tr_output_file": ".tr", "mma_output_file": ".mma"},
     "ALPSO": {"filename": ".out"},
+    "Egor": {},
     "NSGA2": {},
     "Uno": {"logger_stream": ".out"},
 }

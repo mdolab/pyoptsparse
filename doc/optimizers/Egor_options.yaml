@@ -1,0 +1,98 @@
+gp_config:
+  desc: |
+    GpConfig as a dict used by Egor for surrogate model configuration.
+    Main defaults are:
+
+    - ``regr_spec``: 1 (Constant)
+    - ``corr_spec``: 2 (Squared Exponential)
+    - ``kpls_dim``: no PLS dimensionality reduction (otherwise int)
+    - ``n_clusters``: no clustering (otherwise int)
+cstr_tol:
+  desc: |
+    Constraint tolerances list passed to Egor (size n_cstr plus n_fcstr)
+    Default is ``1e-4`` for all constraints.
+n_start:
+  desc: Number of infill optimization runs (best run selected)
+n_doe:
+  desc: Number of initial DOE samples (0 lets Egor choose automatically)
+doe:
+  desc: |
+    Initial DOE array, either x-only or concatenated x and y
+    to be passed as list of lists of floats. If not provided, Egor will generate a DOE automatically.
+infill_strategy:
+  desc: |
+  Infill criterion:
+
+    - 1 = ``EI``,
+    - 2 = ``WB2``,
+    - 3 = ``WB2S``,
+    - 4 = ``LOG_EI`` (default)
+cstr_infill:
+  desc: Enable constrained infill criterion (aka CEI)
+cstr_strategy:
+  desc: |
+    Constraint strategy enum for surrogate constraint handling:
+
+    - 1 = ``MeanConstraint`` (default)
+    - 2 = ``UpperConfidenceBound``
+qei_config:
+  desc: |
+    QEiConfig for batch (qEI) point selection passed as a dict with main keys being:
+
+    - ``batch``: size of batch (int)
+    - ``strategy``: qEI strategy enum
+infill_optimizer:
+  desc: |
+    Internal infill optimizer:
+
+    - 1 = ``COBYLA`` (default)
+    - 2 = ``SLSQP``
+trego:
+  desc: |
+    Enable TREGO (aka Trust Region EGO) algorithm configured with main parameters:
+
+    - ``n_gl_steps``: (nb of global search steps default 1, nb of local search steps default 4)
+    - ``beta``: trust region factor (default 0.9)
+
+coego_n_coop:
+  desc: Number of cooperative groups for CoEGO algorithm
+target:
+  desc: Known objective target used as stopping criterion
+outdir:
+  desc: Output directory for Egor output files (configuration, does, history and warm start search)
+warm_start:
+  desc: Load initial DOE from outdir when enabled
+hot_start:
+  desc: |
+    Egor checkpoint restart parameter to be used in case of fallible environment
+    to continue with the same Egor parameterization till max iterations or timeout is reached.
+failsafe_strategy:
+  desc: |
+    Failure handling enum
+
+    - 1 = ``REJECTION`` (default),
+    - 2 = ``IMPUTATION``,
+    - 3 = ``PROBA OF VIABILITY``
+seed:
+  desc: Seed for random number generator (default -1 for random seed)
+verbose:
+  desc: |
+    Verbosity level for Egor logging
+
+    - 0 = ``error`` (default)
+    - 1 = ``warning``
+    - 2 = ``info``
+    - 3 = ``debug``
+max_iters:
+  desc: Egor iteration budget
+run_info:
+  desc: Optional RunInfo used to pass additional information to Egor (e.g., for logging)
+timeout:
+  desc: Optional timeout in seconds used as sttopping criterion for Egor minimize
+fcstrs:
+  desc: |
+    Optional list of native Egobox function constraints passed directly as fcstrs
+    (instead of pyOptSparse constraints which are metamodelized)
+fcstr_specs:
+  desc: |
+    Optional list of egobox.CstrSpec for function constraints passed as fcstrs
