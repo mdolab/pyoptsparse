@@ -163,7 +163,14 @@ class TestEgor(OptTest):
         self.optName = "Egor"
         self.optProb = optProb
         sol = self.optimize(
-            optOptions={"max_iters": 30, "n_doe": 5, "target": -5.50, "cstr_tol": [1e-3, 1e-3], "verbose": 2}
+            optOptions={
+                "max_iters": 30,
+                "n_doe": 5,
+                "target": -5.50,
+                "cstr_tol": [1e-3, 1e-3],
+                "verbose": 2,
+                "seed": 42,
+            }
         )
         # Check Solution
         self.fStar = [-5.5080]
