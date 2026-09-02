@@ -42,7 +42,7 @@ class TestSphere(OptTest):
     xStar = {"xvars": np.zeros(N)}
 
     # Tolerances
-    tol = {k: 5e-2 if k in ["CONMIN", "ALPSO", "NSGA2"] else 1e-6 for k in ALL_OPTIMIZERS}
+    tol = {k: 5e-2 if k in ["CONMIN", "ALPSO", "NSGA2", "Egor"] else 1e-6 for k in ALL_OPTIMIZERS}
 
     optOptions = {
         "ALPSO": {  # sphere
@@ -65,6 +65,7 @@ class TestSphere(OptTest):
             "Major iterations limit": 10,
         },
         "Uno": {"max_iterations": 100, "preset": "filtersqp"},
+        "Egor": {"max_iters": 100, "seed": 123, "trego": {"n_gl_steps": (1, 4)}},
     }
 
     def objfunc(self, xdict):
