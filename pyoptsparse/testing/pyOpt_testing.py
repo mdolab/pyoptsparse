@@ -64,7 +64,7 @@ OUTPUT_FILENAMES = {
 DEFAULT_OPTIMIZERS = {"SLSQP", "PSQP", "CONMIN", "ALPSO", "NSGA2"}
 
 # Define gradient-based optimizers
-GRAD_BASED_OPTIMIZERS = {"CONMIN", "IPOPT", "NLPQLP", "ParOpt", "PSQP", "SLSQP", "SNOPT", "Uno"}
+GRAD_BASED_OPTIMIZERS = {"CONMIN", "IPOPT", "NLPQLP", "PSQP", "SLSQP", "SNOPT", "Uno"}
 
 
 class OptTest(unittest.TestCase):

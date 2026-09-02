@@ -1,6 +1,7 @@
 """Test solution of Sphere problem"""
 
 # Standard Python modules
+from itertools import product
 import unittest
 
 # External modules
@@ -10,7 +11,7 @@ from parameterized import parameterized
 # First party modules
 from pyoptsparse import Optimization
 from pyoptsparse.pyOpt_optimizer import Optimizers
-from pyoptsparse.testing import OptTest
+from pyoptsparse.testing import GRAD_BASED_OPTIMIZERS, OptTest
 
 ALL_OPTIMIZERS = sorted({e.name for e in Optimizers} - {"ParOpt", "NSGA2"})
 
@@ -57,6 +58,9 @@ class TestSphere(OptTest):
             "maxGen": 100,
             "seed": 123,
         },
+        "CONMIN": {  # CONMIN diverges when gradient is near zero, here we stop on first optimal iterate
+            "ITRM": 1,
+        },
         "SNOPT": {
             "Major iterations limit": 10,
         },
@@ -101,6 +105,17 @@ class TestSphere(OptTest):
         self.setup_optProb()
         optOptions = self.optOptions.get(optName, {})
         self.optimize_with_hotstart(self.tol[optName], optOptions=optOptions)
+
+    @parameterized.expand(
+        product(sorted(GRAD_BASED_OPTIMIZERS), ["fd", "fdr", "cd", "cdr", "cs"]),
+        name_func=lambda f, n, p: f"{f.__name__}_{p.args[0]}_{p.args[1]}",
+    )
+    def test_optimization_approx_deriv(self, optName, sens):
+        self.optName = optName
+        self.setup_optProb()
+        optOptions = self.optOptions.get(optName, {})
+        sol = self.optimize(optOptions=optOptions, sens=sens)
+        self.assert_solution_allclose(sol, self.tol[optName])
 
     @parameterized.expand(["filtersqp", "funnelsqp"])
     def test_uno_presets(self, preset):
