@@ -41,7 +41,7 @@ jobs:
 
           set FC=flang.exe
 
-          python -m build -n -x .
+          python -m build -n -x --wheel .
 
           pip install --no-deps --no-index --find-links dist pyoptsparse
       - name: Install runtime numpy ${{ matrix.numpy_version }}
