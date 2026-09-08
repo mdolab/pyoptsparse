@@ -18,6 +18,9 @@ jobs:
         versions: [{python: "3.11", numpy: "1.25"}, {python: "3.12", numpy: "2.3"}]
     steps:
       - uses: actions/checkout@v4
+        with:
+          # full history so setuptools_scm can find version tags
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.versions.python }}

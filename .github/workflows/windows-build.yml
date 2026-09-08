@@ -18,6 +18,9 @@ jobs:
         numpy_version: ["1.25.2", "2.3.5"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          # full history so setuptools_scm can find version tags
+          fetch-depth: 0
       - uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: "3.11"
@@ -38,7 +41,7 @@ jobs:
 
           set FC=flang.exe
 
-          python -m build -n -x .
+          python -m build -n -x --wheel .
 
           pip install --no-deps --no-index --find-links dist pyoptsparse
       - name: Install runtime numpy ${{ matrix.numpy_version }}

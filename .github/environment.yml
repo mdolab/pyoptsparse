@@ -9,6 +9,7 @@ dependencies:
   - cxx-compiler
   - pip
   - setuptools
+  - setuptools_scm >=8.2
   - build
   - flang=20
   - libpgmath
