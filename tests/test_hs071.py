@@ -144,7 +144,9 @@ class TestHS71(OptTest):
         self.setup_optProb(objScale=objScale, xScale=xScale, conScale=conScale, offset=offset)
         sol = self.optimize(storeHistory=histFileName)
         lambda_sign = -1.0 if optName == "IPOPT" else 1.0
-        self.assert_solution_allclose(sol, self.tol[optName], lambda_sign=lambda_sign, lambda_tol=self.lambdaTol[optName])
+        self.assert_solution_allclose(
+            sol, self.tol[optName], lambda_sign=lambda_sign, lambda_tol=self.lambdaTol[optName]
+        )
         # now we retrieve the history file, and check the scale=True option is indeed
         # scaling things correctly
         # IPOPT calls gradient and jacobian at first, so set callCounter = 2 for the first non-derivative call
