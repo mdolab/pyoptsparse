@@ -230,24 +230,13 @@ class SLSQP(Optimizer):
             # so this just makes the output consistent with what the optimizer sees)
             xs = np.clip(xs, blx, bux)
 
-            # some entries of W include the lagrange multipliers
-            # for each constraint, there are two entries (lower, upper).
-            # if only one is active, look for the nonzero. If both are active, take the first one
-            # FIXME: this does not currently work, so we do not save lambdaStar
-            # to the solution object
-            lambdaStar = []
-            idx = 0
-
-            for c_name in optProb.constraints:
-                c = optProb.constraints[c_name]
-                for _j in range(c.ncon):
-                    lambdaStar_lower = w[2 * idx]
-                    lambdaStar_upper = w[2 * idx + 1]
-                    if abs(lambdaStar_lower) > 1e-100:
-                        lambdaStar.append(lambdaStar_lower)
-                    else:
-                        lambdaStar.append(lambdaStar_upper)
-                    idx += 1
+            # Per the SLSQP docstring, on return W(1) ... W(M) contain the multipliers
+            # associated with the M general (one-sided) constraints, one entry per
+            # constraint, in the same order as self.optProb.jacIndices (set above from
+            # getOrdering). slfunc/slgrad negate fcon/gcon before handing them to SLSQP
+            # (since SLSQP expects constraints of the form c(x) >= 0), so the returned
+            # multipliers must be negated to match pyOptSparse's constraint sign convention.
+            lambdaStar = -w[:m]
 
             if self.storeHistory:
                 self.metadata["endTime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -266,7 +255,7 @@ class SLSQP(Optimizer):
             sol_inform = SolutionInform.from_informs(self.informs, inform)
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff, xs)
+            sol = self._createSolution(optTime, sol_inform, ff, xs, multipliers=lambdaStar)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
