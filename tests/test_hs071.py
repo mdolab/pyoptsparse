@@ -24,7 +24,7 @@ class TestHS71(OptTest):
     xStar = {"xvars": (1.0, 4.743, 3.82115, 1.37941)}
     lambdaStar = {"con": (0.55229366, -0.16146857)}
 
-    # Tolerances
+    # Tolerances for the f/x solution
     tol = {
         "SNOPT": 1e-6,
         "IPOPT": 1e-6,
@@ -34,6 +34,14 @@ class TestHS71(OptTest):
         "PSQP": 1e-6,
         "Uno": 1e-4,
         "Egor": 1e-2,
+    }
+    # Tolerances for the Lagrange multipliers, kept separate from `tol` since multiplier
+    # estimates can be less accurate than the primal solution (notably for SLSQP)
+    lambdaTol = {
+        "SNOPT": 1e-5,
+        "IPOPT": 1e-5,
+        "Uno": 1e-4,
+        "SLSQP": 2e-3,
     }
     optOptions = {
         "CONMIN": {
@@ -90,7 +98,7 @@ class TestHS71(OptTest):
         newDV = {"xvars": np.array([1, 4, 4, 1])}
         self.setup_optProb(xScale=1.5, conScale=1.2, objScale=32, offset=1.5)
         sol = self.optimize(setDV=newDV, storeHistory=histFileName)
-        self.assert_solution_allclose(sol, self.tol["SLSQP"])
+        self.assert_solution_allclose(sol, self.tol["SLSQP"], lambda_tol=self.lambdaTol["SLSQP"])
         # Verify the history file
         hist = History(histFileName, flag="r")
         init = hist.getValues(names="xvars", callCounters="0", scale=False)
@@ -136,7 +144,9 @@ class TestHS71(OptTest):
         self.setup_optProb(objScale=objScale, xScale=xScale, conScale=conScale, offset=offset)
         sol = self.optimize(storeHistory=histFileName)
         lambda_sign = -1.0 if optName == "IPOPT" else 1.0
-        self.assert_solution_allclose(sol, self.tol[optName], lambda_sign=lambda_sign)
+        self.assert_solution_allclose(
+            sol, self.tol[optName], lambda_sign=lambda_sign, lambda_tol=self.lambdaTol[optName]
+        )
         # now we retrieve the history file, and check the scale=True option is indeed
         # scaling things correctly
         # IPOPT calls gradient and jacobian at first, so set callCounter = 2 for the first non-derivative call
@@ -269,7 +279,9 @@ class TestHS71(OptTest):
         sol = self.optimize(optOptions=optOptions)
         # Check Solution
         lambda_sign = -1.0 if optName == "IPOPT" else 1.0
-        self.assert_solution_allclose(sol, self.tol[optName], lambda_sign=lambda_sign)
+        self.assert_solution_allclose(
+            sol, self.tol[optName], lambda_sign=lambda_sign, lambda_tol=self.lambdaTol.get(optName)
+        )
         # Check informs
         self.assert_inform_equal(sol)
         # Check the lagrange multipliers in the solution text
@@ -279,14 +291,14 @@ class TestHS71(OptTest):
         con2_line_num = constraint_header_line_num + 3
         lambda_con1 = float(lines[con1_line_num].split()[-1])
         lambda_con2 = float(lines[con2_line_num].split()[-1])
-        if optName in ("IPOPT", "SNOPT", "Uno"):
+        if optName in ("IPOPT", "SNOPT", "Uno", "SLSQP"):
             # IPOPT returns Lagrange multipliers with opposite sign than SNOPT
             lambda_sign = -1.0 if optName == "IPOPT" else 1.0
             assert_allclose(
                 [lambda_con1, lambda_con2],
                 lambda_sign * np.asarray(self.lambdaStar[0]["con"]),
-                rtol=1.0e-5,
-                atol=1.0e-5,
+                rtol=self.lambdaTol[optName],
+                atol=self.lambdaTol[optName],
             )
         else:
             assert_allclose([lambda_con1, lambda_con2], [9.0e100, 9.0e100], rtol=1.0e-5, atol=1.0e-5)
