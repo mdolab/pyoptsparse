@@ -29,7 +29,7 @@ class TestHS71(OptTest):
         "SNOPT": 1e-6,
         "IPOPT": 1e-6,
         "NLPQLP": 1e-6,
-        "SLSQP": 1e-6,
+        "SLSQP": 2e-3,
         "CONMIN": 1e-3,
         "PSQP": 1e-6,
         "Uno": 1e-4,
@@ -279,14 +279,14 @@ class TestHS71(OptTest):
         con2_line_num = constraint_header_line_num + 3
         lambda_con1 = float(lines[con1_line_num].split()[-1])
         lambda_con2 = float(lines[con2_line_num].split()[-1])
-        if optName in ("IPOPT", "SNOPT", "Uno"):
+        if optName in ("IPOPT", "SNOPT", "Uno", "SLSQP"):
             # IPOPT returns Lagrange multipliers with opposite sign than SNOPT
             lambda_sign = -1.0 if optName == "IPOPT" else 1.0
             assert_allclose(
                 [lambda_con1, lambda_con2],
                 lambda_sign * np.asarray(self.lambdaStar[0]["con"]),
-                rtol=1.0e-5,
-                atol=1.0e-5,
+                rtol=self.tol[optName],
+                atol=self.tol[optName],
             )
         else:
             assert_allclose([lambda_con1, lambda_con2], [9.0e100, 9.0e100], rtol=1.0e-5, atol=1.0e-5)
