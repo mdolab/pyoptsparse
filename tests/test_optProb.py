@@ -3,10 +3,12 @@
 # Standard Python modules
 import unittest
 
+import numpy as np
+
 # External modules
 from baseclasses.testing.assertions import assert_dict_allclose, assert_dict_not_allclose, assert_not_allclose
-import numpy as np
 from numpy.testing import assert_allclose
+from parameterized import parameterized
 
 try:
     # External modules
@@ -431,11 +433,19 @@ class TestScaling(unittest.TestCase):
         self.assertEqual(var.lower, -INFINITY)
         self.assertEqual(var.upper, INFINITY)
 
-    @staticmethod
-    def test_getOrdering_expands_nonlinear_equality():
-        """A nonlinear equality c = v expanded with noEquality=True (the CONMIN/NSGA2 path) must produce
+    @parameterized.expand(
+        [
+            # (name, bound, conScale, expected upper); the scaled value v = bound * conScale
+            ("positive", 1.0, 1.0, [1.0, -1.0]),
+            ("negative", -1.0, 1.0, [-1.0, 1.0]),
+            ("scaled", 1.0, 2.0, [2.0, -2.0]),
+        ]
+    )
+    def test_getOrdering(self, _name, bound, conScale, expected_upper):
+        """A nonlinear equality c = v expanded with noEquality=True (the CONMIN/NSGA2/Egor path) must produce
         two one-sided rows, each read by the backend as fact*c <= upper: namely +c <= v and -c <= -v, so
-        together they pin c to v rather than degenerating into the band -v <= c <= v.
+        together they pin c to v rather than degenerating into the band -v <= c <= v. This must hold for
+        positive, negative, and scaled right-hand sides (v = bound * conScale).
         """
 
         def objfunc(xdict):
@@ -443,13 +453,13 @@ class TestScaling(unittest.TestCase):
 
         optProb = Optimization("ne-expand", objfunc)
         optProb.addVarGroup("x", 2, lower=-10, upper=10)
-        optProb.addConGroup("con", 1, lower=1.0, upper=1.0)
+        optProb.addConGroup("con", 1, lower=bound, upper=bound, scale=conScale)
         optProb.addObj("obj")
         optProb.finalize()
 
         _, lower, upper, fact = optProb.getOrdering(["ne", "le", "ni", "li"], oneSided=True, noEquality=True)
         assert_allclose(fact, [1.0, -1.0])
-        assert_allclose(upper, [1.0, -1.0])
+        assert_allclose(upper, expected_upper)
         # one-sided rows carry no lower bound
         assert_allclose(lower, [-INFINITY, -INFINITY])
 
