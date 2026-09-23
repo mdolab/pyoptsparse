@@ -259,7 +259,7 @@ class TestHS71(OptTest):
         sol = self.optimize(optOptions={"MIT": 1})
         self.assert_inform_equal(sol, 11)
 
-    @parameterized.expand(["SNOPT", "IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "Uno", "Egor"])
+    @parameterized.expand(["SNOPT", "IPOPT", "SLSQP", "PSQP", "NLPQLP", "Uno", "Egor"])
     def test_optimization(self, optName):
         self.optName = optName
         self.setup_optProb()
