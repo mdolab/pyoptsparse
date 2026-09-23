@@ -174,6 +174,10 @@ class SLSQP(Optimizer):
                     pyOptSparseWarning("Values in x were outside bounds during a minimize step, clipping to bounds")
                 fobj, fcon, fail = self._masterFunc(np.clip(x, blx, bux), ["fobj", "fcon"])
                 f = fobj
+                # _masterFunc returns the one-sided constraints in pyOptSparse's internal
+                # convention, fcon = fact * c - offset, which is feasible when fcon <= 0.
+                # SLSQP uses the opposite convention (feasible when g(x) >= 0), so we flip
+                # the sign here; g = -fcon is the same constraint in SLSQP's form.
                 g[0:m] = -fcon
                 slsqp.pyflush(self.getOption("IOUT"))
                 return f, g
@@ -184,6 +188,8 @@ class SLSQP(Optimizer):
             def slgrad(m, me, la, n, f, g, df, dg, x):
                 gobj, gcon, fail = self._masterFunc(np.clip(x, blx, bux), ["gobj", "gcon"])
                 df[0:n] = gobj.copy()
+                # Same sign flip as in slfunc: convert the gradient of pyOptSparse's
+                # fcon (feasible <= 0) into the gradient of SLSQP's g = -fcon (feasible >= 0).
                 dg[0:m, 0:n] = -gcon.copy()
                 slsqp.pyflush(self.getOption("IOUT"))
                 return df, dg
@@ -233,9 +239,9 @@ class SLSQP(Optimizer):
             # Per the SLSQP docstring, on return W(1) ... W(M) contain the multipliers
             # associated with the M general (one-sided) constraints, one entry per
             # constraint, in the same order as self.optProb.jacIndices (set above from
-            # getOrdering). slfunc/slgrad negate fcon/gcon before handing them to SLSQP
-            # (since SLSQP expects constraints of the form c(x) >= 0), so the returned
-            # multipliers must be negated to match pyOptSparse's constraint sign convention.
+            # getOrdering). These multipliers are for the negated constraint,
+            # i.e. g = -fcon >= 0 (see the sign flip in slfunc/slgrad). We flip them here
+            # to be consistent with the other optimizers and scipy's SLSQP.
             lambdaStar = -w[:m]
 
             if self.storeHistory:
