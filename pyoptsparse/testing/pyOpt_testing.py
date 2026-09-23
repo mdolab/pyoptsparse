@@ -87,7 +87,7 @@ class OptTest(unittest.TestCase):
     def setUp(self):
         self.histFileName = None
 
-    def assert_solution_allclose(self, sol, tol, partial_x=False, lambda_sign=1.0):
+    def assert_solution_allclose(self, sol, tol, partial_x=False, lambda_sign=1.0, lambda_tol=None):
         """
         An assertion method to check that the solution object matches the expected
         optimum values defined in the class.
@@ -106,7 +106,12 @@ class OptTest(unittest.TestCase):
             The sign of the Lagrange multipliers returned by the optimizer. By convention,
             SNOPT and ParOpt return a sign that agrees with the test data, while IPOPT
             returns the opposite sign.
+        lambda_tol : float, optional
+            The tolerance for the Lagrange multiplier assertion. Multiplier estimates can be
+            less accurate than the primal solution, so this is kept separate from ``tol`` to avoid loosening the ``f``/``x`` checks. Defaults to ``tol``.
         """
+        if lambda_tol is None:
+            lambda_tol = tol
         if not isinstance(self.xStar, list):
             self.xStar = [self.xStar]
         if not isinstance(self.fStar, list):
@@ -146,7 +151,7 @@ class OptTest(unittest.TestCase):
             and sol.lambdaStar is not None
         ):
             lamStar = {con: lambda_sign * lam for con, lam in sol.lambdaStar.items()}
-            assert_dict_allclose(lamStar, self.lambdaStar[self.sol_index], atol=tol, rtol=tol)
+            assert_dict_allclose(lamStar, self.lambdaStar[self.sol_index], atol=lambda_tol, rtol=lambda_tol)
 
         # test printing solution
         print(sol)
