@@ -971,13 +971,13 @@ class Optimization:
                         # Expand Equality constraint to two:
                         indices.extend(con.rs + econ["ind"])
                         fact.extend(econ["fact"])
-                        lower.extend(econ["value"])
+                        lower.extend([-INFINITY] * len(econ["fact"]))
                         upper.extend(econ["value"])
                         # ....And the other side
                         indices.extend(con.rs + econ["ind"])
                         fact.extend(-1.0 * econ["fact"])
-                        lower.extend(econ["value"])
-                        upper.extend(econ["value"])
+                        lower.extend([-INFINITY] * len(econ["fact"]))
+                        upper.extend(-econ["value"])
 
                     else:
                         indices.extend(con.rs + econ["ind"])
