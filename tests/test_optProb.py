@@ -3,10 +3,9 @@
 # Standard Python modules
 import unittest
 
-import numpy as np
-
 # External modules
 from baseclasses.testing.assertions import assert_dict_allclose, assert_dict_not_allclose, assert_not_allclose
+import numpy as np
 from numpy.testing import assert_allclose
 from parameterized import parameterized
 
