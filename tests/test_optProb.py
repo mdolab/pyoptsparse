@@ -431,6 +431,28 @@ class TestScaling(unittest.TestCase):
         self.assertEqual(var.lower, -INFINITY)
         self.assertEqual(var.upper, INFINITY)
 
+    @staticmethod
+    def test_getOrdering_expands_nonlinear_equality():
+        """A nonlinear equality c = v expanded with noEquality=True (the CONMIN/NSGA2 path) must produce
+        two one-sided rows, each read by the backend as fact*c <= upper: namely +c <= v and -c <= -v, so
+        together they pin c to v rather than degenerating into the band -v <= c <= v.
+        """
+
+        def objfunc(xdict):
+            return {"obj": 0.0, "con": [0.0]}, False
+
+        optProb = Optimization("ne-expand", objfunc)
+        optProb.addVarGroup("x", 2, lower=-10, upper=10)
+        optProb.addConGroup("con", 1, lower=1.0, upper=1.0)
+        optProb.addObj("obj")
+        optProb.finalize()
+
+        _, lower, upper, fact = optProb.getOrdering(["ne", "le", "ni", "li"], oneSided=True, noEquality=True)
+        assert_allclose(fact, [1.0, -1.0])
+        assert_allclose(upper, [1.0, -1.0])
+        # one-sided rows carry no lower bound
+        assert_allclose(lower, [-INFINITY, -INFINITY])
+
 
 if __name__ == "__main__":
     unittest.main()
