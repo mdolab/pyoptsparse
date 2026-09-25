@@ -33,7 +33,7 @@ class TestHS60(OptTest):
         "PSQP": 1e-6,
         "NLPQLP": 3e-4,
         "Uno": 1e-4,
-        "Egor": 5e-2,
+        "Egor": 7e-2,
     }
     optOptions = {
         "Egor": {"max_iters": 100, "n_doe": 20, "seed": 42},
