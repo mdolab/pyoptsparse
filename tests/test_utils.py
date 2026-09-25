@@ -50,27 +50,28 @@ _DENSE = np.array(
         [4.0, 0.0, 5.0],
     ]
 )
+# The dict members are numpy arrays, matching what every producer in pyOpt_utils emits.
 _COO = {
     "coo": [
-        [2, 0, 1, 0, 2],
-        [2, 0, 1, 2, 0],
-        [5.0, 1.0, 3.0, 2.0, 4.0],
+        np.array([2, 0, 1, 0, 2]),
+        np.array([2, 0, 1, 2, 0]),
+        np.array([5.0, 1.0, 3.0, 2.0, 4.0]),
     ],
     "shape": [3, 3],
 }
 _CSR = {
     "csr": [
-        [0, 2, 3, 5],
-        [0, 2, 1, 2, 0],
-        [1.0, 2.0, 3.0, 5.0, 4.0],
+        np.array([0, 2, 3, 5]),
+        np.array([0, 2, 1, 2, 0]),
+        np.array([1.0, 2.0, 3.0, 5.0, 4.0]),
     ],
     "shape": [3, 3],
 }
 _CSC = {
     "csc": [
-        [0, 2, 3, 5],
-        [0, 2, 1, 0, 2],
-        [1.0, 4.0, 3.0, 2.0, 5.0],
+        np.array([0, 2, 3, 5]),
+        np.array([0, 2, 1, 0, 2]),
+        np.array([1.0, 4.0, 3.0, 2.0, 5.0]),
     ],
     "shape": [3, 3],
 }
