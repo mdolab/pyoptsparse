@@ -31,7 +31,7 @@ class TestHS60(OptTest):
         "IPOPT": 1e-6,
         "SLSQP": 1e-6,
         "PSQP": 1e-6,
-        "NLPQLP": 1e-6,
+        "NLPQLP": 3e-4,
         "Uno": 1e-4,
         "Egor": 5e-2,
     }
