@@ -23,10 +23,11 @@ from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_solution import SolutionInform
 from ..pyOpt_utils import (
     ICOL,
+    ICOLIND,
     IDATA,
     INFINITY,
     IROW,
-    convertToDense,
+    IROWP,
     extractRows,
     import_module,
     mapToCSC,
@@ -341,16 +342,21 @@ class SNOPT(Optimizer):
                 scaleRows(jac, fact)  # Perform logical scaling
 
                 # SNOPT evaluates linear rows internally as jac @ x_opt, which equals the scaled
-                # user constraint value minus the constant jac @ xOffset_opt. Compensate by shifting
-                # the linear-row bounds by that constant so they are enforced about the correct
-                # intercept. Nonlinear rows (the first nnCon) are evaluated by callback and unaffected.
-                xOffset_opt = self.optProb.xOffset / self.optProb.invXScale
-                correction = convertToDense(jac) @ xOffset_opt
-                for i in range(nnCon, len(blc)):
-                    if abs(blc[i]) < INFINITY:
-                        blc[i] -= correction[i]
-                    if abs(buc[i]) < INFINITY:
-                        buc[i] -= correction[i]
+                # user constraint value minus the constant jac @ xOffset_opt. Shift the linear-row
+                # bounds by that constant so they are enforced about the correct intercept. Nonlinear
+                # rows (the first nnCon) are evaluated by callback and are unaffected. This is a no-op
+                # unless a DV offset is present, so skip the work in the common (no-offset) case.
+                if np.any(self.optProb.xOffset != 0.0):
+                    xOffset_opt = self.optProb.xOffset / self.optProb.invXScale
+                    rowp, colInd, data = jac["csr"][IROWP], jac["csr"][ICOLIND], jac["csr"][IDATA]
+                    for i in range(nnCon, len(blc)):
+                        # Sparse dot of this linear row with xOffset_opt (only its nonzeros).
+                        cols = colInd[rowp[i] : rowp[i + 1]]
+                        shift = data[rowp[i] : rowp[i + 1]] @ xOffset_opt[cols]
+                        if abs(blc[i]) < INFINITY:
+                            blc[i] -= shift
+                        if abs(buc[i]) < INFINITY:
+                            buc[i] -= shift
             else:
                 blc = [-INFINITY]
                 buc = [INFINITY]
