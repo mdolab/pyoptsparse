@@ -154,5 +154,64 @@ class TestSNOPTBug(unittest.TestCase):
         print(sol)
 
 
+def offset_objfunc(xdict):
+    """min (x-2)^2 + (y-2)^2 with an inactive nonlinear constraint x^2 + y^2 <= 100."""
+    x = xdict["xvars"]
+    funcs = {}
+    funcs["obj"] = (x[0] - 2.0) ** 2 + (x[1] - 2.0) ** 2
+    funcs["nlcon"] = np.array([x[0] ** 2 + x[1] ** 2])
+    return funcs, False
+
+
+def offset_sens(xdict, funcs):
+    x = xdict["xvars"]
+    funcsSens = {
+        "obj": {"xvars": np.array([2.0 * (x[0] - 2.0), 2.0 * (x[1] - 2.0)])},
+        "nlcon": {"xvars": np.array([[2.0 * x[0], 2.0 * x[1]]])},
+    }
+    return funcsSens, False
+
+
+class TestSNOPTOffsetLinearConstraint(unittest.TestCase):
+    # SNOPT evaluates linear-constraint rows internally as jac @ x_opt, so a DV offset shifts the
+    # row value by a constant that is not compensated in the bounds passed to SNOPT. The linear
+    # constraint x + y <= 1 is active at the true optimum (0.5, 0.5); with the bug SNOPT enforces
+    # it about the wrong intercept and returns the unconstrained minimum (2, 2). Triggers only when
+    # a nonlinear constraint is also present (otherwise the row is evaluated in user space).
+
+    def optimize(self, offset):
+        optProb = Optimization("offset_lincon", offset_objfunc)
+        optProb.addVarGroup("xvars", 2, lower=-50.0, upper=50.0, value=0.0, offset=offset)
+        optProb.addObj("obj")
+        optProb.addConGroup("nlcon", 1, upper=100.0, wrt=["xvars"])
+        optProb.addConGroup(
+            "lincon", 1, upper=1.0, wrt=["xvars"], linear=True, jac={"xvars": np.array([[1.0, 1.0]])}
+        )
+
+        test_name = f"snopt_offset_lincon_{offset}"
+        optOptions = {
+            "Major feasibility tolerance": 1e-8,
+            "Major optimality tolerance": 1e-8,
+            "Print file": f"{test_name}.out",
+            "Summary file": f"{test_name}_summary.out",
+        }
+        try:
+            opt = SNOPT(options=optOptions)
+        except ImportError as e:
+            raise unittest.SkipTest("Optimizer not available: SNOPT") from e
+
+        return opt(optProb, sens=offset_sens)
+
+    def test_no_offset(self):
+        # Control: without an offset SNOPT finds the constrained optimum.
+        sol = self.optimize(0.0)
+        assert_allclose(sol.xStar["xvars"], [0.5, 0.5], atol=1e-5, rtol=1e-5)
+
+    def test_with_offset(self):
+        # A nonzero offset must not move the enforced linear-constraint bound.
+        sol = self.optimize(3.0)
+        assert_allclose(sol.xStar["xvars"], [0.5, 0.5], atol=1e-5, rtol=1e-5)
+
+
 if __name__ == "__main__":
     unittest.main()
