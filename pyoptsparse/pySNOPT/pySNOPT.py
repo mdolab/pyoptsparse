@@ -23,14 +23,13 @@ from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_solution import SolutionInform
 from ..pyOpt_utils import (
     ICOL,
-    ICOLIND,
     IDATA,
     INFINITY,
     IROW,
-    IROWP,
     extractRows,
     import_module,
     mapToCSC,
+    matvec,
     scaleRows,
 )
 
@@ -348,15 +347,12 @@ class SNOPT(Optimizer):
                 # unless a DV offset is present, so skip the work in the common (no-offset) case.
                 if np.any(self.optProb.xOffset != 0.0):
                     xOffset_opt = self.optProb.xOffset / self.optProb.invXScale
-                    rowp, colInd, data = jac["csr"][IROWP], jac["csr"][ICOLIND], jac["csr"][IDATA]
+                    shift = matvec(jac, xOffset_opt)
                     for i in range(nnCon, len(blc)):
-                        # Sparse dot of this linear row with xOffset_opt (only its nonzeros).
-                        cols = colInd[rowp[i] : rowp[i + 1]]
-                        shift = data[rowp[i] : rowp[i + 1]] @ xOffset_opt[cols]
                         if abs(blc[i]) < INFINITY:
-                            blc[i] -= shift
+                            blc[i] -= shift[i]
                         if abs(buc[i]) < INFINITY:
-                            buc[i] -= shift
+                            buc[i] -= shift[i]
             else:
                 blc = [-INFINITY]
                 buc = [INFINITY]
