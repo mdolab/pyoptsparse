@@ -390,6 +390,42 @@ def convertToDense(mat: dict | spmatrix | npt.NDArray[np.floating]) -> npt.NDArr
     return newMat
 
 
+def matvec(
+    mat: dict | spmatrix | npt.NDArray[np.floating], vec: npt.NDArray[np.floating]
+) -> npt.NDArray[np.floating]:
+    """
+    Compute the matrix-vector product ``mat @ vec`` for a pyoptsparse sparse matrix.
+
+    The matrix is converted to CSR internally, so any supported input (a COO/CSR/CSC dict,
+    a SciPy sparse matrix, or a dense array) is accepted.
+
+    Parameters
+    ----------
+    mat : dict
+        A sparse matrix representation. Should be in CSR format for best efficiency.
+    vec : array
+        A 1D array whose length matches the number of columns of ``mat``.
+
+    Returns
+    -------
+    array
+        The dense product ``mat @ vec``, with length equal to the number of rows of ``mat``.
+    """
+    mat = convertToCSR(mat)
+    vec = np.asarray(vec)
+    if mat["shape"][1] != len(vec):
+        raise ValueError("Length of vec is incorrect")
+
+    data = mat["csr"][IDATA]
+    colInd = mat["csr"][ICOLIND]
+    rowp = mat["csr"][IROWP]
+    out = np.zeros(mat["shape"][0], dtype=np.result_type(data, vec))
+    for i in range(mat["shape"][0]):
+        cols = colInd[rowp[i] : rowp[i + 1]]
+        out[i] = data[rowp[i] : rowp[i + 1]] @ vec[cols]
+    return out
+
+
 def scaleColumns(mat: dict, factor):
     """
     Scale the columns of the matrix. Must be CSR format
