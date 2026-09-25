@@ -8,6 +8,7 @@ import unittest
 # External modules
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
+from parameterized import parameterized
 
 # First party modules
 from pyoptsparse.pyOpt_utils import (
@@ -255,17 +256,9 @@ class TestMatVec(unittest.TestCase):
 
     _VEC = np.array([7.0, 11.0, 13.0])
 
-    def test_from_coo(self):
-        assert_allclose(matvec(_COO, self._VEC), _DENSE @ self._VEC)
-
-    def test_from_csr(self):
-        assert_allclose(matvec(_CSR, self._VEC), _DENSE @ self._VEC)
-
-    def test_from_csc(self):
-        assert_allclose(matvec(_CSC, self._VEC), _DENSE @ self._VEC)
-
-    def test_from_dense_array(self):
-        assert_allclose(matvec(_DENSE, self._VEC), _DENSE @ self._VEC)
+    @parameterized.expand([("coo", _COO), ("csr", _CSR), ("csc", _CSC), ("dense", _DENSE)])
+    def test_from_format(self, _name, mat):
+        assert_allclose(matvec(mat, self._VEC), _DENSE @ self._VEC)
 
     def test_non_square(self):
         # A 2x3 submatrix: output length must follow the row count, not the vector length.
