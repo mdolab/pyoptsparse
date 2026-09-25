@@ -968,12 +968,18 @@ class Optimization:
 
                 if conType == "ne" and not con.linear:
                     if noEquality:
-                        # Expand Equality constraint to two:
+                        # Expand Equality constraint to two one-sided inequalities, since some
+                        # optimizers (e.g. CONMIN) cannot handle equality constraints directly.
+                        # The equality  a = b  is equivalent to  a <= b  AND  a >= b, which in
+                        # turn is equivalent to  a <= b  AND  -a <= -b  (negate to flip the
+                        # sign so both halves are expressed as one-sided "<=" constraints with
+                        # a lower bound of -INFINITY).
+                        # First side:  a <= b
                         indices.extend(con.rs + econ["ind"])
                         fact.extend(econ["fact"])
                         lower.extend([-INFINITY] * len(econ["fact"]))
                         upper.extend(econ["value"])
-                        # ....And the other side
+                        # Second side:  -a <= -b  (fact and value both negated)
                         indices.extend(con.rs + econ["ind"])
                         fact.extend(-1.0 * econ["fact"])
                         lower.extend([-INFINITY] * len(econ["fact"]))
@@ -993,7 +999,7 @@ class Optimization:
 
                 if conType == "le" and con.linear:
                     if noEquality:
-                        # Expand Equality constraint to two:
+                        # Same a=b -> (a<=b AND -a<=-b) expansion as the "ne" branch above.
                         indices.extend(con.rs + econ["ind"])
                         fact.extend(econ["fact"])
                         lower.extend([-INFINITY] * len(econ["fact"]))
