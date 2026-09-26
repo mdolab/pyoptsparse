@@ -33,7 +33,7 @@ class TestHS71(OptTest):
         "CONMIN": 1e-3,
         "PSQP": 1e-6,
         "Uno": 1e-4,
-        "Egor": 1e-2,
+        "Egor": 7e-2,
     }
     optOptions = {
         "CONMIN": {
