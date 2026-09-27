@@ -390,9 +390,7 @@ def convertToDense(mat: dict | spmatrix | npt.NDArray[np.floating]) -> npt.NDArr
     return newMat
 
 
-def matvec(
-    mat: dict | spmatrix | npt.NDArray[np.floating], vec: npt.NDArray[np.floating]
-) -> npt.NDArray[np.floating]:
+def matvec(mat: dict | spmatrix | npt.NDArray[np.floating], vec: npt.NDArray[np.floating]) -> npt.NDArray[np.floating]:
     """
     Compute the matrix-vector product ``mat @ vec`` for a pyoptsparse sparse matrix.
 
