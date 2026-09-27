@@ -1,7 +1,5 @@
-# This example shows a bug where pySNOPT wouldn't optimize a model that has
-# only equality constraints because it thought the problem was trivial. The
-# problem is a simple paraboloid. The minimum should be at (7.166667,
-# -7.833334), but with the bug, x and y stay at zero.
+# Regression tests for pySNOPT bugs, all on the paraboloid
+# f(x, y) = (x-3)^2 + xy + (y+4)^2 - 3 with no, or only linear, constraints.
 
 # Standard Python modules
 import unittest
@@ -49,6 +47,8 @@ con_jac["y"] = np.array(1.0)
 
 class TestSNOPTBug(unittest.TestCase):
     def test_opt(self):
+        # pySNOPT wouldn't optimize a model that has only equality constraints because it thought the problem was
+        # trivial. The minimum should be at (7.166667, -7.833334), but with the bug, x and y stay at zero.
         # Optimization Object
         optProb = Optimization("Paraboloid", objfunc)
 
@@ -108,7 +108,12 @@ class TestSNOPTBug(unittest.TestCase):
         except ImportError as e:
             raise unittest.SkipTest("Optimizer not available: SNOPT") from e
 
-        opt(optProb, sens=sens)
+        sol = opt(optProb, sens=sens)
+
+        # Check unconstrained minimum (20/3, -22/3)
+        tol = 1e-6
+        assert_allclose(sol.xStar["x"], 20.0 / 3.0, atol=tol, rtol=tol)
+        assert_allclose(sol.xStar["y"], -22.0 / 3.0, atol=tol, rtol=tol)
 
     def test_opt_bug_print_2con(self):
         # Optimization Object
@@ -152,6 +157,11 @@ class TestSNOPTBug(unittest.TestCase):
         sol = opt(optProb, sens=sens)
 
         print(sol)
+
+        # Every row is -x + y = -15, the same constraint as test_opt, so the solution is the same
+        tol = 1e-6
+        assert_allclose(sol.xStar["x"], 7.166667, atol=tol, rtol=tol)
+        assert_allclose(sol.xStar["y"], -7.833333, atol=tol, rtol=tol)
 
     def test_opt_all_linear_inequality_before_equality(self):
         # For an all-linear problem SNOPT makes its first row a dummy nonlinear constraint evaluated via the callback.
