@@ -153,6 +153,45 @@ class TestSNOPTBug(unittest.TestCase):
 
         print(sol)
 
+    def test_opt_all_linear_inequality_before_equality(self):
+        # For an all-linear problem SNOPT makes its first row a dummy nonlinear constraint evaluated via the callback.
+        # That row is the first in the ["ne", "ni", "le", "li"] ordering (the equality), not the first added (the
+        # inequality). Pairing the inequality value with the equality bounds enforces x = 0 and drops x = y, giving
+        # (0, -4) instead of the true optimum (0, 0).
+        optProb = Optimization("Paraboloid", objfunc)
+
+        # Design Variables
+        optProb.addVarGroup("x", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
+        optProb.addVarGroup("y", 1, varType="c", lower=-50.0, upper=50.0, value=0.0)
+
+        # Objective
+        optProb.addObj("obj")
+
+        # Inequality x >= 0 added before equality x - y = 0
+        optProb.addConGroup("ineq", 1, lower=0.0, wrt=["x"], linear=True, jac={"x": np.array([[1.0]])})
+        optProb.addConGroup("eq", 1, lower=0.0, upper=0.0, wrt=["x", "y"], linear=True, jac={"x": 1.0, "y": -1.0})
+
+        test_name = "bugfix_SNOPT_all_linear_inequality_before_equality"
+        optOptions = {
+            "Major feasibility tolerance": 1e-8,
+            "Major optimality tolerance": 1e-8,
+            "Print file": f"{test_name}.out",
+            "Summary file": f"{test_name}_summary.out",
+        }
+
+        # Optimizer
+        try:
+            opt = SNOPT(options=optOptions)
+        except ImportError as e:
+            raise unittest.SkipTest("Optimizer not available: SNOPT") from e
+
+        sol = opt(optProb, sens=sens)
+
+        tol = 1e-6
+        assert_allclose(sol.xStar["x"], 0.0, atol=tol, rtol=tol)
+        assert_allclose(sol.xStar["y"], 0.0, atol=tol, rtol=tol)
+        assert_allclose(sol.fStar, 22.0, atol=tol, rtol=tol)
+
 
 if __name__ == "__main__":
     unittest.main()
