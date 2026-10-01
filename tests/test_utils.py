@@ -8,6 +8,7 @@ import unittest
 # External modules
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
+from parameterized import parameterized
 
 # First party modules
 from pyoptsparse.pyOpt_utils import (
@@ -19,6 +20,7 @@ from pyoptsparse.pyOpt_utils import (
     extractRows,
     mapToCSC,
     mapToCSR,
+    matvec,
     scaleColumns,
     scaleRows,
 )
@@ -49,27 +51,28 @@ _DENSE = np.array(
         [4.0, 0.0, 5.0],
     ]
 )
+# The dict members are numpy arrays, matching what every producer in pyOpt_utils emits.
 _COO = {
     "coo": [
-        [2, 0, 1, 0, 2],
-        [2, 0, 1, 2, 0],
-        [5.0, 1.0, 3.0, 2.0, 4.0],
+        np.array([2, 0, 1, 0, 2]),
+        np.array([2, 0, 1, 2, 0]),
+        np.array([5.0, 1.0, 3.0, 2.0, 4.0]),
     ],
     "shape": [3, 3],
 }
 _CSR = {
     "csr": [
-        [0, 2, 3, 5],
-        [0, 2, 1, 2, 0],
-        [1.0, 2.0, 3.0, 5.0, 4.0],
+        np.array([0, 2, 3, 5]),
+        np.array([0, 2, 1, 2, 0]),
+        np.array([1.0, 2.0, 3.0, 5.0, 4.0]),
     ],
     "shape": [3, 3],
 }
 _CSC = {
     "csc": [
-        [0, 2, 3, 5],
-        [0, 2, 1, 0, 2],
-        [1.0, 4.0, 3.0, 2.0, 5.0],
+        np.array([0, 2, 3, 5]),
+        np.array([0, 2, 1, 0, 2]),
+        np.array([1.0, 4.0, 3.0, 2.0, 5.0]),
     ],
     "shape": [3, 3],
 }
@@ -244,6 +247,27 @@ class TestRowColScaling(unittest.TestCase):
             scaleRows(csr, np.array([1.0, 2.0]))
         with self.assertRaises(ValueError):
             scaleColumns(csr, np.array([1.0, 2.0]))
+
+
+class TestMatVec(unittest.TestCase):
+    """Check that matvec computes mat @ vec identically from every source format,
+    including a non-square matrix, and rejects a mismatched vector length.
+    """
+
+    _VEC = np.array([7.0, 11.0, 13.0])
+
+    @parameterized.expand([("coo", _COO), ("csr", _CSR), ("csc", _CSC), ("dense", _DENSE)])
+    def test_from_format(self, _name, mat):
+        assert_allclose(matvec(mat, self._VEC), _DENSE @ self._VEC)
+
+    def test_non_square(self):
+        # A 2x3 submatrix: output length must follow the row count, not the vector length.
+        sub = extractRows(convertToCSR(_DENSE), [0, 2])
+        assert_allclose(matvec(sub, self._VEC), _DENSE[[0, 2], :] @ self._VEC)
+
+    def test_wrong_length_raises(self):
+        with self.assertRaises(ValueError):
+            matvec(_CSR, np.array([1.0, 2.0]))
 
 
 class TestExtractRows(unittest.TestCase):
