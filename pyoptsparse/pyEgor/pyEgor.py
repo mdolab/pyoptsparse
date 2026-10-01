@@ -12,7 +12,7 @@ import numpy as np
 # Local modules
 from ..pyOpt_optimizer import Optimizer
 from ..pyOpt_solution import SolutionInform
-from ..pyOpt_utils import import_module
+from ..pyOpt_utils import INFINITY, import_module
 
 # import the Python module
 egobox = import_module("egobox")
@@ -44,6 +44,7 @@ class Egor(Optimizer):
             4: "Algorithm peek at the same point twice. We consider it is converged.",
             5: "Timeout reached",
             6: "Solver unexpected exit. See logs for details.",
+            7: "Objective function returned an error. See logs for details.",
         }
         return informs
 
@@ -51,11 +52,13 @@ class Egor(Optimizer):
     def _getDefaultOptions():
         defOpts = {
             "gp_config": [dict, dict()],  # GpConfig as a dict used by Egor for surrogate model configuration
-            "cstr_tol": [list, []],
-            "n_start": [int, 20],
+            "cstr_tols": [list, []],
+            "infill_n_start": [int, 20],
             "n_doe": [int, 0],
-            "doe": [list, [[]]],
+            "x_doe": [list, [[]]],
+            "y_doe": [list, [[]]],
             "infill_strategy": [int, 4],  # default to LOG_EI
+            "feasible_infill_strategy": [int, 1],  # default to NONE
             "cstr_infill": [bool, False],
             "cstr_strategy": [int, 1],  # default to MC
             "qei_config": [dict, dict()],
@@ -72,10 +75,32 @@ class Egor(Optimizer):
             "max_iters": [int, 20],
             "run_info": [dict, dict()],
             "timeout": [float, -1.0],
+            "stop_on_error": [bool, False],
             "fcstrs": [list, []],
             "fcstr_specs": [list, []],
         }
         return defOpts
+
+    @staticmethod
+    def _getCstrSpecs(blc, buc, cstr_tols):
+        """
+        Build Egor constraint specs from pyOptSparse constraint bounds.
+        """
+        specs = []
+        for i, (lower, upper) in enumerate(zip(blc, buc)):
+            lower, upper = float(lower), float(upper)
+            if lower == upper:
+                spec = {"eq": upper}
+            elif lower <= -INFINITY:
+                spec = {"leq": upper}
+            elif upper >= INFINITY:
+                spec = {"geq": lower}
+            else:
+                spec = {"between": (lower, upper)}
+            if cstr_tols:
+                spec["tol"] = float(cstr_tols[i])
+            specs.append(spec)
+        return specs
 
     def __call__(self, optProb, storeHistory=None, hotStart=None, **kwargs):
         """
@@ -98,7 +123,7 @@ class Egor(Optimizer):
             **IDENTICAL** to the currently supplied 'optProb'. By
             identical we mean, **EVERY SINGLE PARAMETER MUST BE
             IDENTICAL**. As soon as he requested evaluation point
-            from NSGA2 does not match the history, function and
+            from Egor does not match the history, function and
             gradient evaluations revert back to normal evaluations.
 
         Notes
@@ -133,14 +158,16 @@ class Egor(Optimizer):
             raise ValueError("Egor requires finite lower and upper bounds for all design variables.")
 
         # Determine the number of constraints and set up constraint information
+        # Constraints are kept two-sided, bounds are passed to Egor as constraint specs
         if self.unconstrained:
             n_cstr = 0
+            blc = buc = np.array([])
         else:
-            indices, blc, buc, fact = self.optProb.getOrdering(["ne", "le", "ni", "li"], oneSided=True, noEquality=True)
+            indices, blc, buc, fact = self.optProb.getOrdering(["ne", "le", "ni", "li"], oneSided=False)
             n_cstr = len(indices)
             self.optProb.jacIndices = indices
             self.optProb.fact = fact
-            self.optProb.offset = buc
+            self.optProb.offset = np.zeros(len(indices))
 
         if self.optProb.comm.rank == 0:
             opt = self.getOption
@@ -158,6 +185,17 @@ class Egor(Optimizer):
             fcstrs_opt = opt("fcstrs")
             fcstr_specs = opt("fcstr_specs")
 
+            cstr_tols = opt("cstr_tols")
+            if len(cstr_tols) not in (0, n_cstr):
+                raise ValueError(
+                    f"Option 'cstr_tols' length ({len(cstr_tols)}) must be zero or match "
+                    f"the number of constraints ({n_cstr})."
+                )
+            cstr_specs = self._getCstrSpecs(blc, buc, cstr_tols) if n_cstr > 0 else None
+
+            x_doe = np.array(opt("x_doe"), dtype=float)
+            y_doe = np.array(opt("y_doe"), dtype=float)
+
             n_fcstrs = 0 if fcstrs_opt is None else len(fcstrs_opt)
             if fcstr_specs is not None and len(fcstr_specs) not in (0, n_fcstrs):
                 raise ValueError(
@@ -168,18 +206,20 @@ class Egor(Optimizer):
             ctor_kwargs = {
                 "gp_config": gp_config,
                 "n_cstr": n_cstr,
-                "cstr_tol": opt("cstr_tol") if len(opt("cstr_tol")) > 0 else None,
-                "n_start": opt("n_start"),
+                "cstr_specs": cstr_specs,
+                "infill_n_start": opt("infill_n_start"),
                 "n_doe": opt("n_doe"),
-                "doe": np.array(opt("doe")) if np.array(opt("doe")).size > 0 else None,
+                "x_doe": x_doe if x_doe.size > 0 else None,
+                "y_doe": y_doe if y_doe.size > 0 else None,
                 "infill_strategy": infill_strategy,
+                "feasible_infill_strategy": opt("feasible_infill_strategy"),
                 "cstr_infill": opt("cstr_infill"),
                 "cstr_strategy": cstr_strategy,
                 "qei_config": qei_config,
                 "infill_optimizer": infill_optimizer,
                 "trego": opt("trego") if opt("trego") else None,
                 "coego_n_coop": opt("coego_n_coop"),
-                "target": float(opt("target")),
+                "target": float(opt("target")) if opt("target") > -1e12 else None,
                 "failsafe_strategy": failsafe_strategy,
             }
             solver = egobox.Egor(xspecs, **ctor_kwargs)
@@ -214,6 +254,7 @@ class Egor(Optimizer):
                 "seed": opt("seed") if opt("seed") >= 0 else None,
                 "timeout": float(opt("timeout")) if opt("timeout") > 0 else None,
                 "verbose": opt("verbose"),
+                "stop_on_error": opt("stop_on_error"),
             }
 
             t0 = time.time()

@@ -68,6 +68,22 @@ class TestEgor(OptTest):
             # Check that the second run continued from the first run
             self.assertGreater(sol1.fStar, sol2.fStar)
 
+    def test_egor_initial_doe(self):
+        self.setup_xsinx_optProb()
+        x_doe = [[0.0], [5.0], [12.0], [25.0]]
+        sol = self.optimize(optOptions={"x_doe": x_doe, "max_iters": 10, "seed": 0})
+        self.assertLess(sol.fStar, -10.0)
+
+        # Given outputs are not re-evaluated
+        y_doe = [[(x[0] - 3.5) * np.sin((x[0] - 3.5) / np.pi)] for x in x_doe]
+        sol = self.optimize(optOptions={"x_doe": x_doe, "y_doe": y_doe, "max_iters": 1, "seed": 0})
+        self.assertEqual(sol.userObjCalls, 1)
+
+    def test_egor_feasible_infill_strategy(self):
+        self.setup_xsinx_optProb()
+        sol = self.optimize(optOptions={"infill_strategy": 1, "feasible_infill_strategy": 2, "max_iters": 10, "seed": 0})
+        self.assertLess(sol.fStar, -10.0)
+
     def test_egor_config(self):
         with tempfile.TemporaryDirectory() as outdir:
             self.setup_xsinx_optProb()
@@ -78,7 +94,7 @@ class TestEgor(OptTest):
                     "infill_strategy": 1,
                     "gp_config": gp_config,
                     "outdir": outdir,
-                    "trego": {"n_gl_steps": (1, 3)},
+                    "trego": {"n_global_local_steps": (1, 3)},
                 }
             )
             # read egor_config.json from outdir and check that corr_spec is 4
@@ -121,7 +137,7 @@ class TestEgor(OptTest):
                     "corr_spec": 8
                 },  # corr spec: 1 = absolute exponential, 2 = squared exponential, 4 = matern 3/2, 8 = matern 5/2
                 "seed": 0,
-                "trego": {"n_gl_steps": (1, 4)},
+                "trego": {"n_global_local_steps": (1, 4)},
             }
         )
         # Check Solution
@@ -167,7 +183,7 @@ class TestEgor(OptTest):
                 "max_iters": 30,
                 "n_doe": 5,
                 "target": -5.50,
-                "cstr_tol": [1e-3, 1e-3],
+                "cstr_tols": [1e-3, 1e-3],
                 "verbose": 2,
                 "seed": 42,
             }
@@ -177,4 +193,50 @@ class TestEgor(OptTest):
         self.xStar = [
             {"xvars": (2.3295, 3.1785)},
         ]
+        self.assert_solution_allclose(sol, tol=1e-2)
+
+    def test_egor_cstr_tols_mismatch(self):
+        optProb = Optimization("Constrained xsinx", lambda xdict: ({"obj": xdict["x"], "con": xdict["x"]}, False))
+        optProb.addVar("x", lower=0.0, upper=25.0)
+        optProb.addObj("obj")
+        optProb.addCon("con", upper=10.0)
+        self.optName = "Egor"
+        self.optProb = optProb
+        with self.assertRaises(ValueError):
+            self.optimize(optOptions={"cstr_tols": [1e-3, 1e-3]})
+
+    def test_egor_cstr_specs(self):
+        """
+        Test that equality, lower bounded and double-sided constraints are handled.
+
+            minimize (x0 - 1)^2 + (x1 - 2)^2
+            subject to:
+                x0 + x1 = 2
+                0.5 <= x0 * x1 <= 0.6
+            with x0, x1 in [0, 2]
+
+        The equality gives x1 = 2 - x0 and f = (x0 - 1)^2 + x0^2, minimal at x0 = 0.5
+        where x0 * x1 = 0.75: the product upper bound is active, giving x0 = 1 - sqrt(0.4).
+        """
+
+        def objfunc(xdict):
+            x = xdict["xvars"]
+            funcs = {}
+            funcs["obj"] = (x[0] - 1.0) ** 2 + (x[1] - 2.0) ** 2
+            funcs["eq"] = x[0] + x[1]
+            funcs["prod"] = x[0] * x[1]
+            fail = False
+            return funcs, fail
+
+        optProb = Optimization("Constraint specs", objfunc)
+        optProb.addVarGroup("xvars", 2, lower=[0.0, 0.0], upper=[2.0, 2.0])
+        optProb.addObj("obj")
+        optProb.addCon("eq", lower=2.0, upper=2.0)
+        optProb.addCon("prod", lower=0.5, upper=0.6)
+        self.optName = "Egor"
+        self.optProb = optProb
+        sol = self.optimize(optOptions={"max_iters": 30, "n_doe": 10, "cstr_tols": [1e-3, 1e-3], "seed": 42})
+        x0 = 1.0 - np.sqrt(0.4)
+        self.fStar = [(x0 - 1.0) ** 2 + x0**2]
+        self.xStar = [{"xvars": (x0, 2.0 - x0)}]
         self.assert_solution_allclose(sol, tol=1e-2)
