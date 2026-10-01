@@ -81,7 +81,9 @@ class TestEgor(OptTest):
 
     def test_egor_feasible_infill_strategy(self):
         self.setup_xsinx_optProb()
-        sol = self.optimize(optOptions={"infill_strategy": 1, "feasible_infill_strategy": 2, "max_iters": 10, "seed": 0})
+        sol = self.optimize(
+            optOptions={"infill_strategy": 1, "feasible_infill_strategy": 2, "max_iters": 10, "seed": 0}
+        )
         self.assertLess(sol.fStar, -10.0)
 
     def test_egor_config(self):
