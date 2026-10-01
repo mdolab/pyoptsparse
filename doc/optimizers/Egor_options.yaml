@@ -76,7 +76,7 @@ trego:
 coego_n_coop:
   desc: Number of cooperative groups for CoEGO algorithm
 target:
-  desc: Known objective target used as stopping criterion
+  desc: Known objective target used as stopping criterion. Default is ``-inf`` (no target)
 outdir:
   desc: Output directory for Egor output files (configuration, does, history and warm start search)
 warm_start:

@@ -65,7 +65,7 @@ class Egor(Optimizer):
             "infill_optimizer": [int, 1],  # default to COBYLA
             "trego": [dict, dict()],
             "coego_n_coop": [int, 0],
-            "target": [float, -1e12],
+            "target": [float, -np.inf],  # default to no target
             "outdir": [str, ""],
             "warm_start": [bool, False],
             "hot_start": [bool, False],
@@ -219,7 +219,7 @@ class Egor(Optimizer):
                 "infill_optimizer": infill_optimizer,
                 "trego": opt("trego") if opt("trego") else None,
                 "coego_n_coop": opt("coego_n_coop"),
-                "target": float(opt("target")) if opt("target") > -1e12 else None,
+                "target": float(opt("target")),
                 "failsafe_strategy": failsafe_strategy,
             }
             solver = egobox.Egor(xspecs, **ctor_kwargs)
