@@ -7,26 +7,43 @@ gp_config:
     - ``corr_spec``: 2 (Squared Exponential)
     - ``kpls_dim``: no PLS dimensionality reduction (otherwise int)
     - ``n_clusters``: no clustering (otherwise int)
-cstr_tol:
+    - ``theta_n_start``: number of multistart runs for GP hyperparameters optimization
+    - ``theta_max_eval``: max number of likelihood evaluations for GP hyperparameters optimization
+cstr_tols:
   desc: |
-    Constraint tolerances list passed to Egor (size n_cstr plus n_fcstr)
-    Default is ``1e-4`` for all constraints.
-n_start:
+    Constraint tolerances list, one per pyOptSparse constraint row (in the order equality then inequality).
+    pyOptSparse constraint bounds are passed to Egor as constraint specs
+    (``leq``, ``geq``, ``eq`` or ``between``), each with its tolerance.
+    Default is ``1e-4`` for all constraints. Tolerances of ``fcstrs`` are given with ``fcstr_specs``.
+infill_n_start:
   desc: Number of infill optimization runs (best run selected)
 n_doe:
   desc: Number of initial DOE samples (0 lets Egor choose automatically)
-doe:
+x_doe:
   desc: |
-    Initial DOE array, either x-only or concatenated x and y
-    to be passed as list of lists of floats. If not provided, Egor will generate a DOE automatically.
+    Initial DOE inputs to be passed as list of lists of floats (n_samples x n_vars).
+    If not provided, Egor will generate a DOE automatically.
+y_doe:
+  desc: |
+    Optional outputs of the initial DOE ``x_doe`` (n_samples x (1 + n_cstr)), objective first then
+    constraint values (equality then inequality constraints). If not provided, ``x_doe`` points are evaluated.
 infill_strategy:
   desc: |
-  Infill criterion:
+    Infill criterion:
 
     - 1 = ``EI``,
     - 2 = ``WB2``,
     - 3 = ``WB2S``,
     - 4 = ``LOG_EI`` (default)
+feasible_infill_strategy:
+  desc: |
+    Expected Feasible Improvement to handle hidden constraints (points where the function fails):
+
+    - 1 = ``NONE`` (default)
+    - 2 = ``EFI_P``, criterion weighted by the probability of viability
+    - 3 = ``EFI_FE``, feasibility enhanced variant, more exploratory
+
+    Not available with ``LOG_EI`` infill criterion (use ``EI``, ``WB2`` or ``WB2S``).
 cstr_infill:
   desc: Enable constrained infill criterion (aka CEI)
 cstr_strategy:
@@ -41,6 +58,7 @@ qei_config:
 
     - ``batch``: size of batch (int)
     - ``strategy``: qEI strategy enum
+    - ``optim_every``: hyperparameters optimization frequency within the batch
 infill_optimizer:
   desc: |
     Internal infill optimizer:
@@ -51,13 +69,14 @@ trego:
   desc: |
     Enable TREGO (aka Trust Region EGO) algorithm configured with main parameters:
 
-    - ``n_gl_steps``: (nb of global search steps default 1, nb of local search steps default 4)
+    - ``n_global_local_steps``: (nb of global search steps default 1, nb of local search steps default 4)
+    - ``radius_bounds``: (min, max) bounds of the trust region radius
     - ``beta``: trust region factor (default 0.9)
 
 coego_n_coop:
   desc: Number of cooperative groups for CoEGO algorithm
 target:
-  desc: Known objective target used as stopping criterion
+  desc: Known objective target used as stopping criterion. Default is ``-inf`` (no target)
 outdir:
   desc: Output directory for Egor output files (configuration, does, history and warm start search)
 warm_start:
@@ -88,11 +107,16 @@ max_iters:
 run_info:
   desc: Optional RunInfo used to pass additional information to Egor (e.g., for logging)
 timeout:
-  desc: Optional timeout in seconds used as sttopping criterion for Egor minimize
+  desc: Optional timeout in seconds used as stopping criterion for Egor minimize
 fcstrs:
   desc: |
     Optional list of native Egobox function constraints passed directly as fcstrs
     (instead of pyOptSparse constraints which are metamodelized)
 fcstr_specs:
   desc: |
-    Optional list of egobox.CstrSpec for function constraints passed as fcstrs
+    Optional list of egobox.CstrSpec (or dict, e.g. ``{"leq": 0.0, "tol": 1e-3}``)
+    for function constraints passed as fcstrs, giving bound and tolerance of each one
+stop_on_error:
+  desc: |
+    Terminate the optimization when the objective function raises an error,
+    otherwise the error is handled according to ``failsafe_strategy``
