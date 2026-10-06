@@ -1015,7 +1015,7 @@ class Optimization:
                     lower.extend(icon["lower"])
                     upper.extend(icon["upper"])
 
-        return np.array(indices), np.array(lower), np.array(upper), np.array(fact)
+        return np.array(indices, dtype=int), np.array(lower), np.array(upper), np.array(fact)
 
     def processXtoDict(self, x: npt.NDArray[np.floating]) -> OrderedDict[str, npt.NDArray[np.floating]]:
         """
