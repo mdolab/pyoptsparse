@@ -21,4 +21,4 @@ dependencies:
 # testing
   - parameterized
   - testflo
-  - egobox >=0.38.0, <0.39.0
+  - egobox >=0.38.0

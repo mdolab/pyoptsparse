@@ -30,7 +30,7 @@ docs = [
 testing = [
     "testflo>=1.4.5",
     "parameterized",
-    "egobox>=0.38.0,<0.39.0",
+    "egobox>=0.38.0",
 ]
 dev = [
     "meson-python",
