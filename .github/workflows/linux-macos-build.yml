@@ -1,4 +1,4 @@
-name: PyOptSparse Linux Actions
+name: PyOptSparse Linux/macOS Actions
 
 on:
   push:
@@ -8,13 +8,21 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-14]  # macos-14 runners are arm64 (Apple Silicon)
         versions: [{python: "3.11", numpy: "1.25"}, {python: "3.12", numpy: "2.3"}]
     steps:
       - uses: actions/checkout@v4
@@ -24,6 +32,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.versions.python }}
+      - name: Set Fortran compiler (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          # GitHub macOS runners ship gfortran via brew's gcc, but usually only as
+          # a versioned binary (gfortran-14) without a bare `gfortran` symlink, so
+          # point meson/f2py at the newest one explicitly.
+          FC=$(ls -1 "$(brew --prefix)"/bin/gfortran* 2>/dev/null | sort -V | tail -1)
+          echo "FC=${FC:-gfortran}" >> "$GITHUB_ENV"
       - name: Install runtime numpy ${{ matrix.versions.numpy }}
         run: |
           pip install -U pip wheel
