@@ -1,15 +1,11 @@
 project(
   'pyoptsparse',
   'c', 'cpp',
+  # setuptools_scm (configured in pyproject.toml) derives the version and writes
+  # pyoptsparse/_version.py, which is installed as part of the package below
   version: run_command(
-        'python', '-c',
-        '''
-import re
-from pathlib import Path
-init_file = Path("pyoptsparse/__init__.py")
-match = re.search(r'__version__ = ["\\\']([\d\\.]+)["\\\']', init_file.read_text())
-print(match.group(1))
-        '''
+        'python', '-m', 'setuptools_scm', '--force-write-version-files',
+        check: true
     ).stdout().strip(),
   meson_version: '>= 0.64',
   default_options: [
