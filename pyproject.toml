@@ -40,6 +40,7 @@ dev = [
     "testflo>=1.4.5",
     "parameterized",
 ]
+all = ["pyoptsparse[optview, docs, testing, dev]"]
 
 [project.urls]
 Homepage = "https://github.com/mdolab/pyoptsparse"
