@@ -11,7 +11,7 @@ fi
 mv ~/.config/pip/constraints.txt ~/.config/pip/constraints.txt.bkup
 touch  ~/.config/pip/constraints.txt
 
-pip install .[optview,testing] -v
+pip install .[all] -v
 
 # move pip constraints file back
 mv ~/.config/pip/constraints.txt.bkup ~/.config/pip/constraints.txt
