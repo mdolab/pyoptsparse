@@ -45,21 +45,15 @@ dual_tolerance:
 
     The default value is ``1e-8``.
 
-loose_primal_tolerance:
+acceptable_tolerance:
   desc: |
-    Loose tolerance on constraint violation (double).
+    Tolerance on the scaled primal infeasibility, stationarity and complementarity for a solution to be acceptable (double).
 
     The default value is ``1e-6``.
 
-loose_dual_tolerance:
+acceptable_iteration_threshold:
   desc: |
-    Loose tolerance on stationarity and complementarity (double).
-
-    The default value is ``1e-6``.
-
-loose_tolerance_iteration_threshold:
-  desc: |
-    Number of iterations before loose tolerance applies (int).
+    Number of iterations before acceptable tolerance applies (int).
 
     The default value is ``15``.
 
