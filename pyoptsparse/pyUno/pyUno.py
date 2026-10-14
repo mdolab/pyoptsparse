@@ -21,7 +21,7 @@ from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, impor
 unopy = import_module("unopy")
 
 
-_UNOPY_MIN_VERSION = "0.4.7"
+_UNOPY_MIN_VERSION = "0.4.15"
 
 
 class _UserTerminationError(Exception):
@@ -131,9 +131,8 @@ class Uno(Optimizer):
             # Termination Options
             "primal_tolerance": [float, 1e-8],
             "dual_tolerance": [float, 1e-8],
-            "loose_primal_tolerance": [float, 1e-6],
-            "loose_dual_tolerance": [float, 1e-6],
-            "loose_tolerance_iteration_threshold": [int, 15],
+            "acceptable_tolerance": [float, 1e-6],
+            "acceptable_iteration_threshold": [int, 15],
             "max_iterations": [int, 2000],
             "time_limit": [float, float("inf")],
             "unbounded_objective_threshold": [float, -1e20],
