@@ -214,11 +214,19 @@ class History:
         # extract all information stored in the call counters
         self.iterKeys = set()
         self.extraFuncsNames = set()
+        funcEvalKeys = None
         for i in self.callCounters:
             val = self.read(i)
             self.iterKeys.update(val.keys())
             if "funcs" in val.keys():
                 self.extraFuncsNames.update(val["funcs"].keys())
+                if funcEvalKeys is None:
+                    funcEvalKeys = set(val.keys())
+                else:
+                    funcEvalKeys.intersection_update(val.keys())
+        # keys that are missing from some function evaluations, such as the values
+        # SNOPT stores only at major iterations
+        self.majorIterKeys = self.iterKeys.difference(funcEvalKeys or set())
         # remove objective and constraint keys
         self.extraFuncsNames = self.extraFuncsNames.difference(self.conNames).difference(self.objNames)
 
@@ -516,6 +524,10 @@ class History:
 
         major : bool
             flag to specify whether to include only major iterations.
+            Some values are only stored at major iterations, such as ``merit`` for SNOPT.
+            If such a value is requested in `names` with ``major=False``, `major` is set to True.
+            If `names` is None, such values are left out instead, and the other values are
+            returned for all iterations.
 
         scale : bool
             flag to specify whether to apply scaling for the values. True means
@@ -572,6 +584,7 @@ class History:
             .union(self.extraFuncsNames)
             .difference({"funcs", "funcsSens", "xuser"})
         )
+        namesGiven = names is not None
         # cast string input into a single list
         if isinstance(names, str):
             names = {names}
@@ -597,12 +610,19 @@ class History:
                     + "Otherwise, consider renaming the variable or manually editing the history file."
                 )
 
-        if len(names.intersection(self.iterKeys)) > 0:
-            if not major:
+        majorOnlyNames = names.intersection(self.majorIterKeys)
+        if len(majorOnlyNames) > 0 and not major:
+            if namesGiven:
                 pyOptSparseWarning(
                     "The major flag has been set to True, since some names specified only exist on major iterations."
                 )
                 major = True
+            else:
+                names = names.difference(majorOnlyNames)
+                pyOptSparseWarning(
+                    f"The names {sorted(majorOnlyNames)} only exist on major iterations "
+                    + "and are not returned, since the major flag is False."
+                )
 
         if stack:
             DVinNames = names.intersection(self.DVNames)
