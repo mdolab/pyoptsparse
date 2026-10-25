@@ -7,6 +7,8 @@
 # interpreter that is running meson (it rewrites the `/usr/bin/env python3` shebang). If the file is executable,
 # the OS runs it via the shebang, `env` searches PATH for python3, and the original problem comes back.
 # NumPy relies on the same behavior for numpy/_build_utils/gitversion.py.
+
+# Standard Python modules
 import runpy
 import sys
 
