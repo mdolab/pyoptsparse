@@ -39,7 +39,7 @@ dev = [
     "swig",
     "testflo>=1.4.5",
     "parameterized",
-    "setuptools_scm",
+    "setuptools_scm>=8.2",
 ]
 
 # Version is derived from git tags (or PKG-INFO in an sdist, or SETUPTOOLS_SCM_PRETEND_VERSION).
