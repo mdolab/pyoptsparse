@@ -2,11 +2,9 @@ project(
   'pyoptsparse',
   'c', 'cpp',
   # setuptools_scm (configured in pyproject.toml) derives the version and writes
-  # pyoptsparse/_version.py, which is installed as part of the package below
-  version: run_command(
-        'python', '-m', 'setuptools_scm', '--force-write-version-files',
-        check: true
-    ).stdout().strip(),
+  # pyoptsparse/_version.py, which is installed as part of the package below.
+  # A .py script is used so meson runs it with its own interpreter; see tools/get_version.py
+  version: run_command(['tools/get_version.py'], check: true).stdout().strip(),
   meson_version: '>= 0.64',
   default_options: [
     'buildtype=debugoptimized',
