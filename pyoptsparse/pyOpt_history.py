@@ -615,7 +615,8 @@ class History:
         if len(majorOnlyNames) > 0 and not major:
             if namesGiven:
                 pyOptSparseWarning(
-                    "The major flag has been set to True, since some names specified only exist on major iterations."
+                    f"The major flag has been set to True, since the names {sorted(majorOnlyNames)} "
+                    + "only exist on major iterations."
                 )
                 major = True
             else:
