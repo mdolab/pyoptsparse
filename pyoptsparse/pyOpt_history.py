@@ -239,14 +239,15 @@ class History:
 
     def getIterKeys(self):
         """
-        Returns the keys available at each optimization iteration.
+        Returns the keys stored at the optimization iterations.
         This function is useful for inspecting the history file, to determine
         what information is saved at each iteration.
+        Some keys are only stored at major iterations, such as ``merit`` for SNOPT.
 
         Returns
         -------
         list of str
-            A list containing the names of keys stored at each optimization iteration.
+            A list containing the names of keys stored at any optimization iteration.
         """
         return copy.deepcopy(list(self.iterKeys))
 
