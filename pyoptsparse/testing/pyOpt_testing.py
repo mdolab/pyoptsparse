@@ -345,6 +345,8 @@ class OptTest(unittest.TestCase):
         times = hist.getValues(names="time", major=False)["time"]
         # the times should be monotonically increasing
         self.assertTrue(np.all(np.diff(times) > 0))
+        # all iterations are returned, not only the major ones
+        self.assertGreaterEqual(len(times), len(hist.getValues(names="time", major=True)["time"]))
 
         # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
         if self.optName in ["SNOPT", "PSQP"]:
