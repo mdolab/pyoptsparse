@@ -18,7 +18,8 @@ dependencies:
   - scipy >=1.7
   - sqlitedict >=1.6
   - cyipopt
+  - egobox >=0.38.0
+  - unopy
 # testing
   - parameterized
   - testflo
-  - egobox >=0.38.0
