@@ -1,9 +1,9 @@
 # Standard Python modules
 import os
-import re
 import sys
 
 # External modules
+from setuptools_scm import get_version
 from sphinx_mdolab_theme.config import *
 
 # -- Path setup --------------------------------------------------------------
@@ -19,10 +19,9 @@ sys.path.insert(0, os.path.abspath("../"))
 # -- Project information -----------------------------------------------------
 
 project = "pyOptSparse"
-version = re.findall(
-    r"""__version__ = ["']+([0-9\.]*)["']+""",
-    open("../pyoptsparse/__init__.py").read(),
-)[0]
+# version_file (resolved relative to this file's directory) is written into the checkout so
+# that optionstable can import pyoptsparse from the source tree (RTD does not install the package)
+version = get_version(root="..", relative_to=__file__, version_file="../pyoptsparse/_version.py")
 
 # -- General configuration ---------------------------------------------------
 

@@ -1,16 +1,10 @@
 project(
   'pyoptsparse',
   'c', 'cpp',
-  version: run_command(
-        'python', '-c',
-        '''
-import re
-from pathlib import Path
-init_file = Path("pyoptsparse/__init__.py")
-match = re.search(r'__version__ = ["\\\']([\d\\.]+)["\\\']', init_file.read_text())
-print(match.group(1))
-        '''
-    ).stdout().strip(),
+  # setuptools_scm (configured in pyproject.toml) derives the version and writes
+  # pyoptsparse/_version.py, which is installed as part of the package below.
+  # A .py script is used so meson runs it with its own interpreter; see tools/get_version.py
+  version: run_command(['tools/get_version.py'], check: true).stdout().strip(),
   meson_version: '>= 0.64',
   default_options: [
     'buildtype=debugoptimized',
