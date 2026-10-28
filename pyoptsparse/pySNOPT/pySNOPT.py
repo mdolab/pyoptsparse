@@ -29,6 +29,7 @@ from ..pyOpt_utils import (
     extractRows,
     import_module,
     mapToCSC,
+    matvec,
     scaleRows,
 )
 
@@ -338,6 +339,20 @@ class SNOPT(Optimizer):
                 indices, blc, buc, fact = self.optProb.getOrdering(["ne", "ni", "le", "li"], oneSided=oneSided)
                 jac = extractRows(jac, indices)  # Does reordering
                 scaleRows(jac, fact)  # Perform logical scaling
+
+                # SNOPT evaluates linear rows internally as jac @ x_opt, which equals the scaled
+                # user constraint value minus the constant jac @ xOffset_opt. Shift the linear-row
+                # bounds by that constant so they are enforced about the correct intercept. Nonlinear
+                # rows (the first nnCon) are evaluated by callback and are unaffected. This is a no-op
+                # unless a DV offset is present, so skip the work in the common (no-offset) case.
+                if np.any(self.optProb.xOffset != 0.0):
+                    xOffset_opt = self.optProb.xOffset / self.optProb.invXScale
+                    shift = matvec(jac, xOffset_opt)
+                    for i in range(nnCon, len(blc)):
+                        if abs(blc[i]) < INFINITY:
+                            blc[i] -= shift[i]
+                        if abs(buc[i]) < INFINITY:
+                            buc[i] -= shift[i]
             else:
                 blc = [-INFINITY]
                 buc = [INFINITY]
