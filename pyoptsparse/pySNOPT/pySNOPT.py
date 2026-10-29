@@ -303,14 +303,6 @@ class SNOPT(Optimizer):
             self.optProb.fact = fact
             self.optProb.offset = np.zeros_like(fact)
 
-            # Again, make SNOPT think we have a nonlinear constraint when all
-            # our constraints are linear
-            if nnCon == 0:
-                nnCon = 1
-                self.optProb.jacIndices = [0]
-                self.optProb.fact = np.array([1.0])
-                self.optProb.offset = np.zeros_like(self.optProb.fact)
-
         # Make sure restartDict is provided if using hot start
         if self.getOption("Start") == "Hot" and restartDict is None:
             raise ValueError("restartDict must be provided if using a hot start")
@@ -405,10 +397,11 @@ class SNOPT(Optimizer):
 
             # Memory allocation
             nnObj = nvar
-            nnJac = nvar
+            # SNOPT requires nnJac = 0 when there are no nonlinear constraints
+            nnJac = nvar if nnCon > 0 else 0
             iObj = np.array(0, np.intc)
             neA = len(indA)
-            neGcon = neA  # The nonlinear Jacobian and A are the same
+            neGcon = neA if nnCon > 0 else 0  # The nonlinear Jacobian and A are the same
             iExit = 0
             # set the work arrays
             if restartDict is not None:
@@ -578,6 +571,12 @@ class SNOPT(Optimizer):
         if self.timeLimit is not None:
             if time.time() - self.startTime > self.timeLimit:
                 mode = -2  # User requested termination
+
+        # With no nonlinear constraints, SNOPT still passes size-1 fcon/gcon placeholders that must be returned as such
+        if np.size(fcon) == 0:
+            fcon = np.zeros(1)
+        if np.size(gcon) == 0:
+            gcon = np.zeros(1)
 
         return mode, fobj, gobj, fcon, gcon
 
