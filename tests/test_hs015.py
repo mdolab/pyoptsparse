@@ -145,7 +145,7 @@ class TestHS15(OptTest):
         # Check informs
         self.assert_inform_equal(sol)
 
-    @parameterized.expand(["filtersqp", "filterslp", "funnelsqp", "ipopt"])
+    @parameterized.expand(["auto", "filtersqp", "filterslp", "funnelsqp", "ipopt"])
     def test_uno_presets(self, preset):
         self.optName = "Uno"
         self.setup_optProb()
