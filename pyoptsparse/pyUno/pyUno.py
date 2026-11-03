@@ -124,9 +124,6 @@ class Uno(Optimizer):
         """
         defOpts = {
             "preset": [str, "auto"],
-            # Special options handled by the Python wrapper
-            "logger_stream": [(TextIO, str, pathlib.Path), None],
-            "save_major_iteration_variables": [list, []],
             # Termination Options
             "primal_tolerance": [float, 1e-8],
             "dual_tolerance": [float, 1e-8],
@@ -147,6 +144,9 @@ class Uno(Optimizer):
             "protected_actual_reduction_macheps_coefficient": [float, 10.0],
             "hessian_model": [str, "LBFGS"],
             "quasi_newton_memory_size": [int, 20],
+            # Special options handled by the Python wrapper
+            "logger_stream": [(TextIO, str, pathlib.Path), None],
+            "save_major_iteration_variables": [list, []],
         }
         return defOpts
 
