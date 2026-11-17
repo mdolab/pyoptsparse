@@ -40,7 +40,7 @@ class Egor(Optimizer):
         informs = {
             1: "Reached maximum number of iterations",
             2: "Reached target cost function value",
-            3: "Algorithm manually interrupted with SIGINT (Ctrl+C), SIGTERM or SIGHUP",
+            3: "Algorithm manually interrupted with SIGINT (Ctrl+C), SIGTERM, SIGHUP or user requested termination",
             4: "Algorithm peek at the same point twice. We consider it is converged.",
             5: "Timeout reached",
             6: "Solver unexpected exit. See logs for details.",
@@ -242,6 +242,11 @@ class Egor(Optimizer):
                 for i in range(x_eval.shape[0]):
                     xi = np.clip(x_eval[i], blx, bux)
                     fobj, fcon, fail = self._masterFunc(xi, ["fobj", "fcon"])
+                    if fail == 2:
+                        # User requested termination. Egor would take a failed evaluation as
+                        # a point to reject and go on, so it is interrupted instead: Egor then
+                        # returns the best point found so far with the INTERRUPT status.
+                        raise KeyboardInterrupt("User requested termination.")
                     if fail:
                         y[i, :] = np.nan
                         continue

@@ -207,6 +207,42 @@ class TestEgor(OptTest):
         with self.assertRaises(ValueError):
             self.optimize(optOptions={"cstr_tols": [1e-3, 1e-3]})
 
+    def run_terminated_xsinx(self, terminate):
+        """
+        Run xsinx where ``terminate`` is called at the 7th evaluation, after the initial DOE.
+        ``terminate`` returns the fail flag of that evaluation or raises.
+        """
+        counter = {"n": 0}
+
+        def objfunc(xdict):
+            counter["n"] += 1
+            funcs = {"obj": (xdict["x"] - 3.5) * np.sin((xdict["x"] - 3.5) / np.pi)}
+            fail = terminate() if counter["n"] == 7 else False
+            return funcs, fail
+
+        optProb = Optimization("xsinx Function", objfunc)
+        optProb.addVar("x", lower=0.0, upper=25.0)
+        optProb.addObj("obj")
+        self.optName = "Egor"
+        self.optProb = optProb
+        sol = self.optimize(optOptions={"n_doe": 5, "max_iters": 20, "seed": 42})
+
+        # Egor stops at the evaluation requesting termination with the INTERRUPT status.
+        self.assert_inform_equal(sol, 3)
+        self.assertEqual(counter["n"], 7)
+        # The best point found before termination is returned.
+        self.assertTrue(np.isfinite(sol.fStar))
+        return sol
+
+    def test_egor_user_termination(self):
+        self.run_terminated_xsinx(lambda: 2)
+
+    def test_egor_keyboard_interrupt(self):
+        def terminate():
+            raise KeyboardInterrupt
+
+        self.run_terminated_xsinx(terminate)
+
     def test_egor_unbounded_desvar(self):
         def objfunc(xdict):
             return {"obj": np.sum(xdict["x"] ** 2) + np.sum(xdict["y"] ** 2) + np.sum(xdict["z"] ** 2)}, False
