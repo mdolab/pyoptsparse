@@ -17,6 +17,7 @@ env
 pyoptsparse/pySNOPT/source
 pyoptsparse/pyNLPQLP/source
 *.egg-info
+pyoptsparse/_version.py
 
 .idea/
 /meson_build/
