@@ -207,6 +207,25 @@ class TestEgor(OptTest):
         with self.assertRaises(ValueError):
             self.optimize(optOptions={"cstr_tols": [1e-3, 1e-3]})
 
+    def test_egor_unbounded_desvar(self):
+        def objfunc(xdict):
+            return {"obj": np.sum(xdict["x"] ** 2) + np.sum(xdict["y"] ** 2) + np.sum(xdict["z"] ** 2)}, False
+
+        optProb = Optimization("Unbounded design variables", objfunc)
+        optProb.addVar("x", lower=0.0)
+        optProb.addVarGroup("y", 2, upper=1.0)
+        optProb.addVarGroup("z", 2, lower=-1.0, upper=1.0)
+        optProb.addObj("obj")
+        self.optName = "Egor"
+        self.optProb = optProb
+        with self.assertRaises(ValueError) as cm:
+            self.optimize()
+        self.assertEqual(
+            str(cm.exception),
+            "Egor requires finite lower and upper bounds on all design variables, "
+            "but the following design variables are unbounded: ['x', 'y'].",
+        )
+
     def test_egor_cstr_specs(self):
         """
         Test that equality, lower bounded and double-sided constraints are handled.

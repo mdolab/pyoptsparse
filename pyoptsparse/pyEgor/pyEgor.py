@@ -142,6 +142,19 @@ class Egor(Optimizer):
         if len(self.optProb.objectives) != 1:
             raise ValueError("Egor wrapper currently supports single-objective problems only.")
 
+        # Egor requires finite bounds. pyOptSparse stores missing bounds as -/+INFINITY (1e20),
+        # which is finite, so check against INFINITY rather than with np.isfinite.
+        unbounded = [
+            dvGroup
+            for dvGroup, varList in self.optProb.variables.items()
+            if any(not (-INFINITY < var.lower and var.upper < INFINITY) for var in varList)
+        ]
+        if unbounded:
+            raise ValueError(
+                "Egor requires finite lower and upper bounds on all design variables, "
+                f"but the following design variables are unbounded: {unbounded}."
+            )
+
         # Set history/hotstart/coldstart
         self._setHistory(storeHistory, hotStart)
         self._setInitialCacheValues()
@@ -153,9 +166,6 @@ class Egor(Optimizer):
         xs = np.maximum(xs, blx)
         xs = np.minimum(xs, bux)
         n = len(xs)
-
-        if np.any(~np.isfinite(blx)) or np.any(~np.isfinite(bux)):
-            raise ValueError("Egor requires finite lower and upper bounds for all design variables.")
 
         # Determine the number of constraints and set up constraint information
         # Constraints are kept two-sided, bounds are passed to Egor as constraint specs
