@@ -7,6 +7,7 @@ import unittest
 # External modules
 from baseclasses.utils import readPickle, writePickle
 import numpy as np
+from numpy.testing import assert_allclose
 from parameterized import parameterized
 
 # First party modules
@@ -221,6 +222,31 @@ class TestHS15(OptTest):
         objhis_len = data["obj"].shape[0]
         for i in range(objhis_len - 1):
             self.assertNotEqual(data["obj"][i], data["obj"][i + 1])
+
+    @parameterized.expand([("SNOPT", "merit"), ("IPOPT", "mu"), ("Uno", "stationarity_residual")])
+    def test_history_minor_iterations(self, optName, majorOnlyKey):
+        self.optName = optName
+        self.setup_optProb()
+        self.optimize(storeHistory=True)
+        hist = History(self.histFileName, flag="r")
+        objMajor = hist.getValues(names="obj", major=True)["obj"]
+        objAll = hist.getValues(names="obj", major=False)["obj"]
+        self.assertGreater(len(objAll), len(objMajor))
+
+        # values stored at every iteration are returned for all iterations
+        data = hist.getValues(names=["time", "isMajor"], major=False)
+        self.assertEqual(len(data["time"]), len(objAll))
+        self.assertFalse(data["isMajor"].all())
+
+        # with names=None, values stored only at major iterations are left out
+        data = hist.getValues(major=False)
+        self.assertNotIn(majorOnlyKey, data)
+        assert_allclose(data["obj"], objAll)
+
+        # requesting a value stored only at major iterations sets major=True
+        data = hist.getValues(names=["obj", majorOnlyKey], major=False)
+        assert_allclose(data["obj"], objMajor)
+        self.assertEqual(len(data[majorOnlyKey]), len(objMajor))
 
     def test_snopt_hotstart(self):
         self.optName = "SNOPT"
