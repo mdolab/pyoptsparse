@@ -24,26 +24,29 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-15]  # macos-15 runners are arm64 (Apple Silicon)
         versions: [{python: "3.11", numpy: "1.25"}, {python: "3.12", numpy: "2.3"}]
+    defaults:
+      run:
+        # login shell so the conda env activated by setup-miniconda is picked up in every step
+        shell: bash -el {0}
     steps:
       - uses: actions/checkout@v4
         with:
           # full history so setuptools_scm can find version tags
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+      - uses: conda-incubator/setup-miniconda@v3
         with:
+          miniforge-version: latest
           python-version: ${{ matrix.versions.python }}
-      - name: Set Fortran compiler (macOS)
-        if: runner.os == 'macOS'
+          channels: conda-forge
+          conda-remove-defaults: "true"
+      - name: Install conda dependencies (numpy ${{ matrix.versions.numpy }})
         run: |
-          # GitHub macOS runners ship gfortran via brew's gcc, but usually only as
-          # a versioned binary (gfortran-14) without a bare `gfortran` symlink, so
-          # point meson/f2py at the newest one explicitly.
-          FC=$(ls -1 "$(brew --prefix)"/bin/gfortran* 2>/dev/null | sort -V | tail -1)
-          echo "FC=${FC:-gfortran}" >> "$GITHUB_ENV"
-      - name: Install runtime numpy ${{ matrix.versions.numpy }}
-        run: |
-          pip install -U pip wheel
-          pip install numpy~=${{ matrix.versions.numpy }}
+          # conda-forge compilers set CC/FC and the rpath to $CONDA_PREFIX/lib for libgfortran.
+          # cyipopt from conda-forge ships with the IPOPT library; pip then sees it as already installed.
+          conda install -y \
+            c-compiler fortran-compiler pip \
+            numpy=${{ matrix.versions.numpy }} \
+            cyipopt
       - name: Build and install pyoptsparse
         run: |
           pip install .['testing']
