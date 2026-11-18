@@ -30,6 +30,8 @@ docs = [
 testing = [
     "testflo>=1.4.5",
     "parameterized",
+    "unopy<=0.4.14",
+    "cyipopt",
     "egobox>=0.38.0",
 ]
 dev = [
