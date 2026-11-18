@@ -29,6 +29,7 @@ Test uses Schittkowski's TP109 constraint problem.
 """
 
 # Standard Python modules
+import time
 import unittest
 
 # External modules
@@ -61,6 +62,7 @@ class TestTP109(OptTest):
             368.4881990875219,
         )
     }
+    slowDownFunc = False
 
     def objfunc(self, xdict):
         x = xdict["xvars"]
@@ -125,6 +127,12 @@ class TestTP109(OptTest):
             funcs["con"] = fcon[0:10]
         fail = False
 
+        # Depending on your compiler/CPU, SNOPT may only be measuring CPU time to the nearest millisecond, in these
+        # cases, SNOPT can sometimes solve the problem before it registers that any time has elapsed, which causes
+        # `test_snopt_informs` to fail. To fix this we simply slow down the function evaluation very slightly.
+        if self.slowDownFunc:
+            time.sleep(1e-3)
+
         return funcs, fail
 
     def setup_optProb(self):
@@ -175,16 +183,25 @@ class TestTP109(OptTest):
 
     def test_snopt_informs(self):
         self.optName = "SNOPT"
+        self.slowDownFunc = True
         self.setup_optProb()
         sol = self.optimize(optOptions={"Time Limit": 1e-15})
         self.assert_inform_equal(sol, 34)
 
-    @parameterized.expand(["SLSQP", "PSQP", "NLPQLP"])
+    def test_uno_informs(self):
+        self.optName = "Uno"
+        self.slowDownFunc = True
+        self.setup_optProb()
+        sol = self.optimize(sens="CS", optOptions={"time_limit": 1e-15, "logger": "SILENT"})
+        self.assert_inform_equal(sol, 2)
+
+    @parameterized.expand(["SLSQP", "PSQP", "NLPQLP", "Uno"])
     def test_optimization(self, optName):
         self.optName = optName
         self.setup_optProb()
-        sol = self.optimize(sens="CS")
-        self.assert_solution_allclose(sol, 1e-7)
+        options = {"preset": "ipopt"} if optName == "Uno" else None
+        sol = self.optimize(sens="CS", optOptions=options)
+        self.assert_solution_allclose(sol, 1e-6 if optName == "Uno" else 1e-7)
         # Check that the function values in the solution are real
         self.assertTrue(np.isrealobj(sol.objectives["obj"].value))
         self.assertTrue(np.isrealobj(sol.constraints["con"].value))

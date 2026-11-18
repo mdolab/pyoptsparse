@@ -25,7 +25,9 @@ class CONMIN(Optimizer):
     CONMIN Optimizer Class - Inherited from Optimizer Abstract Class
     """
 
-    def __init__(self, raiseError=True, options={}):
+    def __init__(self, raiseError=True, options=None):
+        if options is None:
+            options = {}
         name = "CONMIN"
         category = "Local Optimizer"
         defOpts = self._getDefaultOptions()
@@ -210,7 +212,7 @@ class CONMIN(Optimizer):
             dabfun = self.getOption("DABFUN")
 
             itrm = self.getOption("ITRM")
-            nfeasct = self.getOption("ITRM")
+            nfeasct = self.getOption("NFEASCT")
             nfdg = 1  # User will supply all gradients
 
             # Counters for functions and gradients

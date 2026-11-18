@@ -1,6 +1,7 @@
 """Test solution of problem HS71 from the Hock & Schittkowski collection"""
 
 # Standard Python modules
+import pathlib
 import unittest
 
 # External modules
@@ -23,7 +24,7 @@ class TestHS71(OptTest):
     xStar = {"xvars": (1.0, 4.743, 3.82115, 1.37941)}
     lambdaStar = {"con": (0.55229366, -0.16146857)}
 
-    # Tolerances
+    # Tolerances for the f/x solution
     tol = {
         "SNOPT": 1e-6,
         "IPOPT": 1e-6,
@@ -31,12 +32,23 @@ class TestHS71(OptTest):
         "SLSQP": 1e-6,
         "CONMIN": 1e-3,
         "PSQP": 1e-6,
+        "Uno": 1e-4,
+        "Egor": 1e-2,
+    }
+    # Tolerances for the Lagrange multipliers, kept separate from `tol` since multiplier
+    # estimates can be less accurate than the primal solution (notably for SLSQP)
+    lambdaTol = {
+        "SNOPT": 1e-5,
+        "IPOPT": 1e-5,
+        "Uno": 1e-4,
+        "SLSQP": 2e-3,
     }
     optOptions = {
         "CONMIN": {
             "DELFUN": 1e-10,
             "DABFUN": 1e-10,
-        }
+        },
+        "Egor": {"max_iters": 100, "seed": 42, "trego": {"n_global_local_steps": (1, 4)}},
     }
 
     def objfunc(self, xdict):
@@ -86,7 +98,7 @@ class TestHS71(OptTest):
         newDV = {"xvars": np.array([1, 4, 4, 1])}
         self.setup_optProb(xScale=1.5, conScale=1.2, objScale=32, offset=1.5)
         sol = self.optimize(setDV=newDV, storeHistory=histFileName)
-        self.assert_solution_allclose(sol, self.tol["SLSQP"])
+        self.assert_solution_allclose(sol, self.tol["SLSQP"], lambda_tol=self.lambdaTol["SLSQP"])
         # Verify the history file
         hist = History(histFileName, flag="r")
         init = hist.getValues(names="xvars", callCounters="0", scale=False)
@@ -117,24 +129,30 @@ class TestHS71(OptTest):
         # since we restarted from the optimum
         self.assertEqual(second["xvars"].shape, (1, 4))
 
-    def test_slsqp_scaling_offset_optProb(self):
+    @parameterized.expand(["SLSQP", "IPOPT"])
+    def test_scaling_offset_optProb(self, optName):
         """
         Test that scaling and offset works as expected
         Also test optProb stored in the history file is correct
         """
-        self.optName = "SLSQP"
-        histFileName = "hs071_SLSQP_scaling_offset.hst"
+        self.optName = optName
+        histFileName = f"hs071_{optName}_scaling_offset.hst"
         objScale = 4.2
         xScale = [2, 3, 4, 5]
         conScale = [0.6, 1.7]
         offset = [1, -2, 40, 2.5]
         self.setup_optProb(objScale=objScale, xScale=xScale, conScale=conScale, offset=offset)
         sol = self.optimize(storeHistory=histFileName)
-        self.assert_solution_allclose(sol, self.tol["SLSQP"])
+        lambda_sign = -1.0 if optName == "IPOPT" else 1.0
+        self.assert_solution_allclose(
+            sol, self.tol[optName], lambda_sign=lambda_sign, lambda_tol=self.lambdaTol[optName]
+        )
         # now we retrieve the history file, and check the scale=True option is indeed
         # scaling things correctly
+        # IPOPT calls gradient and jacobian at first, so set callCounter = 2 for the first non-derivative call
+        callCounter = "2" if optName == "IPOPT" else "0"
         hist = History(histFileName, flag="r")
-        orig_values = hist.getValues(callCounters="0", scale=False)
+        orig_values = hist.getValues(callCounters=callCounter, scale=False)
         optProb = hist.getOptProb()
 
         # check that the scales are stored properly
@@ -147,13 +165,13 @@ class TestHS71(OptTest):
             assert_allclose(objScale, optProb.objectives[obj].scale, atol=1e-12, rtol=1e-12)
 
         # verify the scale option in getValues
-        scaled_values = hist.getValues(callCounters="0", scale=True, stack=False)
+        scaled_values = hist.getValues(callCounters=callCounter, scale=True, stack=False)
         x = orig_values["xvars"][0]
         x_scaled = scaled_values["xvars"][0]
         assert_allclose(x_scaled, (x - offset) * xScale, atol=1e-12, rtol=1e-12)
 
         # now do the same but with stack=True
-        stacked_values = hist.getValues(callCounters="0", scale=True, stack=True)
+        stacked_values = hist.getValues(callCounters=callCounter, scale=True, stack=True)
         x_scaled = stacked_values["xuser"][0]
         assert_allclose(x_scaled, (x - offset) * xScale, atol=1e-12, rtol=1e-12)
 
@@ -194,21 +212,76 @@ class TestHS71(OptTest):
         sol = self.optimize(optOptions={"max_cpu_time": 0.001})
         self.assert_inform_equal(sol, -4)
 
+    def test_uno_informs(self):
+        self.optName = "Uno"
+        self.setup_optProb()
+        # Test that the inform is 1 (Iteration Limit Exceeded) when iterations are too limited.
+        sol = self.optimize(optOptions={"max_iterations": 1, "logger": "SILENT"})
+        self.assert_inform_equal(sol, 1)
+
+    def test_uno_log_stream(self):
+        self.optName = "Uno"
+        self.setup_optProb()
+        for logger in ["SILENT", "DISCRETE", "WARNING", "INFO", "DEBUG", "DEBUG2", "DEBUG3"]:
+            log_path = pathlib.Path(f"uno_log_{logger}.txt")
+            with open(log_path, "w") as f:
+                sol = self.optimize(optOptions={"logger": logger, "logger_stream": f})
+                self.assert_inform_equal(sol, 0)
+            log_file_size = log_path.stat().st_size
+            if logger == "SILENT":
+                self.assertTrue(log_file_size == 0)
+            else:
+                self.assertTrue(log_file_size > 0)
+            log_path.unlink()
+
+    def test_uno_log_filename(self):
+        self.optName = "Uno"
+        self.setup_optProb()
+        for logger in ["SILENT", "DISCRETE", "WARNING", "INFO", "DEBUG", "DEBUG2", "DEBUG3"]:
+            log_filename = f"uno_log_{logger}_1.txt"
+            sol = self.optimize(optOptions={"logger": logger, "logger_stream": log_filename})
+            self.assert_inform_equal(sol, 0)
+            log_path = pathlib.Path(log_filename)
+            log_file_size = log_path.stat().st_size
+            if logger == "SILENT":
+                self.assertTrue(log_file_size == 0)
+            else:
+                self.assertTrue(log_file_size > 0)
+            log_path.unlink()
+
+    def test_uno_log_path(self):
+        self.optName = "Uno"
+        self.setup_optProb()
+        for logger in ["SILENT", "DISCRETE", "WARNING", "INFO", "DEBUG", "DEBUG2", "DEBUG3"]:
+            log_path = pathlib.Path(f"uno_log_{logger}_2.txt")
+            sol = self.optimize(optOptions={"logger": logger, "logger_stream": log_path})
+            self.assert_inform_equal(sol, 0)
+            log_file_size = log_path.stat().st_size
+            if logger == "SILENT":
+                self.assertTrue(log_file_size == 0)
+            else:
+                self.assertTrue(log_file_size > 0)
+            log_path.unlink()
+
     def test_psqp_informs(self):
         self.optName = "PSQP"
         self.setup_optProb()
         sol = self.optimize(optOptions={"MIT": 1})
         self.assert_inform_equal(sol, 11)
 
-    @parameterized.expand(["SNOPT", "IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP"])
+    @parameterized.expand(["SNOPT", "IPOPT", "SLSQP", "PSQP", "CONMIN", "NLPQLP", "Uno", "Egor"])
     def test_optimization(self, optName):
         self.optName = optName
         self.setup_optProb()
         optOptions = self.optOptions.pop(optName, None)
+        if optOptions is None:
+            optOptions = {}
         sol = self.optimize(optOptions=optOptions)
         # Check Solution
         lambda_sign = -1.0 if optName == "IPOPT" else 1.0
-        self.assert_solution_allclose(sol, self.tol[optName], lambda_sign=lambda_sign)
+        self.assert_solution_allclose(
+            sol, self.tol[optName], lambda_sign=lambda_sign, lambda_tol=self.lambdaTol.get(optName)
+        )
         # Check informs
         self.assert_inform_equal(sol)
         # Check the lagrange multipliers in the solution text
@@ -218,14 +291,14 @@ class TestHS71(OptTest):
         con2_line_num = constraint_header_line_num + 3
         lambda_con1 = float(lines[con1_line_num].split()[-1])
         lambda_con2 = float(lines[con2_line_num].split()[-1])
-        if optName in ("IPOPT", "SNOPT"):
+        if optName in ("IPOPT", "SNOPT", "Uno", "SLSQP"):
             # IPOPT returns Lagrange multipliers with opposite sign than SNOPT
             lambda_sign = -1.0 if optName == "IPOPT" else 1.0
             assert_allclose(
                 [lambda_con1, lambda_con2],
                 lambda_sign * np.asarray(self.lambdaStar[0]["con"]),
-                rtol=1.0e-5,
-                atol=1.0e-5,
+                rtol=self.lambdaTol[optName],
+                atol=self.lambdaTol[optName],
             )
         else:
             assert_allclose([lambda_con1, lambda_con2], [9.0e100, 9.0e100], rtol=1.0e-5, atol=1.0e-5)

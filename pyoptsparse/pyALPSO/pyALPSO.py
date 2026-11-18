@@ -26,7 +26,9 @@ class ALPSO(Optimizer):
     - pll_type -> STR: ALPSO Parallel Implementation (None, SPM- Static, DPM- Dynamic, POA-Parallel Analysis), *Default* = None
     """
 
-    def __init__(self, options={}):
+    def __init__(self, options=None):
+        if options is None:
+            options = {}
         self.alpso = alpso
 
         category = "Global Optimizer"

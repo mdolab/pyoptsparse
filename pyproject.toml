@@ -1,3 +1,57 @@
 [build-system]
-requires = ["setuptools>=42", "meson>=0.60.0", "ninja", "numpy>=2.0", "swig"]
-build-backend = "setuptools.build_meta"
+requires = ["meson-python", "ninja", "numpy>=2.0", "swig", "setuptools_scm[simple]>=8.2"]
+build-backend = "mesonpy"
+
+[project]
+name = "pyoptsparse"
+description = "Python package for formulating and solving nonlinear constrained optimization problems"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.11"
+dependencies = [
+    "packaging",
+    "sqlitedict>=1.6",
+    "numpy>=1.25",
+    "scipy>=1.11",
+    "mdolab-baseclasses>=1.3.1",
+]
+dynamic = ["version"]  # version is dynamically populated from meson project, which gets it from setuptools_scm
+
+[project.optional-dependencies]
+optview = [
+    "dash",
+    "plotly",
+    "matplotlib"
+]
+docs = [
+    "sphinx",
+    "sphinx_rtd_theme"
+]
+testing = [
+    "testflo>=1.4.5",
+    "parameterized",
+    "unopy<=0.4.14",
+    "cyipopt",
+    "egobox>=0.38.0",
+]
+dev = [
+    "meson-python",
+    "ninja",
+    "numpy",
+    "swig",
+    "testflo>=1.4.5",
+    "parameterized",
+    "setuptools_scm>=8.2",
+]
+
+# Version is derived from git tags (or PKG-INFO in an sdist, or SETUPTOOLS_SCM_PRETEND_VERSION).
+# meson runs `python -m setuptools_scm` at configure time, which writes pyoptsparse/_version.py.
+[tool.setuptools_scm]
+version_file = "pyoptsparse/_version.py"
+
+[project.urls]
+Homepage = "https://github.com/mdolab/pyoptsparse"
+
+[project.scripts]
+optview = "pyoptsparse.postprocessing.OptView:main"
+optview_dash = "pyoptsparse.postprocessing.OptView_dash:main"

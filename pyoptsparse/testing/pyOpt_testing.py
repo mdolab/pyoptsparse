@@ -55,14 +55,16 @@ OUTPUT_FILENAMES = {
     "NLPQLP": {"iFile": ".out"},
     "ParOpt": {"output_file": ".out", "tr_output_file": ".tr", "mma_output_file": ".mma"},
     "ALPSO": {"filename": ".out"},
+    "Egor": {},
     "NSGA2": {},
+    "Uno": {"logger_stream": ".out"},
 }
 
 # these are optimizers which are installed by default
 DEFAULT_OPTIMIZERS = {"SLSQP", "PSQP", "CONMIN", "ALPSO", "NSGA2"}
 
 # Define gradient-based optimizers
-GRAD_BASED_OPTIMIZERS = {"CONMIN", "IPOPT", "NLPQLP", "ParOpt", "PSQP", "SLSQP", "SNOPT"}
+GRAD_BASED_OPTIMIZERS = {"CONMIN", "IPOPT", "NLPQLP", "PSQP", "SLSQP", "SNOPT", "Uno"}
 
 
 class OptTest(unittest.TestCase):
@@ -85,7 +87,7 @@ class OptTest(unittest.TestCase):
     def setUp(self):
         self.histFileName = None
 
-    def assert_solution_allclose(self, sol, tol, partial_x=False, lambda_sign=1.0):
+    def assert_solution_allclose(self, sol, tol, partial_x=False, lambda_sign=1.0, lambda_tol=None):
         """
         An assertion method to check that the solution object matches the expected
         optimum values defined in the class.
@@ -104,7 +106,12 @@ class OptTest(unittest.TestCase):
             The sign of the Lagrange multipliers returned by the optimizer. By convention,
             SNOPT and ParOpt return a sign that agrees with the test data, while IPOPT
             returns the opposite sign.
+        lambda_tol : float, optional
+            The tolerance for the Lagrange multiplier assertion. Multiplier estimates can be
+            less accurate than the primal solution, so this is kept separate from ``tol`` to avoid loosening the ``f``/``x`` checks. Defaults to ``tol``.
         """
+        if lambda_tol is None:
+            lambda_tol = tol
         if not isinstance(self.xStar, list):
             self.xStar = [self.xStar]
         if not isinstance(self.fStar, list):
@@ -144,7 +151,7 @@ class OptTest(unittest.TestCase):
             and sol.lambdaStar is not None
         ):
             lamStar = {con: lambda_sign * lam for con, lam in sol.lambdaStar.items()}
-            assert_dict_allclose(lamStar, self.lambdaStar[self.sol_index], atol=tol, rtol=tol)
+            assert_dict_allclose(lamStar, self.lambdaStar[self.sol_index], atol=lambda_tol, rtol=lambda_tol)
 
         # test printing solution
         print(sol)
@@ -178,6 +185,8 @@ class OptTest(unittest.TestCase):
         A general helper function to set a default output file name in optOptions
         based on the optimizer and test method name.
 
+        If the output file name option is already set in optOptions, it is left unchanged.
+
         Parameters
         ----------
         optOptions : dict
@@ -192,7 +201,8 @@ class OptTest(unittest.TestCase):
         for optionName, suffix in OUTPUT_FILENAMES[self.optName].items():
             # self.id() is provided by unittest.TestCase automatically
             # which is an unambiguous identifier
-            optOptions[optionName] = f"{self.id()}{suffix}"
+            if optionName not in optOptions:
+                optOptions[optionName] = f"{self.id()}{suffix}"
         return optOptions
 
     def optimize(self, sens=None, setDV=None, optOptions=None, storeHistory=False, hotStart=False):
@@ -340,6 +350,8 @@ class OptTest(unittest.TestCase):
         times = hist.getValues(names="time", major=False)["time"]
         # the times should be monotonically increasing
         self.assertTrue(np.all(np.diff(times) > 0))
+        # all iterations are returned, not only the major ones
+        self.assertGreaterEqual(len(times), len(hist.getValues(names="time", major=True)["time"]))
 
         # this check is only used for optimizers that guarantee '0' and 'last' contain funcs
         if self.optName in ["SNOPT", "PSQP"]:

@@ -2,9 +2,11 @@
 from collections import OrderedDict
 import copy
 import os
+from typing import Any
 
 # External modules
 import numpy as np
+import numpy.typing as npt
 from sqlitedict import SqliteDict
 
 # Local modules
@@ -57,7 +59,7 @@ class History:
         self.temp = temp
         self.fileName = fileName
 
-    def close(self):
+    def close(self) -> None:
         """
         Close the underlying database.
         This should only be used in write mode. In read mode, we close the db
@@ -68,7 +70,7 @@ class History:
             if self.temp:
                 os.remove(self.fileName)
 
-    def write(self, callCounter, data):
+    def write(self, callCounter: int, data: dict) -> None:
         """
         This is the main to write data. Basically, we just pass in
         the callCounter, the integer forming the key, and a dictionary
@@ -95,7 +97,7 @@ class History:
         self.db.sync()
         self.keys = list(self.db.keys())
 
-    def writeData(self, key, data):
+    def writeData(self, key: str, data: Any) -> None:
         """
         Write arbitrary `key:data` value to db.
 
@@ -111,7 +113,7 @@ class History:
         self.db.commit()
         self.keys = list(self.db.keys())
 
-    def pointExists(self, callCounter):
+    def pointExists(self, callCounter: int | str) -> bool:
         """
         Determine if callCounter is in the database
 
@@ -129,7 +131,7 @@ class History:
             callCounter = str(callCounter)
         return callCounter in self.keys
 
-    def read(self, key):
+    def read(self, key: int | str) -> dict | None:
         """
         Read data for an arbitrary key. Returns None if key is not found.
         If passing in a callCounter, it should be verified by calling pointExists() first.
@@ -152,7 +154,7 @@ class History:
         except KeyError:
             return None
 
-    def _searchCallCounter(self, x):
+    def _searchCallCounter(self, x: npt.NDArray[np.floating], last: int | None = None) -> int | None:
         """
         Searches through existing callCounters, and finds the one corresponding
         to an evaluation at the design vector `x`.
@@ -160,8 +162,10 @@ class History:
 
         Parameters
         ----------
-        x : ndarray
+        x : npt.NDArray[np.floating]
             The unscaled DV as a single array.
+        last : int, optional
+            The last callCounter to search from. If not provided, use the last callCounter in db.
 
         Returns
         -------
@@ -173,7 +177,8 @@ class History:
         -----
         The tolerance used for this is the value `numpy.finfo(numpy.float64).eps`.
         """
-        last = int(self.db["last"])
+        if last is None:
+            last = int(self.db["last"])
         callCounter = None
         for i in range(last, 0, -1):
             key = str(i)
@@ -183,7 +188,7 @@ class History:
                 break
         return callCounter
 
-    def _processDB(self):
+    def _processDB(self) -> None:
         """
         Pre-processes the DB file and store various values into class attributes.
         These will be used later when calling self.getXX functions.
@@ -209,11 +214,19 @@ class History:
         # extract all information stored in the call counters
         self.iterKeys = set()
         self.extraFuncsNames = set()
+        funcEvalKeys = None
         for i in self.callCounters:
             val = self.read(i)
             self.iterKeys.update(val.keys())
             if "funcs" in val.keys():
                 self.extraFuncsNames.update(val["funcs"].keys())
+                if funcEvalKeys is None:
+                    funcEvalKeys = set(val.keys())
+                else:
+                    funcEvalKeys.intersection_update(val.keys())
+        # keys that are missing from some function evaluations, such as the values
+        # SNOPT stores only at major iterations
+        self.majorIterKeys = self.iterKeys.difference(funcEvalKeys or set())
         # remove objective and constraint keys
         self.extraFuncsNames = self.extraFuncsNames.difference(self.conNames).difference(self.objNames)
 
@@ -226,14 +239,15 @@ class History:
 
     def getIterKeys(self):
         """
-        Returns the keys available at each optimization iteration.
+        Returns the keys stored at the optimization iterations.
         This function is useful for inspecting the history file, to determine
         what information is saved at each iteration.
+        Some keys are only stored at major iterations, such as ``merit`` for SNOPT.
 
         Returns
         -------
         list of str
-            A list containing the names of keys stored at each optimization iteration.
+            A list containing the names of keys stored at any optimization iteration.
         """
         return copy.deepcopy(list(self.iterKeys))
 
@@ -511,6 +525,10 @@ class History:
 
         major : bool
             flag to specify whether to include only major iterations.
+            Some values are only stored at major iterations, such as ``merit`` for SNOPT.
+            If such a value is requested in `names` with ``major=False``, `major` is set to True.
+            If `names` is None, such values are left out instead, and the other values are
+            returned for all iterations.
 
         scale : bool
             flag to specify whether to apply scaling for the values. True means
@@ -567,6 +585,7 @@ class History:
             .union(self.extraFuncsNames)
             .difference({"funcs", "funcsSens", "xuser"})
         )
+        namesGiven = names is not None
         # cast string input into a single list
         if isinstance(names, str):
             names = {names}
@@ -592,12 +611,20 @@ class History:
                     + "Otherwise, consider renaming the variable or manually editing the history file."
                 )
 
-        if len(names.intersection(self.iterKeys)) > 0:
-            if not major:
+        majorOnlyNames = names.intersection(self.majorIterKeys)
+        if len(majorOnlyNames) > 0 and not major:
+            if namesGiven:
                 pyOptSparseWarning(
-                    "The major flag has been set to True, since some names specified only exist on major iterations."
+                    f"The major flag has been set to True, since the names {sorted(majorOnlyNames)} "
+                    + "only exist on major iterations."
                 )
                 major = True
+            else:
+                names = names.difference(majorOnlyNames)
+                pyOptSparseWarning(
+                    f"The names {sorted(majorOnlyNames)} only exist on major iterations "
+                    + "and are not returned, since the major flag is False."
+                )
 
         if stack:
             DVinNames = names.intersection(self.DVNames)
@@ -732,7 +759,7 @@ class History:
             # end if - ("funcs" in val.keys()
         # end if - pointExists
 
-    def __del__(self):
+    def __del__(self) -> None:
         try:
             self.db.close()
             if self.temp:

@@ -7,6 +7,7 @@ import unittest
 # External modules
 from baseclasses.utils import readPickle, writePickle
 import numpy as np
+from numpy.testing import assert_allclose
 from parameterized import parameterized
 
 # First party modules
@@ -47,8 +48,16 @@ class TestHS15(OptTest):
         "IPOPT": 1e-4,
         "CONMIN": 1e-10,
         "PSQP": 5e-12,
+        "Uno": 1e-4,
+        "Egor": 5e-2,
     }
-    optOptions = {}
+    optOptions = {
+        "Egor": {
+            "max_iters": 50,
+            "n_doe": 30,
+            "seed": 42,
+        }
+    }
 
     def objfunc(self, xdict):
         self.nf += 1
@@ -116,21 +125,75 @@ class TestHS15(OptTest):
         # sol_xvars = [sol.variables["xvars"][i].value for i in range(2)]
         # assert_allclose(sol_xvars, dv["xvars"], atol=tol, rtol=tol)
 
-    @parameterized.expand(["SLSQP", "PSQP", "CONMIN", "NLPQLP"])
+    @parameterized.expand(["SLSQP", "PSQP", "CONMIN", "NLPQLP", "Egor"])
     def test_optimization(self, optName):
         self.optName = optName
         self.setup_optProb()
-        optOptions = self.optOptions.pop(optName, None)
+        optOptions = self.optOptions.get(optName, None)
         sol = self.optimize(optOptions=optOptions)
         # Check Solution
         self.assert_solution_allclose(sol, self.tol[optName])
         # Check informs
         self.assert_inform_equal(sol)
 
+    def test_uno(self):
+        self.optName = "Uno"
+        self.setup_optProb()
+        sol = self.optimize()
+        # Check Solution
+        self.assert_solution_allclose(sol, 1e-4)
+        # Check informs
+        self.assert_inform_equal(sol)
+
+    @parameterized.expand(["filtersqp", "filterslp", "funnelsqp", "ipopt"])
+    def test_uno_presets(self, preset):
+        self.optName = "Uno"
+        self.setup_optProb()
+        optOptions = {"preset": preset}
+        sol = self.optimize(optOptions=optOptions)
+        # Check Solution
+        self.assert_solution_allclose(sol, 1e-4)
+        # Check informs
+        self.assert_inform_equal(sol)
+
+    def test_uno_save_major_iteration_variables(self):
+        self.optName = "Uno"
+        self.setup_optProb()
+        store_vars = ["lower_bound_multipliers", "upper_bound_multipliers", "constraint_multipliers"]
+        optOptions = {"save_major_iteration_variables": store_vars}
+        sol = self.optimize(optOptions=optOptions, storeHistory=True)
+        # Check Solution
+        self.assert_solution_allclose(sol, 1e-4)
+        self.assert_inform_equal(sol)
+
+        hist = History(self.histFileName, flag="r")
+
+        # Always-on residuals must appear in major-iteration records
+        data = hist.getValues(callCounters=["last"])
+        default_store_vars = [
+            "primal_feasibility_residual",
+            "stationarity_residual",
+            "complementarity_residual",
+            "objective_multiplier",
+            "nMajor",
+        ]
+        for var in default_store_vars + store_vars:
+            self.assertIn(var, data.keys(), msg=f"Expected key '{var}' in major-iteration data")
+
+        # Opt-in multipliers must have the right shapes.
+        # nDV is the total number of scalar design variables; nCon is the total
+        # number of scalar constraints (sum over all constraint groups).
+        nDV = len(sol.xStar["xvars"])
+        nCon = sum(con.ncon for con in sol.constraints.values())
+        self.assertEqual(data["lower_bound_multipliers"].shape, (1, nDV))
+        self.assertEqual(data["upper_bound_multipliers"].shape, (1, nDV))
+        self.assertEqual(data["constraint_multipliers"].shape, (1, nCon))
+
     def test_ipopt(self):
         self.optName = "IPOPT"
         self.setup_optProb()
-        optOptions = self.optOptions.pop(self.optName, None)
+        store_vars = ["alg_mod", "d_norm", "regularization_size", "ls_trials", "g_violation", "grad_lag_x"]
+        optOptions = {"save_major_iteration_variables": store_vars}
         sol = self.optimize(optOptions=optOptions, storeHistory=True)
         # Check Solution
         self.assert_solution_allclose(sol, self.tol[self.optName])
@@ -144,11 +207,46 @@ class TestHS15(OptTest):
         data_last = hist.read(hist.read("last"))
         self.assertGreater(data_last["iter"], 0)
 
+        # Check entries in iteration data
+        data = hist.getValues(callCounters=["last"])
+        default_store_vars = ["inf_pr", "inf_du", "mu", "alpha_pr", "alpha_du"]
+        for var in default_store_vars + store_vars:
+            self.assertIn(var, data.keys())
+        self.assertEqual(data["inf_pr"].shape, (1, 1))
+        self.assertEqual(data["inf_du"].shape, (1, 1))
+        self.assertEqual(data["g_violation"].shape, (1, 2))
+        self.assertEqual(data["grad_lag_x"].shape, (1, 2))
+
         # Make sure there is no duplication in objective history
         data = hist.getValues(names=["obj"])
         objhis_len = data["obj"].shape[0]
         for i in range(objhis_len - 1):
             self.assertNotEqual(data["obj"][i], data["obj"][i + 1])
+
+    @parameterized.expand([("SNOPT", "merit"), ("IPOPT", "mu"), ("Uno", "stationarity_residual")])
+    def test_history_minor_iterations(self, optName, majorOnlyKey):
+        self.optName = optName
+        self.setup_optProb()
+        self.optimize(storeHistory=True)
+        hist = History(self.histFileName, flag="r")
+        objMajor = hist.getValues(names="obj", major=True)["obj"]
+        objAll = hist.getValues(names="obj", major=False)["obj"]
+        self.assertGreater(len(objAll), len(objMajor))
+
+        # values stored at every iteration are returned for all iterations
+        data = hist.getValues(names=["time", "isMajor"], major=False)
+        self.assertEqual(len(data["time"]), len(objAll))
+        self.assertFalse(data["isMajor"].all())
+
+        # with names=None, values stored only at major iterations are left out
+        data = hist.getValues(major=False)
+        self.assertNotIn(majorOnlyKey, data)
+        assert_allclose(data["obj"], objAll)
+
+        # requesting a value stored only at major iterations sets major=True
+        data = hist.getValues(names=["obj", majorOnlyKey], major=False)
+        assert_allclose(data["obj"], objMajor)
+        self.assertEqual(len(data[majorOnlyKey]), len(objMajor))
 
     def test_snopt_hotstart(self):
         self.optName = "SNOPT"

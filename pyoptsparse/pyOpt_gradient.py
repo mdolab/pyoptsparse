@@ -1,9 +1,9 @@
 # Standard Python modules
-from typing import Tuple, Union
+from typing import Literal
 
 # External modules
 import numpy as np
-from numpy import ndarray
+import numpy.typing as npt
 
 # Local modules
 from .pyOpt_MPI import MPI
@@ -12,7 +12,14 @@ from .pyOpt_types import Dict1DType, Dict2DType
 
 
 class Gradient:
-    def __init__(self, optProb: Optimization, sensType: str, sensStep: float = None, sensMode: str = "", comm=None):
+    def __init__(
+        self,
+        optProb: Optimization,
+        sensType: Literal["fd", "cd", "fdr", "cdr", "cs"],
+        sensStep: float | complex | None = None,
+        sensMode: str = "",
+        comm=None,
+    ):
         """
         Gradient class for automatically computing gradients with finite
         difference or complex step.
@@ -23,21 +30,22 @@ class Gradient:
             This is the complete description of the optimization problem.
 
         sensType : str
-            - ``FD`` for forward difference
-            - ``CD`` for central difference
-            - ``FDR`` for forward difference with relative step size
-            - ``CDR`` for central difference with relative step size
-            - ``CS`` for complex step
+            - ``fd`` for forward difference
+            - ``cd`` for central difference
+            - ``fdr`` for forward difference with relative step size
+            - ``cdr`` for central difference with relative step size
+            - ``cs`` for complex step
 
-        sensStep : float
-            Step size to use for differencing
+        sensStep : float | complex, optional
+            Step size to use for differencing. By default ``1e-6`` for ``fd/fdr``, ``1e-4`` for ``cd/cdr``, ``1e-40j`` for ``cs``.
+            Must be a purely imaginary value for ``cs``.
 
         sensMode : str
             Flag to compute gradients in parallel.
         """
         self.optProb = optProb
         self.sensType = sensType
-        self.sensStep: Union[float, complex]
+        self.sensStep: float | complex
         if sensStep is None:
             if self.sensType in ["fd", "fdr"]:
                 self.sensStep = 1e-6
@@ -47,6 +55,18 @@ class Gradient:
                 self.sensStep = 1e-40j
         else:
             self.sensStep = sensStep
+
+        if self.sensType == "cs":
+            # Complex step divides by the imaginary part of the step, so a purely
+            # real step would silently yield NaN gradients.
+            if np.imag(self.sensStep) == 0:
+                raise ValueError(f"The complex step size must have a nonzero imaginary part, got {self.sensStep}.")
+
+            # A nonzero real part would perturb x along the real axis as well, corrupting the function
+            # value used implicitly in the complex-step formula.
+            if np.real(self.sensStep) != 0:
+                raise ValueError(f"The complex step size must have a zero real part, got {self.sensStep}.")
+
         self.sensMode = sensMode
         self.comm = comm
 
@@ -58,7 +78,9 @@ class Gradient:
         else:
             self.mydvs = list(range(ndvs))
 
-    def _eval_func(self, x: ndarray) -> Tuple[ndarray, ndarray, bool]:
+    def _eval_func(
+        self, x: npt.NDArray[np.floating]
+    ) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating], bool]:
         """Internal method to call function and extract obj, con"""
 
         xCall = self.optProb.processXtoDict(x)
@@ -76,7 +98,7 @@ class Gradient:
 
         return fobj, fcon, fail
 
-    def __call__(self, x: Dict1DType, funcs: Dict1DType) -> Tuple[Dict2DType, bool]:
+    def __call__(self, x: Dict1DType, funcs: Dict1DType) -> tuple[Dict2DType, bool]:
         """
         We need to make this object "look" the same as a user supplied
         function handle. That way, the optimizers need not care how
