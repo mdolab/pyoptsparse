@@ -174,6 +174,10 @@ class SLSQP(Optimizer):
                     pyOptSparseWarning("Values in x were outside bounds during a minimize step, clipping to bounds")
                 fobj, fcon, fail = self._masterFunc(np.clip(x, blx, bux), ["fobj", "fcon"])
                 f = fobj
+                # _masterFunc returns the one-sided constraints in pyOptSparse's internal
+                # convention, fcon = fact * c - offset, which is feasible when fcon <= 0.
+                # SLSQP uses the opposite convention (feasible when g(x) >= 0), so we flip
+                # the sign here; g = -fcon is the same constraint in SLSQP's form.
                 g[0:m] = -fcon
                 slsqp.pyflush(self.getOption("IOUT"))
                 return f, g
@@ -184,6 +188,8 @@ class SLSQP(Optimizer):
             def slgrad(m, me, la, n, f, g, df, dg, x):
                 gobj, gcon, fail = self._masterFunc(np.clip(x, blx, bux), ["gobj", "gcon"])
                 df[0:n] = gobj.copy()
+                # Same sign flip as in slfunc: convert the gradient of pyOptSparse's
+                # fcon (feasible <= 0) into the gradient of SLSQP's g = -fcon (feasible >= 0).
                 dg[0:m, 0:n] = -gcon.copy()
                 slsqp.pyflush(self.getOption("IOUT"))
                 return df, dg
@@ -230,24 +236,13 @@ class SLSQP(Optimizer):
             # so this just makes the output consistent with what the optimizer sees)
             xs = np.clip(xs, blx, bux)
 
-            # some entries of W include the lagrange multipliers
-            # for each constraint, there are two entries (lower, upper).
-            # if only one is active, look for the nonzero. If both are active, take the first one
-            # FIXME: this does not currently work, so we do not save lambdaStar
-            # to the solution object
-            lambdaStar = []
-            idx = 0
-
-            for c_name in optProb.constraints:
-                c = optProb.constraints[c_name]
-                for _j in range(c.ncon):
-                    lambdaStar_lower = w[2 * idx]
-                    lambdaStar_upper = w[2 * idx + 1]
-                    if abs(lambdaStar_lower) > 1e-100:
-                        lambdaStar.append(lambdaStar_lower)
-                    else:
-                        lambdaStar.append(lambdaStar_upper)
-                    idx += 1
+            # Per the SLSQP docstring, on return W(1) ... W(M) contain the multipliers
+            # associated with the M general (one-sided) constraints, one entry per
+            # constraint, in the same order as self.optProb.jacIndices (set above from
+            # getOrdering). These multipliers are for the negated constraint,
+            # i.e. g = -fcon >= 0 (see the sign flip in slfunc/slgrad). We flip them here
+            # to be consistent with the other optimizers and scipy's SLSQP.
+            lambdaStar = -w[:m]
 
             if self.storeHistory:
                 self.metadata["endTime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -266,7 +261,7 @@ class SLSQP(Optimizer):
             sol_inform = SolutionInform.from_informs(self.informs, inform)
 
             # Create the optimization solution
-            sol = self._createSolution(optTime, sol_inform, ff, xs)
+            sol = self._createSolution(optTime, sol_inform, ff, xs, multipliers=lambdaStar)
 
         else:  # We are not on the root process so go into waiting loop:
             self._waitLoop()
