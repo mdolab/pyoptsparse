@@ -3,7 +3,7 @@ Tests that pyoptsparse allows an objective or gradient function to return a "2"
 as its fail status.  This status is returned to the Optimizer indicating that
 termination has been requested by the user.
 
-The proper response of the pyIPOPT and pySNOPT optimizers are tested.
+The proper response of the pyIPOPT, pySNOPT, pyUno and pyEgor optimizers are tested.
 """
 
 # Standard Python modules
@@ -89,15 +89,17 @@ class TestUserTerminationStatus(unittest.TestCase):
             "preset": "ipopt",
             "logger": "SILENT",
         },
+        "Egor": {},
     }
 
     optExitCode = {
         "IPOPT": 5,
         "SNOPT": 71,
         "Uno": 5,  # User Termination from Uno informs
+        "Egor": 3,  # Interruption from Egor informs
     }
 
-    @parameterized.expand(["IPOPT", "SNOPT", "Uno"])
+    @parameterized.expand(["IPOPT", "SNOPT", "Uno", "Egor"])
     def test_obj(self, optName):
         termcomp = TerminateComp(max_obj=2)
         optProb = setup_optProb(termcomp)
