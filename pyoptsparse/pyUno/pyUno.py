@@ -21,7 +21,7 @@ from ..pyOpt_utils import ICOL, INFINITY, IROW, convertToCOO, extractRows, impor
 unopy = import_module("unopy")
 
 
-_UNOPY_MIN_VERSION = "0.4.7"
+_UNOPY_MIN_VERSION = "0.4.17"
 
 
 class _UserTerminationError(Exception):
@@ -80,8 +80,7 @@ class Uno(Optimizer):
         self.jacType = "coo"
 
         # Options handled outside of unopy's set_option interface.
-        # 'preset' is applied via solver.set_preset() rather than set_option().
-        self.pythonOptions = {"preset", "logger_stream", "save_major_iteration_variables"}
+        self.pythonOptions = {"logger_stream", "save_major_iteration_variables"}
 
         # Save the result object from the optimize call separately from the
         # pyoptsparse Solution object, in case the user wants more detail.
@@ -124,16 +123,12 @@ class Uno(Optimizer):
             Default options with type and default value pairs.
         """
         defOpts = {
-            # Special options handled differently by Uno
-            "preset": [str, "filtersqp"],
-            "logger_stream": [(TextIO, str, pathlib.Path), None],
-            "save_major_iteration_variables": [list, []],
+            "preset": [str, "auto"],
             # Termination Options
             "primal_tolerance": [float, 1e-8],
             "dual_tolerance": [float, 1e-8],
-            "loose_primal_tolerance": [float, 1e-6],
-            "loose_dual_tolerance": [float, 1e-6],
-            "loose_tolerance_iteration_threshold": [int, 15],
+            "acceptable_tolerance": [float, 1e-6],
+            "acceptable_iteration_threshold": [int, 15],
             "max_iterations": [int, 2000],
             "time_limit": [float, float("inf")],
             "unbounded_objective_threshold": [float, -1e20],
@@ -149,6 +144,9 @@ class Uno(Optimizer):
             "protected_actual_reduction_macheps_coefficient": [float, 10.0],
             "hessian_model": [str, "LBFGS"],
             "quasi_newton_memory_size": [int, 20],
+            # Special options handled by the Python wrapper
+            "logger_stream": [(TextIO, str, pathlib.Path), None],
+            "save_major_iteration_variables": [list, []],
         }
         return defOpts
 
@@ -441,8 +439,6 @@ class Uno(Optimizer):
         solver : unopy.UnoSolver
             The Uno solver instance to configure.
         """
-        solver.set_preset(self.getOption("preset"))
-
         logger_stream = self.getOption("logger_stream")
         if logger_stream is not None:
             if isinstance(logger_stream, (str, pathlib.Path)):
