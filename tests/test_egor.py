@@ -211,14 +211,18 @@ class TestEgor(OptTest):
         """
         Run xsinx (initial DOE of 5 points) where ``terminate`` is called at evaluation ``at_call``.
         ``terminate`` returns the fail flag of that evaluation or raises.
+        Return the solution and the objective values evaluated before termination.
         """
         counter = {"n": 0}
+        objs = []
 
         def objfunc(xdict):
             counter["n"] += 1
             funcs = {"obj": (xdict["x"] - 3.5) * np.sin((xdict["x"] - 3.5) / np.pi)}
-            fail = terminate() if counter["n"] == at_call else False
-            return funcs, fail
+            if counter["n"] == at_call:
+                return funcs, terminate()
+            objs.append(float(funcs["obj"]))
+            return funcs, False
 
         optProb = Optimization("xsinx Function", objfunc)
         optProb.addVar("x", lower=0.0, upper=25.0, value=10.0)
@@ -230,24 +234,24 @@ class TestEgor(OptTest):
         # Egor stops at the evaluation requesting termination with the INTERRUPT status.
         self.assert_inform_equal(sol, 3)
         self.assertEqual(counter["n"], at_call)
-        return sol
+        return sol, objs
 
     def test_egor_user_termination(self):
-        # Termination after the initial DOE: handled by Egor, the best point is returned
-        sol = self.run_terminated_xsinx(lambda: 2)
-        self.assertTrue(np.isfinite(sol.fStar))
+        # Termination after the initial DOE: handled by Egor, the best point before termination is returned
+        sol, objs = self.run_terminated_xsinx(lambda: 2)
+        self.assertAlmostEqual(sol.fStar, min(objs))
 
     def test_egor_keyboard_interrupt(self):
-        # Ctrl+C after the initial DOE: handled by Egor, the best point is returned
+        # Ctrl+C after the initial DOE: handled by Egor, the best point before termination is returned
         def terminate():
             raise KeyboardInterrupt
 
-        sol = self.run_terminated_xsinx(terminate)
-        self.assertTrue(np.isfinite(sol.fStar))
+        sol, objs = self.run_terminated_xsinx(terminate)
+        self.assertAlmostEqual(sol.fStar, min(objs))
 
     def test_egor_user_termination_in_doe(self):
         # Termination during the initial DOE: no optimum available, the initial point is returned
-        sol = self.run_terminated_xsinx(lambda: 2, at_call=3)
+        sol, _ = self.run_terminated_xsinx(lambda: 2, at_call=3)
         self.assertTrue(np.isnan(sol.fStar))
         np.testing.assert_allclose(sol.xStar["x"], 10.0)
 
