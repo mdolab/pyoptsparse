@@ -4,9 +4,9 @@ gp_config:
     Main defaults are:
 
     - ``regr_spec``: 1 (Constant)
-    - ``corr_spec``: 2 (Squared Exponential)
+    - ``corr_spec``: 1 (Squared Exponential)
     - ``kpls_dim``: no PLS dimensionality reduction (otherwise int)
-    - ``n_clusters``: no clustering (otherwise int)
+    - ``n_clusters``: 1 (no clustering)
     - ``theta_n_start``: number of multistart runs for GP hyperparameters optimization
     - ``theta_max_eval``: max number of likelihood evaluations for GP hyperparameters optimization
 cstr_tols:
