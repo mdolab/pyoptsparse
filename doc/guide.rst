@@ -41,7 +41,7 @@ where:
 
  * ``funcs`` is the dictionary of constraints and objective value(s)
 
- * ``fail`` can be a Boolean or an int. False (or 0) for successful evaluation and True (or 1) for unsuccessful. Can also be 2 when using SNOPT and requesting a clean termination of the run.
+ * ``fail`` can be a Boolean or an int. False (or 0) for successful evaluation and True (or 1) for unsuccessful. Can also be 2 when using SNOPT, IPOPT, Uno or Egor and requesting a clean termination of the run.
 
 If the Optimization problem is unconstrained, ``funcs`` will contain only the objective key(s).
 
