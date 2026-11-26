@@ -40,7 +40,7 @@ class Egor(Optimizer):
         informs = {
             1: "Reached maximum number of iterations",
             2: "Reached target cost function value",
-            3: "Algorithm manually interrupted with SIGINT (Ctrl+C), SIGTERM or SIGHUP",
+            3: "Algorithm manually interrupted with SIGINT (Ctrl+C), SIGTERM, SIGHUP or user requested termination",
             4: "Algorithm peek at the same point twice. We consider it is converged.",
             5: "Timeout reached",
             6: "Solver unexpected exit. See logs for details.",
@@ -142,6 +142,19 @@ class Egor(Optimizer):
         if len(self.optProb.objectives) != 1:
             raise ValueError("Egor wrapper currently supports single-objective problems only.")
 
+        # Egor requires finite bounds. pyOptSparse stores missing bounds as -/+INFINITY (1e20),
+        # which is finite, so check against INFINITY rather than with np.isfinite.
+        unbounded = [
+            dvGroup
+            for dvGroup, varList in self.optProb.variables.items()
+            if any(not (-INFINITY < var.lower and var.upper < INFINITY) for var in varList)
+        ]
+        if unbounded:
+            raise ValueError(
+                "Egor requires finite lower and upper bounds on all design variables, "
+                f"but the following design variables are unbounded: {unbounded}."
+            )
+
         # Set history/hotstart/coldstart
         self._setHistory(storeHistory, hotStart)
         self._setInitialCacheValues()
@@ -153,9 +166,6 @@ class Egor(Optimizer):
         xs = np.maximum(xs, blx)
         xs = np.minimum(xs, bux)
         n = len(xs)
-
-        if np.any(~np.isfinite(blx)) or np.any(~np.isfinite(bux)):
-            raise ValueError("Egor requires finite lower and upper bounds for all design variables.")
 
         # Determine the number of constraints and set up constraint information
         # Constraints are kept two-sided, bounds are passed to Egor as constraint specs
@@ -232,6 +242,13 @@ class Egor(Optimizer):
                 for i in range(x_eval.shape[0]):
                     xi = np.clip(x_eval[i], blx, bux)
                     fobj, fcon, fail = self._masterFunc(xi, ["fobj", "fcon"])
+                    if fail == 2:
+                        # User requested termination. Egor would take a failed evaluation as
+                        # a point to reject and go on, so it is interrupted instead: Egor then
+                        # returns the best point found so far with the INTERRUPT status, or
+                        # raises KeyboardInterrupt if it has no result yet (see below).
+                        self.userRequestedTermination = True
+                        raise KeyboardInterrupt("User requested termination.")
                     if fail:
                         y[i, :] = np.nan
                         continue
@@ -258,7 +275,15 @@ class Egor(Optimizer):
             }
 
             t0 = time.time()
-            egor_result = solver.minimize(fun, **minimize_kwargs)
+            self.userRequestedTermination = False
+            try:
+                egor_result = solver.minimize(fun, **minimize_kwargs)
+            except KeyboardInterrupt:
+                # Termination requested by the user function (fail=2) before Egor had any result,
+                # i.e. during the initial DOE. Any other KeyboardInterrupt (Ctrl+C) propagates.
+                if not self.userRequestedTermination:
+                    raise
+                egor_result = None
             optTime = time.time() - t0
 
             if self.storeHistory:
@@ -270,14 +295,18 @@ class Egor(Optimizer):
             # Broadcast a -1 to indicate optimization has finished
             self.optProb.comm.bcast(-1, root=0)
 
-            # Optimizer has no standardized exit code mapping in this wrapper.
-            sol_inform = SolutionInform.from_informs(self.informs, int(egor_result.status.exit))
-
-            result = egor_result.result
-
-            xstar = np.asarray(result.x_opt, dtype=float).reshape(-1)
-            ystar = np.asarray(result.y_opt, dtype=float).reshape(-1)
-            fstar = float(ystar[0])
+            if egor_result is not None:
+                sol_inform = SolutionInform.from_informs(self.informs, int(egor_result.status.exit))
+                result = egor_result.result
+                xstar = np.asarray(result.x_opt, dtype=float).reshape(-1)
+                ystar = np.asarray(result.y_opt, dtype=float).reshape(-1)
+                fstar = float(ystar[0])
+            else:
+                # Termination requested by the user function before Egor had any result:
+                # same status as an interruption handled by Egor, no optimum available.
+                sol_inform = SolutionInform.from_informs(self.informs, 3)
+                xstar = xs
+                fstar = np.nan
 
             # Create the optimization solution
             sol = self._createSolution(optTime, sol_inform, fstar, xstar)
